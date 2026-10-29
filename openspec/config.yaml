@@ -1,0 +1,113 @@
+schema: spec-driven
+
+context: |
+  Project: Uplift (personal immersive simulation game to share locally with friends — not a commercial cloud product).
+
+  Concept & Setting:
+  - Inspired by Iain M. Banks' Culture novels (*Inversions*, *Matter*, *Use of Weapons* / Special Circumstances).
+  - The player is a covert agent implanted into a pre-industrial/feudal society (Era 1: Highglass Hold) with the goal of uplifting the civilization toward a cooperative, scientific post-scarcity future without letting seeded knowledge be weaponized into tyranny or exposing off-world interference.
+  - Each playable slice represents a distinct historical age (Generation/Epoch Jump). Advancing exports a `CivilizationLegacyState` snapshot carrying positive achievements, negative civilizational scars (`InheritedTrait[]`), and institutional character lineage mutations (`lineageId`) into the next age.
+
+  Hardware & Local-Only Constraints (non-negotiable):
+  - Target baseline hardware: 2019 Intel Core i7 MacBook Pro, 16GB RAM (macOS / cross-platform browser & desktop).
+  - 100% local execution after `git clone`, `npm install`, and `npm run setup-models`.
+  - ZERO external API keys, ZERO paid tokens, and ZERO cloud LLM/inference calls in runtime or tests.
+  - Local NLP uses a 3-stage hybrid pipeline:
+      1. Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act).
+      2. Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`, ~23MB cached in `./public/models/`).
+      3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, and period voice register — never generic chatbot prose).
+
+  Code Architecture (standing directive — do not skip):
+  - Clean Architecture layering with strict inward dependency direction:
+      interfaces (three, hud, composition, cli) -> application -> domain
+      infrastructure (onnx worker, model cache, persistence) -> domain
+      content (eras, characters, behaviors, worlds, mechanics) -> domain (for logic/topology) or interfaces/three (for 3D scene blueprints only)
+      domain MUST NOT import application, infrastructure, interfaces, content packs, `three`, `@huggingface/transformers`, or DOM/WebGL APIs.
+  - Pure Reducer & Typed Plugin State:
+      Behaviors and mechanics never mutate `WorldState` in place; they return `WorldEffect[]` applied by a deterministic reducer.
+      Custom module state MUST use typed `StateSliceKey<T>` descriptors, never untyped `Record<string, any>`.
+  - Strict TypeScript & Zero `any` Policy (non-negotiable):
+      `tsconfig.json` MUST enforce `"strict": true`, `"noImplicitAny": true`, `"strictNullChecks": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`, and `"noImplicitOverride": true`.
+      Both implicit `any` and explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) are strictly forbidden across `src/` and `tests/` and enforced automatically by `tests/architecture/layer_boundaries.test.ts` during `npm run verify`.
+  - Determinism:
+      `Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`. All simulation randomness MUST use the injected `SeededRandom` (Xorshift32) instance.
+
+  Plug-and-Play Modularity & Scalable World/Entity Tiers:
+  - Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or lore. All game content registers through declarative module contracts wired in `src/interfaces/composition/`:
+      - Characters (`CharacterBlueprint`): supports 3 cognitive/dialogue tiers:
+          * Tier 1 (`utility_schemer` / `full_hybrid`): Full hidden drives, foibles, epistemic rumor graph, and hybrid free-text + covert tactical dialogue.
+          * Tier 2 (`role_routine` / `contextual_bark`): Guards, apprentices, scribes — follow schedules, witness/report anomalies to Tier 1 figures, and support quick contextual interactions.
+          * Tier 3 (`ambient_crowd` / `overhear_only`): Townsfolk, laborers — 60 FPS steering with zero cognitive tick overhead; visually and vocally reflect `UpliftState`.
+      - Props (`PropBlueprint`): supports 2 tiers (`interactive` with inspect/tamper/tech-seed state, and `static` scenery with colliders, drone line-of-sight occlusion, and dynamic Uplift visual state).
+      - Spaces (`SpaceNode`): supports both `indoor_room` (walls, swinging doors, acoustic containment) and `outdoor_area` (free-roam courtyards/commons, wide sightlines, distance-based acoustic falloff `earshotRadiusMeters`) backed by a 2D spatial hash grid.
+      - Split Domain Topology (`WorldTopology`) from 3D Presentation (`WorldSceneBlueprint`) so 3D meshes/materials never leak into `src/domain/`.
+
+  Real-Time 60 FPS Experience vs Background Cognitive Ticks:
+  - Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, hovering drones) runs continuously at 60 FPS (`stepKinematics(dt)`).
+  - Perception & arrival pulses run every ~250ms (line-of-sight, acoustic earshot, waypoint arrival events).
+  - Cognitive & macro-world ticks run every ~8-12s in the background (Utility AI with +0.15 hysteresis commitment bonus, rumor decay, orbital bandwidth regeneration), assigning new target paths without ever teleporting or freezing physical entities.
+
+  Stack & Pinned Versions (verified 2026-10-29 — latest stable & CVE-patched releases, bump deliberately):
+  - Node.js LTS: 24.22.2 'Krypton' LTS or 26.13.0 'Lithium' LTS (includes Oct 21, 2026 security patches for CVE-2026-111497, CVE-2026-105482, CVE-2026-105483, CVE-2026-106069, CVE-2026-106074)
+  - npm: 12.2.1
+  - OpenSpec CLI (`@fission-ai/openspec`): 1.15.0
+  - TypeScript: 7.0.2
+  - Vite: 8.3.5
+  - Vitest: 5.0.5
+  - Three.js (`three`): 0.186.1 (`@types/three`: 0.186.0)
+  - Hugging Face Transformers (`@huggingface/transformers`): 4.3.2
+  - Node types (`@types/node`): 26.6.6 (or 24.19.2 on Node 24 LTS)
+
+  Planned Atomic Change Sequence for MVP - more may follow later (8 focused OpenSpec changes):
+  1. 01-clean-scaffold-and-verify      — Toolchain, Clean Architecture boundary test, SeededRandom, StateSliceKey, /verify
+  2. 02-modular-registries-and-kinematics — Module registries, pure WorldEffect reducer, 60Hz stepKinematics(dt), CivilizationLegacyState
+  3. 03-first-person-3d-shell          — Pure RenderFrameBuilder, Three.js 60 FPS indoor/outdoor shell, WASD + raycast controller
+  4. 04-live-npc-steering-and-props    — 60 FPS NPC waypoint/outdoor steering, head-tracking, animated doors/props, 2D spatial hash grid
+  5. 05-utility-ai-and-rumor-graph     — Hysteresis Utility AI, epistemic BeliefGraph, 3D eavesdropping barks, Highglass Hold cast
+  6. 06-tactical-and-discourse-dialogue — Physical dialogue interruption, tactical covert actions, discourse patience, period voice composer
+  7. 07-local-onnx-hybrid-intent       — Local MiniLM-L6-v2 setup script, 3-stage lexical + Web Worker ONNX free-text parser
+  8. 08-orbital-mind-and-era-gate      — Ship Mind HUD, Chitin-Scout drone, suspicion/cover economy, Psychohistory Forecast, Era 1 gate
+
+  Atomic Task & Commit Strategy (standing directive — "1 Task = 1 Verified Deliverable Commit"):
+  - Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks.
+  - Each task MUST touch at most 1-3 source files plus its corresponding test file, compile cleanly, pass `npm run verify`, and map 1:1 to a single Conventional Commit.
+
+  Hierarchical Documentation & Agent Guidance (standing directive — do not skip):
+  - Maintain a two-tier documentation and agent-instruction hierarchy across the repository:
+      1. Root `README.md`: High-level project overview, hardware/offline constraints, pinned dependency & CVE manifest, running/verification instructions, and a Directory Map linking to each section's `README.md`.
+      2. Root `AGENTS.md`: Global agent workflow, `/verify` loop, atomic commit policy, layer overview, and an Agent Map linking to each section's `AGENTS.md`.
+      3. Per-Section `README.md` & `AGENTS.md`: Every major codebase section (`src/domain/`, `src/application/`, `src/infrastructure/`, `src/content/`, `src/interfaces/`, and `tests/`) MUST maintain its own `README.md` (human-facing responsibilities, contracts, and module inventory) and `AGENTS.md` (agent-facing guardrails, allowed/forbidden imports, step-by-step extension recipes for plugins/content, and test patterns).
+  - `tests/architecture/layer_boundaries.test.ts` MUST verify that root `README.md` and `AGENTS.md` exist and link to all section `README.md` and `AGENTS.md` files, and that every major section contains both files.
+  - Whenever a change adds or modifies modules in a section, its final task MUST update the corresponding section's `README.md` and `AGENTS.md` (and root index links if new sections were added).
+
+rules:
+  proposal:
+    - "Include a Non-goals section to keep the change small and atomic"
+    - "State dependencies on prior changes in the 8-change sequence"
+    - "Explicitly state that runtime and tests require zero external API keys or cloud inference"
+    - "Describe how new modules plug into registries without modifying core domain loop code"
+  specs:
+    - "Specify observable domain, simulation, or rendering behavior using testable WHEN/THEN scenarios"
+    - "Enforce inward Clean Architecture boundaries, strict TypeScript (no implicit or explicit any), and deterministic SeededRandom behavior where applicable"
+  design:
+    - "Include the pinned-versions table verified on 2026-10-29 (including CVE-patched runtime/package versions)"
+    - "Document layer placement (domain, application, infrastructure, interfaces, content) for every new module"
+    - "Ensure 3D presentation data (WorldSceneBlueprint) never leaks into src/domain/"
+    - "Detail verification commands and headless testing strategy (no WebGL or 23MB ONNX load required in fast unit tests)"
+    - "Specify which section README.md and AGENTS.md files are created or updated by the change"
+  tasks:
+    - "Limit each change to 4-6 atomic tasks achievable within a single session"
+    - "Enforce the 1 Task = 1 Verified Commit rule where every task checkbox includes an explicit Verify command and a Commit Conventional Commit message"
+    - "Order tasks inward-out (domain -> application -> content/infrastructure/interfaces -> docs/verify) so every intermediate commit compiles and passes npm run verify"
+    - "End each change with a documentation, verification, and agentic-coding task that updates root and per-section README.md and AGENTS.md files"
+
+operations:
+  apply:
+    guidance:
+      - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, creating its atomic git commit, and marking - [x] in tasks.md before starting the next task"
+      - "Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/"
+      - "Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section"
+  archive:
+    guidance:
+      - "Confirm npm run verify passes and all task commits are clean before archiving"
+      - "Confirm root and per-section README.md and AGENTS.md files accurately reflect the completed change before archiving"
