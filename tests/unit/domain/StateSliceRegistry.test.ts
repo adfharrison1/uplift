@@ -6,8 +6,9 @@ import {
 } from '../../../src/domain/core/StateSliceRegistry.js';
 
 interface FoundryLedgerState {
-  readonly steelIngots: number;
-  readonly secretCannonOrder: boolean;
+  steelIngots: number;
+  secretCannonOrder: boolean;
+  notes: string[];
 }
 
 describe('StateSliceRegistry and StateSliceStore', () => {
@@ -15,6 +16,7 @@ describe('StateSliceRegistry and StateSliceStore', () => {
   const ledgerSlice = defineStateSlice<FoundryLedgerState>('foundry.ledger', {
     steelIngots: 12,
     secretCannonOrder: false,
+    notes: ['initial shipment'],
   });
 
   it('returns a cloned default value when a slice has not been set in StateSliceStore', () => {
@@ -22,29 +24,54 @@ describe('StateSliceRegistry and StateSliceStore', () => {
     expect(emptyStore.get(cannonProgressSlice)).toBe(0);
 
     const ledgerA = emptyStore.get(ledgerSlice);
-    expect(ledgerA).toEqual({ steelIngots: 12, secretCannonOrder: false });
+    expect(ledgerA).toEqual({
+      steelIngots: 12,
+      secretCannonOrder: false,
+      notes: ['initial shipment'],
+    });
+
+    // Mutating the returned object must not corrupt the store or defaultValue
+    ledgerA.steelIngots = 999;
+    ledgerA.notes.push('tampered');
+    expect(emptyStore.get(ledgerSlice)).toEqual({
+      steelIngots: 12,
+      secretCannonOrder: false,
+      notes: ['initial shipment'],
+    });
   });
 
-  it('updates slices immutably via withSlice and updateSlice without mutating prior instances', () => {
+  it('updates slices immutably via withSlice and updateSlice and round-trips via toSnapshot/fromSnapshot', () => {
     const store0 = new StateSliceStore();
     const store1 = store0.withSlice(cannonProgressSlice, 0.45);
     const store2 = store1.updateSlice(ledgerSlice, (prev) => ({
       ...prev,
       steelIngots: prev.steelIngots + 8,
       secretCannonOrder: true,
+      notes: [...prev.notes, 'cast barrel'],
     }));
 
     expect(store0.get(cannonProgressSlice)).toBe(0);
-    expect(store0.get(ledgerSlice)).toEqual({ steelIngots: 12, secretCannonOrder: false });
-
     expect(store1.get(cannonProgressSlice)).toBe(0.45);
-    expect(store1.get(ledgerSlice)).toEqual({ steelIngots: 12, secretCannonOrder: false });
+    expect(store2.get(ledgerSlice)).toEqual({
+      steelIngots: 20,
+      secretCannonOrder: true,
+      notes: ['initial shipment', 'cast barrel'],
+    });
 
-    expect(store2.get(cannonProgressSlice)).toBe(0.45);
-    expect(store2.get(ledgerSlice)).toEqual({ steelIngots: 20, secretCannonOrder: true });
-    expect(store2.toSnapshot()).toEqual({
-      'foundry.cannon_progress': 0.45,
-      'foundry.ledger': { steelIngots: 20, secretCannonOrder: true },
+    // Mutating an object retrieved from store2 must not affect store2
+    const retrieved = store2.get(ledgerSlice);
+    retrieved.steelIngots = 0;
+    expect(store2.get(ledgerSlice).steelIngots).toBe(20);
+
+    const snapshot = store2.toSnapshot();
+    expect(Object.isFrozen(snapshot)).toBe(true);
+
+    const restored = StateSliceStore.fromSnapshot(snapshot);
+    expect(restored.get(cannonProgressSlice)).toBe(0.45);
+    expect(restored.get(ledgerSlice)).toEqual({
+      steelIngots: 20,
+      secretCannonOrder: true,
+      notes: ['initial shipment', 'cast barrel'],
     });
   });
 

@@ -11,16 +11,45 @@ export interface StateSliceKey<T> {
 }
 
 /**
- * Defines a typed state slice descriptor with a non-empty identifier and default value.
+ * Fast-path clone helper: returns primitives directly (zero allocation in 60 FPS loops)
+ * and deep-clones objects via `structuredClone`.
+ */
+function cloneValue<T>(value: T): T {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  return structuredClone(value);
+}
+
+/**
+ * Recursively freezes an object graph in place for snapshot and default-value immutability.
+ */
+function deepFreeze<T>(value: T): T {
+  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
+    return value;
+  }
+  Object.freeze(value);
+  for (const key of Object.keys(value as Record<string, unknown>)) {
+    const child = (value as Record<string, unknown>)[key];
+    if (typeof child === 'object' && child !== null && !Object.isFrozen(child)) {
+      deepFreeze(child);
+    }
+  }
+  return value;
+}
+
+/**
+ * Defines a typed state slice descriptor with a non-empty identifier and deeply frozen default value.
  */
 export function defineStateSlice<T>(id: string, defaultValue: T): StateSliceKey<T> {
   const trimmed = id.trim();
   if (trimmed.length === 0) {
     throw new Error('StateSliceKey id must be a non-empty string');
   }
+  const clonedDefault = cloneValue(defaultValue);
   return Object.freeze({
     id: trimmed,
-    defaultValue: structuredClone(defaultValue),
+    defaultValue: deepFreeze(clonedDefault),
   });
 }
 
@@ -59,14 +88,26 @@ export class StateSliceStore {
   }
 
   /**
+   * Restores a `StateSliceStore` from a plain-object snapshot produced by `toSnapshot()`.
+   */
+  public static fromSnapshot(snapshot: Readonly<Record<string, unknown>>): StateSliceStore {
+    const entries = new Map<string, unknown>();
+    for (const [id, value] of Object.entries(snapshot)) {
+      entries.set(id, cloneValue(value));
+    }
+    return new StateSliceStore(entries);
+  }
+
+  /**
    * Reads the value for `key`, falling back to a fresh clone of `key.defaultValue` when unset.
+   * Primitives return with zero allocation; objects are cloned so caller mutations cannot corrupt store state.
    */
   public get<T>(key: StateSliceKey<T>): T {
     if (!this.entries.has(key.id)) {
-      return structuredClone(key.defaultValue);
+      return cloneValue(key.defaultValue);
     }
     const stored = this.entries.get(key.id) as T;
-    return structuredClone(stored);
+    return cloneValue(stored);
   }
 
   /**
@@ -74,7 +115,7 @@ export class StateSliceStore {
    */
   public withSlice<T>(key: StateSliceKey<T>, newValue: T): StateSliceStore {
     const next = new Map<string, unknown>(this.entries);
-    next.set(key.id, structuredClone(newValue));
+    next.set(key.id, cloneValue(newValue));
     return new StateSliceStore(next);
   }
 
@@ -88,13 +129,13 @@ export class StateSliceStore {
   }
 
   /**
-   * Returns a deterministic plain-object snapshot of all explicitly stored slices.
+   * Returns a deeply frozen, deterministic plain-object snapshot of all explicitly stored slices.
    */
   public toSnapshot(): Readonly<Record<string, unknown>> {
     const result: Record<string, unknown> = {};
     const sortedKeys = Array.from(this.entries.keys()).sort();
     for (const id of sortedKeys) {
-      result[id] = structuredClone(this.entries.get(id));
+      result[id] = deepFreeze(cloneValue(this.entries.get(id)));
     }
     return Object.freeze(result);
   }

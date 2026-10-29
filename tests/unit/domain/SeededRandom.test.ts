@@ -54,11 +54,40 @@ describe('SeededRandom', () => {
     expect(restored.getState()).toBe(original.getState());
   });
 
-  it('rejects invalid bounds in nextInt and empty arrays in choose', () => {
+  it('handles nextInt(1), single-element choose, and statistical distribution across buckets', () => {
+    const rng = new SeededRandom(2026);
+    expect(rng.nextInt(1)).toBe(0);
+    expect(rng.choose(['only_item'])).toBe('only_item');
+
+    const buckets = [0, 0, 0];
+    const sampleCount = 3000;
+    for (let i = 0; i < sampleCount; i += 1) {
+      const bucket = rng.nextInt(3);
+      buckets[bucket] = (buckets[bucket] ?? 0) + 1;
+    }
+    for (const count of buckets) {
+      expect(count).toBeGreaterThan(850);
+      expect(count).toBeLessThan(1150);
+    }
+  });
+
+  it('rejects non-integer seeds, invalid serialized states, invalid nextInt bounds, and empty/sparse arrays', () => {
+    expect(() => new SeededRandom(Number.NaN)).toThrow(RangeError);
+    expect(() => new SeededRandom(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(() => new SeededRandom(3.1415)).toThrow(RangeError);
+
+    expect(() => SeededRandom.fromState(0)).toThrow(RangeError);
+    expect(() => SeededRandom.fromState(Number.NaN)).toThrow(RangeError);
+    expect(() => SeededRandom.fromState(0x1_0000_0000)).toThrow(RangeError);
+
     const rng = new SeededRandom(7);
     expect(() => rng.nextInt(0)).toThrow(RangeError);
     expect(() => rng.nextInt(-5)).toThrow(RangeError);
     expect(() => rng.nextInt(2.5)).toThrow(RangeError);
+    expect(() => rng.nextInt(0x1_0000_0001)).toThrow(RangeError);
     expect(() => rng.choose([])).toThrow(RangeError);
+
+    const sparse = new Array<string>(2);
+    expect(() => rng.choose(sparse)).toThrow(RangeError);
   });
 });

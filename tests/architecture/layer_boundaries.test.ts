@@ -23,31 +23,44 @@ export function stripCommentsAndStrings(source: string): string {
   );
 }
 
+function lineNumberAtOffset(source: string, offset: number): number {
+  let line = 1;
+  for (let i = 0; i < offset && i < source.length; i += 1) {
+    if (source.charCodeAt(i) === 10) {
+      line += 1;
+    }
+  }
+  return line;
+}
+
 /**
- * Extracts all static and dynamic module import/export specifiers with their 1-based line numbers.
+ * Extracts all single-line and multi-line static/dynamic/side-effect module import/export specifiers
+ * with their 1-based line numbers.
  */
 export function extractImports(source: string): ReadonlyArray<{ specifier: string; line: number }> {
   const withoutComments = source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (m) =>
     m.replace(/[^\n]/g, ' '),
   );
   const results: Array<{ specifier: string; line: number }> = [];
-  const lines = withoutComments.split('\n');
 
-  const fromRegex = /\b(?:import|export)\b[^;]*?\bfrom\s*['"]([^'"]+)['"]/g;
-  const dynamicRegex = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  const patterns = [
+    /\b(?:import|export)\b[\s\S]*?\bfrom\s*['"]([^'"]+)['"]/g,
+    /\bimport\s*['"]([^'"]+)['"]/g,
+    /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+  ];
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const lineText = lines[i] ?? '';
-    for (const regex of [fromRegex, dynamicRegex]) {
-      regex.lastIndex = 0;
-      let match = regex.exec(lineText);
-      while (match !== null) {
-        const specifier = match[1];
-        if (specifier !== undefined) {
-          results.push({ specifier, line: i + 1 });
-        }
-        match = regex.exec(lineText);
+  for (const regex of patterns) {
+    regex.lastIndex = 0;
+    let match = regex.exec(withoutComments);
+    while (match !== null) {
+      const specifier = match[1];
+      if (specifier !== undefined) {
+        results.push({
+          specifier,
+          line: lineNumberAtOffset(withoutComments, match.index),
+        });
       }
+      match = regex.exec(withoutComments);
     }
   }
 
@@ -100,10 +113,13 @@ export function findExplicitAnyViolations(filePath: string, source: string): Vio
  * Checks a single TypeScript source string in domain/ or content/ for unseeded randomness or wall-clock calls.
  */
 export function findDeterminismViolations(filePath: string, source: string): Violation[] {
-  const sanitized = stripCommentsAndStrings(source);
-  const lines = sanitized.split('\n');
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (m) =>
+    m.replace(/[^\n]/g, ' '),
+  );
+  const lines = withoutComments.split('\n');
   const violations: Violation[] = [];
-  const nonDeterministicPattern = /\b(?:Math\.random|Date\.now|performance\.now)\s*\(/;
+  const nonDeterministicPattern =
+    /(?:\b(?:Math\.random|Date\.now|performance\.now)\s*\(|\bnew\s+Date\s*\(|\b(?:Math|Date|performance)\s*\[\s*['"](?:random|now)['"]\s*\])/;
 
   for (let i = 0; i < lines.length; i += 1) {
     const lineText = lines[i] ?? '';
@@ -245,20 +261,54 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
     expect(allViolations).toEqual([]);
   });
 
-  it('detects synthetic layer, explicit-any, and non-determinism violations accurately', () => {
+  it('detects single-line, multi-line, layer, explicit-any, and non-determinism violations across all layers', () => {
     const forbiddenTypeWord = ['a', 'n', 'y'].join('');
     const syntheticAnySample = `const bad: ${forbiddenTypeWord} = 42;\n// comment with : ${forbiddenTypeWord} is ignored`;
     const anyViolations = findExplicitAnyViolations('src/domain/sample.ts', syntheticAnySample);
     expect(anyViolations).toHaveLength(1);
     expect(anyViolations[0]?.line).toBe(1);
 
-    const syntheticLayerSample = `import { Scene } from 'three';\nimport { foo } from '../interfaces/index.js';`;
-    const layerViolations = findLayerImportViolations('src/domain/sample.ts', syntheticLayerSample);
-    expect(layerViolations).toHaveLength(2);
+    const multilineLayerSample = [
+      'import {',
+      '  WebGLRenderer,',
+      "} from 'three';",
+      "import { foo } from '../interfaces/index.js';",
+      'const el = window.document;',
+    ].join('\n');
+    const domainViolations = findLayerImportViolations('src/domain/sample.ts', multilineLayerSample);
+    expect(domainViolations).toHaveLength(3);
 
-    const syntheticRandomSample = `const r = Math.random();`;
+    const appViolations = findLayerImportViolations(
+      'src/application/useCase.ts',
+      "import { worker } from '../infrastructure/index.js';",
+    );
+    expect(appViolations).toHaveLength(1);
+
+    const infraViolations = findLayerImportViolations(
+      'src/infrastructure/adapter.ts',
+      "import { hud } from '../interfaces/index.js';",
+    );
+    expect(infraViolations).toHaveLength(1);
+
+    const contentTopologyViolations = findLayerImportViolations(
+      'src/content/worlds/highglass.ts',
+      "import { Mesh } from 'three';",
+    );
+    expect(contentTopologyViolations).toHaveLength(1);
+
+    const contentSceneAllowed = findLayerImportViolations(
+      'src/content/scene/highglassScene.ts',
+      "import { Mesh } from 'three';",
+    );
+    expect(contentSceneAllowed).toHaveLength(0);
+
+    const syntheticRandomSample = [
+      'const r1 = Math.random();',
+      'const r2 = globalThis.Math["random"]();',
+      'const d1 = new Date();',
+    ].join('\n');
     const rngViolations = findDeterminismViolations('src/domain/sample.ts', syntheticRandomSample);
-    expect(rngViolations).toHaveLength(1);
+    expect(rngViolations).toHaveLength(3);
   });
 
   it('verifies master and per-section README.md and AGENTS.md exist and are linked from root', () => {
