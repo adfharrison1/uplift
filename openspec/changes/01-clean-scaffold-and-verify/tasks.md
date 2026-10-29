@@ -6,7 +6,7 @@
 ## 2. Deterministic Domain Primitives
 
 - [x] 2.1 Implement `SeededRandom` (Xorshift32 PRNG with `nextFloat`, `nextInt`, `choose`, `getState`, `fromState`) in `src/domain/core/SeededRandom.ts` and unit tests in `tests/unit/domain/SeededRandom.test.ts` | Verify: `npx vitest run tests/unit/domain/SeededRandom.test.ts && npm run test:arch` | Commit: `feat(domain): add deterministic SeededRandom PRNG`
-- [ ] 2.2 Implement typed `StateSliceKey<T>`, `defineStateSlice<T>`, `StateSliceRegistry`, and immutable `StateSliceStore` in `src/domain/core/StateSliceRegistry.ts` with unit tests in `tests/unit/domain/StateSliceRegistry.test.ts` | Verify: `npx vitest run tests/unit/domain/StateSliceRegistry.test.ts && npm run test:arch` | Commit: `feat(domain): add typed StateSliceKey registry and immutable store`
+- [x] 2.2 Implement typed `StateSliceKey<T>`, `defineStateSlice<T>`, `StateSliceRegistry`, and immutable `StateSliceStore` in `src/domain/core/StateSliceRegistry.ts` with unit tests in `tests/unit/domain/StateSliceRegistry.test.ts` | Verify: `npx vitest run tests/unit/domain/StateSliceRegistry.test.ts && npm run test:arch` | Commit: `feat(domain): add typed StateSliceKey registry and immutable store`
 
 ## 3. Hierarchical Documentation, Verification & Governance Review
 
