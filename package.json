@@ -1,0 +1,26 @@
+{
+  "name": "uplift",
+  "version": "0.1.0",
+  "private": true,
+  "description": "100% local first-person covert civilization simulation inspired by Iain M. Banks' Culture stories",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:arch": "vitest run tests/architecture/",
+    "test:unit": "vitest run tests/unit/",
+    "verify": "npm run typecheck && npm run test:arch && npm run test:unit"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

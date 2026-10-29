@@ -1,6 +1,6 @@
 ## 1. Toolchain & Strict Clean Architecture Guardrails
 
-- [ ] 1.1 Initialize `package.json`, `.gitignore`, `tsconfig.json` (with strict mode, `noImplicitAny`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`), and `vitest.config.ts` using exact pinned versions (`typescript@7.0.2`, `vite@8.3.5`, `vitest@5.0.5`, `@types/node@24.19.2`) | Verify: `npm install && npm run typecheck` | Commit: `build(scaffold): initialize strict typescript vite and vitest toolchain`
+- [x] 1.1 Initialize `package.json`, `.gitignore`, `tsconfig.json` (with strict mode, `noImplicitAny`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`), and `vitest.config.ts` using exact pinned versions (`typescript@7.0.2`, `vite@8.3.5`, `vitest@5.0.5`, `@types/node@24.19.2`) | Verify: `npm install && npm run typecheck` | Commit: `build(scaffold): initialize strict typescript vite and vitest toolchain`
 - [ ] 1.2 Scaffold Clean Architecture layer barrels (`src/domain/index.ts`, `src/application/index.ts`, `src/infrastructure/index.ts`, `src/content/index.ts`, `src/interfaces/index.ts`) and implement `tests/architecture/layer_boundaries.test.ts` enforcing inward imports, zero explicit `any`, and no `Math.random()` / `Date.now()` in `domain` or `content` | Verify: `npm run test:arch` | Commit: `test(arch): enforce clean architecture boundaries and zero-any policy`
 
 ## 2. Deterministic Domain Primitives
