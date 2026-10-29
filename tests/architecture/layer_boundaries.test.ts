@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -259,5 +259,44 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
     const syntheticRandomSample = `const r = Math.random();`;
     const rngViolations = findDeterminismViolations('src/domain/sample.ts', syntheticRandomSample);
     expect(rngViolations).toHaveLength(1);
+  });
+
+  it('verifies master and per-section README.md and AGENTS.md exist and are linked from root', () => {
+    const rootReadmePath = join(REPO_ROOT, 'README.md');
+    const rootAgentsPath = join(REPO_ROOT, 'AGENTS.md');
+    expect(existsSync(rootReadmePath)).toBe(true);
+    expect(existsSync(rootAgentsPath)).toBe(true);
+
+    const rootReadme = readFileSync(rootReadmePath, 'utf8');
+    const rootAgents = readFileSync(rootAgentsPath, 'utf8');
+    expect(rootReadme.trim().length).toBeGreaterThan(100);
+    expect(rootAgents.trim().length).toBeGreaterThan(100);
+
+    const requiredSections = [
+      'src/domain',
+      'src/application',
+      'src/infrastructure',
+      'src/content',
+      'src/interfaces',
+      'tests',
+    ] as const;
+
+    for (const section of requiredSections) {
+      const sectionReadmeRel = `${section}/README.md`;
+      const sectionAgentsRel = `${section}/AGENTS.md`;
+      const sectionReadmeAbs = join(REPO_ROOT, sectionReadmeRel);
+      const sectionAgentsAbs = join(REPO_ROOT, sectionAgentsRel);
+
+      expect(existsSync(sectionReadmeAbs), `Missing ${sectionReadmeRel}`).toBe(true);
+      expect(existsSync(sectionAgentsAbs), `Missing ${sectionAgentsRel}`).toBe(true);
+
+      const sectionReadmeContent = readFileSync(sectionReadmeAbs, 'utf8');
+      const sectionAgentsContent = readFileSync(sectionAgentsAbs, 'utf8');
+      expect(sectionReadmeContent.trim().length).toBeGreaterThan(50);
+      expect(sectionAgentsContent.trim().length).toBeGreaterThan(50);
+
+      expect(rootReadme).toContain(sectionReadmeRel);
+      expect(rootAgents).toContain(sectionAgentsRel);
+    }
   });
 });
