@@ -1,7 +1,7 @@
 ---
-name: "/verify"
-description: "Run the post-task verification loop (typecheck, architecture boundary linter, and unit tests)"
-category: "Development"
+name: '/verify'
+description: 'Run the post-task verification loop (typecheck, architecture boundary linter, and unit tests)'
+category: 'Development'
 ---
 
 Run the standard post-task verification sequence for Uplift. Execute each step in order and report pass/fail for each. Do not skip failing steps silently.

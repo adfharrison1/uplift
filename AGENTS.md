@@ -1,6 +1,6 @@
 # Agent Guide — Uplift
 
-**Uplift** is a 100% local, offline-capable first-person covert civilization simulation inspired by Iain M. Banks' Culture stories (*Inversions*, *Matter*, *Special Circumstances*), built with TypeScript, Three.js, and local ONNX embeddings (`@huggingface/transformers`) for a 2019 Intel Core i7 MacBook Pro (16GB RAM).
+**Uplift** is a 100% local, offline-capable first-person covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Special Circumstances_), built with TypeScript, Three.js, and local ONNX embeddings (`@huggingface/transformers`) for a 2019 Intel Core i7 MacBook Pro (16GB RAM).
 
 ## Quick Verify (Run After Every Task)
 
@@ -9,6 +9,7 @@ npm run verify
 ```
 
 `npm run verify` executes in sequence:
+
 1. `npm run typecheck` (`tsc --noEmit`)
 2. `npm run test:arch` (Clean Architecture inward dependency & `Math.random` ban checks)
 3. `npm run test:unit` (Fast deterministic unit, registry contract, and headless simulation tests in `<3s`)
@@ -24,13 +25,13 @@ content/scene/*      -> interfaces/three, domain
 domain               -> NOTHING outward (pure TypeScript only)
 ```
 
-| Layer | Path | Must NOT Import / Use |
-|---|---|---|
-| `domain` | `src/domain/` | `application`, `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, DOM/WebGL globals, `Math.random()`, `Date.now()`, implicit/explicit `any` |
-| `application` | `src/application/` | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, implicit/explicit `any` |
-| `infrastructure` | `src/infrastructure/` | `application`, `interfaces`, `three`, implicit/explicit `any` |
-| `content` (domain data/plugins) | `src/content/` (except `scene/`) | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any` |
-| `interfaces` | `src/interfaces/` | implicit/explicit `any` |
+| Layer                           | Path                             | Must NOT Import / Use                                                                                                                                                     |
+| ------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `domain`                        | `src/domain/`                    | `application`, `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, DOM/WebGL globals, `Math.random()`, `Date.now()`, implicit/explicit `any` |
+| `application`                   | `src/application/`               | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, implicit/explicit `any`                                                                             |
+| `infrastructure`                | `src/infrastructure/`            | `application`, `interfaces`, `three`, implicit/explicit `any`                                                                                                             |
+| `content` (domain data/plugins) | `src/content/` (except `scene/`) | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                                              |
+| `interfaces`                    | `src/interfaces/`                | implicit/explicit `any`                                                                                                                                                   |
 
 ## Strict TypeScript & Zero-`any` Policy
 
@@ -52,21 +53,23 @@ Never hardcode specific characters, behaviors, rooms, props, or era rules inside
 
 Root `README.md` and `AGENTS.md` provide high-level project instructions and point to scoped `README.md` and `AGENTS.md` files inside every major section of the codebase. **Always read the target section's `AGENTS.md` when working in that directory, and update both `<section>/README.md` and `<section>/AGENTS.md` when adding or changing capabilities:**
 
-| Codebase Section | Human Overview (`README.md`) | Agent Rules & Recipes (`AGENTS.md`) | Scope |
-|---|---|---|---|
-| **Domain Layer** | [`src/domain/README.md`](src/domain/README.md) | [`src/domain/AGENTS.md`](src/domain/AGENTS.md) | Pure simulation models, `SeededRandom`, `StateSliceKey<T>`, reducer contracts, `CivilizationLegacyState` |
-| **Application Layer** | [`src/application/README.md`](src/application/README.md) | [`src/application/AGENTS.md`](src/application/AGENTS.md) | Use cases, tick orchestration, `RenderFrameBuilder`, port interfaces |
-| **Infrastructure Layer** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Local ONNX Web Worker, lexical/pragmatic parser, local model cache, save/load |
-| **Content & Plugins** | [`src/content/README.md`](src/content/README.md) | [`src/content/AGENTS.md`](src/content/AGENTS.md) | Swappable Eras, Characters (Tiers 1–3), Behaviors, Spaces (indoor/outdoor), Props, Mechanics |
-| **Interfaces Layer** | [`src/interfaces/README.md`](src/interfaces/README.md) | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md) | Three.js 60 FPS renderer, WASD/raycast controller, HUD, composition root |
-| **Test Suites** | [`tests/README.md`](tests/README.md) | [`tests/AGENTS.md`](tests/AGENTS.md) | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests |
+| Codebase Section         | Human Overview (`README.md`)                                   | Agent Rules & Recipes (`AGENTS.md`)                            | Scope                                                                                                    |
+| ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Domain Layer**         | [`src/domain/README.md`](src/domain/README.md)                 | [`src/domain/AGENTS.md`](src/domain/AGENTS.md)                 | Pure simulation models, `SeededRandom`, `StateSliceKey<T>`, reducer contracts, `CivilizationLegacyState` |
+| **Application Layer**    | [`src/application/README.md`](src/application/README.md)       | [`src/application/AGENTS.md`](src/application/AGENTS.md)       | Use cases, tick orchestration, `RenderFrameBuilder`, port interfaces                                     |
+| **Infrastructure Layer** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Local ONNX Web Worker, lexical/pragmatic parser, local model cache, save/load                            |
+| **Content & Plugins**    | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Swappable Eras, Characters (Tiers 1–3), Behaviors, Spaces (indoor/outdoor), Props, Mechanics             |
+| **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS renderer, WASD/raycast controller, HUD, composition root                                 |
+| **Test Suites**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests        |
 
 ## Atomic Delivery, Pre-Commit Self-Review & Post-Change 5-Subagent Review
 
 We use **OpenSpec (`opsx`)** across an 8-change roadmap (see `openspec/config.yaml`).
 
 ### 1. Pre-Commit Short Self-Review (Before Every Commit)
+
 Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). Before running `git commit`:
+
 1. Run the task's `Verify:` command and `npm run verify`.
 2. Inspect `git diff --staged` and perform a short self-review checking:
    - **Scope**: Only files belonging to the current task are staged.
@@ -84,7 +87,9 @@ docs(devex): add hierarchical README and AGENTS guides across all codebase secti
 ```
 
 ### 2. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
+
 When all tasks in a change are delivered (and before `/opsx-archive`), launch **5 parallel review subagents** (using Claude 4.5 Haiku Thinking) to review the change across 5 specialized dimensions:
+
 1. **Adversarial Review**: Edge cases, malformed inputs, concurrency/race conditions, and failure modes.
 2. **Code Adherence & Architecture Review**: Clean Architecture inward imports, zero-`any` compliance, plug-and-play registry boundaries, OpenSpec spec adherence, and hierarchical `README.md` / `AGENTS.md` completeness.
 3. **Performance Review**: 2019 Intel Core i7 (16GB RAM) hardware budget, 60 FPS frame budget, cloning/allocation overhead, and algorithmic complexity.

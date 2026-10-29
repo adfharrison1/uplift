@@ -8,5 +8,5 @@
 
 - **`tests/architecture/`**: Static and structural verification (`layer_boundaries.test.ts`) enforcing Clean Architecture inward imports, zero explicit `any`, ban on `Math.random()` / `Date.now()` in `domain`/`content`, and presence/linking of hierarchical `README.md` and `AGENTS.md` files.
 - **`tests/unit/domain/`**: Fast, pure TypeScript unit tests for domain primitives (`SeededRandom.test.ts`, `StateSliceRegistry.test.ts`), utility scoring, rumor graphs, and legacy mutations.
-- **`tests/unit/content/`** *(Change 2+)*: Contract tests validating every registered character, behavior, space node, prop, and mechanic.
-- **`tests/simulation/`** *(Change 2+)*: Deterministic headless simulation runs (50–100 ticks in `<50ms`).
+- **`tests/unit/content/`** _(Change 2+)_: Contract tests validating every registered character, behavior, space node, prop, and mechanic.
+- **`tests/simulation/`** _(Change 2+)_: Deterministic headless simulation runs (50–100 ticks in `<50ms`).

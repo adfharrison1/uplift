@@ -275,7 +275,10 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
       "import { foo } from '../interfaces/index.js';",
       'const el = window.document;',
     ].join('\n');
-    const domainViolations = findLayerImportViolations('src/domain/sample.ts', multilineLayerSample);
+    const domainViolations = findLayerImportViolations(
+      'src/domain/sample.ts',
+      multilineLayerSample,
+    );
     expect(domainViolations).toHaveLength(3);
 
     const appViolations = findLayerImportViolations(

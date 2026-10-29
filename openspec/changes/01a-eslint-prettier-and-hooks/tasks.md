@@ -1,6 +1,6 @@
 ## 1. Prettier & Editor Format-on-Save
 
-- [ ] 1.1 Install `prettier@3.9.10`, create `.prettierrc.json` and `.prettierignore`, add `.vscode/settings.json` + `.vscode/extensions.json` for format-on-save, add `format` and `format:check` scripts to `package.json`, and format existing repository files | Verify: `npm run format:check && npm run typecheck` | Commit: `build(format): configure prettier and editor format-on-save`
+- [x] 1.1 Install `prettier@3.9.10`, create `.prettierrc.json` and `.prettierignore`, add `.vscode/settings.json` + `.vscode/extensions.json` for format-on-save, add `format` and `format:check` scripts to `package.json`, and format existing repository files | Verify: `npm run format:check && npm run typecheck` | Commit: `build(format): configure prettier and editor format-on-save`
 
 ## 2. ESLint with TypeScript 7.0.2 + `@typescript/typescript6` Side-by-Side
 
