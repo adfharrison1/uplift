@@ -72,6 +72,18 @@ context: |
   - Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks.
   - Each task MUST touch at most 1-3 source files plus its corresponding test file, compile cleanly, pass `npm run verify`, and map 1:1 to a single Conventional Commit.
 
+  Review Gates (standing directive — do not skip):
+  - Pre-Commit Short Self-Review (before EVERY commit):
+      Before running `git commit`, inspect `git diff --staged` and perform a brief self-review checking: (1) strict task scope (no unrelated files), (2) Clean Architecture inward imports and zero implicit/explicit `any`, (3) deterministic `SeededRandom` usage and immutable state transitions, and (4) edge-case coverage in the accompanying test.
+  - Post-Change 5-Subagent Review Gate (after EVERY change is delivered, before archiving):
+      Once all tasks in a change are marked complete, launch 5 parallel review subagents (using Claude 4.5 Haiku Thinking) to audit the delivered change across five axes:
+      1. Adversarial Review (edge cases, failure modes, concurrency/race conditions, invalid inputs)
+      2. Code Adherence & Architecture Review (layer boundaries, zero-`any`, plug-and-play modularity, OpenSpec spec compliance, hierarchical `README.md`/`AGENTS.md` completeness)
+      3. Performance Review (2019 Intel Core i7 16GB RAM budget, 60 FPS frame budget, memory allocation/cloning cost, algorithmic complexity)
+      4. Testing Review (assertion quality, missing boundary/negative tests, determinism, test execution speed)
+      5. Logic & Simulation Integrity Review (mathematical/bitwise correctness, state-transition invariants, off-by-one or reducer bugs)
+      Double-check the subagents' findings against the codebase, fix any verified issues in an atomic commit, and re-run `npm run verify`.
+
   Hierarchical Documentation & Agent Guidance (standing directive — do not skip):
   - Maintain a two-tier documentation and agent-instruction hierarchy across the repository:
       1. Root `README.md`: High-level project overview, hardware/offline constraints, pinned dependency & CVE manifest, running/verification instructions, and a Directory Map linking to each section's `README.md`.
@@ -99,15 +111,16 @@ rules:
     - "Limit each change to 4-6 atomic tasks achievable within a single session"
     - "Enforce the 1 Task = 1 Verified Commit rule where every task checkbox includes an explicit Verify command and a Commit Conventional Commit message"
     - "Order tasks inward-out (domain -> application -> content/infrastructure/interfaces -> docs/verify) so every intermediate commit compiles and passes npm run verify"
-    - "End each change with a documentation, verification, and agentic-coding task that updates root and per-section README.md and AGENTS.md files"
+    - "End each change with a documentation, verification, and 5-subagent review task (adversarial, code adherence, performance, testing, logic) that updates root and per-section README.md and AGENTS.md files"
 
 operations:
   apply:
     guidance:
-      - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, creating its atomic git commit, and marking - [x] in tasks.md before starting the next task"
+      - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, performing a short pre-commit self-review of git diff --staged, creating its atomic git commit, and marking - [x] in tasks.md before starting the next task"
       - "Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/"
       - "Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section"
+      - "After all tasks in a change are delivered, run the mandatory 5-subagent review (adversarial, code adherence, performance, testing, logic), double-check their findings, and commit any verified fixes before concluding"
   archive:
     guidance:
-      - "Confirm npm run verify passes and all task commits are clean before archiving"
+      - "Confirm npm run verify passes, the 5-subagent post-change review has been completed and addressed, and all task commits are clean before archiving"
       - "Confirm root and per-section README.md and AGENTS.md files accurately reflect the completed change before archiving"

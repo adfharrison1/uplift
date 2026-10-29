@@ -11,3 +11,4 @@
 ## 3. Hierarchical Documentation, Verification & Governance Review
 
 - [ ] 3.1 Create master `README.md`, confirm master `AGENTS.md`, and create per-section `README.md` and `AGENTS.md` files in `src/domain/`, `src/application/`, `src/infrastructure/`, `src/content/`, `src/interfaces/`, and `tests/`, plus add automated section-doc checks to `tests/architecture/layer_boundaries.test.ts` | Verify: `npm run verify && npm audit` | Commit: `docs(devex): add hierarchical README and AGENTS guides across all codebase sections`
+- [ ] 3.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 01 five-subagent review findings`

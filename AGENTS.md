@@ -61,18 +61,34 @@ Root `README.md` and `AGENTS.md` provide high-level project instructions and poi
 | **Interfaces Layer** | [`src/interfaces/README.md`](src/interfaces/README.md) | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md) | Three.js 60 FPS renderer, WASD/raycast controller, HUD, composition root |
 | **Test Suites** | [`tests/README.md`](tests/README.md) | [`tests/AGENTS.md`](tests/AGENTS.md) | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests |
 
-## Atomic Delivery & Git Commits ("1 Task = 1 Verified Commit")
+## Atomic Delivery, Pre-Commit Self-Review & Post-Change 5-Subagent Review
 
 We use **OpenSpec (`opsx`)** across an 8-change roadmap (see `openspec/config.yaml`).
-Within each change:
-- Every task in `tasks.md` is scoped to 1–3 files + tests.
-- Complete one task, run its `Verify:` command and `npm run verify`, create its atomic **Conventional Commit**, and mark `- [x]` in `tasks.md`.
-- Do not push to a remote unless explicitly asked.
+
+### 1. Pre-Commit Short Self-Review (Before Every Commit)
+Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). Before running `git commit`:
+1. Run the task's `Verify:` command and `npm run verify`.
+2. Inspect `git diff --staged` and perform a short self-review checking:
+   - **Scope**: Only files belonging to the current task are staged.
+   - **Architecture & Types**: Clean Architecture inward boundaries hold; zero implicit or explicit `any`.
+   - **Determinism & Immutability**: No `Math.random()` / `Date.now()` in `domain` or `content`; state updates do not mutate prior snapshots in place.
+   - **Tests**: Edge cases and failure paths are asserted.
+3. Create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
 
 ```text
-build(scaffold): initialize vite typescript and vitest toolchain
-test(arch): enforce inward layer dependency boundaries
+build(scaffold): initialize strict typescript vite and vitest toolchain
+test(arch): enforce clean architecture boundaries and zero-any policy
 feat(domain): add deterministic SeededRandom PRNG
-feat(domain): add typed StateSliceKey registry for modular plugins
-docs(devex): add README dependency manifest and verify script
+feat(domain): add typed StateSliceKey registry and immutable store
+docs(devex): add hierarchical README and AGENTS guides across all codebase sections
 ```
+
+### 2. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
+When all tasks in a change are delivered (and before `/opsx-archive`), launch **5 parallel review subagents** (using Claude 4.5 Haiku Thinking) to review the change across 5 specialized dimensions:
+1. **Adversarial Review**: Edge cases, malformed inputs, concurrency/race conditions, and failure modes.
+2. **Code Adherence & Architecture Review**: Clean Architecture inward imports, zero-`any` compliance, plug-and-play registry boundaries, OpenSpec spec adherence, and hierarchical `README.md` / `AGENTS.md` completeness.
+3. **Performance Review**: 2019 Intel Core i7 (16GB RAM) hardware budget, 60 FPS frame budget, cloning/allocation overhead, and algorithmic complexity.
+4. **Testing Review**: Test coverage gaps, boundary/negative assertions, determinism, and execution speed (`<3s` unit/arch suite).
+5. **Logic & Simulation Integrity Review**: Mathematical/bitwise correctness, state-transition invariants, and reducer purity.
+
+Always double-check the subagents' findings against the actual code, apply any verified fixes in an atomic commit (`fix(<scope>): ...`), and re-run `npm run verify`.
