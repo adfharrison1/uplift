@@ -76,7 +76,7 @@ context: |
   Planned Atomic Change Sequence (Living Roadmap — subject to revision as DESIGN_NOTES.md evolves):
   - All future changes in this sequence are indicative and designed to accommodate ongoing design notes, new mechanics, or reprioritization between changes without structural rework:
   1. 01-clean-scaffold-and-verify          — Toolchain, Clean Architecture boundary test, SeededRandom, StateSliceKey, /verify [archived]
-  1a. 01a-eslint-prettier-and-hooks        — Prettier format-on-save, ESLint flat config (TS 7 side-by-side), Husky + lint-staged [in progress]
+  1a. 01a-eslint-prettier-and-hooks        — Prettier format-on-save, ESLint flat config (TS 7 side-by-side), Husky + lint-staged [archived]
   2. 02-telemetry-saves-and-debug-skill    — NDJSON session logger, rolling compactor, Vite disk middleware, multi-session Save/Load, uplift-debug skill [planned — revisable]
   3. 03-modular-registries-and-kinematics  — Module registries (Roles, Funds, Rivals, Inertia, Butterfly/Crises, Async Mail, Emergencies, Orbit), WorldEffect reducer, 60Hz kinematics, CivilizationLegacyState [planned — revisable]
   4. 04-third-person-camera-and-inspector  — Pure RenderFrameBuilder, Three.js 60 FPS dark atmospheric renderer, 3rd-person fixed-orientation tracking camera, Debug Mode (pause, free-cam de-anchor, floating state cards) [planned — revisable]
@@ -115,6 +115,8 @@ context: |
 
 rules:
   proposal:
+    - "Before proposing a change, review the project's README.md, AGENTS.md, and DESIGN_NOTES.md to ensure consistency with project scope, context, and design notes (or propose updates to DESIGN_NOTES.md if needed)"
+    - "Before proposing a change, review the project's pinned-versions table, planned atomic change sequence, hierarchical documentation rules, and review gates"
     - "Include a Non-goals section to keep the change small and atomic"
     - "State dependencies on prior changes in the change sequence"
     - "Explicitly state that runtime and tests require zero external API keys or cloud inference"
@@ -135,15 +137,6 @@ rules:
     - "End each change with a documentation, verification, and 5-subagent review task (adversarial, code adherence, performance, testing, logic) that updates root and per-section README.md and AGENTS.md files"
 
 operations:
-  propose:
-    guidance:
-      - "Before proposing a change, review the project's README.md and AGENTS.md to understand the project's scope and context"
-      - "Before proposing a change, review the project's pinned-versions table to ensure the change is compatible with the project's dependencies"
-      - "Before proposing a change, review the project's planned atomic change sequence to ensure the change is consistent with the project's planned development roadmap"
-      - "Before proposing a change, review the project's hierarchical documentation and agent guidance to ensure the change is consistent with the project's documentation and agent guidance"
-      - "Before proposing a change, review the project's review gates to ensure the change is consistent with the project's review gates"
-      - "Before proposing a change, review the project's task dependencies to ensure the change is consistent with the project's task dependencies"
-      - "Before proposing a change, review the project's DESIGN_NOTES.md to ensure the change is consistent with the project's design notes or propose changes to the design notes if necessary"
   apply:
     guidance:
       - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, performing a short pre-commit self-review of git diff --staged, creating its atomic git commit, and marking - [x] in tasks.md before starting the next task"
