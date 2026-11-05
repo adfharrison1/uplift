@@ -5,3 +5,6 @@ package-lock.json
 public/models/
 .huggingface/
 openspec/
+DESIGN_NOTES.md
+logs/
+saves/

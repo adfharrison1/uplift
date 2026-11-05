@@ -4,7 +4,7 @@
 
 ## 2. ESLint with TypeScript 7.0.2 + `@typescript/typescript6` Side-by-Side
 
-- [ ] 2.1 Install `eslint@10.13.0`, `@eslint/js@10.0.1`, `typescript-eslint@8.72.1`, `eslint-config-prettier@10.1.8`, and Microsoft's side-by-side `@typescript/native` (`npm:typescript@7.0.2`) + `typescript` (`npm:@typescript/typescript6@6.0.2`), create `eslint.config.mjs`, and wire `lint` into `npm run verify` | Verify: `npx tsc --version && npm run lint && npm run verify` | Commit: `build(lint): add eslint flat config with typescript 7 side-by-side setup`
+- [x] 2.1 Install `eslint@10.13.0`, `@eslint/js@10.0.1`, `typescript-eslint@8.72.1`, `eslint-config-prettier@10.1.8`, and Microsoft's side-by-side `@typescript/native` (`npm:typescript@7.0.2`) + `typescript` (`npm:@typescript/typescript6@6.0.2`), create `eslint.config.mjs`, and wire `lint` into `npm run verify` | Verify: `npx tsc --version && npm run lint && npm run verify` | Commit: `build(lint): add eslint flat config with typescript 7 side-by-side setup`
 
 ## 3. Husky & lint-staged Pre-Commit Hooks
 
