@@ -2,12 +2,13 @@
   "name": "uplift",
   "version": "0.1.0",
   "private": true,
-  "description": "100% local first-person covert civilization simulation inspired by Iain M. Banks' Culture stories",
+  "description": "100% local covert civilization simulation inspired by Iain M. Banks' Culture stories",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
+    "prepare": "husky",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
@@ -21,12 +22,23 @@
     "test:unit": "vitest run tests/unit/",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:arch && npm run test:unit"
   },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,mjs}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.2",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "typescript-eslint": "8.72.1",

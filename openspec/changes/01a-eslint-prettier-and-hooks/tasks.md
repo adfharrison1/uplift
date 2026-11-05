@@ -8,7 +8,7 @@
 
 ## 3. Husky & lint-staged Pre-Commit Hooks
 
-- [ ] 3.1 Install `husky@9.1.7` and `lint-staged@17.6.0`, configure `lint-staged` in `package.json`, and create `.husky/pre-commit` running `npx lint-staged` on staged files | Verify: `npx lint-staged && npm run verify` | Commit: `build(hooks): add husky pre-commit hook with lint-staged`
+- [x] 3.1 Install `husky@9.1.7` and `lint-staged@17.6.0`, configure `lint-staged` in `package.json`, and create `.husky/pre-commit` running `npx lint-staged` on staged files | Verify: `npx lint-staged && npm run verify` | Commit: `build(hooks): add husky pre-commit hook with lint-staged`
 
 ## 4. Documentation, Verification & 5-Subagent Review
 
