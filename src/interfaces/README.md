@@ -2,11 +2,11 @@
 
 ## Purpose
 
-`src/interfaces/` is the outer presentation and dependency-wiring shell of **Uplift**:
+`src/interfaces/` is the outer presentation, local dev middleware, and dependency-wiring shell of **Uplift**:
 
-- **`three/`**: Three.js 60 FPS WebGL renderer for seamless indoor rooms and free-roam outdoor areas, continuous NPC locomotion/head-tracking visuals, and first-person pointer-lock WASD + raycast controller.
-- **`hud/`**: Minimalist first-person inspection HUD, hybrid dialogue interface, and neural-lace Ship Mind overlay (`Q`).
-- **`composition/`**: Manual dependency injection root wiring content packs, domain registries, application use cases, and infrastructure adapters.
+- **`three/`**: Three.js 60 FPS WebGL renderer featuring a **3rd-person fixed-orientation tracking camera** (_FF7_ / _Disco Elysium_ / _Inside_ style) with dark chiaroscuro lighting, seamless indoor/outdoor spaces, continuous NPC locomotion, and a **De-Anchored Free-Cam Debug Mode**.
+- **`hud/`**: Groundside role/funds HUD, Wider World Overview board, async correspondence desk UI, orbital Ship Mind / pass-window overlay (`Q`), and floating 3D debug state cards over targeted NPCs/items.
+- **`composition/`**: Manual dependency injection root wiring content packs, domain registries, telemetry loggers, save/load repositories, and application use cases.
 
 ## Current Module Inventory
 

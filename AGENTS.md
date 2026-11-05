@@ -70,7 +70,7 @@ Root `README.md` and `AGENTS.md` provide high-level project instructions and poi
 
 ## Atomic Delivery, Pre-Commit Self-Review & Post-Change 5-Subagent Review
 
-We use **OpenSpec (`opsx`)** across the atomic change roadmap in `openspec/config.yaml`.
+We use **OpenSpec (`opsx`)** across the living atomic change roadmap in `openspec/config.yaml`. `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents—before proposing any new change, always check `DESIGN_NOTES.md` for new notes or intermediate changes, and keep all engine parameters, camera settings, and module registries data-driven so design and config changes can be made at any time without structural rework.
 
 ### 1. Pre-Commit Short Self-Review (Before Every Commit)
 

@@ -352,4 +352,37 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
       expect(rootAgents).toContain(sectionAgentsRel);
     }
   });
+
+  it('verifies ESLint, Prettier, editor format-on-save, and Husky pre-commit hook configurations', () => {
+    const eslintConfigPath = join(REPO_ROOT, 'eslint.config.mjs');
+    const prettierrcPath = join(REPO_ROOT, '.prettierrc.json');
+    const vscodeSettingsPath = join(REPO_ROOT, '.vscode/settings.json');
+    const huskyPreCommitPath = join(REPO_ROOT, '.husky/pre-commit');
+    const packageJsonPath = join(REPO_ROOT, 'package.json');
+
+    expect(existsSync(eslintConfigPath)).toBe(true);
+    expect(existsSync(prettierrcPath)).toBe(true);
+    expect(existsSync(vscodeSettingsPath)).toBe(true);
+    expect(existsSync(huskyPreCommitPath)).toBe(true);
+
+    const eslintConfigContent = readFileSync(eslintConfigPath, 'utf8');
+    expect(eslintConfigContent).toContain("'@typescript-eslint/no-explicit-any': 'error'");
+    expect(eslintConfigContent).toContain('no-restricted-syntax');
+
+    const vscodeSettings = JSON.parse(readFileSync(vscodeSettingsPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    expect(vscodeSettings['editor.formatOnSave']).toBe(true);
+    expect(vscodeSettings['editor.defaultFormatter']).toBe('esbenp.prettier-vscode');
+
+    const preCommitHook = readFileSync(huskyPreCommitPath, 'utf8');
+    expect(preCommitHook).toContain('npx lint-staged');
+
+    const pkgJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+      'lint-staged'?: Record<string, ReadonlyArray<string>>;
+    };
+    const tsStagedCommands = pkgJson['lint-staged']?.['*.{ts,mjs}'];
+    expect(tsStagedCommands).toEqual(['eslint --fix', 'prettier --write']);
+  });
 });

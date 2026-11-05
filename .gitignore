@@ -5,3 +5,7 @@ coverage/
 *.log
 public/models/
 .huggingface/
+logs/
+saves/
+.prettiercache
+.eslintcache

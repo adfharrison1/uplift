@@ -12,10 +12,10 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint src tests vitest.config.ts",
-    "lint:fix": "eslint --fix src tests vitest.config.ts",
+    "format": "prettier --write . --cache --cache-location .prettiercache",
+    "format:check": "prettier --check . --cache --cache-location .prettiercache",
+    "lint": "eslint src tests vitest.config.ts eslint.config.mjs",
+    "lint:fix": "eslint --fix src tests vitest.config.ts eslint.config.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:arch": "vitest run tests/architecture/",
@@ -23,11 +23,11 @@
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:arch && npm run test:unit"
   },
   "lint-staged": {
-    "*.ts": [
-      "prettier --write",
-      "eslint --fix"
+    "*.{ts,mjs}": [
+      "eslint --fix",
+      "prettier --write"
     ],
-    "*.{json,md,mjs}": [
+    "*.{json,md}": [
       "prettier --write"
     ]
   },
