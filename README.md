@@ -1,8 +1,8 @@
 # Uplift
 
-**Uplift** is a 100% local, offline-capable first-person covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Use of Weapons_ / _Special Circumstances_).
+**Uplift** is a 100% local, offline-capable covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Use of Weapons_ / _Special Circumstances_) and Fred Saberhagen's _Brother Assassin_.
 
-You play an embedded agent of a post-scarcity galactic civilization operating inside **Highglass Hold** (Era 1: Feudal Court & Guild Town). Your goal is to guide the society toward cooperative, scientific progress without allowing your technological or social interventions to be hijacked into militarism or exposing yourself as an off-world anomaly to the Inquisition. When an era concludes, the simulation exports a `CivilizationLegacyState` ledger carrying both achievements and negative civilizational scars (`InheritedTrait[]`) and character lineage mutations (`lineageId`) into the next historical age.
+Presented from a dark, atmospheric **3rd-person fixed-orientation tracking camera** (_Final Fantasy VII_ / _Disco Elysium_ / _Inside_ style), you play an embedded operative of a post-scarcity galactic civilization operating inside **Highglass Hold** (Era 1: Feudal Court, Guild Town & Commons). Your goal is to guide the society toward cooperative, scientific progress while managing your groundside role, legitimate vs. orbital-inserted funds, slow-burn historical butterfly threads, async correspondence with distant powers, orbital pass windows, and rival operatives from competing spacefaring civilizations. When an era concludes, the simulation exports a `CivilizationLegacyState` ledger carrying achievements, negative civilizational scars (`InheritedTrait[]`), doctrinal rifts, and character lineage mutations (`lineageId`) into the next historical age.
 
 ---
 
@@ -19,23 +19,32 @@ You play an embedded agent of a post-scarcity galactic civilization operating in
 # 1. Ensure Node.js 24.22.2 LTS (or >=24) is active
 nvm use
 
-# 2. Install pinned dependencies
+# 2. Install pinned dependencies (also configures Husky pre-commit hooks)
 npm install
 
-# 3. Run the full verification suite (typecheck, architecture linter, unit tests)
+# 3. Run the full verification suite (format:check, lint, typecheck, test:arch, test:unit)
 npm run verify
 ```
 
 ### Available NPM Scripts
 
-| Command             | Description                                                                                  |
-| ------------------- | -------------------------------------------------------------------------------------------- |
-| `npm run verify`    | Runs `typecheck`, `test:arch`, and `test:unit` in sequence (`<3s`)                           |
-| `npm run typecheck` | Strict TypeScript compiler check (`tsc --noEmit`, zero implicit/explicit `any`)              |
-| `npm run test:arch` | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and documentation map |
-| `npm run test:unit` | Runs fast deterministic unit tests in Node/Vitest                                            |
-| `npm run dev`       | Starts the local Vite development server                                                     |
-| `npm run build`     | Typechecks and builds the local bundle                                                       |
+| Command                | Description                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run verify`       | Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in sequence (`<3s`)           |
+| `npm run format`       | Formats repository files with Prettier (`prettier --write .`)                                        |
+| `npm run format:check` | Verifies Prettier formatting across all files (`prettier --check .`)                                 |
+| `npm run lint`         | Runs ESLint flat config (`eslint src tests vitest.config.ts`)                                        |
+| `npm run lint:fix`     | Runs ESLint with automatic fixes                                                                     |
+| `npm run typecheck`    | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)         |
+| `npm run test:arch`    | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs |
+| `npm run test:unit`    | Runs fast deterministic unit tests in Node/Vitest                                                    |
+| `npm run dev`          | Starts the local Vite development server                                                             |
+| `npm run build`        | Typechecks and builds the local bundle                                                               |
+
+### Editor Format-on-Save & Pre-Commit Hooks
+
+- **Format on Save**: `.vscode/settings.json` enables `editor.formatOnSave` with Prettier (`esbenp.prettier-vscode`) and ESLint fix-on-save (`dbaeumer.vscode-eslint`).
+- **Pre-Commit Hook**: `.husky/pre-commit` runs `npx lint-staged`, automatically formatting and linting staged files before every `git commit`.
 
 ---
 
@@ -48,12 +57,18 @@ Every dependency installed when cloning this repository is explicitly pinned:
 | **Node.js LTS**                              | `24.22.2` (`.nvmrc`)                 | Includes Oct 21, 2026 security fixes (`CVE-2026-111497`, `CVE-2026-105482`, `CVE-2026-105483`, `CVE-2026-106069`, `CVE-2026-106074`) |
 | **npm**                                      | `12.2.1`                             | Package manager                                                                                                                      |
 | **`@fission-ai/openspec`**                   | `1.15.0`                             | Spec-Driven Development (`opsx`) CLI                                                                                                 |
-| **`typescript`**                             | `7.0.2`                              | Strict static typechecking (`ES2025`, zero `any`)                                                                                    |
+| **`@typescript/native`**                     | `npm:typescript@7.0.2`               | Native Go `tsc` compiler (`7.0.2`, `ES2025`, strict mode, zero `any`)                                                                |
+| **`typescript`**                             | `npm:@typescript/typescript6@6.0.2`  | Official Microsoft TS 6.0.3 JS AST API bridge required by `typescript-eslint`                                                        |
+| **`eslint`**                                 | `10.13.0` (`@eslint/js` `10.0.1`)    | Flat-config static analysis (`minimatch` overridden to `11.0.4` for `GHSA-g3hv-75wg-m249`)                                           |
+| **`typescript-eslint`**                      | `8.72.1`                             | Strict & stylistic TypeScript ESLint rules                                                                                           |
+| **`eslint-config-prettier`**                 | `10.1.8`                             | Disables formatting rules that conflict with Prettier                                                                                |
+| **`prettier`**                               | `3.9.10`                             | Automated code formatting                                                                                                            |
+| **`husky` + `lint-staged`**                  | `9.1.7` / `17.6.0`                   | Pre-commit formatting and linting on staged files                                                                                    |
 | **`vite`**                                   | `8.3.5`                              | Local dev server and bundler                                                                                                         |
 | **`vitest`**                                 | `5.0.5`                              | Fast unit, architecture, and headless simulation test runner                                                                         |
 | **`@types/node`**                            | `24.19.2`                            | Node.js type definitions for build and test scripts                                                                                  |
-| **`three`** _(Change 3)_                     | `0.186.1` (`@types/three` `0.186.0`) | 3D WebGL rendering for indoor rooms and outdoor courtyards                                                                           |
-| **`@huggingface/transformers`** _(Change 7)_ | `4.3.2`                              | Local ONNX runtime in Web Worker for free-text semantic topic matching                                                               |
+| **`three`** _(Change 4)_                     | `0.186.1` (`@types/three` `0.186.0`) | 3D WebGL rendering for 3rd-person fixed-orientation tracking camera                                                                  |
+| **`@huggingface/transformers`** _(Change 8)_ | `4.3.2`                              | Local ONNX runtime in Web Worker for free-text semantic topic matching                                                               |
 
 ---
 
@@ -66,7 +81,7 @@ The codebase follows strict Clean Architecture inward dependency rules (`interfa
 | **Root**           | [`README.md`](README.md)                                       | [`AGENTS.md`](AGENTS.md)                                       | Master project overview, setup, and global agent governance                                    |
 | **Domain**         | [`src/domain/README.md`](src/domain/README.md)                 | [`src/domain/AGENTS.md`](src/domain/AGENTS.md)                 | Pure TypeScript simulation core, `SeededRandom`, `StateSliceKey<T>`, `CivilizationLegacyState` |
 | **Application**    | [`src/application/README.md`](src/application/README.md)       | [`src/application/AGENTS.md`](src/application/AGENTS.md)       | Use-case orchestration, tick coordination, `RenderFrameBuilder`, port interfaces               |
-| **Infrastructure** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Local ONNX Web Worker, lexical/pragmatic parser, model cache, persistence                      |
-| **Content**        | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Plug-and-play Eras, Characters (Tiers 1–3), Behaviors, Spaces, Props, Mechanics                |
-| **Interfaces**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS renderer, First-Person controller, HUD, composition root                       |
+| **Infrastructure** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Session NDJSON logger & compactor, save/load repository, local ONNX Web Worker                 |
+| **Content**        | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Plug-and-play Eras, Characters (Tiers 1–3), Rivals, Roles, Behaviors, Spaces, Props, Mechanics |
+| **Interfaces**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS 3rd-person tracking renderer, Debug Inspector, HUD, composition root           |
 | **Tests**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary enforcement, unit tests, content contract tests, simulation tests        |

@@ -1,6 +1,6 @@
 # Agent Guide — Uplift
 
-**Uplift** is a 100% local, offline-capable first-person covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Special Circumstances_), built with TypeScript, Three.js, and local ONNX embeddings (`@huggingface/transformers`) for a 2019 Intel Core i7 MacBook Pro (16GB RAM).
+**Uplift** is a 100% local, offline-capable covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Special Circumstances_) and Fred Saberhagen's _Brother Assassin_, built with TypeScript, Three.js (3rd-person fixed-orientation tracking camera + free-cam debug inspector), and local ONNX embeddings (`@huggingface/transformers`) for a 2019 Intel Core i7 MacBook Pro (16GB RAM).
 
 ## Quick Verify (Run After Every Task)
 
@@ -10,9 +10,11 @@ npm run verify
 
 `npm run verify` executes in sequence:
 
-1. `npm run typecheck` (`tsc --noEmit`)
-2. `npm run test:arch` (Clean Architecture inward dependency & `Math.random` ban checks)
-3. `npm run test:unit` (Fast deterministic unit, registry contract, and headless simulation tests in `<3s`)
+1. `npm run format:check` (`prettier --check .`)
+2. `npm run lint` (`eslint src tests vitest.config.ts`)
+3. `npm run typecheck` (`tsc --noEmit` via native TypeScript 7.0.2)
+4. `npm run test:arch` (Clean Architecture inward dependency, zero-`any`, `Math.random` ban, and section doc checks)
+5. `npm run test:unit` (Fast deterministic unit, registry contract, and headless simulation tests in `<3s`)
 
 ## Clean Architecture Layer Rules (Enforced by `tests/architecture/layer_boundaries.test.ts`)
 
@@ -33,21 +35,25 @@ domain               -> NOTHING outward (pure TypeScript only)
 | `content` (domain data/plugins) | `src/content/` (except `scene/`) | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                                              |
 | `interfaces`                    | `src/interfaces/`                | implicit/explicit `any`                                                                                                                                                   |
 
-## Strict TypeScript & Zero-`any` Policy
+## Strict TypeScript, ESLint, Prettier & Zero-`any` Policy
 
 - `tsconfig.json` enforces `"strict": true`, `"noImplicitAny": true`, `"strictNullChecks": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`, and `"noImplicitOverride": true`.
-- Explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) is banned across `src/` and `tests/` and verified automatically in `tests/architecture/layer_boundaries.test.ts` on every `npm run verify`. Use `unknown` with type guards or generic type parameters `<T>` instead.
+- We use Microsoft's official TypeScript 7.0.2 side-by-side setup (`@typescript/native` for `tsc` 7.0.2 + `typescript` aliased to `@typescript/typescript6@6.0.2` for `typescript-eslint`).
+- Explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) is banned across `src/` and `tests/` and verified by both ESLint (`@typescript-eslint/no-explicit-any`) and `tests/architecture/layer_boundaries.test.ts`. Use `unknown` with type guards or generic type parameters `<T>` instead.
+- Prettier runs on save (`.vscode/settings.json`), and Husky + `lint-staged` run Prettier and ESLint on staged files on every `git commit`.
 
-## Plug-and-Play Module Registries
+## Plug-and-Play Module Registries & Core Systems
 
-Never hardcode specific characters, behaviors, rooms, props, or era rules inside `src/domain/` or `src/application/`. Register all content via declarative contracts wired in `src/interfaces/composition/`:
+Never hardcode specific characters, behaviors, rooms, props, roles, or era rules inside `src/domain/` or `src/application/`. Register all content and sub-types via declarative contracts wired in `src/interfaces/composition/`:
 
-- **Characters (`CharacterBlueprint`)**: 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId` for multi-era continuity.
-- **Behaviors (`BehaviorModule`)**: Pure plugins (`canExecute`, `scoreUtility`, `execute -> WorldEffect[]`) with hysteresis commitment bonuses.
-- **Spaces (`SpaceNode`)**: Supports both `indoor_room` (acoustic containment, doors) and `outdoor_area` (free-roam courtyard/commons, distance earshot falloff).
-- **Props (`PropBlueprint`)**: 2 tiers (`interactive` with inspect/tamper state, `static` scenery with colliders and dynamic Uplift visuals).
-- **Typed Custom State (`StateSliceKey<T>`)**: Use `defineStateSlice<T>(key, defaultValue)` for plugin state — never untyped `Record<string, any>`.
-- **Era Legacy (`CivilizationLegacyState`)**: Carries societal axes, negative civilizational scars (`InheritedTrait[]`), and character lineage mutations across eras.
+- **Characters (`CharacterBlueprint`)**: 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, distinct attitude/voice profiles, and `inertia` weighting.
+- **Rival Spacefaring Operatives (`RivalOperativeBlueprint`)**: Competing off-world operatives whose actions propagate across local and wider world nodes and can spoof or be detected on the Wider World Overview.
+- **Roles & Groundside Funds (`RoleBlueprint`, `FundsEconomyModule`)**: Era-appropriate roles (with rank progression and physical Chambers/Office) granting legitimate funds vs. orbital-inserted illegitimate funds (which risk discovery and local inflation).
+- **Wider World Overview & Async Correspondence (`WorldOverviewModule`, `MessageTransitQueue`)**: News, rumors, and time-lagged correspondence (horse courier -> telegraph -> email) to off-stage core NPCs.
+- **Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadModule`)**: Slow-building historical threads, religious martyrdom/succession rules, and crises (wars, plagues, economic shocks).
+- **Emergency States (`EmergencyStateModule`)**: Pauses non-related traits and activates emergency traits/rumors/resolutions until resolved.
+- **Orbital Pass Mechanics & Weather Control (`OrbitalPassModule`, `WeatherControlModule`)**: Orbital position gating ability availability and localized weather control with overuse penalties.
+- **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` with rolling compaction and `.cursor/skills/uplift-debug/SKILL.md`.
 
 ## Section-Specific Agent & Developer Guides (Hierarchical Map)
 
@@ -57,14 +63,14 @@ Root `README.md` and `AGENTS.md` provide high-level project instructions and poi
 | ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | **Domain Layer**         | [`src/domain/README.md`](src/domain/README.md)                 | [`src/domain/AGENTS.md`](src/domain/AGENTS.md)                 | Pure simulation models, `SeededRandom`, `StateSliceKey<T>`, reducer contracts, `CivilizationLegacyState` |
 | **Application Layer**    | [`src/application/README.md`](src/application/README.md)       | [`src/application/AGENTS.md`](src/application/AGENTS.md)       | Use cases, tick orchestration, `RenderFrameBuilder`, port interfaces                                     |
-| **Infrastructure Layer** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Local ONNX Web Worker, lexical/pragmatic parser, local model cache, save/load                            |
-| **Content & Plugins**    | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Swappable Eras, Characters (Tiers 1–3), Behaviors, Spaces (indoor/outdoor), Props, Mechanics             |
-| **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS renderer, WASD/raycast controller, HUD, composition root                                 |
+| **Infrastructure Layer** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Session NDJSON logger & compactor, save/load repository, local ONNX Web Worker                           |
+| **Content & Plugins**    | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Swappable Eras, Characters (Tiers 1–3), Rivals, Roles, Behaviors, Spaces, Props, Mechanics               |
+| **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS 3rd-person tracking renderer, Debug Inspector, HUD, composition root                     |
 | **Test Suites**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests        |
 
 ## Atomic Delivery, Pre-Commit Self-Review & Post-Change 5-Subagent Review
 
-We use **OpenSpec (`opsx`)** across an 8-change roadmap (see `openspec/config.yaml`).
+We use **OpenSpec (`opsx`)** across the atomic change roadmap in `openspec/config.yaml`.
 
 ### 1. Pre-Commit Short Self-Review (Before Every Commit)
 
@@ -77,14 +83,6 @@ Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`
    - **Determinism & Immutability**: No `Math.random()` / `Date.now()` in `domain` or `content`; state updates do not mutate prior snapshots in place.
    - **Tests**: Edge cases and failure paths are asserted.
 3. Create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
-
-```text
-build(scaffold): initialize strict typescript vite and vitest toolchain
-test(arch): enforce clean architecture boundaries and zero-any policy
-feat(domain): add deterministic SeededRandom PRNG
-feat(domain): add typed StateSliceKey registry and immutable store
-docs(devex): add hierarchical README and AGENTS guides across all codebase sections
-```
 
 ### 2. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
 

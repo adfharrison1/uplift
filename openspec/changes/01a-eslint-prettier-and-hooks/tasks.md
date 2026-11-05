@@ -12,5 +12,5 @@
 
 ## 4. Documentation, Verification & 5-Subagent Review
 
-- [ ] 4.1 Update `openspec/config.yaml`, root `README.md` and `AGENTS.md`, and `tests/README.md` + `tests/AGENTS.md` to document ESLint, Prettier, Husky hooks, and the TS 7 side-by-side setup | Verify: `npm run verify && npm audit` | Commit: `docs(devex): document eslint prettier and husky pre-commit workflow`
+- [x] 4.1 Update `openspec/config.yaml`, root `README.md` and `AGENTS.md`, and `tests/README.md` + `tests/AGENTS.md` to document ESLint, Prettier, Husky hooks, and the TS 7 side-by-side setup | Verify: `npm run verify && npm audit` | Commit: `docs(devex): document eslint prettier and husky pre-commit workflow`
 - [ ] 4.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 01a five-subagent review findings`
