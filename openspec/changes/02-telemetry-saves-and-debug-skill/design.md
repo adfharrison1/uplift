@@ -8,7 +8,7 @@ See `proposal.md` for motivation. Change 02 (`02-telemetry-saves-and-debug-skill
 - Define pure, epoch-agnostic domain contracts for session telemetry (`SessionTelemetryPort`, `TelemetryClock`, `TelemetryEntry`, `AiReasoningTrace`) and multi-session saves (`SaveSlotRepositoryPort`, `SaveSlotEnvelope`, `SaveSlotMetadata`).
 - Implement fast, dependency-free Node/disk and in-memory adapters in `src/infrastructure/` supporting single-session log retention (`./logs/current-session.jsonl`), rolling compaction (`./logs/current-session.compacted.jsonl`), and atomic temp-file-renamed multi-session save files (`./saves/<slotId>.json`) with strict `slotId` allowlist validation.
 - Provide a Vite dev-server middleware plugin (`src/interfaces/vite/localDiskBridgePlugin.ts`) with `256 KiB` body limits and `400`/`413` error handling so the browser client can append log batches and read/write save slots directly to `./logs/` and `./saves/`.
-- Provide a CLI log query tool (`npm run logs:query`) and `.cursor/skills/uplift-debug/SKILL.md` so agents can diagnose simulation, AI, and rival-operative behavior rapidly.
+- Provide a CLI log query tool (`npm run logs:query`) and `.agents/skills/uplift-debug/SKILL.md` so agents can diagnose simulation, AI, and rival-operative behavior rapidly.
 
 **Non-Goals:**
 - Introducing external logging/database dependencies (e.g., SQLite, Winston, or cloud telemetry SDKs).
@@ -113,7 +113,7 @@ export interface SaveSlotEnvelope extends SaveSlotMetadata {
 ### 5. Layer Placement & Section Documentation Updates
 
 ```text
-.cursor/
+.agents/
   skills/
     uplift-debug/
       SKILL.md                            # Debug Agent Skill for querying logs & save files

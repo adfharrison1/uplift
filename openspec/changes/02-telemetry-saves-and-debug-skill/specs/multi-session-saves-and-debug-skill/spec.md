@@ -23,12 +23,12 @@ The Vite local disk bridge middleware SHALL expose local endpoints for appending
 - **THEN** valid requests SHALL persist to `./logs/` or `./saves/`, while invalid requests SHALL return `400` or `413` with zero partial disk writes
 
 ### Requirement: CLI log query tool and Debug Agent Skill
-The project SHALL provide a CLI log query utility (`npm run logs:query`) and a Cursor agent skill (`.cursor/skills/uplift-debug/SKILL.md`) capable of filtering active and compacted session logs by `level`, `actorId`, `acteeId`, `category`, `action`, `minTick`, `maxTick`, and AI reasoning presence to trace and fix simulation or AI issues.
+The project SHALL provide a CLI log query utility (`npm run logs:query`) and an agent skill (`.agents/skills/uplift-debug/SKILL.md`) capable of filtering active and compacted session logs by `level`, `actorId`, `acteeId`, `category`, `action`, `minTick`, `maxTick`, and AI reasoning presence to trace and fix simulation or AI issues, and SHALL forbid placing skills in `.cursor/skills/`.
 
 #### Scenario: Querying session logs by actor, level, and AI reasoning
 - **WHEN** a developer or agent queries the session logs with filters (e.g., `level: 'warn'`, `actorId: 'npc.sorrel'`, or `hasAiReasoning: true`)
 - **THEN** the query runner SHALL return only matching entries across the active and compacted log streams in chronological order
 
-#### Scenario: Debug agent skill presence and trace-and-fix workflow
+#### Scenario: Debug agent skill presence in .agents/skills and trace-and-fix workflow
 - **WHEN** `npm run test:arch` executes
-- **THEN** it SHALL verify that `.cursor/skills/uplift-debug/SKILL.md` exists and documents the log schema, compaction rules, save slot inspection, `npm run logs:query` usage, and the step-by-step trace-and-fix debugging workflow
+- **THEN** it SHALL verify that `.agents/skills/uplift-debug/SKILL.md` exists (and `.cursor/skills/` does not exist) and documents the log schema, compaction rules, save slot inspection, `npm run logs:query` usage, and the step-by-step trace-and-fix debugging workflow

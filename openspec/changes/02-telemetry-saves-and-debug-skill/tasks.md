@@ -10,7 +10,7 @@
 
 ## 3. Log Query CLI, Vite Disk Bridge & Debug Agent Skill
 
-- [ ] 3.1 Implement `src/interfaces/cli/queryLogs.ts`, add `logs:query` to `package.json`, create `.cursor/skills/uplift-debug/SKILL.md`, and add CLI unit tests in `tests/unit/interfaces/QueryLogsCli.test.ts` plus skill existence checks in `tests/architecture/layer_boundaries.test.ts` | Verify: `npx vitest run tests/unit/interfaces/QueryLogsCli.test.ts && npm run verify` | Commit: `feat(interfaces): add log query CLI and uplift-debug agent skill`
+- [x] 3.1 Implement `src/interfaces/cli/queryLogs.ts`, add `logs:query` to `package.json`, create `.agents/skills/uplift-debug/SKILL.md`, and add CLI unit tests in `tests/unit/interfaces/QueryLogsCli.test.ts` plus skill existence checks in `tests/architecture/layer_boundaries.test.ts` | Verify: `npx vitest run tests/unit/interfaces/QueryLogsCli.test.ts && npm run verify` | Commit: `feat(interfaces): add log query CLI and uplift-debug agent skill`
 - [ ] 3.2 Implement `src/interfaces/vite/localDiskBridgePlugin.ts` (with `256 KiB` body cap and `400`/`413` validation), create `vite.config.ts`, include `vite.config.ts` in `tsconfig.json` and `eslint.config.mjs`, and verify HTTP bridge routes and error handling in `tests/unit/interfaces/LocalDiskBridge.test.ts` | Verify: `npx vitest run tests/unit/interfaces/LocalDiskBridge.test.ts && npm run verify` | Commit: `feat(interfaces): add vite local disk bridge middleware for telemetry and saves`
 
 ## 4. Hierarchical Documentation & 5-Subagent Review

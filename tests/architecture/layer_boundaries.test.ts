@@ -385,4 +385,23 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
     const tsStagedCommands = pkgJson['lint-staged']?.['*.{ts,mjs}'];
     expect(tsStagedCommands).toEqual(['eslint --fix', 'prettier --write']);
   });
+
+  it('verifies .agents/skills/uplift-debug/SKILL.md exists, forbids .cursor/skills, and documents log querying, compaction, save slots, and trace-and-fix workflow', () => {
+    const forbiddenCursorSkillsDir = join(REPO_ROOT, '.cursor/skills');
+    expect(
+      existsSync(forbiddenCursorSkillsDir),
+      'Skills must live in .agents/skills, never in .cursor/skills',
+    ).toBe(false);
+
+    const skillPath = join(REPO_ROOT, '.agents/skills/uplift-debug/SKILL.md');
+    expect(existsSync(skillPath)).toBe(true);
+
+    const skillContent = readFileSync(skillPath, 'utf8');
+    expect(skillContent).toContain('name: uplift-debug');
+    expect(skillContent).toContain('current-session.jsonl');
+    expect(skillContent).toContain('current-session.compacted.jsonl');
+    expect(skillContent).toContain('npm run logs:query');
+    expect(skillContent).toContain('./saves/');
+    expect(skillContent).toContain('Trace-and-Fix Debugging Workflow');
+  });
 });

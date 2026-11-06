@@ -30,8 +30,8 @@ context: |
 
   Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):
   - Every event (player, NPC, rival operative, orbital, system) and every AI action (input, output, utility/NLP reasoning, and withheld `AdvisoryDuel` clauses) MUST be logged to `./logs/current-session.jsonl` (structured NDJSON via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`.
-  - Only the latest session log is retained on new session start, and a Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events).
-  - A dedicated `.cursor/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs.
+  - Only the latest session log is retained on new session start, and a Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events).
+  - A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.
   - Multi-session Save/Load persists named session snapshots under `./saves/`.
 
   Code Architecture (standing directive — do not skip):
@@ -117,6 +117,7 @@ context: |
       Double-check the subagents' findings against the codebase, fix any verified issues in an atomic commit, and re-run `npm run verify`.
 
   Hierarchical Documentation & Agent Guidance (standing directive — do not skip):
+  - Agent Skills Location Rule: All project agent skills MUST live under `.agents/skills/<skill-name>/SKILL.md` and NEVER under `.cursor/skills/` (enforced by `tests/architecture/layer_boundaries.test.ts`).
   - Maintain a two-tier documentation and agent-instruction hierarchy across the repository:
       1. Root `README.md`: High-level project overview, hardware/offline constraints, pinned dependency & CVE manifest, running/verification instructions, and a Directory Map linking to each section's `README.md`.
       2. Root `AGENTS.md`: Global agent workflow, `/verify` loop, atomic commit policy, layer overview, and an Agent Map linking to each section's `AGENTS.md`.
@@ -159,7 +160,8 @@ operations:
       - "After proposing a change and creating all planning artifacts, run a pair of parallel subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit: (1) Architecture, Adversarial Edge-Cases, Determinism & Hardware Budget, and (2) Spec Completeness, DESIGN_NOTES.md Alignment & Task Atomicity (inward-out ordering, 1 task = 1 green commit), and fold verified improvements into the artifacts before /opsx-apply"
   apply:
     guidance:
-      - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, performing a short pre-commit self-review of git diff --staged, creating its atomic git commit, and marking - [x] in tasks.md before starting the next task"
+      - "Execute one task at a time by implementing the task, running its Verify command and npm run verify, performing a short pre-commit self-review of git diff --staged, then pause to allow user to review changes"
+      - "create an atomic git commit with a conventional commit message, and mark it - [x] in tasks.md before starting the next task"
       - "Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/"
       - "Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section"
       - "After all tasks in a change are delivered, run the mandatory 5-subagent review (adversarial, code adherence, performance, testing, logic), double-check their findings, and commit any verified fixes before concluding"

@@ -9,7 +9,7 @@ Before building the simulation registries, 3D camera, NPC utility brains, and ri
   - Writes structured JSON lines to `./logs/current-session.jsonl` with `timestampIso`, `elapsedSessionMs`, `epochId`, `worldTick`, `level`, `category`, `actorId`, `acteeId`, `action`, `inputs`, `effects`, and optional `aiReasoning` (including omitted `AdvisoryDuel` clauses).
   - Purges previous session logs on new session start so only the latest session is retained, and compacts older time windows into `./logs/current-session.compacted.jsonl`—collapsing repetitive routine `info` entries into summary digests while preserving 100% of `warn`, `error`, `crash`, player, rival, office/pretext, and AI reasoning records.
 - Implement the **Multi-Session Save / Load Repository** in `src/infrastructure/persistence/` (`FileSaveSlotRepository`, `InMemorySaveSlotRepository`) supporting saving, listing, loading, and deleting multiple named sessions under `./saves/` (preserving `epochId`, `worldTick`, `SeededRandom` state, `StateSliceStore` snapshot, and payload integrity).
-- Add a lightweight **Vite Local Disk Bridge** (`src/interfaces/vite/localDiskBridgePlugin.ts`) and a **Log Query CLI & Debug Agent Skill** (`src/interfaces/cli/queryLogs.ts`, `npm run logs:query`, and `.cursor/skills/uplift-debug/SKILL.md`) so browser play writes directly to `./logs/` and `./saves/` and Cursor agents can filter and trace logs in one command.
+- Add a lightweight **Vite Local Disk Bridge** (`src/interfaces/vite/localDiskBridgePlugin.ts`) and a **Log Query CLI & Debug Agent Skill** (`src/interfaces/cli/queryLogs.ts`, `npm run logs:query`, and `.agents/skills/uplift-debug/SKILL.md`) so browser play writes directly to `./logs/` and `./saves/` and agents can filter and trace logs in one command.
 
 ### Non-goals
 
@@ -34,5 +34,5 @@ Before building the simulation registries, 3D camera, NPC utility brains, and ri
 
 ## Impact
 
-- Adds `src/domain/telemetry/*`, `src/domain/persistence/*`, `src/infrastructure/telemetry/*`, `src/infrastructure/persistence/*`, `src/interfaces/cli/queryLogs.ts`, `src/interfaces/vite/localDiskBridgePlugin.ts`, `vite.config.ts`, and `.cursor/skills/uplift-debug/SKILL.md`.
+- Adds `src/domain/telemetry/*`, `src/domain/persistence/*`, `src/infrastructure/telemetry/*`, `src/infrastructure/persistence/*`, `src/interfaces/cli/queryLogs.ts`, `src/interfaces/vite/localDiskBridgePlugin.ts`, `vite.config.ts`, and `.agents/skills/uplift-debug/SKILL.md`.
 - Updates `package.json` (`logs:query` script), `README.md`, `AGENTS.md`, and section `README.md` / `AGENTS.md` files in `src/domain/`, `src/infrastructure/`, `src/interfaces/`, and `tests/`.

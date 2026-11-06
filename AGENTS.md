@@ -53,7 +53,8 @@ Never hardcode specific characters, behaviors, rooms, props, roles, or era rules
 - **Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadModule`)**: Slow-building historical threads, religious martyrdom/succession rules, and crises (wars, plagues, economic shocks).
 - **Emergency States (`EmergencyStateModule`)**: Pauses non-related traits and activates emergency traits/rumors/resolutions until resolved.
 - **Orbital Pass Mechanics & Weather Control (`OrbitalPassModule`, `WeatherControlModule`)**: Orbital position gating ability availability and localized weather control with overuse penalties.
-- **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` with rolling compaction and `.cursor/skills/uplift-debug/SKILL.md`.
+- **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` (50 MiB active cap / 500 MiB compacted cap) with rolling compaction and `.agents/skills/uplift-debug/SKILL.md`.
+- **Agent Skills Rule (Enforced by `npm run test:arch`)**: Always place project agent skills in `.agents/skills/<skill-name>/SKILL.md` — never in `.cursor/skills/`.
 
 ## Section-Specific Agent & Developer Guides (Hierarchical Map)
 
