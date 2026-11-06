@@ -80,17 +80,16 @@ After generating `proposal.md`, `specs/*`, `design.md`, and `tasks.md` in `/opsx
 1. **Subagent A — Architecture, Adversarial, Determinism & Hardware Audit**: Checks Clean Architecture inward layer placement, epoch-agnostic plug-and-play contracts (zero feudal hardcoding in `domain`), race conditions/immutability/determinism, zero external APIs, and 2019 Intel Mac 60 FPS / `<5s` verify budgets.
 2. **Subagent B — Spec Completeness, `DESIGN_NOTES.md` Alignment & Task Atomicity Audit**: Checks `WHEN`/`THEN` scenario coverage (including negative/error cases), alignment with `DESIGN_NOTES.md` and `openspec/config.yaml`, and verifies `tasks.md` has 4–6 atomic tasks (1–3 files each) ordered inward-out so every intermediate commit compiles and passes `npm run verify`.
 
-### 2. Pre-Commit Short Self-Review (Before Every Commit)
+### 2. Per-Subtask 2-Subagent Review & Pre-Commit Self-Review (Before Pausing for User Review & Committing)
 
-Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). Before running `git commit`:
+Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). For every subtask:
 
-1. Run the task's `Verify:` command and `npm run verify`.
-2. Inspect `git diff --staged` and perform a short self-review checking:
-   - **Scope**: Only files belonging to the current task are staged.
-   - **Architecture & Types**: Clean Architecture inward boundaries hold; zero implicit or explicit `any`.
-   - **Determinism & Immutability**: No `Math.random()` / `Date.now()` in `domain` or `content`; state updates do not mutate prior snapshots in place.
-   - **Tests**: Edge cases and failure paths are asserted.
-3. Create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
+1. Implement the subtask and run its `Verify:` command and `npm run verify`.
+2. Launch **2 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) with broad, non-overlapping review briefs on the subtask's files:
+   - **Subagent A — Correctness, Logic, Edge Cases & Performance**: Audits algorithmic/state-machine logic, boundary/malformed inputs, immutability, determinism, and CPU/memory efficiency.
+   - **Subagent B — Architecture, Spec Adherence, Types & Test Coverage**: Audits Clean Architecture inward boundaries, zero-`any` / Zod conventions, alignment with the change's spec/design, and unit test assertion quality/gaps.
+3. Double-check their findings, apply any verified fixes, re-run `npm run verify`, and inspect `git diff --staged` before pausing for user review.
+4. Once approved, create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
 
 ### 3. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
 
