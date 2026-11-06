@@ -1,6 +1,6 @@
 ## 1. Domain Telemetry & Persistence Ports
 
-- [ ] 1.1 Define epoch-agnostic telemetry and persistence contracts in `src/domain/telemetry/SessionTelemetryPort.ts` (`TelemetryClock`, `TelemetryEntry`, `TelemetryLevel`, `AiReasoningTrace`, `CompactedTelemetryDigest`, `TelemetryQueryFilter`, `SessionTelemetryPort`) and `src/domain/persistence/SaveSlotRepositoryPort.ts` (`SAVE_SLOT_SCHEMA_VERSION`, `SaveSlotMetadata`, `SaveSlotEnvelope`, `SaveSlotRepositoryPort`), re-exporting from `src/domain/index.ts` with unit tests in `tests/unit/domain/TelemetryAndSavePorts.test.ts` | Verify: `npx vitest run tests/unit/domain/TelemetryAndSavePorts.test.ts && npm run verify` | Commit: `feat(domain): add epoch-agnostic session telemetry and save slot ports`
+- [x] 1.1 Define epoch-agnostic telemetry and persistence contracts in `src/domain/telemetry/SessionTelemetryPort.ts` (`TelemetryClock`, `TelemetryEntry`, `TelemetryLevel`, `AiReasoningTrace`, `CompactedTelemetryDigest`, `TelemetryQueryFilter`, `SessionTelemetryPort`) and `src/domain/persistence/SaveSlotRepositoryPort.ts` (`SAVE_SLOT_SCHEMA_VERSION`, `SaveSlotMetadata`, `SaveSlotEnvelope`, `SaveSlotRepositoryPort`), re-exporting from `src/domain/index.ts` with unit tests in `tests/unit/domain/TelemetryAndSavePorts.test.ts` | Verify: `npx vitest run tests/unit/domain/TelemetryAndSavePorts.test.ts && npm run verify` | Commit: `feat(domain): add epoch-agnostic session telemetry and save slot ports`
 
 ## 2. Infrastructure NDJSON Telemetry, Rolling Compactor & Multi-Session Saves
 

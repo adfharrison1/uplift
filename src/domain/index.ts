@@ -12,3 +12,26 @@ export {
   StateSliceRegistry,
   StateSliceStore,
 } from './core/StateSliceRegistry.js';
+export {
+  type AiCandidateScore,
+  type AiPipelineKind,
+  type AiReasoningTrace,
+  type CompactedTelemetryDigest,
+  isHighSignalTelemetryEntry,
+  PRESERVED_TELEMETRY_CATEGORIES,
+  type SessionTelemetryPort,
+  type TelemetryClock,
+  type TelemetryEntry,
+  type TelemetryEventInput,
+  type TelemetryLevel,
+  type TelemetryQueryFilter,
+  type TelemetryStreamRecord,
+} from './telemetry/SessionTelemetryPort.js';
+export {
+  SAVE_SLOT_SCHEMA_VERSION,
+  type SaveSlotEnvelope,
+  type SaveSlotMetadata,
+  type SaveSlotRepositoryPort,
+  type SaveSlotWriteInput,
+  validateSaveSlotId,
+} from './persistence/SaveSlotRepositoryPort.js';
