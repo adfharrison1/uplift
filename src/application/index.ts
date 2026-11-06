@@ -1,11 +1,69 @@
 /**
  * Application Layer Barrel (`src/application/`)
  *
- * Use-case orchestration, tick coordination, and pure RenderFrameBuilder.
+ * Use-case orchestration, tick coordination, 3-Layer Encoded Visual Blueprints, and pure RenderFrameBuilder.
  * Depends inward on `src/domain/` only.
  */
 export { DOMAIN_LAYER_ID } from '../domain/index.js';
 export const APPLICATION_LAYER_ID = 'application' as const;
+export {
+  type AgentDomMirrorState,
+  type BuildRenderFrameInput,
+  type CameraMode,
+  type CameraRenderState,
+  type DebugInspectorCard,
+  type EntityRenderPose,
+  MAX_CAMERA_SPRING_DT_SECONDS,
+  type NdcProjection,
+  projectWorldToNdc,
+  type PropRenderPose,
+  type RenderFrame,
+  RenderFrameBuilder,
+  selectActiveCameraVolume,
+  type SpringScalarState,
+  stepCriticallyDampedSpring,
+} from './rendering/RenderFrameBuilder.js';
+export {
+  type CameraVolumeBlueprint,
+  CameraVolumeBlueprintSchema,
+  type CanonicalMotifId,
+  CanonicalMotifIdSchema,
+  type CharacterPartSlotName,
+  CharacterPartSlotNameSchema,
+  type CharacterVisualBlueprint,
+  CharacterVisualBlueprintSchema,
+  type CompassDirection,
+  CompassDirectionSchema,
+  type EpochVisualTheme,
+  EpochVisualThemeSchema,
+  formatCharacterPartSemanticId,
+  formatCharacterRootSemanticId,
+  formatFloorSemanticId,
+  formatLightSemanticId,
+  formatPropSemanticId,
+  formatWallMotifSemanticId,
+  formatWallSegmentSemanticId,
+  type GaitStyle,
+  GaitStyleSchema,
+  type HexColor,
+  HexColorSchema,
+  resolveCharacterVisualForTheme,
+  type SemanticId,
+  SemanticIdSchema,
+  type StageLightBlueprint,
+  StageLightBlueprintSchema,
+  type StagePropVisualBlueprint,
+  StagePropVisualBlueprintSchema,
+  type StageSceneBlueprint,
+  StageSceneBlueprintSchema,
+  validateSemanticId,
+  type WallMotifInstance,
+  WallMotifInstanceSchema,
+  type WallSegmentBlueprint,
+  WallSegmentBlueprintSchema,
+  type WallSurfaceZone,
+  WallSurfaceZoneSchema,
+} from './rendering/SceneVisualBlueprints.js';
 export {
   type CognitivePulseOptions,
   type CognitivePulseResult,
