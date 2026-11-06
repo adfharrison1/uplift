@@ -15,8 +15,8 @@ The domain layer SHALL provide an `EpochModuleRegistry` that registers and valid
 - **WHEN** a blueprint references an unknown `spaceId`, `waypointId` (or a waypoint not belonging to `startingSpaceId`), `connectedSpaceId` (or self-link), or unknown character/patron entity ID, or two blueprints share a duplicate ID
 - **THEN** `EpochModuleRegistry` SHALL throw a descriptive validation error identifying the offending module and invalid reference
 
-### Requirement: Topological sort and cycle detection for behavior dependencies
-The `EpochModuleRegistry` SHALL resolve `BehaviorModule` dependencies in deterministic topological order and reject self-loops, cycles, or missing behavior dependencies at load time.
+### Requirement: Topological sort, cycle detection, and human-paced timing for behavior modules
+The `EpochModuleRegistry` SHALL validate human-paced timing metadata on every `BehaviorModule` (`deliberationSeconds`, `dwellSeconds`, `cooldownSeconds`, `requiresExternalTrigger`) and SHALL resolve `BehaviorModule` dependencies in deterministic topological order, rejecting self-loops, cycles, or missing behavior dependencies at load time.
 
 #### Scenario: Behavior dependency self-loop or cycle rejected
 - **WHEN** Behavior A declares a dependency on itself (`A -> A`) or a cycle (`A -> B -> A`)

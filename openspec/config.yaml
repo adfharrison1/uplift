@@ -60,10 +60,14 @@ context: |
       - Emergency States (`EmergencyStateModule`): Suppresses (and compounds interest on) routine traits while activating crisis verbs, spatial crowd shifts, visible branching fuses, and player-triggered emergency pretexts.
       - Orbital Pass Cycle, Borrowable Time & Weather Control (`OrbitalPassModule` & `WeatherControlModule`): Ship pass position (`zenith`, `horizon`, `occluded`) with **Delta** budget for **Slingshot** (arrive early, longer occlusion) and **Burn** (linger at zenith, sky-omen footprint), gating recon, drops, and localized Weather Modification (tracked via Omen Ledger and Ecological Debt).
 
-  Real-Time 60 FPS Experience vs Background Cognitive Ticks:
+  Real-Time 60 FPS Experience vs Background Cognitive Ticks (Human-Paced & Anti-Thundering-Herd):
   - Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, reliquary-lamp drone micro-swings, weather particles) runs continuously at 60 FPS (`stepKinematics(dt)`).
   - Perception & arrival pulses run every ~250ms (line-of-sight, acoustic earshot, waypoint arrival events).
   - Cognitive & macro-world ticks run every ~8-12s in the background (Utility AI with +0.15 hysteresis commitment bonus, rumor decay, message transit, orbital pass movement), assigning new target paths without ever teleporting or freezing physical entities.
+  - **Human-Paced Cognition, Anti-Thundering-Herd & Fast-Eval Pacing Override (non-negotiable)**:
+      1. NPCs must never speed-run through multi-step plots at CPU speed during live gameplay. Every behavior progresses through human-paced phases (`deliberating` -> `moving` -> `performing_dwell` -> `cooldown` or `awaiting_trigger` when waiting for the next player-created trigger).
+      2. NPC-to-NPC trigger cascades (`enqueue_npc_stimulus`) enforce a digestion delay with exponential hop backoff (`cascadeHopCount` capped by `maxAutonomousCascadeHops`, default `2`) and a staggered token-bucket scheduler (`maxCognitiveEvaluationsPerPulse = 1`) so NPC-to-NPC interactions never cause a thundering herd.
+      3. All pacing/cascade limits are controlled via `SimulationPacingConfig` (`DEFAULT_GAMEPLAY_PACING_CONFIG` for live play vs. `FAST_EVAL_PACING_CONFIG` for automated tests and AI evals) so headless tests and evals can bypass or scale down human timers and thundering-herd throttles to run 100+ ticks in milliseconds.
 
   Stack & Pinned Versions (verified 2026-10-29 — latest stable & CVE-patched releases, bump deliberately):
   - Node.js LTS: 24.22.2 'Krypton' LTS or 26.13.0 'Lithium' LTS (includes Oct 21, 2026 security patches for CVE-2026-111497, CVE-2026-105482, CVE-2026-105483, CVE-2026-106069, CVE-2026-106074)

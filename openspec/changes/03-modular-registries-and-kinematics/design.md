@@ -29,17 +29,24 @@ To ensure seamless flow from Era 1 into Era 2+, every blueprint uses universal d
   - `DiscoveryLayer`: `'noticed' | 'assayed' | 'attributed' | 'theorized'` (stored as `DiscoveryLayer | null` on `WorldState`, where `null` represents no discovery layer triggered yet).
 - **Rivals, Trajectory Threads, Correspondence, Emergencies & Orbit (`RivalCivBlueprint`, `TrajectoryThreadBlueprint`, `ChannelMediumBlueprint`, `EmergencyStateBlueprint`, `OrbitalPassBlueprint`)**:
   - Validated and indexed in `EpochModuleRegistry`.
-- **Behaviors (`BehaviorModule`)**: Registered via Kahn's algorithm topological sort, rejecting self-loops (`A -> A`), multi-node cycles (`A -> B -> A`), duplicate dependencies, and missing dependencies.
+- **Behaviors (`BehaviorModule`)**: Registered via Kahn's algorithm topological sort, rejecting self-loops (`A -> A`), multi-node cycles (`A -> B -> A`), duplicate dependencies, and missing dependencies. Every `BehaviorModule` also specifies human-paced timing (`deliberationSeconds >= 0`, `dwellSeconds >= 0`, `cooldownSeconds >= 0`, `requiresExternalTrigger: boolean`).
 
-### 2. Continuous 60Hz Kinematics (`stepKinematics`) vs. Discrete `applyWorldEffects` (`src/domain/simulation/`)
+### 2. Continuous 60Hz Kinematics (`stepKinematics`), Human-Paced Cognitive Phases & Pure `applyWorldEffects` (`src/domain/simulation/`)
 
 - **60Hz Frame Loop (`stepKinematics(state, dtSeconds)`)**:
   - Rejects `dtSeconds < 0` or `!Number.isFinite(dtSeconds)` with `RangeError` (before checking `paused`).
   - If `dtSeconds === 0` or `state.paused === true`, returns `{ state, arrivals: [] }` immediately.
-  - Advances each entity in ascending `entityId` order along its `activePath` in one polyline pass: handles zero-length segments (`<= 1e-6m`) without division by zero, snaps to exact waypoint coordinates when `distance <= stepDistance`, carries remaining `stepDistance` into subsequent segments, and emits one `WaypointArrivalEvent` per reached waypoint in path order.
+  - Advances `elapsedSimulationSeconds` by `dtSeconds`, decrements each entity's `phaseRemainingSeconds` when in `deliberating`, `performing_dwell`, or `cooldown`, and advances each moving entity in ascending `entityId` order along its `activePath` in one polyline pass: handles zero-length segments (`<= 1e-6m`) without division by zero, snaps to exact waypoint coordinates when `distance <= stepDistance`, carries remaining `stepDistance` into subsequent segments, and emits one `WaypointArrivalEvent` per reached waypoint in path order.
+- **Anti-Thundering-Herd Stimulus Queue (`PendingStimulus`) & `SimulationPacingConfig`**:
+  - Each entity tracks `cognitivePhase: 'idle' | 'deliberating' | 'moving' | 'performing_dwell' | 'cooldown' | 'awaiting_trigger'` and `pendingStimuli: ReadonlyArray<PendingStimulus>`.
+  - `WorldState` carries `cognitiveRoundRobinCursor: number` and `pacingConfig: SimulationPacingConfig` with two presets:
+    - `DEFAULT_GAMEPLAY_PACING_CONFIG`: `{ deliberationScale: 1.0, baseDigestionDelaySeconds: 5.0, cascadeBackoffFactor: 2.0, maxAutonomousCascadeHops: 2, maxCognitiveEvaluationsPerPulse: 1, allowUnclampedFrameDt: false }`
+    - `FAST_EVAL_PACING_CONFIG`: `{ deliberationScale: 0.0, baseDigestionDelaySeconds: 0.0, cascadeBackoffFactor: 1.0, maxAutonomousCascadeHops: 32, maxCognitiveEvaluationsPerPulse: 64, allowUnclampedFrameDt: true }`
+  - When `enqueue_npc_stimulus` is applied with `cascadeHopCount`, its `readyAtElapsedSeconds` is computed as `state.elapsedSimulationSeconds + state.pacingConfig.baseDigestionDelaySeconds * Math.pow(state.pacingConfig.cascadeBackoffFactor, cascadeHopCount)`. If `cascadeHopCount >= state.pacingConfig.maxAutonomousCascadeHops`, the target entity is placed in `awaiting_trigger` until a player or macro-world trigger occurs.
+  - When `set_cognitive_phase` sets a `deliberating`, `performing_dwell`, or `cooldown` timer, `durationSeconds` is multiplied by `state.pacingConfig.deliberationScale`. When `phaseRemainingSeconds` reaches `0` during `stepKinematics`, `deliberating` transitions to `moving` (if `activePath.length > 0`) or `performing_dwell`, `performing_dwell` transitions to `cooldown`, and `cooldown` transitions to `idle` (or `awaiting_trigger` if `requiresExternalTrigger` is set).
 - **Pure Reducer (`applyWorldEffects(state, effects)`)**:
   - Returns `{ state: nextState, appliedEffects }` without mutating `state`.
-  - Supports `move_entity_to_waypoint`, `update_prop_state`, `adjust_pressure_stock` (clamped `[0, 1]`), `set_discovery_layer`, `collapse_inertia_pillar`, `trigger_emergency`, `compound_emergency_vices` (increments each entity's `emergencyVice` drive clamped to `[0, 1]`), `resolve_emergency`, `advance_orbital_pass`, `spend_orbital_delta` (`mode: 'slingshot' | 'burn'`), `record_legacy_scar`, and `set_state_slice`.
+  - Supports `move_entity_to_waypoint`, `set_cognitive_phase`, `enqueue_npc_stimulus`, `release_external_trigger`, `update_prop_state`, `adjust_pressure_stock` (clamped `[0, 1]`), `set_discovery_layer`, `collapse_inertia_pillar`, `trigger_emergency`, `compound_emergency_vices` (increments each entity's `emergencyVice` drive clamped to `[0, 1]`), `resolve_emergency`, `advance_orbital_pass`, `spend_orbital_delta` (`mode: 'slingshot' | 'burn'`), `record_legacy_scar`, and `set_state_slice`.
 
 ### 3. Dual-Ledger `CivilizationLegacyState` & `LineageMutation` (`src/domain/legacy/`)
 
@@ -49,7 +56,8 @@ To ensure seamless flow from Era 1 into Era 2+, every blueprint uses universal d
 ### 4. `SimulationCoordinator` (`src/application/simulation/`)
 
 - Imports ONLY from `../../domain/index.js` (never `src/infrastructure/` or `src/content/`).
-- Clamps live frame `dtSeconds` to `MAX_FRAME_DT_SECONDS = 0.25` (logging a `warn` telemetry event if clamped) and skips both kinematics and `applyWorldEffects` while `state.paused === true`.
+- Clamps live frame `dtSeconds` to `MAX_FRAME_DT_SECONDS = 0.25` when `state.pacingConfig.allowUnclampedFrameDt === false` (logging a `warn` telemetry event if clamped) and skips both kinematics and `applyWorldEffects` while `state.paused === true`.
+- Implements `pulseCognitiveScheduler(maxEvaluationsOverride?: number)`: scans entities in deterministic round-robin order and promotes at most `maxEvaluationsOverride ?? state.pacingConfig.maxCognitiveEvaluationsPerPulse` entities with a ready stimulus (`elapsedSimulationSeconds >= readyAtElapsedSeconds` and `cascadeHopCount < state.pacingConfig.maxAutonomousCascadeHops`) into `deliberating` per pulse, preventing thundering-herd NPC stampedes in gameplay while allowing full-speed batch evaluation in `FAST_EVAL_PACING_CONFIG`.
 
 ### 5. Pinned Versions Table (Verified 2026-10-29 — Zero New Dependencies)
 
