@@ -84,7 +84,7 @@ context: |
   - All future changes in this sequence are indicative and designed to accommodate ongoing design notes, new mechanics, or reprioritization between changes without structural rework:
   1. 01-clean-scaffold-and-verify          — Toolchain, Clean Architecture boundary test, SeededRandom, StateSliceKey, /verify [archived]
   1a. 01a-eslint-prettier-and-hooks        — Prettier format-on-save, ESLint flat config (TS 7 side-by-side), Husky + lint-staged [archived]
-  2. 02-telemetry-saves-and-debug-skill    — NDJSON session logger, rolling compactor, Vite disk middleware, multi-session Save/Load, uplift-debug skill [planned — revisable]
+  2. 02-telemetry-saves-and-debug-skill    — NDJSON session logger, rolling compactor, Vite disk middleware, multi-session Save/Load, uplift-debug skill [archived]
   3. 03-modular-registries-and-kinematics  — Epoch-agnostic module registries (Offices/Pretexts, 3 Illicit Fund Modes & Pressure Stocks, Inertia Pillars, Rivals, Butterfly/Martyrdom/Crises, Async Mail, Emergencies, Orbit/Delta), WorldEffect reducer, 60Hz kinematics, Dual-Ledger CivilizationLegacyState [planned — revisable]
   4. 04-third-person-camera-and-inspector  — Pure RenderFrameBuilder, Three.js 60 FPS stage-paint chiaroscuro renderer, volume-aware 3rd-person fixed-orientation tracking camera, Debug Mode (pause, free-cam de-anchor, floating state cards) [planned — revisable]
   5. 05-live-npc-steering-and-world-stage  — 60 FPS NPC waypoint/outdoor steering, doors/props, 2D spatial hash grid, Highglass Hold indoor/outdoor stage & Player Chambers [planned — revisable]
@@ -165,7 +165,7 @@ operations:
       - "create an atomic git commit with a conventional commit message, and mark it - [x] in tasks.md before starting the next task"
       - "Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/"
       - "Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section"
-      - "After all tasks in a change are delivered, run the mandatory 5-subagent review (adversarial, code adherence, performance, testing, logic), double-check their findings, and commit any verified fixes before concluding"
+      - "After all tasks in a change are delivered, run the mandatory 5-subagent review (adversarial, code adherence, performance, testing, logic)on the commits in the change, double-check their findings, and commit any verified fixes before concluding"
   archive:
     guidance:
       - "Confirm npm run verify passes, the 5-subagent post-change review has been completed and addressed, and all task commits are clean before archiving"
