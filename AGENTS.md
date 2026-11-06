@@ -69,16 +69,17 @@ Root `README.md` and `AGENTS.md` provide high-level project instructions and poi
 | **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS 3rd-person tracking renderer, Debug Inspector, HUD, composition root                     |
 | **Test Suites**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests        |
 
-## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 5-Subagent Review
+## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 6-Subagent Review
 
 We use **OpenSpec (`opsx`)** across the living atomic change roadmap in `openspec/config.yaml`. `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents—before proposing any new change, always check `DESIGN_NOTES.md` for new notes or intermediate changes, and keep all engine parameters, camera settings, and module registries data-driven so design and config changes can be made at any time without structural rework.
 
-### 1. Post-Propose 2-Subagent Spec Audit Gate (Before `/opsx-apply`)
+### 1. Post-Propose 3-Subagent Spec Audit Gate (Before `/opsx-apply`)
 
-After generating `proposal.md`, `specs/*`, `design.md`, and `tasks.md` in `/opsx-propose`, launch a **pair of parallel subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the change artifacts before implementation:
+After generating `proposal.md`, `specs/*`, `design.md`, and `tasks.md` in `/opsx-propose`, launch **three parallel subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the change artifacts before implementation:
 
 1. **Subagent A — Architecture, Adversarial, Determinism & Hardware Audit**: Checks Clean Architecture inward layer placement, epoch-agnostic plug-and-play contracts (zero feudal hardcoding in `domain`), race conditions/immutability/determinism, zero external APIs, and 2019 Intel Mac 60 FPS / `<5s` verify budgets.
 2. **Subagent B — Spec Completeness, `DESIGN_NOTES.md` Alignment & Task Atomicity Audit**: Checks `WHEN`/`THEN` scenario coverage (including negative/error cases), alignment with `DESIGN_NOTES.md` and `openspec/config.yaml`, and verifies `tasks.md` has 4–6 atomic tasks (1–3 files each) ordered inward-out so every intermediate commit compiles and passes `npm run verify`.
+3. **Subagent C — Game-Industry Standards, Best Practices, User safety, Accessibility, Gotchas & Extensibility Audit**: Checks game-industry simulation/architecture best practices, user-safety, accessibility, gotchas, possible coding-into-a-corner, future-proofing, and extensibility.
 
 ### 2. Per-Subtask 2-Subagent Review & Pre-Commit Self-Review (Before Pausing for User Review & Committing)
 
@@ -91,14 +92,15 @@ Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`
 3. Double-check their findings, apply any verified fixes, re-run `npm run verify`, and inspect `git diff --staged` before pausing for user review.
 4. Once approved, create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
 
-### 3. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
+### 3. Post-Change 6-Subagent Review Gate (After Each Change Is Delivered)
 
-When all tasks in a change are delivered (and before `/opsx-archive`), launch **5 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to review the change across 5 specialized dimensions:
+When all tasks in a change are delivered (and before `/opsx-archive`), launch **6 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to review the change across 6 specialized dimensions:
 
 1. **Adversarial Review**: Edge cases, malformed inputs, concurrency/race conditions, and failure modes.
 2. **Code Adherence & Architecture Review**: Clean Architecture inward imports, zero-`any` compliance, plug-and-play registry boundaries, OpenSpec spec adherence, and hierarchical `README.md` / `AGENTS.md` completeness.
 3. **Performance Review**: 2019 Intel Core i7 (16GB RAM) hardware budget, 60 FPS frame budget, cloning/allocation overhead, and algorithmic complexity.
 4. **Testing Review**: Test coverage gaps, boundary/negative assertions, determinism, and execution speed (`<3s` unit/arch suite).
 5. **Logic & Simulation Integrity Review**: Mathematical/bitwise correctness, state-transition invariants, and reducer purity.
+6. **Design Notes, Thematic Consistency & Coherence Review**: Adherence to `DESIGN_NOTES.md`, thematic consistency, and overall coherence of the change.
 
 Always double-check the subagents' findings against the actual code, apply any verified fixes in an atomic commit (`fix(<scope>): ...`), and re-run `npm run verify`.

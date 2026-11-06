@@ -13,5 +13,5 @@
 
 ## 4. Hierarchical Documentation & 5-Subagent Review
 
-- [ ] 4.1 Update `src/domain/README.md`, `src/domain/AGENTS.md`, `src/application/README.md`, `src/application/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md` to document the new registries, human-paced kinematics/reducer engine, `SimulationPacingConfig`, legacy state, and `SimulationCoordinator` | Verify: `npm run verify && npm audit` | Commit: `docs(sim): update hierarchical README and AGENTS guides for change 03`
-- [ ] 4.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic using Composer 2.5 Fast / Grok 4.7 High Fast), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 03 five-subagent review findings`
+- [x] 4.1 Update `src/domain/README.md`, `src/domain/AGENTS.md`, `src/application/README.md`, `src/application/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md` to document the new registries, human-paced kinematics/reducer engine, `SimulationPacingConfig`, legacy state, and `SimulationCoordinator` | Verify: `npm run verify && npm audit` | Commit: `docs(sim): update hierarchical README and AGENTS guides for change 03`
+- [ ] 4.2 Run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence using Composer 2.5 Fast / Grok 4.7 High Fast), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 03 post-change review findings`
