@@ -9,7 +9,7 @@
 
 ## 3. Application Simulation Coordinator
 
-- [ ] 3.1 Implement `SimulationCoordinator` (`src/application/simulation/SimulationCoordinator.ts`) and re-export from `src/application/index.ts`, wiring `EpochModuleRegistry`, `stepKinematics(dt)`, `applyWorldEffects`, round-robin `pulseCognitiveScheduler` (`maxCognitiveEvaluationsPerPulse` under both `DEFAULT_GAMEPLAY_PACING_CONFIG` and `FAST_EVAL_PACING_CONFIG`), `SessionTelemetryPort`, and `SaveSlotRepositoryPort` with deterministic headless tests in `tests/unit/application/SimulationCoordinator.test.ts` | Verify: `npx vitest run tests/unit/application/SimulationCoordinator.test.ts && npm run verify` | Commit: `feat(app): add SimulationCoordinator wiring kinematics reducer telemetry and saves`
+- [x] 3.1 Implement `SimulationCoordinator` (`src/application/simulation/SimulationCoordinator.ts`) and re-export from `src/application/index.ts`, wiring `EpochModuleRegistry`, `stepKinematics(dt)`, `applyWorldEffects`, round-robin `pulseCognitiveScheduler` (`maxCognitiveEvaluationsPerPulse` under both `DEFAULT_GAMEPLAY_PACING_CONFIG` and `FAST_EVAL_PACING_CONFIG`), `SessionTelemetryPort`, and `SaveSlotRepositoryPort` with deterministic headless tests in `tests/unit/application/SimulationCoordinator.test.ts` | Verify: `npx vitest run tests/unit/application/SimulationCoordinator.test.ts && npm run verify` | Commit: `feat(app): add SimulationCoordinator wiring kinematics reducer telemetry and saves`
 
 ## 4. Hierarchical Documentation & 5-Subagent Review
 
