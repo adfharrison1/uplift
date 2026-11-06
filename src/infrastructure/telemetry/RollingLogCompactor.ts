@@ -6,6 +6,22 @@ import {
   type TelemetryStreamRecord,
 } from '../../domain/index.js';
 
+export const DEFAULT_MAX_ACTIVE_LOG_BYTES = 50 * 1024 * 1024; // 50 MiB
+export const DEFAULT_MAX_COMPACTED_LOG_BYTES = 500 * 1024 * 1024; // 500 MiB
+export const DEFAULT_RETENTION_WINDOW_MS = 60_000; // 60 seconds
+
+export interface TelemetryStorageBudget {
+  readonly maxActiveLogBytes: number;
+  readonly maxCompactedLogBytes: number;
+  readonly defaultRetentionWindowMs: number;
+}
+
+export const DEFAULT_TELEMETRY_STORAGE_BUDGET: TelemetryStorageBudget = Object.freeze({
+  maxActiveLogBytes: DEFAULT_MAX_ACTIVE_LOG_BYTES,
+  maxCompactedLogBytes: DEFAULT_MAX_COMPACTED_LOG_BYTES,
+  defaultRetentionWindowMs: DEFAULT_RETENTION_WINDOW_MS,
+});
+
 export interface CompactionResult {
   readonly compactedRecords: ReadonlyArray<TelemetryStreamRecord>;
   readonly retainedActiveEntries: ReadonlyArray<TelemetryEntry>;
@@ -98,15 +114,87 @@ export function matchesTelemetryFilter(
 }
 
 /**
+ * Returns an eviction priority tier for compacted records (lower tier = evicted first when over byte budget):
+ * - Tier 0: `compacted_digest` routine summaries
+ * - Tier 1: `info` events without `aiReasoning`
+ * - Tier 2: `info` events with `aiReasoning`
+ * - Tier 3: `warn`, `error`, and `crash` events (highest protection)
+ */
+function getEvictionPriorityTier(record: TelemetryStreamRecord): number {
+  if (record.recordType === 'compacted_digest') {
+    return 0;
+  }
+  if (record.level !== 'info') {
+    return 3;
+  }
+  if (record.aiReasoning !== undefined) {
+    return 2;
+  }
+  return 1;
+}
+
+/**
+ * Enforces `maxCompactedBytes` on a chronological array of `TelemetryStreamRecord` items.
+ * If the serialized NDJSON byte length exceeds `maxCompactedBytes`, evicts the oldest lowest-tier
+ * records first (routine digests -> plain info -> AI info -> warn/error/crash).
+ */
+export function enforceCompactedStorageCap(
+  records: ReadonlyArray<TelemetryStreamRecord>,
+  maxCompactedBytes: number,
+): ReadonlyArray<TelemetryStreamRecord> {
+  if (maxCompactedBytes <= 0 || !Number.isFinite(maxCompactedBytes)) {
+    throw new RangeError(
+      `maxCompactedBytes must be a positive finite number, received: ${String(maxCompactedBytes)}`,
+    );
+  }
+  if (records.length === 0) {
+    return [];
+  }
+
+  const items = records.map((record, index) => {
+    const lineBytes = Buffer.byteLength(`${JSON.stringify(record)}\n`, 'utf8');
+    return {
+      record,
+      index,
+      lineBytes,
+      tier: getEvictionPriorityTier(record),
+      evicted: false,
+    };
+  });
+
+  let totalBytes = items.reduce((sum, item) => sum + item.lineBytes, 0);
+  if (totalBytes <= maxCompactedBytes) {
+    return [...records];
+  }
+
+  // Evict in tier order (0 -> 1 -> 2 -> 3), oldest first within each tier
+  for (let tier = 0; tier <= 3 && totalBytes > maxCompactedBytes; tier += 1) {
+    for (const item of items) {
+      if (totalBytes <= maxCompactedBytes) {
+        break;
+      }
+      if (!item.evicted && item.tier === tier) {
+        item.evicted = true;
+        totalBytes -= item.lineBytes;
+      }
+    }
+  }
+
+  return items.filter((item) => !item.evicted).map((item) => item.record);
+}
+
+/**
  * Compacts entries older than `latestElapsedMs - retentionWindowMs`:
  * - High-signal entries (`warn`/`error`/`crash`, `aiReasoning`, or preserved categories) are kept verbatim.
  * - Repetitive routine `info` entries sharing `(sessionId, epochId, category, actorId, action)` are folded
  *   into a single `CompactedTelemetryDigest`.
+ * - Optionally enforces `maxCompactedBytes` (default 500 MiB) on the resulting compacted stream.
  */
 export function compactTelemetryWindow(
   activeEntries: ReadonlyArray<TelemetryEntry>,
   existingCompacted: ReadonlyArray<TelemetryStreamRecord>,
   retentionWindowMs: number,
+  maxCompactedBytes: number = DEFAULT_MAX_COMPACTED_LOG_BYTES,
 ): CompactionResult {
   if (retentionWindowMs < 0 || !Number.isFinite(retentionWindowMs)) {
     throw new RangeError(
@@ -115,7 +203,7 @@ export function compactTelemetryWindow(
   }
   if (activeEntries.length === 0) {
     return {
-      compactedRecords: [...existingCompacted],
+      compactedRecords: enforceCompactedStorageCap(existingCompacted, maxCompactedBytes),
       retainedActiveEntries: [],
     };
   }
@@ -185,7 +273,7 @@ export function compactTelemetryWindow(
   ]);
 
   return {
-    compactedRecords: combinedCompacted,
+    compactedRecords: enforceCompactedStorageCap(combinedCompacted, maxCompactedBytes),
     retainedActiveEntries,
   };
 }

@@ -4,6 +4,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -17,8 +18,10 @@ import type {
 } from '../../domain/index.js';
 import {
   compactTelemetryWindow,
+  DEFAULT_TELEMETRY_STORAGE_BUDGET,
   matchesTelemetryFilter,
   sortTelemetryRecords,
+  type TelemetryStorageBudget,
 } from './RollingLogCompactor.js';
 
 export const ACTIVE_SESSION_LOG_FILENAME = 'current-session.jsonl';
@@ -117,6 +120,7 @@ export function parseNdjsonLines(rawContent: string): ReadonlyArray<TelemetryStr
 export class InMemorySessionTelemetry implements SessionTelemetryPort {
   private sessionId: string;
   private clock: TelemetryClock;
+  private readonly budget: TelemetryStorageBudget;
   private sequence = 0;
   private activeEntries: TelemetryEntry[] = [];
   private compactedRecords: TelemetryStreamRecord[] = [];
@@ -124,9 +128,14 @@ export class InMemorySessionTelemetry implements SessionTelemetryPort {
   public constructor(
     initialSessionId = 'session-default',
     clock: TelemetryClock = systemTelemetryClock(),
+    budget: Partial<TelemetryStorageBudget> = {},
   ) {
     this.sessionId = initialSessionId;
     this.clock = clock;
+    this.budget = {
+      ...DEFAULT_TELEMETRY_STORAGE_BUDGET,
+      ...budget,
+    };
   }
 
   public getSessionId(): string {
@@ -165,11 +174,12 @@ export class InMemorySessionTelemetry implements SessionTelemetryPort {
     return entry;
   }
 
-  public compact(retentionWindowMs: number): void {
+  public compact(retentionWindowMs: number = this.budget.defaultRetentionWindowMs): void {
     const result = compactTelemetryWindow(
       this.activeEntries,
       this.compactedRecords,
       retentionWindowMs,
+      this.budget.maxCompactedLogBytes,
     );
     this.compactedRecords = [...result.compactedRecords];
     this.activeEntries = [...result.retainedActiveEntries];
@@ -183,13 +193,14 @@ export class InMemorySessionTelemetry implements SessionTelemetryPort {
 
 /**
  * Disk-backed NDJSON implementation of `SessionTelemetryPort` writing to:
- * - `<logsDir>/current-session.jsonl`
- * - `<logsDir>/current-session.compacted.jsonl`
+ * - `<logsDir>/current-session.jsonl` (auto-compacts when exceeding `maxActiveLogBytes`, default 50 MiB)
+ * - `<logsDir>/current-session.compacted.jsonl` (capped at `maxCompactedLogBytes`, default 500 MiB)
  */
 export class NdjsonSessionTelemetry implements SessionTelemetryPort {
   private readonly logsDir: string;
   private readonly activeLogPath: string;
   private readonly compactedLogPath: string;
+  private readonly budget: TelemetryStorageBudget;
   private sessionId: string;
   private clock: TelemetryClock;
   private sequence = 0;
@@ -198,10 +209,15 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     logsDir: string,
     initialSessionId = 'session-default',
     clock: TelemetryClock = systemTelemetryClock(),
+    budget: Partial<TelemetryStorageBudget> = {},
   ) {
     this.logsDir = logsDir;
     this.activeLogPath = join(logsDir, ACTIVE_SESSION_LOG_FILENAME);
     this.compactedLogPath = join(logsDir, COMPACTED_SESSION_LOG_FILENAME);
+    this.budget = {
+      ...DEFAULT_TELEMETRY_STORAGE_BUDGET,
+      ...budget,
+    };
     this.sessionId = initialSessionId;
     this.clock = clock;
     this.startNewSession(initialSessionId, clock);
@@ -217,6 +233,10 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
 
   public getCompactedLogPath(): string {
     return this.compactedLogPath;
+  }
+
+  public getStorageBudget(): TelemetryStorageBudget {
+    return this.budget;
   }
 
   public setClock(clock: TelemetryClock): void {
@@ -251,7 +271,8 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
   }
 
   /**
-   * Appends a batch of events in a single atomic filesystem append operation.
+   * Appends a batch of events in a single atomic filesystem append operation,
+   * automatically triggering rolling compaction if `current-session.jsonl` exceeds `maxActiveLogBytes` (default 50 MiB).
    */
   public recordBatch(events: ReadonlyArray<TelemetryEventInput>): ReadonlyArray<TelemetryEntry> {
     if (events.length === 0) {
@@ -276,16 +297,29 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     }
 
     appendFileSync(this.activeLogPath, lines.join(''), 'utf8');
+
+    if (
+      existsSync(this.activeLogPath) &&
+      statSync(this.activeLogPath).size > this.budget.maxActiveLogBytes
+    ) {
+      this.compact(this.budget.defaultRetentionWindowMs);
+    }
+
     return entries;
   }
 
-  public compact(retentionWindowMs: number): void {
+  public compact(retentionWindowMs: number = this.budget.defaultRetentionWindowMs): void {
     const activeRecords = this.readFileRecords(this.activeLogPath).filter(
       (r): r is TelemetryEntry => r.recordType === 'event',
     );
     const existingCompacted = this.readFileRecords(this.compactedLogPath);
 
-    const result = compactTelemetryWindow(activeRecords, existingCompacted, retentionWindowMs);
+    const result = compactTelemetryWindow(
+      activeRecords,
+      existingCompacted,
+      retentionWindowMs,
+      this.budget.maxCompactedLogBytes,
+    );
 
     const compactedText =
       result.compactedRecords.length > 0

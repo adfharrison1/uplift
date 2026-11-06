@@ -20,8 +20,14 @@ export {
 export {
   type CompactionResult,
   compactTelemetryWindow,
+  DEFAULT_MAX_ACTIVE_LOG_BYTES,
+  DEFAULT_MAX_COMPACTED_LOG_BYTES,
+  DEFAULT_RETENTION_WINDOW_MS,
+  DEFAULT_TELEMETRY_STORAGE_BUDGET,
+  enforceCompactedStorageCap,
   matchesTelemetryFilter,
   sortTelemetryRecords,
+  type TelemetryStorageBudget,
 } from './telemetry/RollingLogCompactor.js';
 export {
   FileSaveSlotRepository,

@@ -1,13 +1,15 @@
-import { appendFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  DEFAULT_MAX_ACTIVE_LOG_BYTES,
+  DEFAULT_MAX_COMPACTED_LOG_BYTES,
   fixedTelemetryClock,
   InMemorySessionTelemetry,
   NdjsonSessionTelemetry,
   parseNdjsonLines,
-} from '../../../src/infrastructure/telemetry/NdjsonSessionTelemetry.js';
+} from '../../../src/infrastructure/index.js';
 
 describe('NdjsonSessionTelemetry and RollingLogCompactor', () => {
   let tempDir: string;
@@ -193,5 +195,69 @@ describe('NdjsonSessionTelemetry and RollingLogCompactor', () => {
       message: 'In-memory crash record',
     });
     expect(memLogger.query({ level: 'crash' })).toHaveLength(1);
+  });
+
+  it('defaults to 50 MiB active and 500 MiB compacted storage caps and auto-compacts/evicts lowest-priority entries when exceeded', () => {
+    let currentElapsed = 1000;
+    const stepClock = {
+      nowIso: () => '2026-11-06T12:00:00.000Z',
+      elapsedSessionMs: () => currentElapsed,
+    };
+
+    const defaultLogger = new NdjsonSessionTelemetry(tempDir, 'session-defaults', stepClock);
+    expect(defaultLogger.getStorageBudget().maxActiveLogBytes).toBe(50 * 1024 * 1024);
+    expect(defaultLogger.getStorageBudget().maxCompactedLogBytes).toBe(500 * 1024 * 1024);
+    expect(DEFAULT_MAX_ACTIVE_LOG_BYTES).toBe(50 * 1024 * 1024);
+    expect(DEFAULT_MAX_COMPACTED_LOG_BYTES).toBe(500 * 1024 * 1024);
+
+    // Configure small byte caps (400B active trigger, 650B compacted cap) to test auto-compaction and priority eviction
+    const cappedLogger = new NdjsonSessionTelemetry(tempDir, 'session-capped', stepClock, {
+      maxActiveLogBytes: 400,
+      maxCompactedLogBytes: 650,
+      defaultRetentionWindowMs: 500,
+    });
+
+    currentElapsed = 1000;
+    cappedLogger.record({
+      epochId: 'era_1_highglass_hold',
+      worldTick: 1,
+      level: 'info',
+      category: 'routine',
+      actorId: 'npc.laborer_01',
+      action: 'haul_timber',
+      message: 'Laborer hauled timber across the bailey',
+    });
+
+    currentElapsed = 2000;
+    cappedLogger.record({
+      epochId: 'era_1_highglass_hold',
+      worldTick: 2,
+      level: 'error',
+      category: 'rival',
+      actorId: 'rival.the_tithe',
+      action: 'sabotage_assay',
+      message: 'Critical rival sabotage error that must survive eviction',
+    });
+
+    // Advance clock past retentionWindowMs (500ms) and record another entry to exceed 400B active log cap
+    currentElapsed = 5000;
+    cappedLogger.record({
+      epochId: 'era_1_highglass_hold',
+      worldTick: 5,
+      level: 'info',
+      category: 'routine',
+      actorId: 'npc.laborer_02',
+      action: 'haul_stone',
+      message: 'Another routine entry that triggers automatic compaction of older entries',
+    });
+
+    const compactedSize = statSync(cappedLogger.getCompactedLogPath()).size;
+    expect(compactedSize).toBeGreaterThan(0);
+    expect(compactedSize).toBeLessThanOrEqual(650);
+
+    // High-priority error record survives even under tight compacted byte cap
+    const survivingErrors = cappedLogger.query({ level: 'error' });
+    expect(survivingErrors).toHaveLength(1);
+    expect(survivingErrors[0]?.actorId).toBe('rival.the_tithe');
   });
 });
