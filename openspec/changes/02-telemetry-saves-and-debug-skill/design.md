@@ -108,6 +108,7 @@ export interface SaveSlotEnvelope extends SaveSlotMetadata {
 | `eslint-config-prettier` | `10.1.8` | Disables formatting rules that conflict with Prettier |
 | `prettier` | `3.9.10` | Automated code formatting (`--cache`) |
 | `husky` + `lint-staged` | `9.1.7` / `17.6.0` | Pre-commit formatting and linting on staged files |
+| `zod` | `4.6.7` | Schema validation and `safeParse` JSON-to-TypeScript parsing for telemetry, save slots, and HTTP bridge |
 | `@types/node` | `24.19.2` | Node.js type definitions |
 
 ### 5. Layer Placement & Section Documentation Updates

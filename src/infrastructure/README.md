@@ -4,16 +4,17 @@
 
 `src/infrastructure/` provides concrete, 100% local/offline implementations of domain ports:
 
-- **Structured Session Telemetry & Rolling Compaction**:
-  - Writes every player, NPC, rival operative, orbital, and system event—plus full AI inputs, outputs, and reasoning—to `./logs/current-session.jsonl` (structured NDJSON with absolute ISO timestamps, `elapsedSessionMs`, `worldTick`, `level: info | warn | error | crash`, `actorId`, `acteeId`).
-  - Retains only the latest session log on new session startup and performs rolling compaction into `./logs/current-session.compacted.jsonl`.
-- **Multi-Session Save / Load Repository**:
-  - Persists and restores named session save files in `./saves/` (including `WorldState`, `SeededRandom` state, `StateSliceStore`, correspondence queues, and `CivilizationLegacyState`).
-- **Hybrid 3-Stage Local NLP Pipeline**:
-  1. Deterministic lexical/pragmatic extractor (`<1ms` negation, speaker-target roles, speech act).
-  2. Local Web Worker running quantized `Xenova/all-MiniLM-L6-v2` (`~23MB` ONNX cached in `./public/models/`).
-  3. Intent combiner and deterministic fallback matcher for fast unit tests.
+- **Structured Session Telemetry & Rolling Compaction (`telemetry/`)**:
+  - `NdjsonSessionTelemetry` and `InMemorySessionTelemetry` record every player, NPC, rival operative, orbital, and system event—plus full AI inputs, outputs, reasoning, and omitted `AdvisoryDuel` clauses—to `./logs/current-session.jsonl`.
+  - Purges previous session logs on new session startup and enforces a **50 MiB** active log auto-compaction trigger (`DEFAULT_MAX_ACTIVE_LOG_BYTES`) and a **500 MiB** compacted log priority-eviction cap (`DEFAULT_MAX_COMPACTED_LOG_BYTES`) via `RollingLogCompactor`.
+- **Multi-Session Save / Load Repository (`persistence/`)**:
+  - `FileSaveSlotRepository` and `InMemorySaveSlotRepository` persist and restore named session save files in `./saves/<slotId>.json` with path-traversal protection, atomic `.tmp` rename writes, and Zod `safeParse` validation.
+- **Hybrid 3-Stage Local NLP Pipeline** _(Change 08)_:
+  - Deterministic lexical/pragmatic extractor + local Web Worker running quantized `Xenova/all-MiniLM-L6-v2` (`~23MB` ONNX cached in `./public/models/`).
 
 ## Current Module Inventory
 
+- `telemetry/RollingLogCompactor.ts` — `compactTelemetryWindow`, `enforceCompactedStorageCap`, `matchesTelemetryFilter`, `sortTelemetryRecords`, and 50 MiB / 500 MiB storage budget constants.
+- `telemetry/NdjsonSessionTelemetry.ts` — `NdjsonSessionTelemetry`, `InMemorySessionTelemetry`, `systemTelemetryClock`, `fixedTelemetryClock`, `safeParseJsonWithSchema`, and `parseNdjsonLines`.
+- `persistence/FileSaveSlotRepository.ts` — `FileSaveSlotRepository` and `InMemorySaveSlotRepository`.
 - `index.ts` — Public infrastructure layer barrel.

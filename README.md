@@ -38,7 +38,8 @@ npm run verify
 | `npm run typecheck`    | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)         |
 | `npm run test:arch`    | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs |
 | `npm run test:unit`    | Runs fast deterministic unit tests in Node/Vitest                                                    |
-| `npm run dev`          | Starts the local Vite development server                                                             |
+| `npm run logs:query`   | Queries active (`current-session.jsonl`) and compacted session logs by level, actor, tick, or AI     |
+| `npm run dev`          | Starts the local Vite development server (with `/api/telemetry` and `/api/saves` disk bridge)        |
 | `npm run build`        | Typechecks and builds the local bundle                                                               |
 
 ### Editor Format-on-Save & Pre-Commit Hooks
@@ -64,6 +65,7 @@ Every dependency installed when cloning this repository is explicitly pinned:
 | **`eslint-config-prettier`**                 | `10.1.8`                             | Disables formatting rules that conflict with Prettier                                                                                |
 | **`prettier`**                               | `3.9.10`                             | Automated code formatting                                                                                                            |
 | **`husky` + `lint-staged`**                  | `9.1.7` / `17.6.0`                   | Pre-commit formatting and linting on staged files                                                                                    |
+| **`zod`**                                    | `4.6.7`                              | Schema validation and `safeParse` JSON-to-TypeScript parsing across telemetry, save slots, and HTTP bridges                          |
 | **`vite`**                                   | `8.3.5`                              | Local dev server and bundler                                                                                                         |
 | **`vitest`**                                 | `5.0.5`                              | Fast unit, architecture, and headless simulation test runner                                                                         |
 | **`@types/node`**                            | `24.19.2`                            | Node.js type definitions for build and test scripts                                                                                  |

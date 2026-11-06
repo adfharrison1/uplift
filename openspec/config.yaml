@@ -75,6 +75,7 @@ context: |
   - ESLint: 10.13.0 (`@eslint/js`: 10.0.1, `typescript-eslint`: 8.72.1, `eslint-config-prettier`: 10.1.8, `minimatch` override: 11.0.4)
   - Prettier: 3.9.10
   - Husky: 9.1.7 + `lint-staged`: 17.6.0
+  - Zod (`zod`): 4.6.7
   - Three.js (`three`): 0.186.1 (`@types/three`: 0.186.0)
   - Hugging Face Transformers (`@huggingface/transformers`): 4.3.2
   - Node types (`@types/node`): 24.19.2
