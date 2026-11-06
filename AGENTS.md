@@ -86,7 +86,7 @@ Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`
 
 ### 2. Post-Change 5-Subagent Review Gate (After Each Change Is Delivered)
 
-When all tasks in a change are delivered (and before `/opsx-archive`), launch **5 parallel review subagents** (using Claude 4.5 Haiku Thinking) to review the change across 5 specialized dimensions:
+When all tasks in a change are delivered (and before `/opsx-archive`), launch **5 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to review the change across 5 specialized dimensions:
 
 1. **Adversarial Review**: Edge cases, malformed inputs, concurrency/race conditions, and failure modes.
 2. **Code Adherence & Architecture Review**: Clean Architecture inward imports, zero-`any` compliance, plug-and-play registry boundaries, OpenSpec spec adherence, and hierarchical `README.md` / `AGENTS.md` completeness.

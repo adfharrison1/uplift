@@ -3,27 +3,33 @@ schema: spec-driven
 context: |
   Project: Uplift (personal immersive simulation game to share locally with friends — not a commercial cloud product).
 
-  Concept & Setting:
-  - Inspired by Iain M. Banks' Culture novels (*Inversions*, *Matter*, *Use of Weapons* / Special Circumstances) and Fred Saberhagen's *Brother Assassin*.
-  - The player is a covert agent implanted into a pre-industrial/feudal society (Era 1: Highglass Hold) with the goal of uplifting the civilization toward a cooperative, scientific post-scarcity future without letting seeded knowledge be weaponized into tyranny or exposing off-world interference.
-  - Each playable slice represents a distinct historical age (Generation/Epoch Jump). Advancing exports a `CivilizationLegacyState` snapshot carrying positive achievements, negative civilizational scars (`InheritedTrait[]`), doctrinal rifts, and institutional character lineage mutations (`lineageId`) into the next age.
+  Concept, Setting & Multi-Epoch Continuity:
+  - Inspired by Iain M. Banks' Culture novels (*Inversions*, *Matter*, *Use of Weapons* / Special Circumstances), Fred Saberhagen's *Brother Assassin*, and Strugatsky's *Hard to Be a God*.
+  - The player is an immortal covert operative (**Deme**, operating in Era 1 under the cover **Ellin Quell**) implanted into a pre-industrial society (Era 1: **Highglass Hold**, a volcanic-glass gorge crossing between the Synod of Unbroken Sight, the Iron Marches, the Free Port of Brackwell, the Low Fen Confederation, and the Sovereign's Winter Court).
+  - Accompanied by two persistent Culture personalities who argue inside the neural lace (`AdvisoryDuel`, where a frozen-out advisor sulks and withholds `omissible` briefing clauses):
+      1. The orbiting Ship Mind (**GCU *I Have Read Your Diary And The Ending Is Fine* — "The Ending"**): theatrical consequentialist of **The Integral** (area under the curve of lives across centuries, non-round probabilities like `0.73`).
+      2. The groundside Companion Drone (**Hesje-Tuom Fohristi — "The Lamp"**): fierce deontologist of **The Particular** (single bodies, hygiene, room smell scored 1-5), forced into an era-appropriate physical disguise (`droneDisguise`: a bronze chapel reliquary lamp in Era 1; evolving into new instruments in later Epochs).
+  - **Multi-Epoch Flow (Epoch-Agnostic Abstractions -> Era-Specific Content)**:
+      Each playable slice represents a distinct historical age (Generation/Epoch Jump). Every domain system MUST use epoch-agnostic abstractions (`institutionalLineageId`, `IllicitInstrumentType`, `PressureStockType`, `InertiaPillar`, `ChannelMediumBlueprint`, `EmergencyStateModule`) bound to era-specific content in `src/content/eras/`.
+      Advancing exports a `CivilizationLegacyState` snapshot with **Dual Legacy Ledgers** — **Material Scars** (economic/institutional structures, e.g., who owns the gorge communications backbone, guild secrecy vs open charters) and **Veil Scars** (epistemic/cultural contamination, e.g., enshrined martyr ethos, doctrinal rifts, anachronistic relics, rival alien footprints) — plus character/institutional lineage mutations (`lineageId`) that seed the next Epoch.
 
-  Visual Style & Camera Architecture:
-  - 3rd-Person Fixed-Orientation Tracking Camera (*Final Fantasy VII* / *Disco Elysium* / *Inside* style): elevated three-quarter tracking view outdoors and dramatic fixed/tracking camera framing indoors, enabling large outdoor/indoor spaces and large NPC crowds at 60 FPS on a 2019 Intel Mac.
-  - Dark, serious, atmospheric visual style (chiaroscuro torch/forge lighting, muted stone/iron/mud palettes, weather particles, grounded proportions).
-  - In-Game Debug Mode (`F3` / backtick): pauses 60Hz kinematics and background cognitive ticks, de-anchors the camera for free movement across the frozen world, and renders floating state inspector overlays over targeted NPCs and props.
+  Visual Style, Camera & Diegetic UI Architecture:
+  - 3rd-Person Fixed-Orientation Tracking Camera (*Final Fantasy VII* / *Disco Elysium* / *Inside* style): volume-aware (`CameraVolumeBlueprint`) critically damped spring transitions between wide outdoor courtyards, doorway chokes, and cramped interiors, with subtle camera tilts for Emergency States and Orbital Zenith passes.
+  - Dark, serious "stage-paint chiaroscuro" visual style at 60 FPS on a 2019 Intel Mac: stepped 3-band toon/chiaroscuro lighting with `#1a1f28` blue-gray shadows, `-30%` desaturated stone/mud/iron palettes, warm `#c4a574` torch/forge pools, exponential weather/emergency fog, and alpha-cone god-rays.
+  - **Diegetic UI Bifurcation**: Tactile era-appropriate surface (Era 1: parchment broadsheets, wax seals, linen maps; evolving per Epoch) contrasted against the **Sub-Retinal Culture Neural Lace** (clean geometric vector arcs, inertia pillar rings, orbital pass windows, and rival spoof indicators).
+  - **In-Game Debug Mode (`F3` / backtick)**: Pauses 60Hz kinematics and background cognitive ticks, desaturates the frozen world by 40%, de-anchors the camera for free movement, and renders floating state inspector cards over targeted NPCs and props.
 
   Hardware & Local-Only Constraints (non-negotiable):
   - Target baseline hardware: 2019 Intel Core i7 MacBook Pro, 16GB RAM (macOS / cross-platform browser & desktop).
   - 100% local execution after `git clone`, `npm install`, and `npm run setup-models`.
   - ZERO external API keys, ZERO paid tokens, and ZERO cloud LLM/inference calls in runtime or tests.
   - Local NLP uses a 3-stage hybrid pipeline:
-      1. Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act).
+      1. Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act, and rival linguistic tell detection).
       2. Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`, ~23MB cached in `./public/models/`).
-      3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, attitude, and period voice register — plus sassy Ship Mind and prim Drone personas).
+      3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas — never generic chatbot prose).
 
   Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):
-  - Every event (player, NPC, rival operative, orbital, system) and every AI action (input, output, utility/NLP reasoning) MUST be logged to `./logs/current-session.jsonl` (structured NDJSON via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`.
+  - Every event (player, NPC, rival operative, orbital, system) and every AI action (input, output, utility/NLP reasoning, and withheld `AdvisoryDuel` clauses) MUST be logged to `./logs/current-session.jsonl` (structured NDJSON via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`.
   - Only the latest session log is retained on new session start, and a Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events).
   - A dedicated `.cursor/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs.
   - Multi-session Save/Load persists named session snapshots under `./saves/`.
@@ -40,22 +46,22 @@ context: |
   - Strict TypeScript, ESLint, Prettier & Zero `any` Policy (non-negotiable):
       `tsconfig.json` MUST enforce `"strict": true`, `"noImplicitAny": true`, `"strictNullChecks": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`, and `"noImplicitOverride": true`.
       Both implicit `any` and explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) are strictly forbidden across `src/` and `tests/` and enforced by both ESLint (`@typescript-eslint/no-explicit-any`) and `tests/architecture/layer_boundaries.test.ts` during `npm run verify`.
-      Prettier formats on save (`.vscode/settings.json`), and Husky + `lint-staged` run Prettier and ESLint on every `git commit`.
+      Prettier formats on save (`.vscode/settings.json`), and Husky + `lint-staged` run ESLint and Prettier on every `git commit`.
   - Determinism:
       `Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`. All simulation randomness MUST use the injected `SeededRandom` (Xorshift32) instance.
 
   Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:
-  - Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or lore. All game content and sub-types register through declarative module contracts wired in `src/interfaces/composition/` so any mechanic or sub-type can be added, removed, or updated independently:
-      - Characters (`CharacterBlueprint`): 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, distinct attitude/voice profiles, and `inertia` weighting.
-      - Rival Spacefaring Operatives (`RivalOperativeBlueprint`): Autonomous off-world agents from competing spacefaring civilizations whose effects propagate through the local and wider world and can spoof or be detected via the Wider World Overview.
-      - Player Roles & Groundside Funds (`RoleBlueprint` & `FundsEconomyModule`): Era-appropriate roles (with rank progression and physical Chambers/Office) providing legitimate funds vs orbital-inserted illegitimate funds (which carry discovery and local economic inflation penalties).
-      - Wider World Overview & Async Correspondence (`WorldOverviewModule` & `MessageTransitQueue`): News, rumors, and time-lagged correspondence (horse messenger -> telegraph -> email) to off-stage core NPCs who react according to their live state and inertia.
-      - Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadModule`): Influence difficulty scaled by target inertia, role leverage, and prior intel; slow-building butterfly threads, religious martyrdom/succession rules, and crises (wars, plagues, economic shocks) that can accelerate tech if managed or devastate the civ if unchecked.
-      - Emergency States (`EmergencyStateModule`): Temporarily pauses routine traits and activates crisis-specific traits, rumors, and resolution mechanics before normal play resumes.
-      - Orbital Mechanics & Weather Modification (`OrbitalPassModule` & `WeatherControlModule`): Ship pass position (`zenith`, `horizon`, `occluded`) gating orbital abilities (recon, bullion insertion, localized weather modification with overuse penalties).
+  - Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or feudal-only lore. All game content and sub-types register through declarative, epoch-agnostic module contracts wired in `src/interfaces/composition/`:
+      - Characters (`CharacterBlueprint` & `VoiceProfile`): 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, public/private drive contradictions, a vice that stays awake during emergencies, cadence/tic/banned-lemma rules, and domain-specific **Inertia Pillars** (`Doctrine`, `Constituency`, `Debt`, `Temper`, `Ignorance`).
+      - Rival Spacefaring Operatives (`RivalCivBlueprint`): Autonomous off-world operatives from competing spacefaring civilizations (e.g., *The Tithe* hegemonists, *The Quiet* ascetics, *House Reciprocal* mercantilists) operating on offset orbital clocks, leaving lexical/economic tells, and spoofing or deleting items on the Wider World Overview.
+      - Contested Offices, Pretexts & Groundside Economy (`OfficeBlueprint` & `FundsEconomyModule`): Contested offices (`institutionalLineageId`) and deniable Quiet Claims achieved via spent hooks and coalition keys, granting legitimate stipends and socially legal **Pretexts** (`medical_quarantine`, `ideological_censure`, `technical_audit`, `monetary_assay`, `protocol_immunity`) vs. 3 **Illicit Orbital Insertion Modes** (`unbacked_mass_commodity` / Bullion, `forged_fiat_instrument` / Counterfeit, `anachronistic_marvel` / Gems) impacting 3 **Societal Pressure Stocks** (`subsistence_pressure`, `production_pressure`, `elite_prestige_pressure`) and 4 discovery layers (`Noticed`, `Assayed`, `Attributed`, `Theorized`).
+      - Wider World Overview & The Communications Desk (`WorldOverviewModule` & `MessageTransitQueue`): Multi-channel news/rumor board (with trust/spoof seams) and time-lagged async correspondence (`ChannelMediumBlueprint`: stationery/credential, seal/cipher, courier tier, enclosures) to off-stage core NPCs (`CorrespondentProfile` with misread tables) arriving via Door Knock, Public Posting First, or Silent Wrong Action.
+      - Slow-Burn Butterfly Threads, Martyrdom & Crises (`TrajectoryThreadModule`): Interconnected threads with obscure early omens, rising Inertia Pillars, Leverage Chains, the *Brother Assassin* Martyrdom/Succession rule (where a substitute martyr enshrines the wrong virtues, and even the right martyr creates a doctrinal rift in the next Epoch), and Crises (wars, plagues, economic shocks) with Dual-Use Ceilings.
+      - Emergency States (`EmergencyStateModule`): Suppresses (and compounds interest on) routine traits while activating crisis verbs, spatial crowd shifts, visible branching fuses, and player-triggered emergency pretexts.
+      - Orbital Pass Cycle, Borrowable Time & Weather Control (`OrbitalPassModule` & `WeatherControlModule`): Ship pass position (`zenith`, `horizon`, `occluded`) with **Delta** budget for **Slingshot** (arrive early, longer occlusion) and **Burn** (linger at zenith, sky-omen footprint), gating recon, drops, and localized Weather Modification (tracked via Omen Ledger and Ecological Debt).
 
   Real-Time 60 FPS Experience vs Background Cognitive Ticks:
-  - Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, hovering drones, weather particles) runs continuously at 60 FPS (`stepKinematics(dt)`).
+  - Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, reliquary-lamp drone micro-swings, weather particles) runs continuously at 60 FPS (`stepKinematics(dt)`).
   - Perception & arrival pulses run every ~250ms (line-of-sight, acoustic earshot, waypoint arrival events).
   - Cognitive & macro-world ticks run every ~8-12s in the background (Utility AI with +0.15 hysteresis commitment bonus, rumor decay, message transit, orbital pass movement), assigning new target paths without ever teleporting or freezing physical entities.
 
@@ -78,16 +84,16 @@ context: |
   1. 01-clean-scaffold-and-verify          — Toolchain, Clean Architecture boundary test, SeededRandom, StateSliceKey, /verify [archived]
   1a. 01a-eslint-prettier-and-hooks        — Prettier format-on-save, ESLint flat config (TS 7 side-by-side), Husky + lint-staged [archived]
   2. 02-telemetry-saves-and-debug-skill    — NDJSON session logger, rolling compactor, Vite disk middleware, multi-session Save/Load, uplift-debug skill [planned — revisable]
-  3. 03-modular-registries-and-kinematics  — Module registries (Roles, Funds, Rivals, Inertia, Butterfly/Crises, Async Mail, Emergencies, Orbit), WorldEffect reducer, 60Hz kinematics, CivilizationLegacyState [planned — revisable]
-  4. 04-third-person-camera-and-inspector  — Pure RenderFrameBuilder, Three.js 60 FPS dark atmospheric renderer, 3rd-person fixed-orientation tracking camera, Debug Mode (pause, free-cam de-anchor, floating state cards) [planned — revisable]
+  3. 03-modular-registries-and-kinematics  — Epoch-agnostic module registries (Offices/Pretexts, 3 Illicit Fund Modes & Pressure Stocks, Inertia Pillars, Rivals, Butterfly/Martyrdom/Crises, Async Mail, Emergencies, Orbit/Delta), WorldEffect reducer, 60Hz kinematics, Dual-Ledger CivilizationLegacyState [planned — revisable]
+  4. 04-third-person-camera-and-inspector  — Pure RenderFrameBuilder, Three.js 60 FPS stage-paint chiaroscuro renderer, volume-aware 3rd-person fixed-orientation tracking camera, Debug Mode (pause, free-cam de-anchor, floating state cards) [planned — revisable]
   5. 05-live-npc-steering-and-world-stage  — 60 FPS NPC waypoint/outdoor steering, doors/props, 2D spatial hash grid, Highglass Hold indoor/outdoor stage & Player Chambers [planned — revisable]
-  6. 06-utility-ai-rivals-and-wider-world  — Hysteresis Utility AI, Inertia Weighting, Rival Alien Operatives, Butterfly/Crisis/Martyrdom threads, Async Correspondence, Wider World Overview [planned — revisable]
-  7. 07-tactical-dialogue-and-voices       — Dialogue interruption, covert actions, Legit/Illegit funds, Sassy Ship Mind / Prim Drone / distinct NPC voices, ConversationHistory [planned — revisable]
+  6. 06-utility-ai-rivals-and-wider-world  — Hysteresis Utility AI, Inertia Pillars & Leverage Chains, Rival Alien Operatives (Tithe, Quiet, Reciprocal), Braided Butterfly/Martyrdom/Crisis threads, The Writing Desk, Wider World Overview [planned — revisable]
+  7. 07-tactical-dialogue-and-voices       — Dialogue interruption, Role Pretexts & Fund spending, Culture Trio AdvisoryDuels (The Ending vs The Lamp with clause omission), distinct NPC voices, ConversationHistory [planned — revisable]
   8. 08-local-onnx-hybrid-intent           — Local MiniLM-L6-v2 setup script, 3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry [planned — revisable]
-  9. 09-orbital-mechanics-weather-and-gate — Orbital pass cycle, Weather Modification, Deep Scan/Bullion drop, Emergency State resolution, Psychohistory Forecast, Era 1 gate [planned — revisable]
+  9. 09-orbital-mechanics-weather-and-gate — Orbital pass cycle + Slingshot/Burn Delta, Weather Modification & Omen Ledger, Emergency State set-pieces, Psychohistory Forecast, Dual-Ledger Era 1 Transition Gate [planned — revisable]
 
   Evolving Design & Configuration Flexibility (standing directive):
-  - `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents. Before proposing any new change, always check `DESIGN_NOTES.md` for new ideas, adjustments, or intermediate changes (like `01a`, `02a`, etc.), and keep all registries and configuration data-driven so mechanics, camera parameters, tick rates, and content sub-types can be tuned or swapped at any point.
+  - `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents. Before proposing any new change, always check `DESIGN_NOTES.md` for new ideas, adjustments, or intermediate changes (like `01a`, `02a`, etc.), and keep all registries and configuration data-driven and epoch-agnostic so mechanics, camera parameters, tick rates, and content sub-types can be tuned, swapped, or carried into future Epochs at any point.
 
   Atomic Task & Commit Strategy (standing directive — "1 Task = 1 Verified Deliverable Commit"):
   - Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks.
@@ -97,7 +103,7 @@ context: |
   - Pre-Commit Short Self-Review (before EVERY commit):
       Before running `git commit`, inspect `git diff --staged` and perform a brief self-review checking: (1) strict task scope (no unrelated files), (2) Clean Architecture inward imports and zero implicit/explicit `any`, (3) deterministic `SeededRandom` usage and immutable state transitions, and (4) edge-case coverage in the accompanying test.
   - Post-Change 5-Subagent Review Gate (after EVERY change is delivered, before archiving):
-      Once all tasks in a change are marked complete, launch 5 parallel review subagents (using Claude 4.5 Haiku Thinking) to audit the delivered change across five axes:
+      Once all tasks in a change are marked complete, launch 5 parallel review subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the delivered change across five axes:
       1. Adversarial Review (edge cases, failure modes, concurrency/race conditions, invalid inputs)
       2. Code Adherence & Architecture Review (layer boundaries, zero-`any`, plug-and-play modularity, OpenSpec spec compliance, hierarchical `README.md`/`AGENTS.md` completeness)
       3. Performance Review (2019 Intel Core i7 16GB RAM budget, 60 FPS frame budget, memory allocation/cloning cost, algorithmic complexity)
@@ -120,7 +126,7 @@ rules:
     - "Include a Non-goals section to keep the change small and atomic"
     - "State dependencies on prior changes in the change sequence"
     - "Explicitly state that runtime and tests require zero external API keys or cloud inference"
-    - "Describe how new modules plug into registries without modifying core domain loop code"
+    - "Describe how new modules plug into epoch-agnostic registries without modifying core domain loop code or hardcoding feudal-only assumptions"
   specs:
     - "Specify observable domain, simulation, telemetry, or rendering behavior using testable WHEN/THEN scenarios"
     - "Enforce inward Clean Architecture boundaries, strict TypeScript (no implicit or explicit any), and deterministic SeededRandom behavior where applicable"
