@@ -1,0 +1,17 @@
+## 1. Epoch-Agnostic Module Blueprints & Registry
+
+- [ ] 1.1 Implement epoch-agnostic Zod module blueprints (`src/domain/registries/EpochBlueprints.ts`) and `EpochModuleRegistry` (`src/domain/registries/EpochModuleRegistry.ts`) with duplicate-ID checks, spatial reference validation, and Kahn's algorithm topological sort cycle detection for `BehaviorModule` dependencies, with unit tests in `tests/unit/domain/EpochModuleRegistry.test.ts` | Verify: `npx vitest run tests/unit/domain/EpochModuleRegistry.test.ts && npm run verify` | Commit: `feat(domain): add epoch-agnostic module blueprints and registry with cycle detection`
+
+## 2. Pure WorldState, WorldEffect Reducer & Continuous 60Hz Kinematics
+
+- [ ] 2.1 Implement immutable `WorldState`, `WorldEffect` schemas (`src/domain/simulation/WorldState.ts`), pure `applyWorldEffects` reducer (`src/domain/simulation/WorldEffectReducer.ts`), and continuous 60Hz `stepKinematics(state, dtSeconds)` with pause and `WaypointArrivalEvent` emission (`src/domain/simulation/KinematicsEngine.ts`), with unit tests in `tests/unit/domain/KinematicsAndReducer.test.ts` | Verify: `npx vitest run tests/unit/domain/KinematicsAndReducer.test.ts && npm run verify` | Commit: `feat(domain): add immutable WorldState pure WorldEffect reducer and 60Hz kinematics`
+- [ ] 2.2 Implement Dual-Ledger `CivilizationLegacyState` (`MaterialScars` vs. `VeilScars`), `LineageMutation`, and `applyLegacyToCharacterBlueprints` (`src/domain/legacy/CivilizationLegacyState.ts`), re-exporting all Change 03 domain modules from `src/domain/index.ts`, with unit tests in `tests/unit/domain/CivilizationLegacyState.test.ts` | Verify: `npx vitest run tests/unit/domain/CivilizationLegacyState.test.ts && npm run verify` | Commit: `feat(domain): add dual-ledger CivilizationLegacyState and lineage mutator`
+
+## 3. Application Simulation Coordinator
+
+- [ ] 3.1 Implement `SimulationCoordinator` (`src/application/simulation/SimulationCoordinator.ts`) and re-export from `src/application/index.ts`, wiring `EpochModuleRegistry`, `stepKinematics(dt)`, `applyWorldEffects`, `SessionTelemetryPort`, and `SaveSlotRepositoryPort` with deterministic headless tests in `tests/unit/application/SimulationCoordinator.test.ts` | Verify: `npx vitest run tests/unit/application/SimulationCoordinator.test.ts && npm run verify` | Commit: `feat(app): add SimulationCoordinator wiring kinematics reducer telemetry and saves`
+
+## 4. Hierarchical Documentation & 5-Subagent Review
+
+- [ ] 4.1 Update `src/domain/README.md`, `src/domain/AGENTS.md`, `src/application/README.md`, `src/application/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md` to document the new registries, kinematics/reducer engine, legacy state, and `SimulationCoordinator` | Verify: `npm run verify && npm audit` | Commit: `docs(sim): update hierarchical README and AGENTS guides for change 03`
+- [ ] 4.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic using Composer 2.5 Fast / Grok 4.7 High Fast), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 03 five-subagent review findings`
