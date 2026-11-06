@@ -64,13 +64,17 @@ describe('stepKinematics and applyWorldEffects', () => {
 
     let current = withPath;
     let totalArrivals = 0;
+    let prevX = 0;
 
     for (let frame = 1; frame <= 59; frame += 1) {
       const step = stepKinematics(current, 1 / 60);
       current = step.state;
+      const x = current.entities['npc_alpha']?.position[0] ?? 0;
       expect(step.arrivals).toHaveLength(0);
-      expect(current.entities['npc_alpha']?.position[0]).toBeGreaterThan(0);
-      expect(current.entities['npc_alpha']?.position[0]).toBeLessThan(1.4);
+      expect(x).toBeGreaterThan(prevX);
+      expect(x).toBeCloseTo((frame * 1.4) / 60, 5);
+      expect(current.entities['npc_alpha']?.yawRadians).toBeGreaterThan(0);
+      prevX = x;
     }
 
     const finalStep = stepKinematics(current, 1 / 60);
@@ -235,6 +239,29 @@ describe('stepKinematics and applyWorldEffects', () => {
     const stepToAwaiting = stepKinematics(stepToCooldown.state, 4);
     expect(stepToAwaiting.state.entities['npc_alpha']?.cognitivePhase).toBe('awaiting_trigger');
 
+    // Enqueuing a hop-capped stimulus while an entity is actively moving does NOT freeze its physical walk
+    const movingWithHopCap = applyWorldEffects(baseState, [
+      {
+        type: 'move_entity_to_waypoint',
+        entityId: 'npc_alpha',
+        path: [{ waypointId: 'wp_2', spaceId: 'space_alpha', position: [1.4, 0, 0] }],
+      },
+      {
+        type: 'enqueue_npc_stimulus',
+        targetEntityId: 'npc_alpha',
+        stimulusId: 'stim_while_moving',
+        sourceEntityId: 'npc_beta',
+        topic: 'urgent_rumor',
+        cascadeHopCount: 2,
+        deliberationSeconds: 5,
+        dwellSeconds: 2,
+        cooldownSeconds: 2,
+        requiresExternalTrigger: false,
+      },
+    ]);
+    expect(movingWithHopCap.state.entities['npc_alpha']?.cognitivePhase).toBe('moving');
+    expect(movingWithHopCap.state.entities['npc_alpha']?.requiresExternalTrigger).toBe(true);
+
     // FAST_EVAL_PACING_CONFIG waterfalls zero-duration phases in a single step
     const fastEvalBase = createInitialWorldState({
       epochId: 'epoch_test',
@@ -338,9 +365,31 @@ describe('stepKinematics and applyWorldEffects', () => {
     expect(state1.recordedLegacyScars).toHaveLength(1);
     expect(state1.stateSlices.get(customSlice)).toBe(42);
 
-    // Resolve emergency and verify overspending orbital delta throws
-    const { state: state2 } = applyWorldEffects(state1, [{ type: 'resolve_emergency' }]);
+    // Resolve emergency and verify overspending orbital delta or burning outside zenith throws
+    const { state: state2 } = applyWorldEffects(state1, [
+      { type: 'resolve_emergency' },
+      { type: 'adjust_pressure_stock', stock: 'subsistence_pressure', delta: 5.0 },
+      {
+        type: 'insert_illicit_instrument',
+        instrument: 'anachronistic_marvel',
+        intensity: 0.4,
+        scarId: 'veil_scar_marvel',
+        scarDescription: 'Impossible lens venerated',
+      },
+    ]);
     expect(state2.activeEmergencyId).toBeNull();
+    expect(state2.pressureStocks.subsistence_pressure).toBe(1.0);
+    expect(state2.pressureStocks.elite_prestige_pressure).toBeCloseTo(0.4);
+    expect(state2.recordedLegacyScars).toHaveLength(2);
+
+    const { state: stateOccluded } = applyWorldEffects(state2, [
+      { type: 'advance_orbital_pass', phase: 'occluded', deltaRegen: 10 },
+    ]);
+    expect(stateOccluded.orbitalPass.phase).toBe('occluded');
+    expect(stateOccluded.orbitalPass.availableDelta).toBe(55);
+    expect(() =>
+      applyWorldEffects(stateOccluded, [{ type: 'spend_orbital_delta', mode: 'burn', cost: 10 }]),
+    ).toThrow(/Orbital Burn requires 'zenith' pass phase/);
 
     expect(() =>
       applyWorldEffects(state2, [{ type: 'spend_orbital_delta', mode: 'burn', cost: 999 }]),

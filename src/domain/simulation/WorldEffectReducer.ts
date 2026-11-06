@@ -3,10 +3,11 @@
  *
  * Applies discrete `WorldEffect` commands immutably to a `WorldState` snapshot,
  * including anti-thundering-herd stimulus backoff, emergency vice compounding,
- * inertia pillar collapse, pressure stock clamping, orbital delta spend, custom state slices,
- * and legacy scars.
+ * inertia pillar collapse, pressure stock clamping, illicit fund mode insertion,
+ * orbital delta spend, custom state slices, and legacy scars.
  */
 import { defineStateSlice } from '../core/StateSliceRegistry.js';
+import type { DiscoveryLayer } from '../registries/EpochBlueprints.js';
 import {
   type EntitySimulationState,
   type PendingStimulus,
@@ -16,6 +17,22 @@ import {
   type WorldState,
 } from './WorldState.js';
 
+export const MAX_EMITTED_AUDIO_CUES = 128 as const;
+export const MAX_PENDING_STIMULI_PER_ENTITY = 32 as const;
+const MAX_BACKOFF_EXPONENT = 64 as const;
+const FORBIDDEN_PATCH_KEYS: ReadonlySet<string> = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
+
+const DISCOVERY_RANK: Readonly<Record<DiscoveryLayer, number>> = {
+  noticed: 1,
+  assayed: 2,
+  attributed: 3,
+  theorized: 4,
+};
+
 export interface WorldEffectReducerResult {
   readonly state: WorldState;
   readonly appliedEffects: ReadonlyArray<WorldEffect>;
@@ -23,6 +40,16 @@ export interface WorldEffectReducerResult {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function maxDiscoveryLayer(
+  current: DiscoveryLayer | null,
+  candidate: DiscoveryLayer,
+): DiscoveryLayer {
+  if (current === null) {
+    return candidate;
+  }
+  return DISCOVERY_RANK[candidate] > DISCOVERY_RANK[current] ? candidate : current;
 }
 
 function requireEntity(
@@ -109,10 +136,15 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
 
     case 'enqueue_npc_stimulus': {
       const entity = requireEntity(state.entities, effect.targetEntityId);
+      const cappedHop = Math.min(effect.cascadeHopCount, MAX_BACKOFF_EXPONENT);
       const delaySeconds =
         state.pacingConfig.baseDigestionDelaySeconds *
-        Math.pow(state.pacingConfig.cascadeBackoffFactor, effect.cascadeHopCount);
-      const readyAtElapsedSeconds = state.elapsedSimulationSeconds + delaySeconds;
+        Math.pow(state.pacingConfig.cascadeBackoffFactor, cappedHop);
+      const readyAtElapsedSeconds =
+        state.elapsedSimulationSeconds +
+        (Number.isFinite(delaySeconds) ? delaySeconds : Number.MAX_SAFE_INTEGER);
+
+      const reachedHopCap = effect.cascadeHopCount >= state.pacingConfig.maxAutonomousCascadeHops;
 
       const stimulus: PendingStimulus = {
         stimulusId: effect.stimulusId,
@@ -123,17 +155,26 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
         deliberationSeconds: effect.deliberationSeconds,
         dwellSeconds: effect.dwellSeconds,
         cooldownSeconds: effect.cooldownSeconds,
-        requiresExternalTrigger: effect.requiresExternalTrigger,
+        requiresExternalTrigger: effect.requiresExternalTrigger || reachedHopCap,
         externalRelease: false,
       };
 
-      const reachedHopCap = effect.cascadeHopCount >= state.pacingConfig.maxAutonomousCascadeHops;
-      const nextPhase = reachedHopCap ? 'awaiting_trigger' : entity.cognitivePhase;
+      const nextStimuli = [...entity.pendingStimuli, stimulus];
+      const boundedStimuli =
+        nextStimuli.length > MAX_PENDING_STIMULI_PER_ENTITY
+          ? nextStimuli.slice(nextStimuli.length - MAX_PENDING_STIMULI_PER_ENTITY)
+          : nextStimuli;
+
+      const nextPhase =
+        reachedHopCap && entity.cognitivePhase === 'idle'
+          ? 'awaiting_trigger'
+          : entity.cognitivePhase;
 
       const updatedEntity: EntitySimulationState = {
         ...entity,
         cognitivePhase: nextPhase,
-        pendingStimuli: [...entity.pendingStimuli, stimulus],
+        requiresExternalTrigger: entity.requiresExternalTrigger || reachedHopCap,
+        pendingStimuli: boundedStimuli,
       };
 
       return {
@@ -172,12 +213,15 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
 
     case 'update_prop_state': {
       const prop = requireProp(state.props, effect.propId);
+      const mergedState: Record<string, unknown> = { ...prop.state };
+      for (const [key, val] of Object.entries(effect.patch)) {
+        if (!FORBIDDEN_PATCH_KEYS.has(key)) {
+          mergedState[key] = val;
+        }
+      }
       const updatedProp: PropSimulationState = {
         ...prop,
-        state: structuredClone({
-          ...prop.state,
-          ...effect.patch,
-        }),
+        state: structuredClone(mergedState),
         ...(effect.portalState !== undefined ? { portalState: effect.portalState } : {}),
       };
       return {
@@ -197,6 +241,61 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
           ...state.pressureStocks,
           [effect.stock]: clamp01(currentVal + effect.delta),
         },
+      };
+    }
+
+    case 'insert_illicit_instrument': {
+      if (effect.instrument === 'unbacked_mass_commodity') {
+        return {
+          ...state,
+          pressureStocks: {
+            ...state.pressureStocks,
+            subsistence_pressure: clamp01(
+              state.pressureStocks.subsistence_pressure + effect.intensity,
+            ),
+          },
+          discoveryLayer: maxDiscoveryLayer(state.discoveryLayer, 'assayed'),
+        };
+      }
+
+      if (effect.instrument === 'forged_fiat_instrument') {
+        return {
+          ...state,
+          pressureStocks: {
+            ...state.pressureStocks,
+            production_pressure: clamp01(
+              state.pressureStocks.production_pressure + effect.intensity * 0.25,
+            ),
+          },
+          discoveryLayer: maxDiscoveryLayer(state.discoveryLayer, 'attributed'),
+        };
+      }
+
+      // 'anachronistic_marvel'
+      const nextScars =
+        effect.scarId !== undefined &&
+        !state.recordedLegacyScars.some((s) => s.scarId === effect.scarId)
+          ? [
+              ...state.recordedLegacyScars,
+              {
+                scarId: effect.scarId,
+                ledger: 'veil' as const,
+                description: effect.scarDescription ?? 'Anachronistic marvel venerated',
+                worldTick: state.worldTick,
+              },
+            ]
+          : state.recordedLegacyScars;
+
+      return {
+        ...state,
+        pressureStocks: {
+          ...state.pressureStocks,
+          elite_prestige_pressure: clamp01(
+            state.pressureStocks.elite_prestige_pressure + effect.intensity,
+          ),
+        },
+        discoveryLayer: maxDiscoveryLayer(state.discoveryLayer, 'noticed'),
+        recordedLegacyScars: nextScars,
       };
     }
 
@@ -233,8 +332,13 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
       if (state.activeEmergencyId === null) {
         return state;
       }
+      const sortedIds = Object.keys(state.entities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
       const nextEntities: Record<string, EntitySimulationState> = {};
-      for (const [id, entity] of Object.entries(state.entities)) {
+      for (const id of sortedIds) {
+        const entity = state.entities[id];
+        if (entity === undefined) {
+          continue;
+        }
         const currentViceVal = entity.drives[entity.emergencyVice] ?? 0;
         nextEntities[id] = {
           ...entity,
@@ -276,6 +380,11 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
     }
 
     case 'spend_orbital_delta': {
+      if (effect.mode === 'burn' && state.orbitalPass.phase !== 'zenith') {
+        throw new Error(
+          `Orbital Burn requires 'zenith' pass phase (current phase: '${state.orbitalPass.phase}')`,
+        );
+      }
       if (effect.cost > state.orbitalPass.availableDelta) {
         throw new Error(
           `Insufficient orbital Delta: required ${String(effect.cost)}, available ${String(state.orbitalPass.availableDelta)}`,
@@ -296,18 +405,22 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
     }
 
     case 'emit_audio_cue': {
+      const nextCues = [
+        ...state.emittedAudioCues,
+        {
+          bus: effect.bus,
+          cueId: effect.cueId,
+          loudness: effect.loudness,
+          sourceSpaceId: effect.sourceSpaceId,
+          worldTick: state.worldTick,
+        },
+      ];
       return {
         ...state,
-        emittedAudioCues: [
-          ...state.emittedAudioCues,
-          {
-            bus: effect.bus,
-            cueId: effect.cueId,
-            loudness: effect.loudness,
-            sourceSpaceId: effect.sourceSpaceId,
-            worldTick: state.worldTick,
-          },
-        ],
+        emittedAudioCues:
+          nextCues.length > MAX_EMITTED_AUDIO_CUES
+            ? nextCues.slice(nextCues.length - MAX_EMITTED_AUDIO_CUES)
+            : nextCues,
       };
     }
 

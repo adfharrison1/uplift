@@ -299,15 +299,22 @@ describe('SimulationCoordinator', () => {
     // Pulse 1 promotes only 1 entity ('char_alpha') and advances cursor to 1
     const pulse1 = coordinator.pulseCognitiveScheduler();
     expect(pulse1.promotedEntityIds).toEqual(['char_alpha']);
+    expect(pulse1.consumedStimuli[0]?.stimulus.stimulusId).toBe('stim_alpha');
     expect(pulse1.state.cognitiveRoundRobinCursor).toBe(1);
     expect(pulse1.state.entities['char_alpha']?.cognitivePhase).toBe('deliberating');
     expect(pulse1.state.entities['char_alpha']?.phaseRemainingSeconds).toBe(4);
     expect(pulse1.state.entities['char_beta']?.cognitivePhase).toBe('idle');
 
-    // Numeric override pulseCognitiveScheduler(2) promotes the remaining 2 ready entities ('char_beta', 'char_gamma')
-    const pulse2 = coordinator.pulseCognitiveScheduler(2);
-    expect(pulse2.promotedEntityIds).toEqual(['char_beta', 'char_gamma']);
-    expect(pulse2.state.cognitiveRoundRobinCursor).toBe(0);
+    // Pulse 2 (default cap 1) starts at cursor 1 and promotes 'char_beta', advancing cursor to 2
+    const pulse2 = coordinator.pulseCognitiveScheduler();
+    expect(pulse2.promotedEntityIds).toEqual(['char_beta']);
+    expect(pulse2.consumedStimuli[0]?.stimulus.stimulusId).toBe('stim_beta');
+    expect(pulse2.state.cognitiveRoundRobinCursor).toBe(2);
+
+    // Pulse 3 with numeric override pulseCognitiveScheduler(2) promotes remaining ready entity ('char_gamma') and wraps cursor to 0
+    const pulse3 = coordinator.pulseCognitiveScheduler(2);
+    expect(pulse3.promotedEntityIds).toEqual(['char_gamma']);
+    expect(pulse3.state.cognitiveRoundRobinCursor).toBe(0);
 
     // Switch to FAST_EVAL_PACING_CONFIG and enqueue stimuli on all 3 characters after resetting phases
     coordinator.setPacingConfig(FAST_EVAL_PACING_CONFIG);

@@ -517,7 +517,25 @@ export class SimulationCoordinator {
       promotedEntityIds.push(entityId);
       consumedStimuli.push({ entityId, stimulus });
       nextCursor = (idx + 1) % totalEntities;
+    }
 
+    if (promotedEntityIds.length === 0) {
+      return {
+        state: this.state,
+        promotedEntityIds: [],
+        consumedStimuli: [],
+      };
+    }
+
+    this.state = {
+      ...this.state,
+      cognitiveRoundRobinCursor: nextCursor,
+      entities: nextEntities,
+    };
+
+    for (const { entityId, stimulus } of consumedStimuli) {
+      const scaledDeliberation =
+        stimulus.deliberationSeconds * this.state.pacingConfig.deliberationScale;
       this.telemetry.record({
         epochId: this.state.epochId,
         worldTick: this.state.worldTick,
@@ -535,20 +553,6 @@ export class SimulationCoordinator {
         message: `Promoted entity '${entityId}' to deliberating on stimulus '${stimulus.stimulusId}' (${stimulus.topic})`,
       });
     }
-
-    if (promotedEntityIds.length === 0) {
-      return {
-        state: this.state,
-        promotedEntityIds: [],
-        consumedStimuli: [],
-      };
-    }
-
-    this.state = {
-      ...this.state,
-      cognitiveRoundRobinCursor: nextCursor,
-      entities: nextEntities,
-    };
 
     return {
       state: this.state,

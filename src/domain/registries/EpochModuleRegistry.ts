@@ -2,8 +2,8 @@
  * EpochModuleRegistry (`src/domain/registries/EpochModuleRegistry.ts`).
  *
  * Indexes and validates all declarative plug-and-play module blueprints for an Epoch,
- * enforcing global ID uniqueness, spatial/entity cross-reference integrity, and
- * Kahn's algorithm topological sort with cycle detection for `BehaviorModule` dependencies.
+ * enforcing global ID uniqueness, spatial/entity cross-reference integrity, atomic batch
+ * registration, and Kahn's algorithm topological sort with cycle detection for `BehaviorModule` dependencies.
  */
 import {
   type BehaviorModule,
@@ -32,6 +32,10 @@ import {
   type WaypointBlueprint,
 } from './EpochBlueprints.js';
 
+function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export class EpochModuleRegistry {
   private readonly allIds = new Map<string, string>();
   private readonly spaces = new Map<string, SpaceNodeBlueprint>();
@@ -56,43 +60,81 @@ export class EpochModuleRegistry {
       throw new Error('EpochModulePackInput.epochId must be a non-empty string');
     }
 
-    this.registerSpaces(pack.spaces);
-    if (pack.props !== undefined) {
-      this.registerProps(pack.props);
-    }
-    if (pack.characters !== undefined) {
-      this.registerCharacters(pack.characters);
-    }
-    if (pack.offices !== undefined) {
-      this.registerOffices(pack.offices);
-    }
-    if (pack.quietClaims !== undefined) {
-      this.registerQuietClaims(pack.quietClaims);
-    }
-    if (pack.rivals !== undefined) {
-      this.registerRivals(pack.rivals);
-    }
-    if (pack.threads !== undefined) {
-      this.registerThreads(pack.threads);
-    }
-    if (pack.channels !== undefined) {
-      this.registerChannels(pack.channels);
-    }
-    if (pack.emergencies !== undefined) {
-      this.registerEmergencies(pack.emergencies);
-    }
-    if (pack.orbitalPass !== undefined) {
-      this.registerOrbitalPass(pack.orbitalPass);
-    }
-    if (pack.behaviors !== undefined) {
-      this.registerBehaviors(pack.behaviors);
+    const snapshotAllIds = new Map(this.allIds);
+    const snapshotSpaces = new Map(this.spaces);
+    const snapshotWaypoints = new Map(this.waypointsById);
+    const snapshotProps = new Map(this.props);
+    const snapshotCharacters = new Map(this.characters);
+    const snapshotOffices = new Map(this.offices);
+    const snapshotQuietClaims = new Map(this.quietClaims);
+    const snapshotRivals = new Map(this.rivals);
+    const snapshotThreads = new Map(this.threads);
+    const snapshotChannels = new Map(this.channels);
+    const snapshotEmergencies = new Map(this.emergencies);
+    const snapshotBehaviors = new Map(this.behaviors);
+    const snapshotOrbitalPass = this.orbitalPass;
+
+    try {
+      this.registerSpaces(pack.spaces);
+      if (pack.props !== undefined) {
+        this.registerProps(pack.props);
+      }
+      if (pack.characters !== undefined) {
+        this.registerCharacters(pack.characters);
+      }
+      if (pack.offices !== undefined) {
+        this.registerOffices(pack.offices);
+      }
+      if (pack.quietClaims !== undefined) {
+        this.registerQuietClaims(pack.quietClaims);
+      }
+      if (pack.rivals !== undefined) {
+        this.registerRivals(pack.rivals);
+      }
+      if (pack.threads !== undefined) {
+        this.registerThreads(pack.threads);
+      }
+      if (pack.channels !== undefined) {
+        this.registerChannels(pack.channels);
+      }
+      if (pack.emergencies !== undefined) {
+        this.registerEmergencies(pack.emergencies);
+      }
+      if (pack.orbitalPass !== undefined) {
+        this.registerOrbitalPass(pack.orbitalPass);
+      }
+      if (pack.behaviors !== undefined) {
+        this.registerBehaviors(pack.behaviors);
+      }
+    } catch (err) {
+      this.restoreMap(this.allIds, snapshotAllIds);
+      this.restoreMap(this.spaces, snapshotSpaces);
+      this.restoreMap(this.waypointsById, snapshotWaypoints);
+      this.restoreMap(this.props, snapshotProps);
+      this.restoreMap(this.characters, snapshotCharacters);
+      this.restoreMap(this.offices, snapshotOffices);
+      this.restoreMap(this.quietClaims, snapshotQuietClaims);
+      this.restoreMap(this.rivals, snapshotRivals);
+      this.restoreMap(this.threads, snapshotThreads);
+      this.restoreMap(this.channels, snapshotChannels);
+      this.restoreMap(this.emergencies, snapshotEmergencies);
+      this.restoreMap(this.behaviors, snapshotBehaviors);
+      this.orbitalPass = snapshotOrbitalPass;
+      throw err;
     }
   }
 
   public registerSpaces(spaceList: ReadonlyArray<SpaceNodeBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedSpaces = new Map<string, SpaceNodeBlueprint>();
+    const stagedWaypoints = new Map<
+      string,
+      { readonly spaceId: string; readonly waypoint: WaypointBlueprint }
+    >();
+
     for (const rawSpace of spaceList) {
       const space = SpaceNodeBlueprintSchema.parse(rawSpace);
-      this.claimGlobalId(space.id, 'space');
+      this.stageGlobalId(stagedIds, space.id, 'space');
 
       const seenConnected = new Set<string>();
       for (const connId of space.connectedSpaceIds) {
@@ -108,38 +150,58 @@ export class EpochModuleRegistry {
       }
 
       for (const wp of space.waypoints) {
-        this.claimGlobalId(wp.id, 'waypoint');
-        this.waypointsById.set(wp.id, { spaceId: space.id, waypoint: wp });
+        this.stageGlobalId(stagedIds, wp.id, 'waypoint');
+        stagedWaypoints.set(wp.id, { spaceId: space.id, waypoint: wp });
       }
 
-      this.spaces.set(space.id, space);
+      stagedSpaces.set(space.id, space);
     }
 
-    // Validate all connectedSpaceIds exist after inserting the batch
-    for (const space of this.spaces.values()) {
+    for (const space of stagedSpaces.values()) {
       for (const connId of space.connectedSpaceIds) {
-        if (!this.spaces.has(connId)) {
+        if (!this.spaces.has(connId) && !stagedSpaces.has(connId)) {
           throw new Error(`Space '${space.id}' references unknown connectedSpaceId '${connId}'`);
         }
       }
     }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, space] of stagedSpaces) {
+      this.spaces.set(id, space);
+    }
+    for (const [id, wpEntry] of stagedWaypoints) {
+      this.waypointsById.set(id, wpEntry);
+    }
   }
 
   public registerProps(propList: ReadonlyArray<PropBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedProps = new Map<string, PropBlueprint>();
+
     for (const rawProp of propList) {
       const prop = PropBlueprintSchema.parse(rawProp);
-      this.claimGlobalId(prop.id, 'prop');
+      this.stageGlobalId(stagedIds, prop.id, 'prop');
       this.assertWaypointInSpace('prop', prop.id, prop.spaceId, prop.waypointId);
-      this.props.set(prop.id, prop);
+      stagedProps.set(prop.id, prop);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, prop] of stagedProps) {
+      this.props.set(id, prop);
     }
   }
 
   public registerCharacters(characterList: ReadonlyArray<CharacterBlueprint>): void {
-    const validatedChars: CharacterBlueprint[] = [];
+    const stagedIds = new Map<string, string>();
+    const stagedCharacters = new Map<string, CharacterBlueprint>();
 
     for (const rawChar of characterList) {
       const char = CharacterBlueprintSchema.parse(rawChar);
-      this.claimGlobalId(char.id, 'character');
+      this.stageGlobalId(stagedIds, char.id, 'character');
       this.assertWaypointInSpace(
         'character',
         char.id,
@@ -147,7 +209,7 @@ export class EpochModuleRegistry {
         char.startingWaypointId,
       );
 
-      if (!(char.emergencyVice in char.drives)) {
+      if (!Object.hasOwn(char.drives, char.emergencyVice)) {
         throw new Error(
           `Character '${char.id}' emergencyVice '${char.emergencyVice}' must exist in drives`,
         );
@@ -161,67 +223,108 @@ export class EpochModuleRegistry {
         seenPillarIds.add(pillar.id);
       }
 
-      this.characters.set(char.id, char);
-      validatedChars.push(char);
+      stagedCharacters.set(char.id, char);
     }
 
-    // Validate holderEntityId references after batch insertion
-    for (const char of validatedChars) {
+    for (const char of stagedCharacters.values()) {
       for (const pillar of char.inertiaPillars) {
-        if (pillar.holderEntityId !== undefined && !this.characters.has(pillar.holderEntityId)) {
+        if (
+          pillar.holderEntityId !== undefined &&
+          !this.characters.has(pillar.holderEntityId) &&
+          !stagedCharacters.has(pillar.holderEntityId)
+        ) {
           throw new Error(
             `Character '${char.id}' pillar '${pillar.id}' references unknown holderEntityId '${pillar.holderEntityId}'`,
           );
         }
       }
     }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, char] of stagedCharacters) {
+      this.characters.set(id, char);
+    }
   }
 
   public registerOffices(officeList: ReadonlyArray<OfficeBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedOffices = new Map<string, OfficeBlueprint>();
+
     for (const rawOffice of officeList) {
       const office = OfficeBlueprintSchema.parse(rawOffice);
-      this.claimGlobalId(office.id, 'office');
+      this.stageGlobalId(stagedIds, office.id, 'office');
       if (office.patronEntityId !== undefined && !this.characters.has(office.patronEntityId)) {
         throw new Error(
           `Office '${office.id}' references unknown patronEntityId '${office.patronEntityId}'`,
         );
       }
-      this.offices.set(office.id, office);
+      stagedOffices.set(office.id, office);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, office] of stagedOffices) {
+      this.offices.set(id, office);
     }
   }
 
   public registerQuietClaims(claimList: ReadonlyArray<QuietClaimBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedClaims = new Map<string, QuietClaimBlueprint>();
+
     for (const rawClaim of claimList) {
       const claim = QuietClaimBlueprintSchema.parse(rawClaim);
-      this.claimGlobalId(claim.id, 'quiet_claim');
+      this.stageGlobalId(stagedIds, claim.id, 'quiet_claim');
       if (!this.characters.has(claim.targetEntityId)) {
         throw new Error(
           `QuietClaim '${claim.id}' references unknown targetEntityId '${claim.targetEntityId}'`,
         );
       }
-      this.quietClaims.set(claim.id, claim);
+      stagedClaims.set(claim.id, claim);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, claim] of stagedClaims) {
+      this.quietClaims.set(id, claim);
     }
   }
 
   public registerRivals(rivalList: ReadonlyArray<RivalCivBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedRivals = new Map<string, RivalCivBlueprint>();
+
     for (const rawRival of rivalList) {
       const rival = RivalCivBlueprintSchema.parse(rawRival);
-      this.claimGlobalId(rival.id, 'rival');
+      this.stageGlobalId(stagedIds, rival.id, 'rival');
       if (rival.coverEntityId !== undefined && !this.characters.has(rival.coverEntityId)) {
         throw new Error(
           `Rival '${rival.id}' references unknown coverEntityId '${rival.coverEntityId}'`,
         );
       }
-      this.rivals.set(rival.id, rival);
+      stagedRivals.set(rival.id, rival);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, rival] of stagedRivals) {
+      this.rivals.set(id, rival);
     }
   }
 
   public registerThreads(threadList: ReadonlyArray<TrajectoryThreadBlueprint>): void {
     const knownLineages = new Set(Array.from(this.characters.values()).map((c) => c.lineageId));
+    const stagedIds = new Map<string, string>();
+    const stagedThreads = new Map<string, TrajectoryThreadBlueprint>();
 
     for (const rawThread of threadList) {
       const thread = TrajectoryThreadBlueprintSchema.parse(rawThread);
-      this.claimGlobalId(thread.id, 'thread');
+      this.stageGlobalId(stagedIds, thread.id, 'thread');
       if (
         thread.primaryCandidateLineageId !== undefined &&
         !knownLineages.has(thread.primaryCandidateLineageId)
@@ -238,38 +341,75 @@ export class EpochModuleRegistry {
           `TrajectoryThread '${thread.id}' references unknown substituteCandidateLineageId '${thread.substituteCandidateLineageId}'`,
         );
       }
-      this.threads.set(thread.id, thread);
+      stagedThreads.set(thread.id, thread);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, thread] of stagedThreads) {
+      this.threads.set(id, thread);
     }
   }
 
   public registerChannels(channelList: ReadonlyArray<ChannelMediumBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedChannels = new Map<string, ChannelMediumBlueprint>();
+
     for (const rawChannel of channelList) {
       const channel = ChannelMediumBlueprintSchema.parse(rawChannel);
-      this.claimGlobalId(channel.id, 'channel');
-      this.channels.set(channel.id, channel);
+      this.stageGlobalId(stagedIds, channel.id, 'channel');
+      stagedChannels.set(channel.id, channel);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, channel] of stagedChannels) {
+      this.channels.set(id, channel);
     }
   }
 
   public registerEmergencies(emergencyList: ReadonlyArray<EmergencyStateBlueprint>): void {
+    const stagedIds = new Map<string, string>();
+    const stagedEmergencies = new Map<string, EmergencyStateBlueprint>();
+
     for (const rawEmergency of emergencyList) {
       const emergency = EmergencyStateBlueprintSchema.parse(rawEmergency);
-      this.claimGlobalId(emergency.id, 'emergency');
-      this.emergencies.set(emergency.id, emergency);
+      this.stageGlobalId(stagedIds, emergency.id, 'emergency');
+      stagedEmergencies.set(emergency.id, emergency);
+    }
+
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
+    for (const [id, emergency] of stagedEmergencies) {
+      this.emergencies.set(id, emergency);
     }
   }
 
   public registerOrbitalPass(rawOrbital: OrbitalPassBlueprint): void {
+    if (this.orbitalPass !== undefined) {
+      throw new Error(
+        `OrbitalPass '${this.orbitalPass.id}' is already registered in this EpochModuleRegistry`,
+      );
+    }
     const orbital = OrbitalPassBlueprintSchema.parse(rawOrbital);
-    this.claimGlobalId(orbital.id, 'orbital_pass');
+    const stagedIds = new Map<string, string>();
+    this.stageGlobalId(stagedIds, orbital.id, 'orbital_pass');
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
     this.orbitalPass = orbital;
   }
 
   /**
    * Validates and registers `BehaviorModule` definitions in deterministic topological order
-   * using Kahn's algorithm with lexicographical tie-breaking, rejecting self-loops,
+   * using Kahn's algorithm with code-unit lexicographical tie-breaking, rejecting self-loops,
    * duplicate dependencies, missing dependencies, and multi-node cycles.
    */
   public registerBehaviors(behaviorList: ReadonlyArray<BehaviorModule>): void {
+    const stagedIds = new Map<string, string>();
     const batchById = new Map<string, BehaviorModule>();
 
     for (const rawBehavior of behaviorList) {
@@ -277,7 +417,7 @@ export class EpochModuleRegistry {
       if (batchById.has(behavior.id) || this.behaviors.has(behavior.id)) {
         throw new Error(`Duplicate behavior id '${behavior.id}'`);
       }
-      this.claimGlobalId(behavior.id, 'behavior');
+      this.stageGlobalId(stagedIds, behavior.id, 'behavior');
 
       const seenDeps = new Set<string>();
       for (const depId of behavior.dependencyIds) {
@@ -307,6 +447,9 @@ export class EpochModuleRegistry {
     }
 
     const sorted = this.topologicalSortBehaviors(Array.from(allKnownBehaviors.values()));
+    for (const [id, kind] of stagedIds) {
+      this.allIds.set(id, kind);
+    }
     this.behaviors.clear();
     for (const behavior of sorted) {
       this.behaviors.set(behavior.id, behavior);
@@ -412,14 +555,21 @@ export class EpochModuleRegistry {
     return Array.from(this.behaviors.values());
   }
 
-  private claimGlobalId(id: string, kind: string): void {
-    const existingKind = this.allIds.get(id);
+  private stageGlobalId(stagedIds: Map<string, string>, id: string, kind: string): void {
+    const existingKind = this.allIds.get(id) ?? stagedIds.get(id);
     if (existingKind !== undefined) {
       throw new Error(
         `Duplicate module id '${id}' (already registered as '${existingKind}', cannot register as '${kind}')`,
       );
     }
-    this.allIds.set(id, kind);
+    stagedIds.set(id, kind);
+  }
+
+  private restoreMap<K, V>(target: Map<K, V>, snapshot: ReadonlyMap<K, V>): void {
+    target.clear();
+    for (const [k, v] of snapshot) {
+      target.set(k, v);
+    }
   }
 
   private assertWaypointInSpace(
@@ -464,7 +614,7 @@ export class EpochModuleRegistry {
     const readyQueue = behaviors
       .filter((b) => (inDegree.get(b.id) ?? 0) === 0)
       .map((b) => b.id)
-      .sort((a, b) => a.localeCompare(b));
+      .sort(compareCodeUnits);
 
     const sorted: BehaviorModule[] = [];
 
@@ -484,7 +634,7 @@ export class EpochModuleRegistry {
         inDegree.set(dependentId, nextDegree);
         if (nextDegree === 0) {
           readyQueue.push(dependentId);
-          readyQueue.sort((a, b) => a.localeCompare(b));
+          readyQueue.sort(compareCodeUnits);
         }
       }
     }
@@ -493,7 +643,7 @@ export class EpochModuleRegistry {
       const cycleIds = behaviors
         .filter((b) => (inDegree.get(b.id) ?? 0) > 0)
         .map((b) => b.id)
-        .sort((a, b) => a.localeCompare(b));
+        .sort(compareCodeUnits);
       throw new Error(`Behavior dependency cycle detected involving: ${cycleIds.join(', ')}`);
     }
 

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { StateSliceStore } from '../core/StateSliceRegistry.js';
 import {
   DiscoveryLayerSchema,
+  IllicitInstrumentTypeSchema,
   type InertiaPillar,
   OrbitalPassPhaseSchema,
   PortalStateSchema,
@@ -194,6 +195,13 @@ export const WorldEffectSchema = z.discriminatedUnion('type', [
     type: z.literal('adjust_pressure_stock'),
     stock: PressureStockTypeSchema,
     delta: z.number(),
+  }),
+  z.object({
+    type: z.literal('insert_illicit_instrument'),
+    instrument: IllicitInstrumentTypeSchema,
+    intensity: z.number().positive(),
+    scarId: z.string().trim().min(1).optional(),
+    scarDescription: z.string().trim().min(1).optional(),
   }),
   z.object({
     type: z.literal('set_discovery_layer'),

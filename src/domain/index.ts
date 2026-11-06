@@ -132,6 +132,8 @@ export {
 } from './simulation/WorldState.js';
 export {
   applyWorldEffects,
+  MAX_EMITTED_AUDIO_CUES,
+  MAX_PENDING_STIMULI_PER_ENTITY,
   type WorldEffectReducerResult,
 } from './simulation/WorldEffectReducer.js';
 export {

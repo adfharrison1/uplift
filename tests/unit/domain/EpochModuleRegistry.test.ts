@@ -183,6 +183,7 @@ describe('EpochModuleRegistry and EpochBlueprints', () => {
     });
 
     expect(registry.getSpace('space_alpha').surfaceMaterial).toBe('stone');
+    expect(registry.getWaypoint('wp_alpha_1').spaceId).toBe('space_alpha');
     expect(registry.getProp('prop_portal_ab').portalState).toBe('closed');
     expect(registry.getCharacter('char_alpha').lineageId).toBe('lineage_alpha');
     expect(registry.getOffice('office_auditor').institutionalLineageId).toBe('inst_monetary_audit');
@@ -271,6 +272,60 @@ describe('EpochModuleRegistry and EpochBlueprints', () => {
         },
       ]),
     ).toThrow(/belongs to space 'space_2', not 'space_1'/);
+
+    // Atomic rollback: after failed registration above, 'prop_wrong_wp' is NOT reserved and can be registered cleanly
+    registryWrongWp.registerProps([
+      {
+        id: 'prop_wrong_wp',
+        name: 'Fixed Waypoint Prop',
+        spaceId: 'space_1',
+        waypointId: 'wp_1',
+        tier: 'static',
+        initialState: {},
+      },
+    ]);
+    expect(registryWrongWp.getProp('prop_wrong_wp').waypointId).toBe('wp_1');
+
+    // Duplicate ID across module types is rejected
+    expect(() =>
+      registryWrongWp.registerProps([
+        {
+          id: 'space_1',
+          name: 'Colliding ID Prop',
+          spaceId: 'space_1',
+          waypointId: 'wp_1',
+          tier: 'static',
+          initialState: {},
+        },
+      ]),
+    ).toThrow(/Duplicate module id 'space_1'/);
+
+    // Unknown patronEntityId on Office and unknown targetEntityId on QuietClaim are rejected
+    expect(() =>
+      registryWrongWp.registerOffices([
+        {
+          id: 'office_orphan',
+          name: 'Orphan Office',
+          institutionalLineageId: 'inst_orphan',
+          patronEntityId: 'char_missing',
+          pretextFamilies: ['technical_audit'],
+          stipendPerTick: 5,
+          exposureRiskModifier: 0.1,
+        },
+      ]),
+    ).toThrow(/unknown patronEntityId 'char_missing'/);
+
+    expect(() =>
+      registryWrongWp.registerQuietClaims([
+        {
+          id: 'claim_orphan',
+          name: 'Orphan Claim',
+          targetEntityId: 'char_missing',
+          unlockedPretext: 'technical_audit',
+          exposurePenalty: 0.2,
+        },
+      ]),
+    ).toThrow(/unknown targetEntityId 'char_missing'/);
   });
 
   it('rejects behavior self-loops, multi-node cycles, and missing behavior dependencies', () => {
