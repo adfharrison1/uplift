@@ -81,6 +81,8 @@ After generating `proposal.md`, `specs/*`, `design.md`, and `tasks.md` in `/opsx
 2. **Subagent B — Spec Completeness, `DESIGN_NOTES.md` Alignment & Task Atomicity Audit**: Checks `WHEN`/`THEN` scenario coverage (including negative/error cases), alignment with `DESIGN_NOTES.md` and `openspec/config.yaml`, and verifies `tasks.md` has 4–6 atomic tasks (1–3 files each) ordered inward-out so every intermediate commit compiles and passes `npm run verify`.
 3. **Subagent C — Game-Industry Standards, Best Practices, User safety, Accessibility, Gotchas & Extensibility Audit**: Checks game-industry simulation/architecture best practices, user-safety, accessibility, gotchas, possible coding-into-a-corner, future-proofing, and extensibility.
 
+Fold verified improvements from the 3 subagents into the OpenSpec artifacts, run `npx openspec validate "<change>" --strict`, and **pause for user review and approval before starting `/opsx-apply`**.
+
 ### 2. Per-Subtask 2-Subagent Review & Pre-Commit Self-Review (Before Pausing for User Review & Committing)
 
 Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). For every subtask:
@@ -88,7 +90,7 @@ Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`
 1. Implement the subtask and run its `Verify:` command and `npm run verify`.
 2. Launch **2 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) with broad, non-overlapping review briefs on the subtask's files:
    - **Subagent A — Correctness, Logic, Edge Cases & Performance**: Audits algorithmic/state-machine logic, boundary/malformed inputs, immutability, determinism, and CPU/memory efficiency.
-   - **Subagent B — Architecture, Spec Adherence, Types & Test Coverage**: Audits Clean Architecture inward boundaries, zero-`any` / Zod conventions, alignment with the change's spec/design, and unit test assertion quality/gaps.
+   - **Subagent B — Architecture, Spec/Design Adherence, Types & Test Coverage**: Audits Clean Architecture inward boundaries, zero-`any` / Zod conventions, alignment with the change's spec/design, and unit test assertion quality/gaps.
 3. Double-check their findings, apply any verified fixes, re-run `npm run verify`, and inspect `git diff --staged` before pausing for user review.
 4. Once approved, create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
 
