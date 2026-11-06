@@ -1,6 +1,6 @@
 ## 1. Epoch-Agnostic Module Blueprints & Registry
 
-- [ ] 1.1 Implement epoch-agnostic Zod module blueprints (`src/domain/registries/EpochBlueprints.ts`, including human-paced `BehaviorModule` timing fields) and `EpochModuleRegistry` (`src/domain/registries/EpochModuleRegistry.ts`) with duplicate-ID checks, spatial reference validation, and Kahn's algorithm topological sort cycle detection for `BehaviorModule` dependencies, with unit tests in `tests/unit/domain/EpochModuleRegistry.test.ts` | Verify: `npx vitest run tests/unit/domain/EpochModuleRegistry.test.ts && npm run verify` | Commit: `feat(domain): add epoch-agnostic module blueprints and registry with cycle detection`
+- [x] 1.1 Implement epoch-agnostic Zod module blueprints (`src/domain/registries/EpochBlueprints.ts`, including human-paced `BehaviorModule` timing fields) and `EpochModuleRegistry` (`src/domain/registries/EpochModuleRegistry.ts`) with duplicate-ID checks, spatial reference validation, and Kahn's algorithm topological sort cycle detection for `BehaviorModule` dependencies, with unit tests in `tests/unit/domain/EpochModuleRegistry.test.ts` | Verify: `npx vitest run tests/unit/domain/EpochModuleRegistry.test.ts && npm run verify` | Commit: `feat(domain): add epoch-agnostic module blueprints and registry with cycle detection`
 
 ## 2. Pure WorldState, WorldEffect Reducer & Continuous 60Hz Kinematics
 
