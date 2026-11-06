@@ -5,22 +5,27 @@ See `proposal.md` for motivation. Change 02 (`02-telemetry-saves-and-debug-skill
 ## Goals / Non-Goals
 
 **Goals:**
-- Define pure, epoch-agnostic domain contracts for session telemetry (`SessionTelemetryPort`, `TelemetryEntry`, `AiReasoningTrace`) and multi-session saves (`SaveSlotRepositoryPort`, `SaveSlotEnvelope`).
-- Implement fast, dependency-free Node/disk and in-memory adapters in `src/infrastructure/` supporting single-session log retention (`./logs/current-session.jsonl`), rolling compaction (`./logs/current-session.compacted.jsonl`), and multi-session save files (`./saves/<slotId>.json`).
-- Provide a Vite dev-server middleware plugin (`src/interfaces/vite/localDiskBridgePlugin.ts`) so the browser client can append log batches and read/write save slots directly to `./logs/` and `./saves/` without any external backend server.
+- Define pure, epoch-agnostic domain contracts for session telemetry (`SessionTelemetryPort`, `TelemetryClock`, `TelemetryEntry`, `AiReasoningTrace`) and multi-session saves (`SaveSlotRepositoryPort`, `SaveSlotEnvelope`, `SaveSlotMetadata`).
+- Implement fast, dependency-free Node/disk and in-memory adapters in `src/infrastructure/` supporting single-session log retention (`./logs/current-session.jsonl`), rolling compaction (`./logs/current-session.compacted.jsonl`), and atomic temp-file-renamed multi-session save files (`./saves/<slotId>.json`) with strict `slotId` allowlist validation.
+- Provide a Vite dev-server middleware plugin (`src/interfaces/vite/localDiskBridgePlugin.ts`) with `256 KiB` body limits and `400`/`413` error handling so the browser client can append log batches and read/write save slots directly to `./logs/` and `./saves/`.
 - Provide a CLI log query tool (`npm run logs:query`) and `.cursor/skills/uplift-debug/SKILL.md` so agents can diagnose simulation, AI, and rival-operative behavior rapidly.
 
 **Non-Goals:**
-- Introducing external logging/database dependencies (e.g., SQLite, Winston, or cloud telemetry SDKs) that add native compilation or network surface. Node's built-in `node:fs` NDJSON streaming is faster, zero-CVE, and 100% transparent.
+- Introducing external logging/database dependencies (e.g., SQLite, Winston, or cloud telemetry SDKs).
 
 ## Decisions
 
-### 1. Industry-Standard Structured NDJSON Schema (`.jsonl`)
+### 1. Injected `TelemetryClock` & Structured NDJSON Schema (`src/domain/telemetry/`)
 
-Each line in `./logs/current-session.jsonl` is a self-contained JSON object following OpenTelemetry / Pino structured logging conventions:
+Because `Date.now()`, `new Date()`, and `performance.now()` are banned in `src/domain/`, wall-clock timestamps are supplied via an injected `TelemetryClock` implemented in `src/infrastructure/telemetry/` (`systemTelemetryClock` for runtime, `fixedTelemetryClock` for deterministic tests):
 
 ```typescript
 export type TelemetryLevel = 'info' | 'warn' | 'error' | 'crash';
+
+export interface TelemetryClock {
+  nowIso(): string;
+  elapsedSessionMs(): number;
+}
 
 export interface AiCandidateScore {
   readonly id: string;
@@ -58,13 +63,36 @@ export interface TelemetryEntry {
 
 ### 2. Rolling Compaction Algorithm (`RollingLogCompactor`)
 
-- When `compact(retentionWindowMs)` is called (either automatically after $N$ entries or explicitly):
-  1. Entries newer than `latestElapsedMs - retentionWindowMs` remain untouched in `current-session.jsonl`.
-  2. Entries older than the cutoff are evaluated:
-     - **High-Signal Entries (Preserved 100% Verbatim)**: Any entry where `level !== 'info'`, or `aiReasoning !== undefined`, or `category` is in `['player', 'rival', 'emergency', 'martyrdom', 'correspondence', 'orbital', 'legacy']`.
-     - **Routine `info` Entries (Compacted)**: Repetitive ambient/routine `info` entries (e.g., `category: 'kinematics' | 'routine'`) sharing `(epochId, category, actorId, action)` are folded into a single `CompactedTelemetryDigest` line in `current-session.compacted.jsonl` recording `count`, `firstSequence`, `lastSequence`, `firstElapsedMs`, `lastElapsedMs`, and `sampleMessage`.
+- Canonical high-signal categories preserved 100% verbatim:
+  `PRESERVED_CATEGORIES = new Set(['player', 'rival', 'office', 'pretext', 'emergency', 'martyrdom', 'correspondence', 'orbital', 'legacy'])`.
+- Any entry with `level !== 'info'`, `aiReasoning !== undefined`, or `PRESERVED_CATEGORIES.has(entry.category)` is preserved verbatim.
+- Older routine `info` entries outside `retentionWindowMs` sharing `(epochId, category, actorId, action)` are folded into a `CompactedTelemetryDigest` record (`count`, `firstSequence`, `lastSequence`, `firstElapsedMs`, `lastElapsedMs`, `firstWorldTick`, `lastWorldTick`, `sampleMessage`).
+- Malformed or truncated NDJSON lines encountered during read/query are safely skipped without crashing.
 
-### 3. Pinned Versions Table (Verified 2026-10-29 — Zero New External Dependencies Needed)
+### 3. Epoch-Agnostic `SaveSlotEnvelope`, Atomic Writes & Path-Traversal Guard
+
+```typescript
+export const SAVE_SLOT_SCHEMA_VERSION = 1 as const;
+
+export interface SaveSlotMetadata {
+  readonly slotId: string;
+  readonly schemaVersion: number;
+  readonly epochId: string;
+  readonly worldTick: number;
+  readonly savedAtIso: string;
+}
+
+export interface SaveSlotEnvelope extends SaveSlotMetadata {
+  readonly rngState: number;
+  readonly stateSlices: Readonly<Record<string, unknown>>;
+  readonly legacyState?: Readonly<Record<string, unknown>>;
+}
+```
+
+- **Path-Traversal Protection**: `slotId` must match `/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/` and resolve inside `savesRoot` before any read, write, or delete.
+- **Atomic Save Writes**: `FileSaveSlotRepository` writes to `<slotId>.json.tmp` and renames over `<slotId>.json`, validating `rngState` via `SeededRandom.fromState(envelope.rngState)` on load.
+
+### 4. Pinned Versions Table (Verified 2026-10-29 — Zero New External Dependencies)
 
 | Tool / Package | Pinned Version | Role & Security / CVE Notes |
 |---|---|---|
@@ -82,7 +110,7 @@ export interface TelemetryEntry {
 | `husky` + `lint-staged` | `9.1.7` / `17.6.0` | Pre-commit formatting and linting on staged files |
 | `@types/node` | `24.19.2` | Node.js type definitions |
 
-### 4. Layer Placement & Section Documentation Updates
+### 5. Layer Placement & Section Documentation Updates
 
 ```text
 .cursor/
@@ -92,14 +120,14 @@ export interface TelemetryEntry {
 src/
   domain/
     telemetry/
-      SessionTelemetryPort.ts             # TelemetryEntry, AiReasoningTrace, TelemetryQueryFilter, SessionTelemetryPort
+      SessionTelemetryPort.ts             # TelemetryClock, TelemetryEntry, AiReasoningTrace, CompactedTelemetryDigest, SessionTelemetryPort
     persistence/
-      SaveSlotRepositoryPort.ts           # SaveSlotMetadata, SaveSlotEnvelope, SaveSlotRepositoryPort
+      SaveSlotRepositoryPort.ts           # SAVE_SLOT_SCHEMA_VERSION, SaveSlotMetadata, SaveSlotEnvelope, SaveSlotRepositoryPort
     index.ts                              # Re-exports telemetry & persistence contracts
   infrastructure/
     telemetry/
       RollingLogCompactor.ts              # Pure/deterministic compaction logic for older time windows
-      NdjsonSessionTelemetry.ts           # File-backed NDJSON session logger + InMemorySessionTelemetry
+      NdjsonSessionTelemetry.ts           # systemTelemetryClock, fixedTelemetryClock, NdjsonSessionTelemetry, InMemorySessionTelemetry
     persistence/
       FileSaveSlotRepository.ts           # Disk-backed multi-session save/load under ./saves/ + InMemorySaveSlotRepository
     index.ts                              # Re-exports infrastructure implementations
@@ -107,9 +135,9 @@ src/
     cli/
       queryLogs.ts                        # CLI entrypoint for `npm run logs:query`
     vite/
-      localDiskBridgePlugin.ts            # Vite dev server middleware (/api/telemetry, /api/saves)
+      localDiskBridgePlugin.ts            # Vite dev server middleware (/api/telemetry, /api/saves) with 256 KiB cap & 400/413 validation
     index.ts
-vite.config.ts                            # Wires localDiskBridgePlugin into Vite
+vite.config.ts                            # Wires localDiskBridgePlugin into Vite (included in tsconfig.json & eslint.config.mjs)
 ```
 
 - **Section `README.md` & `AGENTS.md` files updated by this change**:
@@ -119,10 +147,10 @@ vite.config.ts                            # Wires localDiskBridgePlugin into Vit
   - `src/interfaces/README.md` and `src/interfaces/AGENTS.md`
   - `tests/README.md` and `tests/AGENTS.md`
 
-### 5. Local Dev Setup & Verification Commands
+### 6. Local Dev Setup & Verification Commands
 
-- `npm run logs:query -- --level warn`: Filters `./logs/current-session.jsonl` and `./logs/current-session.compacted.jsonl`.
-- `npm run verify`: Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in `<4s`.
+- `npm run logs:query`: Filters `./logs/current-session.jsonl` and `./logs/current-session.compacted.jsonl`.
+- `npm run verify`: Runs `format:check`, `lint` (including `vite.config.ts`), `typecheck` (including `vite.config.ts`), `test:arch`, and `test:unit` in `<4s`.
 
 ## Risks / Trade-offs
 
