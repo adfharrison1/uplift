@@ -26,7 +26,7 @@ Uplift writes structured NDJSON logs for the **latest play session** into `./log
 
 ## 2. Querying Session Logs (`npm run logs:query`)
 
-Run `npm run logs:query` from `/Users/alanharrison/Desktop/Code/uplift` to filter both compacted and active logs in chronological order without modifying them on disk:
+Run `npm run logs:query` from the repository root to filter both compacted and active logs in chronological order without modifying them on disk:
 
 ```bash
 # Show all warnings, errors, or crashes

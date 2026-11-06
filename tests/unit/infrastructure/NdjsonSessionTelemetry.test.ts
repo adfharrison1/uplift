@@ -160,6 +160,33 @@ describe('NdjsonSessionTelemetry and RollingLogCompactor', () => {
     expect(logger.query({ hasAiReasoning: true })).toHaveLength(1);
     expect(logger.query({ category: 'pretext', acteeId: 'npc.vane' })).toHaveLength(1);
     expect(logger.query({ minTick: 2, maxTick: 3 })).toHaveLength(1);
+    expect(logger.query({ minTick: 10, maxTick: 2 })).toHaveLength(0);
+
+    // A second compaction merges new routine entries into the existing compacted_digest bucket
+    currentElapsed = 20_000;
+    logger.record({
+      epochId: 'era_1_highglass_hold',
+      worldTick: 12,
+      level: 'info',
+      category: 'routine',
+      actorId: 'npc.guard_01',
+      action: 'patrol_step',
+      message: 'Guard stepped along courtyard wall (window 2)',
+    });
+    logger.compact(3000);
+
+    const digestsAfterSecondPass = logger
+      .query()
+      .filter((r) => r.recordType === 'compacted_digest');
+    expect(digestsAfterSecondPass).toHaveLength(1);
+    expect(digestsAfterSecondPass[0]).toMatchObject({
+      recordType: 'compacted_digest',
+      actorId: 'npc.guard_01',
+      action: 'patrol_step',
+      count: 4,
+      firstWorldTick: 1,
+      lastWorldTick: 10,
+    });
   });
 
   it('skips malformed or truncated NDJSON lines without crashing and supports InMemorySessionTelemetry parity', () => {

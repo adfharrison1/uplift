@@ -164,6 +164,28 @@ describe('Vite Local Disk Bridge Middleware', () => {
     expect(malformedJsonRes.statusCode).toBe(400);
     expect(telemetry.query()).toHaveLength(0);
 
+    // Malformed JSON on /api/telemetry/compact must also return 400 (even though retentionWindowMs is optional)
+    const malformedCompactRes = handleLocalDiskBridgeRequest(
+      {
+        method: 'POST',
+        url: '/api/telemetry/compact',
+        rawBody: '{bad_json',
+      },
+      telemetry,
+      saves,
+    );
+    expect(malformedCompactRes.statusCode).toBe(400);
+
+    // 405 Method Not Allowed and 404 Unknown API route
+    expect(
+      handleLocalDiskBridgeRequest({ method: 'GET', url: '/api/telemetry/batch' }, telemetry, saves)
+        .statusCode,
+    ).toBe(405);
+    expect(
+      handleLocalDiskBridgeRequest({ method: 'GET', url: '/api/unknown' }, telemetry, saves)
+        .statusCode,
+    ).toBe(404);
+
     // Batch with one valid event and one invalid event must reject the whole batch with zero partial writes
     const partialInvalidBatch = handleLocalDiskBridgeRequest(
       {

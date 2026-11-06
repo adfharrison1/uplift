@@ -20,9 +20,30 @@ export interface ParsedLogQueryCliArgs {
 }
 
 const VALID_LEVELS: ReadonlySet<string> = new Set(['info', 'warn', 'error', 'crash']);
+const KNOWN_FLAGS = [
+  '--logs-dir',
+  '--level',
+  '--category',
+  '--actor',
+  '--actor-id',
+  '--actee',
+  '--actee-id',
+  '--action',
+  '--min-tick',
+  '--max-tick',
+  '--has-ai-reasoning',
+] as const;
+
+function requireFlagValue(flag: string, nextVal: string | undefined): string {
+  if (nextVal === undefined || nextVal.startsWith('--')) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return nextVal;
+}
 
 /**
  * Parses CLI arguments for `npm run logs:query`.
+ * Rejects unknown flags, missing flag values, invalid levels, and inverted tick ranges.
  */
 export function parseQueryCliArgs(
   argv: ReadonlyArray<string>,
@@ -39,15 +60,12 @@ export function parseQueryCliArgs(
   let hasAiReasoning: boolean | undefined;
 
   for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
+    const arg = argv[i] ?? '';
     const nextVal = argv[i + 1];
 
     switch (arg) {
       case '--logs-dir': {
-        if (nextVal === undefined) {
-          throw new Error('Missing value for --logs-dir');
-        }
-        logsDir = resolve(nextVal);
+        logsDir = resolve(requireFlagValue(arg, nextVal));
         i += 1;
         break;
       }
@@ -62,36 +80,24 @@ export function parseQueryCliArgs(
         break;
       }
       case '--category': {
-        if (nextVal === undefined) {
-          throw new Error('Missing value for --category');
-        }
-        category = nextVal;
+        category = requireFlagValue(arg, nextVal);
         i += 1;
         break;
       }
       case '--actor':
       case '--actor-id': {
-        if (nextVal === undefined) {
-          throw new Error(`Missing value for ${arg}`);
-        }
-        actorId = nextVal;
+        actorId = requireFlagValue(arg, nextVal);
         i += 1;
         break;
       }
       case '--actee':
       case '--actee-id': {
-        if (nextVal === undefined) {
-          throw new Error(`Missing value for ${arg}`);
-        }
-        acteeId = nextVal;
+        acteeId = requireFlagValue(arg, nextVal);
         i += 1;
         break;
       }
       case '--action': {
-        if (nextVal === undefined) {
-          throw new Error('Missing value for --action');
-        }
-        action = nextVal;
+        action = requireFlagValue(arg, nextVal);
         i += 1;
         break;
       }
@@ -122,9 +128,18 @@ export function parseQueryCliArgs(
         }
         break;
       }
-      default:
-        break;
+      default: {
+        throw new Error(
+          `Unknown log query flag '${arg}'. Expected one of: ${KNOWN_FLAGS.join(', ')}`,
+        );
+      }
     }
+  }
+
+  if (minTick !== undefined && maxTick !== undefined && minTick > maxTick) {
+    throw new Error(
+      `Invalid tick range: --min-tick ${String(minTick)} is greater than --max-tick ${String(maxTick)}`,
+    );
   }
 
   const filter: TelemetryQueryFilter = {

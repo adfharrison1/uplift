@@ -4,7 +4,6 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
-  statSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -50,19 +49,29 @@ export function fixedTelemetryClock(iso: string, elapsedMs: number): TelemetryCl
   };
 }
 
+export type SafeJsonParseResult<T> =
+  | { readonly success: true; readonly data: T }
+  | { readonly success: false; readonly error: { readonly message: string } };
+
 /**
  * Safely parses a JSON string and validates it against a Zod schema in one step using `safeParse`.
+ * Fails closed when `rawJson` is not valid JSON.
  */
 export function safeParseJsonWithSchema<T>(
   rawJson: string,
   schema: z.ZodType<T>,
-): ReturnType<z.ZodType<T>['safeParse']> {
+): SafeJsonParseResult<T> {
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(rawJson);
-    return schema.safeParse(parsed);
+    parsed = JSON.parse(rawJson);
   } catch (error) {
-    return schema.safeParse({ __jsonParseError: error });
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      error: { message: `Invalid JSON: ${message}` },
+    };
   }
+  return schema.safeParse(parsed);
 }
 
 /**
@@ -178,6 +187,7 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
   private sessionId: string;
   private clock: TelemetryClock;
   private sequence = 0;
+  private activeLogBytes = 0;
 
   public constructor(
     logsDir: string,
@@ -230,6 +240,7 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
       this.clock = clock;
     }
     this.sequence = 0;
+    this.activeLogBytes = 0;
 
     mkdirSync(this.logsDir, { recursive: true });
     this.writeAtomic(this.activeLogPath, '');
@@ -246,18 +257,18 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
 
   /**
    * Appends a batch of events in a single atomic filesystem append operation,
-   * automatically triggering rolling compaction if `current-session.jsonl` exceeds `maxActiveLogBytes` (default 50 MiB).
+   * tracking `activeLogBytes` in memory and automatically triggering rolling compaction
+   * if `current-session.jsonl` exceeds `maxActiveLogBytes` (default 50 MiB).
    */
   public recordBatch(events: ReadonlyArray<TelemetryEventInput>): ReadonlyArray<TelemetryEntry> {
     if (events.length === 0) {
       return [];
     }
-    mkdirSync(this.logsDir, { recursive: true });
+    const validatedEvents = events.map((event) => TelemetryEventInputSchema.parse(event));
     const entries: TelemetryEntry[] = [];
     const lines: string[] = [];
 
-    for (const event of events) {
-      const validated = TelemetryEventInputSchema.parse(event);
+    for (const validated of validatedEvents) {
       this.sequence += 1;
       const entry: TelemetryEntry = {
         ...validated,
@@ -271,12 +282,11 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
       lines.push(`${JSON.stringify(entry)}\n`);
     }
 
-    appendFileSync(this.activeLogPath, lines.join(''), 'utf8');
+    const payload = lines.join('');
+    appendFileSync(this.activeLogPath, payload, 'utf8');
+    this.activeLogBytes += Buffer.byteLength(payload, 'utf8');
 
-    if (
-      existsSync(this.activeLogPath) &&
-      statSync(this.activeLogPath).size > this.budget.maxActiveLogBytes
-    ) {
+    if (this.activeLogBytes > this.budget.maxActiveLogBytes) {
       this.compact(this.budget.defaultRetentionWindowMs);
     }
 
@@ -307,6 +317,7 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
 
     this.writeAtomic(this.compactedLogPath, compactedText);
     this.writeAtomic(this.activeLogPath, activeText);
+    this.activeLogBytes = Buffer.byteLength(activeText, 'utf8');
   }
 
   public query(filter?: TelemetryQueryFilter): ReadonlyArray<TelemetryStreamRecord> {

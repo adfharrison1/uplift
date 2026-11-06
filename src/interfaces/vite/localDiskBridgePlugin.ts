@@ -66,8 +66,8 @@ export function handleLocalDiskBridgeRequest(
   saves: FileSaveSlotRepository,
   maxBodyBytes: number = MAX_BRIDGE_BODY_BYTES,
 ): BridgeHttpResponse {
-  const bodyBytes =
-    req.bodyByteLength ?? (req.rawBody !== undefined ? Buffer.byteLength(req.rawBody, 'utf8') : 0);
+  const measuredBytes = req.rawBody !== undefined ? Buffer.byteLength(req.rawBody, 'utf8') : 0;
+  const bodyBytes = Math.max(measuredBytes, req.bodyByteLength ?? 0);
 
   if (bodyBytes > maxBodyBytes) {
     return {

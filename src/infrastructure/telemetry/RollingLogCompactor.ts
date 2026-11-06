@@ -1,6 +1,7 @@
 import {
   type CompactedTelemetryDigest,
   isHighSignalTelemetryEntry,
+  PRESERVED_TELEMETRY_CATEGORIES,
   type TelemetryEntry,
   type TelemetryQueryFilter,
   type TelemetryStreamRecord,
@@ -43,6 +44,22 @@ function getRecordSortKey(record: TelemetryStreamRecord): {
   };
 }
 
+function getEvictionAgeKey(record: TelemetryStreamRecord): {
+  readonly elapsedMs: number;
+  readonly sequence: number;
+} {
+  if (record.recordType === 'compacted_digest') {
+    return {
+      elapsedMs: record.lastElapsedMs,
+      sequence: record.lastSequence,
+    };
+  }
+  return {
+    elapsedMs: record.elapsedSessionMs,
+    sequence: record.sequence,
+  };
+}
+
 export function sortTelemetryRecords(
   records: ReadonlyArray<TelemetryStreamRecord>,
 ): ReadonlyArray<TelemetryStreamRecord> {
@@ -56,6 +73,75 @@ export function sortTelemetryRecords(
   });
 }
 
+function routineBucketKey(record: {
+  readonly sessionId: string;
+  readonly epochId: string;
+  readonly category: string;
+  readonly actorId: string;
+  readonly action: string;
+}): string {
+  return JSON.stringify([
+    record.sessionId,
+    record.epochId,
+    record.category,
+    record.actorId,
+    record.action,
+  ]);
+}
+
+function digestFromEntry(entry: TelemetryEntry): CompactedTelemetryDigest {
+  return {
+    recordType: 'compacted_digest',
+    sessionId: entry.sessionId,
+    epochId: entry.epochId,
+    level: 'info',
+    category: entry.category,
+    actorId: entry.actorId,
+    action: entry.action,
+    count: 1,
+    firstSequence: entry.sequence,
+    lastSequence: entry.sequence,
+    firstElapsedMs: entry.elapsedSessionMs,
+    lastElapsedMs: entry.elapsedSessionMs,
+    firstWorldTick: entry.worldTick,
+    lastWorldTick: entry.worldTick,
+    sampleMessage: entry.message,
+  };
+}
+
+function mergeDigests(
+  left: CompactedTelemetryDigest,
+  right: CompactedTelemetryDigest,
+): CompactedTelemetryDigest {
+  const rightStartedEarlier = right.firstSequence < left.firstSequence;
+  return {
+    recordType: 'compacted_digest',
+    sessionId: left.sessionId,
+    epochId: left.epochId,
+    level: 'info',
+    category: left.category,
+    actorId: left.actorId,
+    action: left.action,
+    count: left.count + right.count,
+    firstSequence: Math.min(left.firstSequence, right.firstSequence),
+    lastSequence: Math.max(left.lastSequence, right.lastSequence),
+    firstElapsedMs: Math.min(left.firstElapsedMs, right.firstElapsedMs),
+    lastElapsedMs: Math.max(left.lastElapsedMs, right.lastElapsedMs),
+    firstWorldTick: Math.min(left.firstWorldTick, right.firstWorldTick),
+    lastWorldTick: Math.max(left.lastWorldTick, right.lastWorldTick),
+    sampleMessage: rightStartedEarlier ? right.sampleMessage : left.sampleMessage,
+  };
+}
+
+function absorbDigest(
+  buckets: Map<string, CompactedTelemetryDigest>,
+  digest: CompactedTelemetryDigest,
+): void {
+  const key = routineBucketKey(digest);
+  const prior = buckets.get(key);
+  buckets.set(key, prior === undefined ? digest : mergeDigests(prior, digest));
+}
+
 /**
  * Evaluates whether a `TelemetryStreamRecord` (raw event or compacted digest) matches `filter`.
  */
@@ -65,6 +151,13 @@ export function matchesTelemetryFilter(
 ): boolean {
   if (filter === undefined) {
     return true;
+  }
+  if (
+    filter.minTick !== undefined &&
+    filter.maxTick !== undefined &&
+    filter.minTick > filter.maxTick
+  ) {
+    return false;
   }
   if (filter.level !== undefined && record.level !== filter.level) {
     return false;
@@ -116,8 +209,8 @@ export function matchesTelemetryFilter(
 /**
  * Returns an eviction priority tier for compacted records (lower tier = evicted first when over byte budget):
  * - Tier 0: `compacted_digest` routine summaries
- * - Tier 1: `info` events without `aiReasoning`
- * - Tier 2: `info` events with `aiReasoning`
+ * - Tier 1: non-preserved `info` events without `aiReasoning`
+ * - Tier 2: `info` events with `aiReasoning` or in `PRESERVED_TELEMETRY_CATEGORIES`
  * - Tier 3: `warn`, `error`, and `crash` events (highest protection)
  */
 function getEvictionPriorityTier(record: TelemetryStreamRecord): number {
@@ -127,7 +220,7 @@ function getEvictionPriorityTier(record: TelemetryStreamRecord): number {
   if (record.level !== 'info') {
     return 3;
   }
-  if (record.aiReasoning !== undefined) {
+  if (record.aiReasoning !== undefined || PRESERVED_TELEMETRY_CATEGORIES.has(record.category)) {
     return 2;
   }
   return 1;
@@ -136,7 +229,7 @@ function getEvictionPriorityTier(record: TelemetryStreamRecord): number {
 /**
  * Enforces `maxCompactedBytes` on a chronological array of `TelemetryStreamRecord` items.
  * If the serialized NDJSON byte length exceeds `maxCompactedBytes`, evicts the oldest lowest-tier
- * records first (routine digests -> plain info -> AI info -> warn/error/crash).
+ * records first (routine digests -> plain info -> AI/preserved info -> warn/error/crash).
  */
 export function enforceCompactedStorageCap(
   records: ReadonlyArray<TelemetryStreamRecord>,
@@ -151,11 +244,10 @@ export function enforceCompactedStorageCap(
     return [];
   }
 
-  const items = records.map((record, index) => {
-    const lineBytes = Buffer.byteLength(`${JSON.stringify(record)}\n`, 'utf8');
+  const items = records.map((record) => {
+    const lineBytes = Buffer.byteLength(JSON.stringify(record), 'utf8') + 1;
     return {
       record,
-      index,
       lineBytes,
       tier: getEvictionPriorityTier(record),
       evicted: false,
@@ -167,9 +259,17 @@ export function enforceCompactedStorageCap(
     return [...records];
   }
 
-  // Evict in tier order (0 -> 1 -> 2 -> 3), oldest first within each tier
+  const evictionOrder = [...items].sort((a, b) => {
+    const keyA = getEvictionAgeKey(a.record);
+    const keyB = getEvictionAgeKey(b.record);
+    if (keyA.elapsedMs !== keyB.elapsedMs) {
+      return keyA.elapsedMs - keyB.elapsedMs;
+    }
+    return keyA.sequence - keyB.sequence;
+  });
+
   for (let tier = 0; tier <= 3 && totalBytes > maxCompactedBytes; tier += 1) {
-    for (const item of items) {
+    for (const item of evictionOrder) {
       if (totalBytes <= maxCompactedBytes) {
         break;
       }
@@ -187,8 +287,8 @@ export function enforceCompactedStorageCap(
  * Compacts entries older than `latestElapsedMs - retentionWindowMs`:
  * - High-signal entries (`warn`/`error`/`crash`, `aiReasoning`, or preserved categories) are kept verbatim.
  * - Repetitive routine `info` entries sharing `(sessionId, epochId, category, actorId, action)` are folded
- *   into a single `CompactedTelemetryDigest`.
- * - Optionally enforces `maxCompactedBytes` (default 500 MiB) on the resulting compacted stream.
+ *   into a single `CompactedTelemetryDigest` (and merged with any existing digest for the same bucket).
+ * - Enforces `maxCompactedBytes` (default 500 MiB) on the resulting compacted stream.
  */
 export function compactTelemetryWindow(
   activeEntries: ReadonlyArray<TelemetryEntry>,
@@ -201,9 +301,21 @@ export function compactTelemetryWindow(
       `retentionWindowMs must be a non-negative finite number, received: ${String(retentionWindowMs)}`,
     );
   }
+
+  const routineBuckets = new Map<string, CompactedTelemetryDigest>();
+  const preservedCompacted: TelemetryStreamRecord[] = [];
+  for (const record of existingCompacted) {
+    if (record.recordType === 'compacted_digest') {
+      absorbDigest(routineBuckets, record);
+    } else {
+      preservedCompacted.push(record);
+    }
+  }
+
   if (activeEntries.length === 0) {
+    const coalesced = sortTelemetryRecords([...preservedCompacted, ...routineBuckets.values()]);
     return {
-      compactedRecords: enforceCompactedStorageCap(existingCompacted, maxCompactedBytes),
+      compactedRecords: enforceCompactedStorageCap(coalesced, maxCompactedBytes),
       retainedActiveEntries: [],
     };
   }
@@ -218,7 +330,6 @@ export function compactTelemetryWindow(
 
   const retainedActiveEntries: TelemetryEntry[] = [];
   const newlyCompactedVerbatim: TelemetryEntry[] = [];
-  const routineBuckets = new Map<string, CompactedTelemetryDigest>();
 
   for (const entry of activeEntries) {
     if (entry.elapsedSessionMs > cutoffElapsedMs) {
@@ -231,43 +342,11 @@ export function compactTelemetryWindow(
       continue;
     }
 
-    const bucketKey = `${entry.sessionId}::${entry.epochId}::${entry.category}::${entry.actorId}::${entry.action}`;
-    const existingDigest = routineBuckets.get(bucketKey);
-
-    if (existingDigest === undefined) {
-      routineBuckets.set(bucketKey, {
-        recordType: 'compacted_digest',
-        sessionId: entry.sessionId,
-        epochId: entry.epochId,
-        level: 'info',
-        category: entry.category,
-        actorId: entry.actorId,
-        action: entry.action,
-        count: 1,
-        firstSequence: entry.sequence,
-        lastSequence: entry.sequence,
-        firstElapsedMs: entry.elapsedSessionMs,
-        lastElapsedMs: entry.elapsedSessionMs,
-        firstWorldTick: entry.worldTick,
-        lastWorldTick: entry.worldTick,
-        sampleMessage: entry.message,
-      });
-    } else {
-      routineBuckets.set(bucketKey, {
-        ...existingDigest,
-        count: existingDigest.count + 1,
-        firstSequence: Math.min(existingDigest.firstSequence, entry.sequence),
-        lastSequence: Math.max(existingDigest.lastSequence, entry.sequence),
-        firstElapsedMs: Math.min(existingDigest.firstElapsedMs, entry.elapsedSessionMs),
-        lastElapsedMs: Math.max(existingDigest.lastElapsedMs, entry.elapsedSessionMs),
-        firstWorldTick: Math.min(existingDigest.firstWorldTick, entry.worldTick),
-        lastWorldTick: Math.max(existingDigest.lastWorldTick, entry.worldTick),
-      });
-    }
+    absorbDigest(routineBuckets, digestFromEntry(entry));
   }
 
   const combinedCompacted = sortTelemetryRecords([
-    ...existingCompacted,
+    ...preservedCompacted,
     ...newlyCompactedVerbatim,
     ...routineBuckets.values(),
   ]);

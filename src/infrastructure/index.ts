@@ -15,6 +15,7 @@ export {
   InMemorySessionTelemetry,
   NdjsonSessionTelemetry,
   parseNdjsonLines,
+  type SafeJsonParseResult,
   safeParseJsonWithSchema,
   systemTelemetryClock,
 } from './telemetry/NdjsonSessionTelemetry.js';

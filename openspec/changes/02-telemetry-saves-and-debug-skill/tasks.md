@@ -16,4 +16,4 @@
 ## 4. Hierarchical Documentation & 5-Subagent Review
 
 - [x] 4.1 Update root `README.md`, `AGENTS.md`, and section `README.md` + `AGENTS.md` files in `src/domain/`, `src/infrastructure/`, `src/interfaces/`, and `tests/` to document telemetry schemas, rolling compaction, save repositories, Vite disk bridge, and `uplift-debug` | Verify: `npm run verify && npm audit` | Commit: `docs(telemetry): update hierarchical README and AGENTS guides for change 02`
-- [ ] 4.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic using Composer 2.5 Fast / Grok 4.7 High Fast), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 02 five-subagent review findings`
+- [x] 4.2 Run the post-change 5-subagent review (adversarial, code adherence, performance, testing, logic using Composer 2.5 Fast / Grok 4.7 High Fast), double-check findings, and apply any verified improvements | Verify: `npm run verify` | Commit: `fix(review): address change 02 five-subagent review findings`

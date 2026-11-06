@@ -1,5 +1,6 @@
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -183,6 +184,17 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
 
     if (rel.startsWith('..') || isAbsolute(rel)) {
       throw new Error(`Save slot path escaped saves root: '${slotId}'`);
+    }
+    if (existsSync(resolvedTarget)) {
+      const stat = lstatSync(resolvedTarget);
+      if (stat.isSymbolicLink()) {
+        throw new Error(`Save slot '${safeId}' is a symbolic link and was refused`);
+      }
+      const realTarget = realpathSync(resolvedTarget);
+      const realRel = relative(realRoot, realTarget);
+      if (realRel.startsWith('..') || isAbsolute(realRel)) {
+        throw new Error(`Save slot path escaped saves root: '${slotId}'`);
+      }
     }
     return resolvedTarget;
   }

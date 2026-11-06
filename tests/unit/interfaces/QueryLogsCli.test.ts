@@ -53,6 +53,11 @@ describe('queryLogs CLI and executeLogQuery', () => {
     expect(() => parseQueryCliArgs(['--level', 'invalid'])).toThrow(/Invalid --level/);
     expect(() => parseQueryCliArgs(['--min-tick', 'abc'])).toThrow(/Invalid --min-tick/);
     expect(() => parseQueryCliArgs(['--max-tick', '1.5'])).toThrow(/Invalid --max-tick/);
+    expect(() => parseQueryCliArgs(['--actorr', 'typo'])).toThrow(/Unknown log query flag/);
+    expect(() => parseQueryCliArgs(['--actor'])).toThrow(/Missing value for --actor/);
+    expect(() => parseQueryCliArgs(['--min-tick', '10', '--max-tick', '5'])).toThrow(
+      /Invalid tick range/,
+    );
   });
 
   it('queries across both compacted and active session logs without overwriting existing files', () => {
