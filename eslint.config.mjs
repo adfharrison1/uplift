@@ -10,7 +10,13 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   {
-    files: ['src/**/*.ts', 'tests/**/*.ts', 'vitest.config.ts', 'eslint.config.mjs'],
+    files: [
+      'src/**/*.ts',
+      'tests/**/*.ts',
+      'vitest.config.ts',
+      'vite.config.ts',
+      'eslint.config.mjs',
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': [

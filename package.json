@@ -15,8 +15,8 @@
     "logs:query": "node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' src/interfaces/cli/queryLogs.ts",
     "format": "prettier --write . --cache --cache-location .prettiercache",
     "format:check": "prettier --check . --cache --cache-location .prettiercache",
-    "lint": "eslint src tests vitest.config.ts eslint.config.mjs",
-    "lint:fix": "eslint --fix src tests vitest.config.ts eslint.config.mjs",
+    "lint": "eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs",
+    "lint:fix": "eslint --fix src tests vitest.config.ts vite.config.ts eslint.config.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:arch": "vitest run tests/architecture/",
@@ -31,6 +31,9 @@
     "*.{json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

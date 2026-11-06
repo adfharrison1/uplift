@@ -8,3 +8,11 @@ export { APPLICATION_LAYER_ID } from '../application/index.js';
 export const INTERFACES_LAYER_ID = 'interfaces' as const;
 
 export { executeLogQuery, type ParsedLogQueryCliArgs, parseQueryCliArgs } from './cli/queryLogs.js';
+export {
+  type BridgeHttpRequest,
+  type BridgeHttpResponse,
+  handleLocalDiskBridgeRequest,
+  type LocalDiskBridgeOptions,
+  localDiskBridgePlugin,
+  MAX_BRIDGE_BODY_BYTES,
+} from './vite/localDiskBridgePlugin.js';

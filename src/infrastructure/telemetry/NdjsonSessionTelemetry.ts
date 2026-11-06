@@ -8,13 +8,16 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import type {
-  SessionTelemetryPort,
-  TelemetryClock,
-  TelemetryEntry,
-  TelemetryEventInput,
-  TelemetryQueryFilter,
-  TelemetryStreamRecord,
+import type { z } from 'zod';
+import {
+  type SessionTelemetryPort,
+  type TelemetryClock,
+  type TelemetryEntry,
+  type TelemetryEventInput,
+  TelemetryEventInputSchema,
+  type TelemetryQueryFilter,
+  type TelemetryStreamRecord,
+  TelemetryStreamRecordSchema,
 } from '../../domain/index.js';
 import {
   compactTelemetryWindow,
@@ -47,49 +50,23 @@ export function fixedTelemetryClock(iso: string, elapsedMs: number): TelemetryCl
   };
 }
 
-function isValidRecordShape(parsed: unknown): parsed is TelemetryStreamRecord {
-  if (typeof parsed !== 'object' || parsed === null) {
-    return false;
+/**
+ * Safely parses a JSON string and validates it against a Zod schema in one step using `safeParse`.
+ */
+export function safeParseJsonWithSchema<T>(
+  rawJson: string,
+  schema: z.ZodType<T>,
+): ReturnType<z.ZodType<T>['safeParse']> {
+  try {
+    const parsed: unknown = JSON.parse(rawJson);
+    return schema.safeParse(parsed);
+  } catch (error) {
+    return schema.safeParse({ __jsonParseError: error });
   }
-  const obj = parsed as Record<string, unknown>;
-  if (obj['recordType'] === 'event') {
-    return (
-      typeof obj['sessionId'] === 'string' &&
-      typeof obj['sequence'] === 'number' &&
-      typeof obj['timestampIso'] === 'string' &&
-      typeof obj['elapsedSessionMs'] === 'number' &&
-      typeof obj['epochId'] === 'string' &&
-      typeof obj['worldTick'] === 'number' &&
-      typeof obj['level'] === 'string' &&
-      typeof obj['category'] === 'string' &&
-      typeof obj['actorId'] === 'string' &&
-      typeof obj['action'] === 'string' &&
-      typeof obj['message'] === 'string'
-    );
-  }
-  if (obj['recordType'] === 'compacted_digest') {
-    return (
-      typeof obj['sessionId'] === 'string' &&
-      typeof obj['epochId'] === 'string' &&
-      obj['level'] === 'info' &&
-      typeof obj['category'] === 'string' &&
-      typeof obj['actorId'] === 'string' &&
-      typeof obj['action'] === 'string' &&
-      typeof obj['count'] === 'number' &&
-      typeof obj['firstSequence'] === 'number' &&
-      typeof obj['lastSequence'] === 'number' &&
-      typeof obj['firstElapsedMs'] === 'number' &&
-      typeof obj['lastElapsedMs'] === 'number' &&
-      typeof obj['firstWorldTick'] === 'number' &&
-      typeof obj['lastWorldTick'] === 'number' &&
-      typeof obj['sampleMessage'] === 'string'
-    );
-  }
-  return false;
 }
 
 /**
- * Parses an NDJSON string into validated `TelemetryStreamRecord` items,
+ * Parses an NDJSON string into validated `TelemetryStreamRecord` items via Zod `safeParse`,
  * safely skipping empty or malformed/truncated lines without throwing.
  */
 export function parseNdjsonLines(rawContent: string): ReadonlyArray<TelemetryStreamRecord> {
@@ -101,13 +78,9 @@ export function parseNdjsonLines(rawContent: string): ReadonlyArray<TelemetryStr
     if (trimmed.length === 0) {
       continue;
     }
-    try {
-      const parsed: unknown = JSON.parse(trimmed);
-      if (isValidRecordShape(parsed)) {
-        records.push(parsed);
-      }
-    } catch {
-      // Skip malformed or truncated line so query/compaction never crashes
+    const result = safeParseJsonWithSchema(trimmed, TelemetryStreamRecordSchema);
+    if (result.success) {
+      records.push(result.data);
     }
   }
 
@@ -161,9 +134,10 @@ export class InMemorySessionTelemetry implements SessionTelemetryPort {
   }
 
   public record(event: TelemetryEventInput): TelemetryEntry {
+    const validated = TelemetryEventInputSchema.parse(event);
     this.sequence += 1;
     const entry: TelemetryEntry = {
-      ...event,
+      ...validated,
       recordType: 'event',
       sessionId: this.sessionId,
       sequence: this.sequence,
@@ -283,9 +257,10 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     const lines: string[] = [];
 
     for (const event of events) {
+      const validated = TelemetryEventInputSchema.parse(event);
       this.sequence += 1;
       const entry: TelemetryEntry = {
-        ...event,
+        ...validated,
         recordType: 'event',
         sessionId: this.sessionId,
         sequence: this.sequence,

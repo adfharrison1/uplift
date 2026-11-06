@@ -12,108 +12,42 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import {
   SAVE_SLOT_SCHEMA_VERSION,
   type SaveSlotEnvelope,
+  SaveSlotEnvelopeSchema,
   type SaveSlotMetadata,
   type SaveSlotRepositoryPort,
   type SaveSlotWriteInput,
+  SaveSlotWriteInputSchema,
   SeededRandom,
   validateSaveSlotId,
 } from '../../domain/index.js';
-
-function isPlainRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { safeParseJsonWithSchema } from '../telemetry/NdjsonSessionTelemetry.js';
 
 function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
   const slotId = validateSaveSlotId(input.slotId);
-  const epochId = input.epochId.trim();
-  if (epochId.length === 0) {
-    throw new Error('SaveSlotWriteInput.epochId must be a non-empty string');
-  }
-  if (!Number.isInteger(input.worldTick) || input.worldTick < 0) {
-    throw new RangeError(
-      `SaveSlotWriteInput.worldTick must be a non-negative integer, received: ${String(input.worldTick)}`,
-    );
-  }
-  // Validates rngState is in [1, 2^32 - 1]
-  SeededRandom.fromState(input.rngState);
-
-  if (!isPlainRecord(input.stateSlices)) {
-    throw new Error('SaveSlotWriteInput.stateSlices must be a plain object');
-  }
-  if (input.legacyState !== undefined && !isPlainRecord(input.legacyState)) {
-    throw new Error('SaveSlotWriteInput.legacyState must be a plain object when provided');
+  const parsed = SaveSlotWriteInputSchema.safeParse(input);
+  if (!parsed.success) {
+    // Preserve RangeError for invalid worldTick or rngState so callers/tests get consistent error types
+    if (!Number.isInteger(input.worldTick) || input.worldTick < 0) {
+      throw new RangeError(
+        `SaveSlotWriteInput.worldTick must be a non-negative integer, received: ${String(input.worldTick)}`,
+      );
+    }
+    SeededRandom.fromState(input.rngState);
+    throw new Error(`Invalid SaveSlotWriteInput for '${slotId}': ${parsed.error.message}`);
   }
 
-  const savedAtIso = input.savedAtIso ?? new Date().toISOString();
-
-  const envelope: SaveSlotEnvelope = {
-    slotId,
-    schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
-    epochId,
-    worldTick: input.worldTick,
-    savedAtIso,
-    rngState: input.rngState,
-    stateSlices: structuredClone(input.stateSlices),
-    ...(input.legacyState !== undefined ? { legacyState: structuredClone(input.legacyState) } : {}),
-  };
-
-  return envelope;
-}
-
-function validateLoadedEnvelope(expectedSlotId: string, parsed: unknown): SaveSlotEnvelope {
-  if (!isPlainRecord(parsed)) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': root JSON value is not an object`);
-  }
-
-  const slotId = parsed['slotId'];
-  const schemaVersion = parsed['schemaVersion'];
-  const epochId = parsed['epochId'];
-  const worldTick = parsed['worldTick'];
-  const savedAtIso = parsed['savedAtIso'];
-  const rngState = parsed['rngState'];
-  const stateSlices = parsed['stateSlices'];
-  const legacyState = parsed['legacyState'];
-
-  if (slotId !== expectedSlotId) {
-    throw new Error(
-      `Corrupted save slot '${expectedSlotId}': mismatched slotId '${String(slotId)}'`,
-    );
-  }
-  if (schemaVersion !== SAVE_SLOT_SCHEMA_VERSION) {
-    throw new Error(
-      `Unsupported save slot schemaVersion '${String(schemaVersion)}' in '${expectedSlotId}'`,
-    );
-  }
-  if (typeof epochId !== 'string' || epochId.trim().length === 0) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid epochId`);
-  }
-  if (typeof worldTick !== 'number' || !Number.isInteger(worldTick) || worldTick < 0) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid worldTick`);
-  }
-  if (typeof savedAtIso !== 'string' || savedAtIso.trim().length === 0) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid savedAtIso`);
-  }
-  if (typeof rngState !== 'number') {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid rngState`);
-  }
-  SeededRandom.fromState(rngState);
-
-  if (!isPlainRecord(stateSlices)) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid stateSlices`);
-  }
-  if (legacyState !== undefined && !isPlainRecord(legacyState)) {
-    throw new Error(`Corrupted save slot '${expectedSlotId}': invalid legacyState`);
-  }
+  const data = parsed.data;
+  SeededRandom.fromState(data.rngState);
 
   return {
-    slotId: expectedSlotId,
+    slotId: data.slotId,
     schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
-    epochId,
-    worldTick,
-    savedAtIso,
-    rngState,
-    stateSlices: structuredClone(stateSlices),
-    ...(legacyState !== undefined ? { legacyState: structuredClone(legacyState) } : {}),
+    epochId: data.epochId,
+    worldTick: data.worldTick,
+    savedAtIso: data.savedAtIso ?? new Date().toISOString(),
+    rngState: data.rngState,
+    stateSlices: structuredClone(data.stateSlices),
+    ...(data.legacyState !== undefined ? { legacyState: structuredClone(data.legacyState) } : {}),
   };
 }
 
@@ -162,7 +96,7 @@ export class InMemorySaveSlotRepository implements SaveSlotRepositoryPort {
 
 /**
  * Disk-backed multi-session save/load repository storing `<savesDir>/<slotId>.json`
- * with strict path-traversal guards and atomic `.tmp` rename writes.
+ * with strict path-traversal guards, Zod `safeParse` validation, and atomic `.tmp` rename writes.
  */
 export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
   private readonly savesDir: string;
@@ -195,18 +129,16 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
       throw new Error(`Save slot '${safeId}' does not exist`);
     }
 
-    let parsed: unknown;
-    try {
-      const raw = readFileSync(targetPath, 'utf8');
-      parsed = JSON.parse(raw);
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      throw new Error(`Corrupted save slot '${safeId}': invalid JSON (${detail})`, {
-        cause: error,
-      });
+    const raw = readFileSync(targetPath, 'utf8');
+    const result = safeParseJsonWithSchema(raw, SaveSlotEnvelopeSchema);
+    if (!result.success || result.data.slotId !== safeId) {
+      throw new Error(
+        `Corrupted save slot '${safeId}': ${result.success ? 'mismatched slotId' : result.error.message}`,
+      );
     }
 
-    return validateLoadedEnvelope(safeId, parsed);
+    SeededRandom.fromState(result.data.rngState);
+    return structuredClone(result.data);
   }
 
   public listSlots(): ReadonlyArray<SaveSlotMetadata> {

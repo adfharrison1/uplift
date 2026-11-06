@@ -1,14 +1,22 @@
 /**
  * Epoch-agnostic Session Telemetry domain contracts (`src/domain/telemetry/SessionTelemetryPort.ts`).
  *
- * Pure TypeScript definitions and classification rules for per-session structured NDJSON logging,
+ * Pure TypeScript + Zod schema definitions and classification rules for per-session structured NDJSON logging,
  * AI reasoning traces (including omitted `AdvisoryDuel` clauses), and rolling compaction digests.
  * Contains zero wall-clock calls (`Date.now`, `new Date`, `performance.now`); time is supplied via `TelemetryClock`.
  */
+import { z } from 'zod';
 
-export type TelemetryLevel = 'info' | 'warn' | 'error' | 'crash';
+export const TelemetryLevelSchema = z.enum(['info', 'warn', 'error', 'crash']);
+export type TelemetryLevel = z.infer<typeof TelemetryLevelSchema>;
 
-export type AiPipelineKind = 'utility_ai' | 'hybrid_nlp' | 'advisory_duel' | 'rival_ai';
+export const AiPipelineKindSchema = z.enum([
+  'utility_ai',
+  'hybrid_nlp',
+  'advisory_duel',
+  'rival_ai',
+]);
+export type AiPipelineKind = z.infer<typeof AiPipelineKindSchema>;
 
 /**
  * Injected clock abstraction so domain logic never calls wall-clock globals directly.
@@ -18,83 +26,95 @@ export interface TelemetryClock {
   elapsedSessionMs(): number;
 }
 
-export interface AiCandidateScore {
-  readonly id: string;
-  readonly score: number;
-  readonly breakdown?: Readonly<Record<string, number>> | undefined;
-}
+export const AiCandidateScoreSchema = z.object({
+  id: z.string().trim().min(1),
+  score: z.number(),
+  breakdown: z.record(z.string(), z.number()).optional(),
+});
+export type AiCandidateScore = z.infer<typeof AiCandidateScoreSchema>;
 
-export interface AiReasoningTrace {
-  readonly pipeline: AiPipelineKind;
-  readonly inputSummary: string;
-  readonly outputSummary: string;
-  readonly candidateScores: ReadonlyArray<AiCandidateScore>;
-  readonly selectedReason: string;
-  readonly omittedClauses?: ReadonlyArray<string> | undefined;
-}
+export const AiReasoningTraceSchema = z.object({
+  pipeline: AiPipelineKindSchema,
+  inputSummary: z.string(),
+  outputSummary: z.string(),
+  candidateScores: z.array(AiCandidateScoreSchema).readonly(),
+  selectedReason: z.string(),
+  omittedClauses: z.array(z.string()).readonly().optional(),
+});
+export type AiReasoningTrace = z.infer<typeof AiReasoningTraceSchema>;
+
+const JsonObjectSchema = z.record(z.string(), z.unknown());
 
 /**
  * Input payload passed to `SessionTelemetryPort.record()`.
  * `sessionId`, `sequence`, `timestampIso`, and `elapsedSessionMs` are stamped by the logger using `TelemetryClock`.
  */
-export interface TelemetryEventInput {
-  readonly epochId: string;
-  readonly worldTick: number;
-  readonly level: TelemetryLevel;
-  readonly category: string;
-  readonly actorId: string;
-  readonly acteeId?: string | undefined;
-  readonly action: string;
-  readonly inputs?: Readonly<Record<string, unknown>> | undefined;
-  readonly effects?: ReadonlyArray<Readonly<Record<string, unknown>>> | undefined;
-  readonly aiReasoning?: AiReasoningTrace | undefined;
-  readonly message: string;
-}
+export const TelemetryEventInputSchema = z.object({
+  epochId: z.string().trim().min(1),
+  worldTick: z.number().int().nonnegative(),
+  level: TelemetryLevelSchema,
+  category: z.string().trim().min(1),
+  actorId: z.string().trim().min(1),
+  acteeId: z.string().trim().min(1).optional(),
+  action: z.string().trim().min(1),
+  inputs: JsonObjectSchema.optional(),
+  effects: z.array(JsonObjectSchema).readonly().optional(),
+  aiReasoning: AiReasoningTraceSchema.optional(),
+  message: z.string(),
+});
+export type TelemetryEventInput = z.infer<typeof TelemetryEventInputSchema>;
 
 /**
  * Full stamped NDJSON telemetry entry persisted in `./logs/current-session.jsonl`.
  */
-export interface TelemetryEntry extends TelemetryEventInput {
-  readonly recordType: 'event';
-  readonly sessionId: string;
-  readonly sequence: number;
-  readonly timestampIso: string;
-  readonly elapsedSessionMs: number;
-}
+export const TelemetryEntrySchema = TelemetryEventInputSchema.extend({
+  recordType: z.literal('event'),
+  sessionId: z.string().trim().min(1),
+  sequence: z.number().int().positive(),
+  timestampIso: z.string().min(1),
+  elapsedSessionMs: z.number().nonnegative(),
+});
+export type TelemetryEntry = z.infer<typeof TelemetryEntrySchema>;
 
 /**
  * Compacted summary digest for repetitive routine `info` events older than the active retention window.
  */
-export interface CompactedTelemetryDigest {
-  readonly recordType: 'compacted_digest';
-  readonly sessionId: string;
-  readonly epochId: string;
-  readonly level: 'info';
-  readonly category: string;
-  readonly actorId: string;
-  readonly action: string;
-  readonly count: number;
-  readonly firstSequence: number;
-  readonly lastSequence: number;
-  readonly firstElapsedMs: number;
-  readonly lastElapsedMs: number;
-  readonly firstWorldTick: number;
-  readonly lastWorldTick: number;
-  readonly sampleMessage: string;
-}
+export const CompactedTelemetryDigestSchema = z.object({
+  recordType: z.literal('compacted_digest'),
+  sessionId: z.string().trim().min(1),
+  epochId: z.string().trim().min(1),
+  level: z.literal('info'),
+  category: z.string().trim().min(1),
+  actorId: z.string().trim().min(1),
+  action: z.string().trim().min(1),
+  count: z.number().int().positive(),
+  firstSequence: z.number().int().positive(),
+  lastSequence: z.number().int().positive(),
+  firstElapsedMs: z.number().nonnegative(),
+  lastElapsedMs: z.number().nonnegative(),
+  firstWorldTick: z.number().int().nonnegative(),
+  lastWorldTick: z.number().int().nonnegative(),
+  sampleMessage: z.string(),
+});
+export type CompactedTelemetryDigest = z.infer<typeof CompactedTelemetryDigestSchema>;
 
-export type TelemetryStreamRecord = TelemetryEntry | CompactedTelemetryDigest;
+export const TelemetryStreamRecordSchema = z.discriminatedUnion('recordType', [
+  TelemetryEntrySchema,
+  CompactedTelemetryDigestSchema,
+]);
+export type TelemetryStreamRecord = z.infer<typeof TelemetryStreamRecordSchema>;
 
-export interface TelemetryQueryFilter {
-  readonly level?: TelemetryLevel | undefined;
-  readonly category?: string | undefined;
-  readonly actorId?: string | undefined;
-  readonly acteeId?: string | undefined;
-  readonly action?: string | undefined;
-  readonly minTick?: number | undefined;
-  readonly maxTick?: number | undefined;
-  readonly hasAiReasoning?: boolean | undefined;
-}
+export const TelemetryQueryFilterSchema = z.object({
+  level: TelemetryLevelSchema.optional(),
+  category: z.string().trim().min(1).optional(),
+  actorId: z.string().trim().min(1).optional(),
+  acteeId: z.string().trim().min(1).optional(),
+  action: z.string().trim().min(1).optional(),
+  minTick: z.number().int().optional(),
+  maxTick: z.number().int().optional(),
+  hasAiReasoning: z.boolean().optional(),
+});
+export type TelemetryQueryFilter = z.infer<typeof TelemetryQueryFilterSchema>;
 
 /**
  * Canonical high-signal categories that must NEVER be collapsed during rolling compaction,
