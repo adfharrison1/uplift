@@ -50,7 +50,6 @@ export function getSharedChiaroscuroGradientMap(): THREE.DataTexture {
   if (sharedChiaroscuroGradientTexture !== null) {
     return sharedChiaroscuroGradientTexture;
   }
-  // 3 stepped luminance bands: deep shadow (45), mid-tone (135), chiaroscuro highlight (235)
   const data = new Uint8Array([45, 45, 52, 255, 135, 135, 140, 255, 235, 232, 224, 255]);
   const texture = new THREE.DataTexture(data, 3, 1, THREE.RGBAFormat);
   texture.minFilter = THREE.NearestFilter;
@@ -166,6 +165,60 @@ function buildSingleMotifUnitGeometry(
   }
 }
 
+function buildHeadgearGeometry(headgearId: string): THREE.BufferGeometry {
+  switch (headgearId) {
+    case 'synod_cowl':
+      return new THREE.ConeGeometry(0.22, 0.32, 6);
+    case 'kettle_helm':
+      return new THREE.CylinderGeometry(0.18, 0.25, 0.18, 8);
+    case 'guild_cap':
+      return new THREE.BoxGeometry(0.26, 0.14, 0.26);
+    case 'court_circlet':
+      return new THREE.CylinderGeometry(0.2, 0.2, 0.06, 10);
+    default:
+      return new THREE.ConeGeometry(0.2, 0.24, 6);
+  }
+}
+
+function buildCloakGeometry(cloakId: string): THREE.BufferGeometry {
+  switch (cloakId) {
+    case 'waxed_mantle':
+      return new THREE.BoxGeometry(0.56, 0.84, 0.14);
+    case 'leather_apron':
+      return new THREE.BoxGeometry(0.46, 0.68, 0.08);
+    case 'court_robe':
+      return new THREE.CylinderGeometry(0.24, 0.34, 0.88, 8);
+    default:
+      return new THREE.BoxGeometry(0.52, 0.78, 0.12);
+  }
+}
+
+function buildHeldPropGeometry(propSlotItemId: string): THREE.BufferGeometry {
+  switch (propSlotItemId) {
+    case 'taper_holder':
+      return new THREE.CylinderGeometry(0.03, 0.04, 0.48, 6);
+    case 'gate_halberd':
+      return new THREE.CylinderGeometry(0.03, 0.03, 1.45, 6);
+    case 'forge_tongs':
+      return new THREE.BoxGeometry(0.08, 0.42, 0.06);
+    case 'ledger_book':
+      return new THREE.BoxGeometry(0.18, 0.24, 0.08);
+    default:
+      return new THREE.BoxGeometry(0.14, 0.2, 0.08);
+  }
+}
+
+function buildDroneDisguiseGeometry(disguiseId: string): THREE.BufferGeometry {
+  switch (disguiseId) {
+    case 'bronze_reliquary_lamp':
+      return new THREE.CylinderGeometry(0.1, 0.14, 0.28, 6);
+    case 'surveying_theodolite':
+      return new THREE.BoxGeometry(0.22, 0.18, 0.26);
+    default:
+      return new THREE.OctahedronGeometry(0.14, 0);
+  }
+}
+
 /**
  * Builds a parametric wall motif `THREE.Group` for a `WallMotifInstance`, laying out
  * `motif.count` meshes across `motif.columns` with `motif.spacingMeters` and stamping
@@ -184,7 +237,7 @@ export function buildWallMotifGroup(
 
   const isWarmLit = motif.id === 'torch_sconce' || motif.id === 'fulgurite_lens_sconce';
   const baseHex = isWarmLit ? theme.torchWarmHex : theme.ironColorHex;
-  const material = createChiaroscuroToonMaterial({
+  const sharedMaterial = createChiaroscuroToonMaterial({
     baseHex,
     theme,
     ...(isWarmLit ? { emissiveHex: theme.torchWarmHex, emissiveIntensity: 0.45 } : {}),
@@ -201,16 +254,13 @@ export function buildWallMotifGroup(
     const localX = motif.offsetX + (col - (cols - 1) * 0.5) * spacing;
     const localY = motif.offsetY + (row - (rows - 1) * 0.5) * spacing;
 
-    const clonedMat = material.clone();
-    clonedMat.userData = { ...material.userData };
-    const mesh = new THREE.Mesh(sharedUnitGeom, clonedMat);
+    const mesh = new THREE.Mesh(sharedUnitGeom, sharedMaterial);
     mesh.position.set(localX, localY, motif.recessDepth * 0.5);
     mesh.userData['semanticId'] = motifSemanticId;
     mesh.userData['motifInstanceIndex'] = i;
     group.add(mesh);
   }
 
-  material.dispose();
   return group;
 }
 
@@ -225,6 +275,7 @@ export function buildStagePropGroup(
   group.name = prop.semanticId;
   group.userData['semanticId'] = prop.semanticId;
   group.userData['propId'] = prop.propId;
+  group.userData['kitbashId'] = prop.kitbashId;
   group.userData['isPortal'] = prop.isPortal;
   group.position.set(prop.position[0], prop.position[1], prop.position[2]);
   group.rotation.y = prop.yawRadians;
@@ -249,7 +300,7 @@ export function buildStagePropGroup(
 
 /**
  * Builds a low-poly silhouette-first character kitbash `THREE.Group` from a `CharacterVisualBlueprint`,
- * applying `heightScale`, `shoulderWidth`, `spinePitchRadians`, garment/prop slots, grime darkening,
+ * applying `heightScale`, `shoulderWidth`, `spinePitchRadians`, distinct garment/prop geometries, grime darkening,
  * and optional companion `droneDisguise` mesh. Every part carries `npc.<characterId>.part.<slot>`.
  */
 export function buildCharacterKitbashGroup(
@@ -272,7 +323,6 @@ export function buildCharacterKitbashGroup(
   spineGroup.name = `${rootSemanticId}.spine`;
   spineGroup.position.set(0, 0.75, 0);
   spineGroup.rotation.x = visual.spinePitchRadians;
-  spineGroup.userData['semanticId'] = rootSemanticId;
   root.add(spineGroup);
 
   // 1. Torso
@@ -293,7 +343,7 @@ export function buildCharacterKitbashGroup(
   // 2. Head
   const headId = formatCharacterPartSemanticId(visual.characterId, 'head');
   const headMesh = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.18, 1),
+    new THREE.IcosahedronGeometry(0.18, 0),
     createChiaroscuroToonMaterial({
       baseHex: visual.accentColorHex,
       theme,
@@ -309,7 +359,7 @@ export function buildCharacterKitbashGroup(
   if (visual.headgear !== 'none') {
     const headgearId = formatCharacterPartSemanticId(visual.characterId, 'headgear');
     const headgearMesh = new THREE.Mesh(
-      new THREE.ConeGeometry(0.22, 0.28, 6),
+      buildHeadgearGeometry(visual.headgear),
       createChiaroscuroToonMaterial({
         baseHex: visual.accentColorHex,
         theme,
@@ -327,7 +377,7 @@ export function buildCharacterKitbashGroup(
   if (visual.cloak !== 'none') {
     const cloakId = formatCharacterPartSemanticId(visual.characterId, 'cloak');
     const cloakMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.54, 0.82, 0.12),
+      buildCloakGeometry(visual.cloak),
       createChiaroscuroToonMaterial({
         baseHex: visual.primaryColorHex,
         theme,
@@ -335,7 +385,7 @@ export function buildCharacterKitbashGroup(
       }),
     );
     cloakMesh.name = cloakId;
-    cloakMesh.position.set(0, 0.32, -0.18);
+    cloakMesh.position.set(0, 0.32, visual.cloak === 'leather_apron' ? 0.16 : -0.18);
     cloakMesh.userData['semanticId'] = cloakId;
     cloakMesh.userData['slotItemId'] = visual.cloak;
     spineGroup.add(cloakMesh);
@@ -345,7 +395,7 @@ export function buildCharacterKitbashGroup(
   if (visual.heldPropLeft !== 'none') {
     const leftId = formatCharacterPartSemanticId(visual.characterId, 'held_prop_left');
     const leftMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.45, 6),
+      buildHeldPropGeometry(visual.heldPropLeft),
       createChiaroscuroToonMaterial({
         baseHex: theme.ironColorHex,
         theme,
@@ -362,7 +412,7 @@ export function buildCharacterKitbashGroup(
   if (visual.heldPropRight !== 'none') {
     const rightId = formatCharacterPartSemanticId(visual.characterId, 'held_prop_right');
     const rightMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.18, 0.24, 0.08),
+      buildHeldPropGeometry(visual.heldPropRight),
       createChiaroscuroToonMaterial({
         baseHex: theme.woodColorHex,
         theme,
@@ -379,7 +429,7 @@ export function buildCharacterKitbashGroup(
   if (visual.droneDisguise !== undefined && visual.droneDisguise !== 'none') {
     const droneId = formatCharacterPartSemanticId(visual.characterId, 'drone_disguise');
     const droneMesh = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.14, 0),
+      buildDroneDisguiseGeometry(visual.droneDisguise),
       createChiaroscuroToonMaterial({
         baseHex: theme.torchWarmHex,
         theme,

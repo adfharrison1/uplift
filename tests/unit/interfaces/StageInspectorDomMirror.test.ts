@@ -74,7 +74,7 @@ describe('StageInspectorDomMirror, live F3 Lab mutators, and default Highglass s
       stage: DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT,
       characterVisuals: DEFAULT_HIGHGLASS_CHARACTER_VISUALS,
     });
-    expect(built.entityGroups.size).toBe(5);
+    expect(built.entityGroups.size).toBe(6);
     expect(
       built.semanticIndex.has('charnel_stairs.wall.north.seg_02.motif.ossuary_skull_niche'),
     ).toBe(true);

@@ -12,9 +12,10 @@ Content is organized into modular packs:
 - **Roles & Economy (`roles/`)**: Player roles, advancement paths, physical Chambers/Office definitions, and legitimate vs. orbital-inserted illegitimate fund rules.
 - **Behaviors (`behaviors/`)**: Standalone `BehaviorModule` plugins (`canExecute`, `scoreUtility`, `execute -> WorldEffect[]`).
 - **World Topology & Wider World (`worlds/`)**: Local indoor rooms (`indoor_room`), outdoor free-roam spaces (`outdoor_area`), waypoints, and off-stage wider-world regions/correspondence targets.
-- **3D Scene Blueprints (`scene/`)**: Presentation-only dark atmospheric 3D geometry, chiaroscuro lighting, and camera framing consumed by `src/interfaces/three/`.
+- **3D Scene Blueprints (`scene/`)**: Presentation-only 3-Layer Encoded Visual Blueprints (`EpochVisualTheme`, `StageSceneBlueprint`, `CharacterVisualBlueprint`) consumed by `src/interfaces/three/`.
 - **Mechanics, Crises & Orbital Abilities (`mechanics/`)**: Uplift tech seeds, slow-burn butterfly threads, martyrdom/succession rules, wars/plagues/crises, emergency states, orbital pass windows, and localized weather modification.
 
 ## Current Module Inventory
 
-- `index.ts` — Public content layer barrel.
+- `scene/defaultStageContent.ts` — Deeply frozen starter Highglass Hold visual blueprints (`DEFAULT_HIGHGLASS_VISUAL_THEME`, `DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT`, `DEFAULT_HIGHGLASS_CHARACTER_VISUALS`).
+- `index.ts` — Public content layer barrel re-exporting starter scene blueprints.

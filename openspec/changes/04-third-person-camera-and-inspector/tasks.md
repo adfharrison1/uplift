@@ -14,4 +14,4 @@
 
 ## 4. Hierarchical Documentation & 6-Subagent Review
 
-- [ ] 4.1 Update `src/application/README.md`, `src/application/AGENTS.md`, `src/interfaces/README.md`, `src/interfaces/AGENTS.md`, `src/content/README.md`, `src/content/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md` and run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence), folding in verified improvements | Verify: `npm run verify && npm audit` | Commit: `docs(render): update hierarchical guides and apply change 04 review improvements`
+- [x] 4.1 Update `src/application/README.md`, `src/application/AGENTS.md`, `src/interfaces/README.md`, `src/interfaces/AGENTS.md`, `src/content/README.md`, `src/content/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md` and run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence), folding in verified improvements | Verify: `npm run verify && npm audit` | Commit: `docs(render): update hierarchical guides and apply change 04 review improvements`

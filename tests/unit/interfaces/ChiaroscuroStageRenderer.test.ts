@@ -283,6 +283,13 @@ describe('ChiaroscuroStageRenderer and StageKitbashBuilders', () => {
     });
 
     applyRenderFrameToScene(built, frame, theme);
+    const quatAfterFrame1 = built.camera.quaternion.clone();
+    // Applying the same emergency frame a second time does not accumulate camera roll
+    applyRenderFrameToScene(built, frame, theme);
+    expect(built.camera.quaternion.x).toBeCloseTo(quatAfterFrame1.x, 6);
+    expect(built.camera.quaternion.y).toBeCloseTo(quatAfterFrame1.y, 6);
+    expect(built.camera.quaternion.z).toBeCloseTo(quatAfterFrame1.z, 6);
+    expect(built.camera.quaternion.w).toBeCloseTo(quatAfterFrame1.w, 6);
 
     expect(built.camera.position.x).toBeCloseTo(frame.camera.position[0]);
     expect(built.camera.position.y).toBeCloseTo(frame.camera.position[1]);

@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  statSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -268,6 +269,14 @@ export function handleLocalDiskBridgeRequest(
             body: { error: `Scene blueprint '${stageId}' does not exist` },
           };
         }
+        if (statSync(filePath).size > maxBodyBytes) {
+          return {
+            statusCode: 413,
+            body: {
+              error: `Scene blueprint '${stageId}' exceeds maximum size of ${String(maxBodyBytes)} bytes`,
+            },
+          };
+        }
         const raw = readFileSync(filePath, 'utf8');
         const parsed = safeParseJsonWithSchema(raw, StageSceneBlueprintSchema);
         if (!parsed.success) {
@@ -305,6 +314,14 @@ export function handleLocalDiskBridgeRequest(
           return {
             statusCode: 404,
             body: { error: `Character visual '${characterId}' does not exist` },
+          };
+        }
+        if (statSync(filePath).size > maxBodyBytes) {
+          return {
+            statusCode: 413,
+            body: {
+              error: `Character visual '${characterId}' exceeds maximum size of ${String(maxBodyBytes)} bytes`,
+            },
           };
         }
         const raw = readFileSync(filePath, 'utf8');

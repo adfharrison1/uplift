@@ -11,6 +11,7 @@ export {
   type BuildRenderFrameInput,
   type CameraMode,
   type CameraRenderState,
+  computeWallSegmentPlacement,
   type DebugInspectorCard,
   type EntityRenderPose,
   MAX_CAMERA_SPRING_DT_SECONDS,
@@ -22,6 +23,7 @@ export {
   selectActiveCameraVolume,
   type SpringScalarState,
   stepCriticallyDampedSpring,
+  type WallSegmentPlacement,
 } from './rendering/RenderFrameBuilder.js';
 export {
   type CameraVolumeBlueprint,

@@ -8,12 +8,13 @@
  * to `semanticId`s, and deterministically disposes GPU resources (`disposeSceneGraph`).
  */
 import * as THREE from 'three';
-import type {
-  CharacterVisualBlueprint,
-  EpochVisualTheme,
-  RenderFrame,
-  StageSceneBlueprint,
-  WallSegmentBlueprint,
+import {
+  type CharacterVisualBlueprint,
+  computeWallSegmentPlacement,
+  type EpochVisualTheme,
+  type RenderFrame,
+  type StageSceneBlueprint,
+  type WallSegmentBlueprint,
 } from '../../application/index.js';
 import {
   buildCharacterKitbashGroup,
@@ -38,39 +39,6 @@ export interface BuiltStageScene {
 
 export interface DisposeSceneGraphOptions {
   readonly disposeSharedRamp?: boolean | undefined;
-}
-
-function positionWallSegmentGroup(
-  group: THREE.Group,
-  stage: StageSceneBlueprint,
-  seg: WallSegmentBlueprint,
-  fallbackIndex: number,
-  totalOnCompass: number,
-): void {
-  const halfW = stage.footprint.widthMeters * 0.5;
-  const halfD = stage.footprint.depthMeters * 0.5;
-  const autoOffset = (fallbackIndex - (totalOnCompass - 1) * 0.5) * seg.widthMeters;
-  const offset = seg.offsetAlongWallMeters ?? autoOffset;
-  const recess = seg.zone === 'alcove' ? Math.max(0.4, seg.recessMeters) : seg.recessMeters;
-
-  switch (seg.compass) {
-    case 'north':
-      group.position.set(offset, 0, -halfD - recess);
-      group.rotation.y = 0;
-      break;
-    case 'south':
-      group.position.set(offset, 0, halfD + recess);
-      group.rotation.y = Math.PI;
-      break;
-    case 'east':
-      group.position.set(halfW + recess, 0, offset);
-      group.rotation.y = -Math.PI * 0.5;
-      break;
-    case 'west':
-      group.position.set(-halfW - recess, 0, offset);
-      group.rotation.y = Math.PI * 0.5;
-      break;
-  }
 }
 
 /**
@@ -139,18 +107,19 @@ export function buildStageSceneGraph(options: {
 
   for (const seg of stage.wallSegments) {
     const compassSiblings = segmentsByCompass.get(seg.compass) ?? [seg];
-    const indexOnCompass = compassSiblings.indexOf(seg);
+    const indexOnCompass = Math.max(0, compassSiblings.indexOf(seg));
+    const placement = computeWallSegmentPlacement(
+      stage,
+      seg,
+      indexOnCompass,
+      compassSiblings.length,
+    );
 
     const segGroup = new THREE.Group();
     segGroup.name = seg.semanticId;
     segGroup.userData['semanticId'] = seg.semanticId;
-    positionWallSegmentGroup(
-      segGroup,
-      stage,
-      seg,
-      Math.max(0, indexOnCompass),
-      compassSiblings.length,
-    );
+    segGroup.position.set(placement.position[0], placement.position[1], placement.position[2]);
+    segGroup.rotation.y = placement.rotationYRadians;
 
     const wallGeom = new THREE.BoxGeometry(seg.widthMeters, seg.heightMeters, seg.thicknessMeters);
     const wallMat = createChiaroscuroToonMaterial({
@@ -280,8 +249,9 @@ export function findObjectBySemanticId(
 
 /**
  * Synchronizes a `BuiltStageScene` with the latest `RenderFrame` in O(N) time:
- * updates camera transform/FOV, `FogExp2` density, god-ray visibility, entity poses,
- * portal door hinge angles, desaturation, and selection emissive highlight.
+ * resets camera up vector before `lookAt` + `rotateZ` so camera roll never accumulates across frames,
+ * updates `FogExp2` density, god-ray visibility, entity poses, portal door hinge angles,
+ * desaturation, and selection emissive highlight.
  */
 export function applyRenderFrameToScene(
   built: BuiltStageScene,
@@ -289,16 +259,24 @@ export function applyRenderFrameToScene(
   theme: EpochVisualTheme,
 ): void {
   const { camera, scene } = built;
+  camera.up.set(0, 1, 0);
   camera.position.set(frame.camera.position[0], frame.camera.position[1], frame.camera.position[2]);
   camera.lookAt(frame.camera.lookAt[0], frame.camera.lookAt[1], frame.camera.lookAt[2]);
   if (frame.camera.rollDegrees !== 0) {
     camera.rotateZ((frame.camera.rollDegrees * Math.PI) / 180);
   }
-  camera.fov = frame.camera.fovDegrees;
-  camera.aspect = frame.camera.aspect;
-  camera.near = frame.camera.near;
-  camera.far = frame.camera.far;
-  camera.updateProjectionMatrix();
+  if (
+    camera.fov !== frame.camera.fovDegrees ||
+    camera.aspect !== frame.camera.aspect ||
+    camera.near !== frame.camera.near ||
+    camera.far !== frame.camera.far
+  ) {
+    camera.fov = frame.camera.fovDegrees;
+    camera.aspect = frame.camera.aspect;
+    camera.near = frame.camera.near;
+    camera.far = frame.camera.far;
+    camera.updateProjectionMatrix();
+  }
 
   if (scene.fog instanceof THREE.FogExp2) {
     scene.fog.density = frame.effectiveFogDensity;

@@ -7,6 +7,7 @@
  * - Emergency and orbital Zenith Burn camera tilts & fog modifiers (with `reduceMotionAndFlashing` accessibility clamp)
  * - `F3` De-Anchored Free-Cam overrides and `+0.40` desaturation boost
  * - Entity and prop/portal 3D render poses
+ * - Shared wall/alcove segment world placement (`computeWallSegmentPlacement`)
  * - Pure 3D-to-NDC perspective projection with behind-camera (`clipW <= 1e-5`) frustum culling for `DebugInspectorCard`s
  * - `AgentDomMirrorState` snapshot for DOM attributes and `globalThis.__UPLIFT_STAGE_INSPECTOR__`
  *
@@ -20,6 +21,7 @@ import {
   formatCharacterRootSemanticId,
   type StagePropVisualBlueprint,
   type StageSceneBlueprint,
+  type WallSegmentBlueprint,
 } from './SceneVisualBlueprints.js';
 
 export const MAX_CAMERA_SPRING_DT_SECONDS = 0.25 as const;
@@ -132,8 +134,28 @@ export interface BuildRenderFrameInput {
   readonly reduceMotionAndFlashing?: boolean | undefined;
 }
 
+export interface WallSegmentPlacement {
+  readonly position: readonly [number, number, number];
+  readonly worldCenterAnchor: readonly [number, number, number];
+  readonly rotationYRadians: number;
+}
+
 function clampNdc(value: number): number {
   return Math.max(-1, Math.min(1, value));
+}
+
+function sanitizeFiniteTriple(
+  tuple: readonly [number, number, number] | undefined,
+  fallback: readonly [number, number, number] = [0, 0, 0],
+): readonly [number, number, number] {
+  if (tuple === undefined) {
+    return fallback;
+  }
+  return [
+    Number.isFinite(tuple[0]) ? tuple[0] : fallback[0],
+    Number.isFinite(tuple[1]) ? tuple[1] : fallback[1],
+    Number.isFinite(tuple[2]) ? tuple[2] : fallback[2],
+  ];
 }
 
 function normalizeDegrees180(angleDegrees: number): number {
@@ -257,6 +279,52 @@ export function selectActiveCameraVolume(
 }
 
 /**
+ * Computes deterministic 3D placement and center anchor for a wall/alcove segment.
+ * Shared by both `RenderFrameBuilder` (for floating `DebugInspectorCard` anchors)
+ * and `ChiaroscuroStageRenderer` (for Three.js mesh placement).
+ */
+export function computeWallSegmentPlacement(
+  stage: StageSceneBlueprint,
+  seg: WallSegmentBlueprint,
+  indexOnCompass: number,
+  totalOnCompass: number,
+): WallSegmentPlacement {
+  const halfW = stage.footprint.widthMeters * 0.5;
+  const halfD = stage.footprint.depthMeters * 0.5;
+  const autoOffset = (indexOnCompass - (totalOnCompass - 1) * 0.5) * seg.widthMeters;
+  const offset = seg.offsetAlongWallMeters ?? autoOffset;
+  const recess = seg.zone === 'alcove' ? Math.max(0.4, seg.recessMeters) : seg.recessMeters;
+  const midY = seg.heightMeters * 0.5;
+
+  switch (seg.compass) {
+    case 'north':
+      return {
+        position: [offset, 0, -halfD - recess],
+        worldCenterAnchor: [offset, midY, -halfD - recess],
+        rotationYRadians: 0,
+      };
+    case 'south':
+      return {
+        position: [offset, 0, halfD + recess],
+        worldCenterAnchor: [offset, midY, halfD + recess],
+        rotationYRadians: Math.PI,
+      };
+    case 'east':
+      return {
+        position: [halfW + recess, 0, offset],
+        worldCenterAnchor: [halfW + recess, midY, offset],
+        rotationYRadians: -Math.PI * 0.5,
+      };
+    case 'west':
+      return {
+        position: [-halfW - recess, 0, offset],
+        worldCenterAnchor: [-halfW - recess, midY, offset],
+        rotationYRadians: Math.PI * 0.5,
+      };
+  }
+}
+
+/**
  * Projects a 3D world position into perspective Normalized Device Coordinates (`[-1, 1]`),
  * guarding against behind-camera points (`clipW <= 1e-5`) and degenerate camera parameters.
  */
@@ -287,7 +355,6 @@ export function projectWorldToNdc(
     };
   }
 
-  // Forward vector from camera.position toward camera.lookAt
   let fx = camera.lookAt[0] - camera.position[0];
   let fy = camera.lookAt[1] - camera.position[1];
   let fz = camera.lookAt[2] - camera.position[2];
@@ -305,7 +372,6 @@ export function projectWorldToNdc(
   fy /= fLen;
   fz /= fLen;
 
-  // World up [0, 1, 0], with fallback [0, 0, -1] if looking straight up/down
   let upRefX = 0;
   let upRefY = 1;
   let upRefZ = 0;
@@ -315,7 +381,6 @@ export function projectWorldToNdc(
     upRefZ = -1;
   }
 
-  // Right = normalize(forward x upRef)
   let rx = fy * upRefZ - fz * upRefY;
   let ry = fz * upRefX - fx * upRefZ;
   let rz = fx * upRefY - fy * upRefX;
@@ -333,12 +398,10 @@ export function projectWorldToNdc(
   ry /= rLen;
   rz /= rLen;
 
-  // True Up = right x forward
   let ux = ry * fz - rz * fy;
   let uy = rz * fx - rx * fz;
   let uz = rx * fy - ry * fx;
 
-  // Apply camera roll around forward axis if non-zero
   if (camera.rollDegrees !== 0) {
     const rollRad = camera.rollDegrees * DEG_TO_RAD;
     const cosR = Math.cos(rollRad);
@@ -411,29 +474,6 @@ function portalStateToHingeYaw(portalState: PortalState | undefined): number {
   }
 }
 
-function computeWallSegmentWorldAnchor(
-  stage: StageSceneBlueprint,
-  compass: 'north' | 'south' | 'east' | 'west',
-  offsetAlongWallMeters: number | undefined,
-  heightMeters: number,
-): readonly [number, number, number] {
-  const halfW = stage.footprint.widthMeters * 0.5;
-  const halfD = stage.footprint.depthMeters * 0.5;
-  const offset = offsetAlongWallMeters ?? 0;
-  const midY = heightMeters * 0.5;
-
-  switch (compass) {
-    case 'north':
-      return [offset, midY, -halfD];
-    case 'south':
-      return [offset, midY, halfD];
-    case 'east':
-      return [halfW, midY, offset];
-    case 'west':
-      return [-halfW, midY, offset];
-  }
-}
-
 export class RenderFrameBuilder {
   private initialized = false;
   private lastStageId: string | null = null;
@@ -467,14 +507,13 @@ export class RenderFrameBuilder {
       this.lastStageId = stage.stageId;
     }
 
-    // Resolve focus position from focusPositionOverride, focusEntityId, or [0, 0, 0]
     let focusPos: readonly [number, number, number] = [0, 0, 0];
     if (input.focusPositionOverride !== undefined) {
-      focusPos = input.focusPositionOverride;
+      focusPos = sanitizeFiniteTriple(input.focusPositionOverride);
     } else if (input.focusEntityId !== undefined) {
       const entity = worldState.entities[input.focusEntityId];
       if (entity !== undefined) {
-        focusPos = entity.position;
+        focusPos = sanitizeFiniteTriple(entity.position);
       }
     }
 
@@ -486,7 +525,6 @@ export class RenderFrameBuilder {
     const targetPosY = focusPos[1] + activeVolume.offset[1];
     const targetPosZ = focusPos[2] + activeVolume.offset[2];
 
-    // Atmospheric camera pitch/roll & fog modifiers
     let pitchOffsetDegrees = 0;
     let rollDegrees = 0;
     let effectiveFogDensity = theme.fogDensity;
@@ -587,8 +625,15 @@ export class RenderFrameBuilder {
       );
     }
 
-    const freeCamOffset = cameraDeAnchored ? (input.freeCamOffset ?? [0, 0, 0]) : [0, 0, 0];
+    const freeCamOffset = cameraDeAnchored
+      ? sanitizeFiniteTriple(input.freeCamOffset)
+      : ([0, 0, 0] as const);
     const cameraMode: CameraMode = cameraDeAnchored ? 'debug_free_cam' : 'tracking_volume';
+
+    // Apply atmospheric pitch delta to the lookAt Y target so pitch tilts shift both WebGL view and NDC projection
+    const pitchTiltDeltaY =
+      Math.tan(pitchOffsetDegrees * DEG_TO_RAD) *
+      Math.hypot(activeVolume.offset[0], activeVolume.offset[2]);
 
     const camera: CameraRenderState = {
       activeVolumeId: activeVolume.id,
@@ -600,7 +645,7 @@ export class RenderFrameBuilder {
       ],
       lookAt: [
         this.lookX.value + freeCamOffset[0],
-        this.lookY.value + freeCamOffset[1],
+        this.lookY.value + freeCamOffset[1] + pitchTiltDeltaY,
         this.lookZ.value + freeCamOffset[2],
       ],
       pitchDegrees: this.pitch.value,
@@ -718,20 +763,24 @@ export class RenderFrameBuilder {
         });
       }
 
+      const segmentsByCompass = new Map<string, WallSegmentBlueprint[]>();
       for (const seg of stage.wallSegments) {
-        const anchor = computeWallSegmentWorldAnchor(
-          stage,
-          seg.compass,
-          seg.offsetAlongWallMeters,
-          seg.heightMeters,
-        );
+        const list = segmentsByCompass.get(seg.compass) ?? [];
+        list.push(seg);
+        segmentsByCompass.set(seg.compass, list);
+      }
+
+      for (const seg of stage.wallSegments) {
+        const siblings = segmentsByCompass.get(seg.compass) ?? [seg];
+        const idxOnCompass = Math.max(0, siblings.indexOf(seg));
+        const placement = computeWallSegmentPlacement(stage, seg, idxOnCompass, siblings.length);
         inspectorCards.push({
-          id: `card_wall_${seg.segmentId}`,
+          id: `card_wall_${seg.semanticId}`,
           semanticId: seg.semanticId,
           targetKind: 'wall_segment',
           label: `${seg.compass} ${seg.zone} ${seg.segmentId}`,
-          worldAnchor: anchor,
-          ndc: projectWorldToNdc(anchor, camera),
+          worldAnchor: placement.worldCenterAnchor,
+          ndc: projectWorldToNdc(placement.worldCenterAnchor, camera),
           summary: {
             surfaceMaterial: seg.surfaceMaterial,
             motifIds: seg.motifs.map((m) => m.id),
