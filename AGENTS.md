@@ -11,7 +11,7 @@ npm run verify
 `npm run verify` executes in sequence:
 
 1. `npm run format:check` (`prettier --check .`)
-2. `npm run lint` (`eslint src tests vitest.config.ts`)
+2. `npm run lint` (`eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs`)
 3. `npm run typecheck` (`tsc --noEmit` via native TypeScript 7.0.2)
 4. `npm run test:arch` (Clean Architecture inward dependency, zero-`any`, `Math.random` ban, and section doc checks)
 5. `npm run test:unit` (Fast deterministic unit, registry contract, and headless simulation tests in `<3s`)
@@ -22,17 +22,18 @@ npm run verify
 interfaces/*         -> application, domain, infrastructure, content
 application          -> domain
 infrastructure       -> domain
-content/topology/*   -> domain
-content/scene/*      -> interfaces/three, domain
+content/* (topology) -> domain
+content/scene/*      -> interfaces/three, domain, three
 domain               -> NOTHING outward (pure TypeScript only)
 ```
 
 | Layer                           | Path                             | Must NOT Import / Use                                                                                                                                                     |
 | ------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `domain`                        | `src/domain/`                    | `application`, `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, DOM/WebGL globals, `Math.random()`, `Date.now()`, implicit/explicit `any` |
-| `application`                   | `src/application/`               | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, implicit/explicit `any`                                                                             |
-| `infrastructure`                | `src/infrastructure/`            | `application`, `interfaces`, `three`, implicit/explicit `any`                                                                                                             |
-| `content` (domain data/plugins) | `src/content/` (except `scene/`) | `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                                              |
+| `application`                   | `src/application/`               | `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, implicit/explicit `any`                                                                  |
+| `infrastructure`                | `src/infrastructure/`            | `application`, `interfaces`, `content`, `three`, implicit/explicit `any`                                                                                                  |
+| `content` (domain data/plugins) | `src/content/` (except `scene/`) | `application`, `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                               |
+| `content/scene` (3D visuals)    | `src/content/scene/`             | `application`, `infrastructure`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                                                      |
 | `interfaces`                    | `src/interfaces/`                | implicit/explicit `any`                                                                                                                                                   |
 
 ## Strict TypeScript, ESLint, Prettier & Zero-`any` Policy
@@ -44,15 +45,20 @@ domain               -> NOTHING outward (pure TypeScript only)
 
 ## Plug-and-Play Module Registries & Core Systems
 
-Never hardcode specific characters, behaviors, rooms, props, roles, or era rules inside `src/domain/` or `src/application/`. Register all content and sub-types via declarative contracts wired in `src/interfaces/composition/`:
+Throughout **Uplift**, **`Epoch` and `Era` are 100% synonymous** (`Epoch 1 === Era 1`; code uses `epochId`), and the campaign's Epoch ladder (`EpochProfileBlueprint[]`, default 7-Epoch arc: `Feudal -> Renaissance -> Pre-Industrial/Colonial -> Industrial/WWI -> Cold-War -> Computer-Age -> Space-Age/1st-Contact`) is 100% data-driven and configurable. Never hardcode specific characters, behaviors, rooms, props, offices, or epoch counts inside `src/domain/` or `src/application/`. Register all content and sub-types via `EpochModuleRegistry`:
 
-- **Characters (`CharacterBlueprint`)**: 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, distinct attitude/voice profiles, and `inertia` weighting.
-- **Rival Spacefaring Operatives (`RivalOperativeBlueprint`)**: Competing off-world operatives whose actions propagate across local and wider world nodes and can spoof or be detected on the Wider World Overview.
-- **Roles & Groundside Funds (`RoleBlueprint`, `FundsEconomyModule`)**: Era-appropriate roles (with rank progression and physical Chambers/Office) granting legitimate funds vs. orbital-inserted illegitimate funds (which risk discovery and local inflation).
-- **Wider World Overview & Async Correspondence (`WorldOverviewModule`, `MessageTransitQueue`)**: News, rumors, and time-lagged correspondence (horse courier -> telegraph -> email) to off-stage core NPCs.
-- **Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadModule`)**: Slow-building historical threads, religious martyrdom/succession rules, and crises (wars, plagues, economic shocks).
-- **Emergency States (`EmergencyStateModule`)**: Pauses non-related traits and activates emergency traits/rumors/resolutions until resolved.
-- **Orbital Pass Mechanics & Weather Control (`OrbitalPassModule`, `WeatherControlModule`)**: Orbital position gating ability availability and localized weather control with overuse penalties.
+- **Characters (`CharacterBlueprint`, `CharacterVisualBlueprint`)**: 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, `drives`, `emergencyVice`, `inertiaPillars` (`InertiaPillar[]`: `doctrine`, `constituency`, `debt`, `temper`, `ignorance`), and 3D posture/wardrobe kitbashing.
+- **Rival Spacefaring Operatives (`RivalCivBlueprint`)**: Competing off-world operatives whose actions propagate across local and wider world nodes (`orbitalOffsetTicks`, `spoofMode`) and can spoof or be detected on the Wider World Overview.
+- **Contested Offices, Quiet Claims & Economy (`OfficeBlueprint`, `QuietClaimBlueprint`, `IllicitInstrumentType`, `PressureStockType`)**: Contested offices (`institutionalLineageId`, `pretextFamilies`, `stipendPerTick`) and deniable Quiet Claims vs. 3 orbital-inserted illicit fund modes (`insert_illicit_instrument`) impacting 3 societal pressure stocks and 4 discovery layers (`'noticed' | 'assayed' | 'attributed' | 'theorized'`).
+- **Wider World Overview & Async Correspondence (`ChannelMediumBlueprint`, `WorldOverviewModule`, `MessageTransitQueue` — Change 06)**: News, rumors, and time-lagged correspondence (horse courier -> semaphore/post -> telegraph -> radio/CRT -> email) to off-stage core NPCs.
+- **Unified Interpersonal `Regard` Web & Manipulative Romantasy (`RegardGraphModule`, `RomanticMotiveBlueprint` — Change 06a)**: 2-tier hybrid social graph scaling to 500+ on-stage and off-stage characters (`affection`, `respect`, `trust`, `dread`, `obligation`, `exposure`, `bondKind`), relational triangulation & letter co-signing, and double-motive romantasy subplots.
+- **Epoch 2+ Interactive Fast-Travel Vignettes (`TravelVignetteCoordinator`, `VehicleKindBlueprint`, `TransitRouteBlueprint`, `TravelSurfaceCueBlueprint` — Change 06c)**: Bounded vehicle-cabin stages (fast travel that is still a Clock-1 scene and a Clock-2 watch spend), fellow passengers, diegetic news, two independent social/news rolls that may mutate trip pretext / origin / destination / wider world, a summary skip that still resolves pending rolls, and small live world-state surface cues on the cabin. Epoch 1 has no travel vignettes; later Epochs become less limited one `travelTechTier` rung at a time.
+- **Assassination, Counter-Assassination & Cover Persecution (`ViolentPlotModule`, `AnomalousSuspectState` — Change 06b)**: 4 last-resort assassination vectors, counter-assassination weighted by the Companion Drone's (`advisor_particular`) disposition and rival operative timing, and epoch-agnostic `coverPersecutionRisk` trials skinned per Epoch.
+- **4-Clock Campaign Pacing, Curve Envelopes & Storyteller Director (`PacingProfileBlueprint`, `CurveEnvelopeSchema`, `StorytellerPacingDirector` — Change 05b)**: Separates 60Hz room embodiment from integer Campaign Watches (`elapsedWatches`), governing 50–100h tension-and-recovery waveforms, 5-stage Butterfly Thread point-releases, slow-drift NPC evolution, and compositional `StoryletTemplate` injection via live-editable curve envelopes (`PUT /api/pacing-profiles/:profileId`).
+- **Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadBlueprint`)**: Slow-building historical threads, religious martyrdom/succession rules (`primaryCandidateLineageId`, `substituteCandidateLineageId`), and crises with `dualUseCeiling`.
+- **Emergency States (`EmergencyStateBlueprint`)**: Pauses non-related traits and compounds `emergencyVice` drives (`trigger_emergency`, `compound_emergency_vices`, `resolve_emergency`) until resolved.
+- **Orbital Pass Mechanics, Weather Control & Blackout Contingencies (`OrbitalPassBlueprint`, `OrbitalPassRuntimeState`, `WeatherControlModule`, `CampaignContingencyScheduler` — Changes 09 & 09a)**: Orbital position gating ability availability, localized weather control with overuse penalties, and conditional Endgame Rival Ship Ambush + 5-event random pool of once-per-playthrough orbital blackout contingencies with stratified anti-clustering epoch pacing.
+- **Configurable $N$-Epoch Operative Rotation, Anti-Over-Acceleration Ceilings & Predecessor Traces (`runInterEpochMaturation`, `EpochTechCeilingBlueprint`, `ExtractionStillFrameBuilder` — Change 10)**: Measured one-rung-at-a-time progression across the configured `EpochProfileBlueprint[]` ladder (default 7 Epochs) with 15–30 year generational compression (adjacent-Epoch NPC aging `youth -> prime -> elder -> succeeded_by_heir`) and strict `maxTechTierForEpoch` and `maxMaturationStepPerTransition = 1` ceilings, 4-panel procedural chiaroscuro extraction stills, `semanticId` predecessor traces, `kin_claim` vs `fresh_start`, and seeded Ship/Drone (`advisor_integral` / `advisor_particular`) temperament + `droneDisguisePool` rolls.
 - **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` (50 MiB active cap / 500 MiB compacted cap) with rolling compaction and `.agents/skills/uplift-debug/SKILL.md`.
 - **Agent Skills Rule (Enforced by `npm run test:arch`)**: Always place project agent skills in `.agents/skills/<skill-name>/SKILL.md` — never in `.cursor/skills/`.
 

@@ -209,8 +209,14 @@ export function findLayerImportViolations(relFilePath: string, source: string): 
   ) {
     checkForbiddenSpecifiers(
       'content',
-      ['infrastructure', 'interfaces'],
+      ['application', 'infrastructure', 'interfaces'],
       ['three', '@huggingface/transformers'],
+    );
+  } else if (normalizedPath.startsWith('src/content/scene/')) {
+    checkForbiddenSpecifiers(
+      'content-scene',
+      ['application', 'infrastructure'],
+      ['@huggingface/transformers'],
     );
   }
 

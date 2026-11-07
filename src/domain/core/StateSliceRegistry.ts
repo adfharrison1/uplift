@@ -1,7 +1,7 @@
 /**
  * Type-safe modular plugin state slices (`StateSliceKey<T>`, `StateSliceRegistry`, `StateSliceStore`).
  *
- * Allows plug-and-play content modules (behaviors, mechanics, era packs) to declare, read, and
+ * Allows plug-and-play content modules (behaviors, mechanics, epoch packs) to declare, read, and
  * immutably update custom state slices without untyped maps.
  */
 

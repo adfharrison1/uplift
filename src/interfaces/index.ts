@@ -2,7 +2,7 @@
  * Interfaces & Composition Layer Barrel (`src/interfaces/`)
  *
  * Outer adapter shell: CLI log query tools, Vite local disk bridge, Three.js 60 FPS renderer,
- * F3 Stage/Wardrobe Inspector DOM Mirror, and dependency composition root.
+ * and F3 Stage/Wardrobe Inspector DOM Mirror.
  */
 export { APPLICATION_LAYER_ID } from '../application/index.js';
 export const INTERFACES_LAYER_ID = 'interfaces' as const;

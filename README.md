@@ -2,7 +2,7 @@
 
 **Uplift** is a 100% local, offline-capable covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Use of Weapons_ / _Special Circumstances_) and Fred Saberhagen's _Brother Assassin_.
 
-Presented from a dark, atmospheric **3rd-person fixed-orientation tracking camera** (_Final Fantasy VII_ / _Disco Elysium_ / _Inside_ style), you play an embedded operative of a post-scarcity galactic civilization operating inside **Highglass Hold** (Era 1: Feudal Court, Guild Town & Commons). Your goal is to guide the society toward cooperative, scientific progress while managing your groundside role, legitimate vs. orbital-inserted funds, slow-burn historical butterfly threads, async correspondence with distant powers, orbital pass windows, and rival operatives from competing spacefaring civilizations. When an era concludes, the simulation exports a `CivilizationLegacyState` ledger carrying achievements, negative civilizational scars (`InheritedTrait[]`), doctrinal rifts, and character lineage mutations (`lineageId`) into the next historical age.
+Presented from a dark, atmospheric **3rd-person fixed-orientation tracking camera** (_Final Fantasy VII_ / _Disco Elysium_ / _Inside_ style), you play a succession of embedded Special Circumstances operatives across a **configurable multi-Epoch civilizational ladder** (default 7-Epoch / 7-Era arc: `Feudal -> Renaissance -> Pre-Industrial/Colonial -> Industrial/WWI -> Cold-War -> Computer-Age -> Space-Age/1st-Contact`, where `Epoch` and `Era` are 100% synonymous, starting in Epoch 1 / Era 1: **Highglass Hold**). Your goal is to guide the society toward cooperative, scientific progress while managing Contested Offices (`OfficeBlueprint`), legitimate stipends vs. orbital-inserted illicit funds (`IllicitInstrumentType`), slow-burn Butterfly Threads (`TrajectoryThreadBlueprint`), async correspondence (`ChannelMediumBlueprint`), a 500+ character interpersonal `Regard` web, Epoch 2+ interactive travel vignettes (`TransitRouteBlueprint`), orbital pass windows (`OrbitalPassBlueprint`), and rival operatives from competing spacefaring civilizations (`RivalCivBlueprint`). When an Epoch concludes, the simulation runs `runInterEpochMaturation` and exports a Dual-Ledger `CivilizationLegacyState` (`materialScars` and `veilScars` of `InheritedScar`, `communicationsBackboneControllerId`, and `lineageId` mutations) into the next historical Epoch.
 
 ---
 
@@ -28,19 +28,19 @@ npm run verify
 
 ### Available NPM Scripts
 
-| Command                | Description                                                                                          |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| `npm run verify`       | Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in sequence (`<3s`)           |
-| `npm run format`       | Formats repository files with Prettier (`prettier --write .`)                                        |
-| `npm run format:check` | Verifies Prettier formatting across all files (`prettier --check .`)                                 |
-| `npm run lint`         | Runs ESLint flat config (`eslint src tests vitest.config.ts`)                                        |
-| `npm run lint:fix`     | Runs ESLint with automatic fixes                                                                     |
-| `npm run typecheck`    | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)         |
-| `npm run test:arch`    | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs |
-| `npm run test:unit`    | Runs fast deterministic unit tests in Node/Vitest                                                    |
-| `npm run logs:query`   | Queries active (`current-session.jsonl`) and compacted session logs by level, actor, tick, or AI     |
-| `npm run dev`          | Starts the local Vite development server (with `/api/telemetry` and `/api/saves` disk bridge)        |
-| `npm run build`        | Typechecks and builds the local bundle                                                               |
+| Command                | Description                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`       | Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in sequence (`<5s`)                       |
+| `npm run format`       | Formats repository files with Prettier (`prettier --write .`)                                                    |
+| `npm run format:check` | Verifies Prettier formatting across all files (`prettier --check .`)                                             |
+| `npm run lint`         | Runs ESLint flat config (`eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs`)                   |
+| `npm run lint:fix`     | Runs ESLint with automatic fixes                                                                                 |
+| `npm run typecheck`    | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)                     |
+| `npm run test:arch`    | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs             |
+| `npm run test:unit`    | Runs fast deterministic unit tests in Node/Vitest (`<3s`)                                                        |
+| `npm run logs:query`   | Queries active (`current-session.jsonl`) and compacted session logs by level, actor, tick, or AI                 |
+| `npm run dev`          | Starts the local Vite server (`/api/telemetry`, `/api/saves`, `/api/scene-blueprints`, `/api/character-visuals`) |
+| `npm run build`        | Typechecks and builds the local bundle                                                                           |
 
 ### Editor Format-on-Save & Pre-Commit Hooks
 
