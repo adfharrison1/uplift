@@ -79,8 +79,15 @@ describe('planWaypointPath', () => {
 
   it('returns blocked for a closed or barred portal when no other route exists', () => {
     for (const portalState of ['closed', 'barred'] as const) {
-      const plan = planWaypointPath([yard, chambers], [door(portalState)], 'wp_lane', 'wp_inside');
-      expect(plan).toEqual({ status: 'blocked', path: [] });
+      const portals = [door(portalState)];
+      expect(planWaypointPath([yard, chambers], portals, 'wp_lane', 'wp_inside')).toEqual({
+        status: 'blocked',
+        path: [],
+      });
+      expect(planWaypointPath([yard, chambers], portals, 'wp_inside', 'wp_lane')).toEqual({
+        status: 'blocked',
+        path: [],
+      });
     }
   });
 
@@ -134,6 +141,19 @@ describe('planWaypointPath', () => {
     ).toEqual(['wp_left']);
   });
 
+  it('prefers the shorter route when the lower id is a longer chain', () => {
+    const fork = room('space_fork', [
+      { id: 'wp_s', position: [0, 0, 0], neighborWaypointIds: ['wp_a', 'wp_b'] },
+      { id: 'wp_a', position: [1, 0, 0], neighborWaypointIds: ['wp_a2'] },
+      { id: 'wp_a2', position: [2, 0, 0], neighborWaypointIds: ['wp_goal'] },
+      { id: 'wp_b', position: [0, 0, 1], neighborWaypointIds: ['wp_goal'] },
+      { id: 'wp_goal', position: [3, 0, 0] },
+    ]);
+    expect(
+      planWaypointPath([fork], [], 'wp_s', 'wp_goal').path.map((entry) => entry.waypointId),
+    ).toEqual(['wp_b', 'wp_goal']);
+  });
+
   it('expands equal-length branches in ascending waypoint-id order', () => {
     const fork = room('space_fork', [
       { id: 'wp_s', position: [0, 0, 0], neighborWaypointIds: ['wp_b', 'wp_a'] },
@@ -161,6 +181,23 @@ describe('planWaypointPath', () => {
     ]);
     expect(planWaypointPath([first, chainedDuplicate], [], 'wp_1', 'wp_3').status).toBe('blocked');
     expect(planWaypointPath([first, explicitDuplicate], [], 'wp_1', 'wp_3').status).toBe('blocked');
+
+    const lane = room('space_a', [
+      { id: 'wp_lane', position: [0, 0, 0] },
+      { id: 'wp_door', position: [1, 0, 0] },
+    ]);
+    const shadowedDoor = room('space_b', [
+      { id: 'wp_door', position: [50, 0, 0] },
+      { id: 'wp_inside', position: [51, 0, 0] },
+    ]);
+    const openDoor: PortalGate = {
+      nearWaypointId: 'wp_door',
+      farWaypointId: 'wp_inside',
+      portalState: 'open',
+    };
+    expect(planWaypointPath([lane, shadowedDoor], [openDoor], 'wp_lane', 'wp_inside').status).toBe(
+      'blocked',
+    );
   });
 
   it('ignores a hinge that has portal state and no target waypoint', () => {

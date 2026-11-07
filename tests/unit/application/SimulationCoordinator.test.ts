@@ -502,6 +502,7 @@ function doorCoordinator(options: {
   readonly portalState: 'open' | 'ajar' | 'closed' | 'barred';
   readonly startWaypointId: 'wp_lane' | 'wp_door';
   readonly separationWeight?: number;
+  readonly witness?: boolean;
 }): SimulationCoordinator {
   const registry = new EpochModuleRegistry();
   registry.registerPack({
@@ -564,6 +565,25 @@ function doorCoordinator(options: {
           ? { separationWeight: options.separationWeight }
           : {}),
       },
+      ...(options.witness === true
+        ? [
+            {
+              id: 'char_witness',
+              name: 'Witness',
+              lineageId: 'lineage_witness',
+              tier: 'role_routine' as const,
+              startingSpaceId: 'space_yard',
+              startingWaypointId: 'wp_door' as const,
+              walkSpeedMetersPerSec: 1.4,
+              yawSpeedRadiansPerSec: 6,
+              listenerThreshold: 0.2,
+              drives: { duty: 0.4 },
+              emergencyVice: 'duty' as const,
+              inertiaPillars: [],
+              separationWeight: 1,
+            },
+          ]
+        : []),
     ],
   });
   return new SimulationCoordinator({
@@ -578,8 +598,25 @@ function doorCoordinator(options: {
 
 describe('waypoint requests and portal truncation', () => {
   it('copies authored separation weight and rejects an unknown or out-of-range change', () => {
-    const coordinator = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_lane' });
+    const coordinator = doorCoordinator({
+      portalState: 'open',
+      startWaypointId: 'wp_lane',
+      witness: true,
+    });
     expect(coordinator.getWorldState().entities['char_walker']?.separationWeight).toBe(1);
+    coordinator.dispatchEffects([
+      { type: 'set_separation_weight', entityId: 'char_walker', weight: 0 },
+    ]);
+    expect(coordinator.getWorldState().entities['char_walker']?.separationWeight).toBe(0);
+    expect(coordinator.getWorldState().entities['char_witness']?.separationWeight).toBe(1);
+    expect(() =>
+      coordinator.dispatchEffects([
+        { type: 'set_separation_weight', entityId: 'char_witness', weight: 0 },
+        { type: 'set_separation_weight', entityId: 'char_missing', weight: 0 },
+      ]),
+    ).toThrow(/Unknown entityId 'char_missing'/);
+    expect(coordinator.getWorldState().entities['char_walker']?.separationWeight).toBe(0);
+    expect(coordinator.getWorldState().entities['char_witness']?.separationWeight).toBe(1);
 
     const packed = doorCoordinator({
       portalState: 'open',
@@ -668,5 +705,77 @@ describe('waypoint requests and portal truncation', () => {
     expect(doorStep.state.entities['char_walker']?.spaceId).toBe('space_yard');
     expect(doorStep.state.entities['char_walker']?.position).toEqual([4, 0, 0]);
     expect(doorStep.state.entities['char_walker']?.activePath).toEqual([]);
+  });
+
+  it('keeps an off-stage pair on its path when stepFrame supplies space kinds', () => {
+    const registry = new EpochModuleRegistry();
+    registry.registerPack({
+      epochId: 'epoch_offstage',
+      spaces: [
+        {
+          id: 'space_off',
+          name: 'Off Stage',
+          kind: 'off_stage_region',
+          earshotRadiusMeters: 8,
+          surfaceMaterial: 'stone',
+          acousticClass: 'tight_interior',
+          ambientMaskLoudness: 0.1,
+          connectedSpaceIds: [],
+          waypoints: [
+            { id: 'wp_a0', position: [0, 0, 0], neighborWaypointIds: ['wp_a1'] },
+            { id: 'wp_a1', position: [10, 0, 0], neighborWaypointIds: ['wp_a0'] },
+            { id: 'wp_b0', position: [0, 0, 0.4], neighborWaypointIds: ['wp_b1'] },
+            { id: 'wp_b1', position: [10, 0, 0.4], neighborWaypointIds: ['wp_b0'] },
+          ],
+        },
+      ],
+      characters: [
+        {
+          id: 'char_a',
+          name: 'A',
+          lineageId: 'lineage_a',
+          tier: 'role_routine',
+          startingSpaceId: 'space_off',
+          startingWaypointId: 'wp_a0',
+          walkSpeedMetersPerSec: 1.4,
+          yawSpeedRadiansPerSec: 6,
+          listenerThreshold: 0.2,
+          drives: { duty: 0.4 },
+          emergencyVice: 'duty',
+          inertiaPillars: [],
+        },
+        {
+          id: 'char_b',
+          name: 'B',
+          lineageId: 'lineage_b',
+          tier: 'role_routine',
+          startingSpaceId: 'space_off',
+          startingWaypointId: 'wp_b0',
+          walkSpeedMetersPerSec: 1.4,
+          yawSpeedRadiansPerSec: 6,
+          listenerThreshold: 0.2,
+          drives: { duty: 0.4 },
+          emergencyVice: 'duty',
+          inertiaPillars: [],
+        },
+      ],
+    });
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_offstage',
+      registry,
+      telemetry: new InMemorySessionTelemetry('session_offstage', createClock()),
+      saveRepository: new InMemorySaveSlotRepository(),
+      clock: createClock(),
+      pacingConfig: FAST_EVAL_PACING_CONFIG,
+    });
+    expect(coordinator.requestWaypointMove('char_a', 'wp_a1')).toBe('path');
+    expect(coordinator.requestWaypointMove('char_b', 'wp_b1')).toBe('path');
+    const step = coordinator.stepFrame(1 / 60);
+    const left = step.state.entities['char_a'];
+    const right = step.state.entities['char_b'];
+    expect(left?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(left?.position[2]).toBe(0);
+    expect(right?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(right?.position[2]).toBe(0.4);
   });
 });

@@ -498,8 +498,40 @@ describe('embodied separation', () => {
     expect(right.position[1]).toBe(1);
     expect(xzDistance(left.position, [10, 1, 0])).toBeLessThanOrEqual(10);
     expect(xzDistance(right.position, [10, 1, 0.4])).toBeLessThanOrEqual(10);
+    const frameCap = 0.15 / 60;
+    const stepX = 1.4 / 60;
+    expect(Math.hypot(left.position[0] - stepX, left.position[2])).toBeLessThanOrEqual(
+      frameCap + 1e-9,
+    );
+    expect(Math.hypot(right.position[0] - stepX, right.position[2] - 0.4)).toBeLessThanOrEqual(
+      frameCap + 1e-9,
+    );
     expect(again.state.entities['npc_left']?.position).toEqual(left.position);
     expect(again.state.entities['npc_right']?.position).toEqual(right.position);
+  });
+
+  it('caps a slow partial step by the remaining-distance term', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          walkSpeedMetersPerSec: 0.2,
+          position: [0, 0, 0],
+          activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.4, 0, 0] }],
+        }),
+        npc_idle: makeTestEntity('npc_idle', {
+          position: [0, 0, 0.3],
+        }),
+      },
+    });
+    const step = stepKinematics(state, 1);
+    const walked = step.state.entities['npc_walk'];
+    expect(walked?.position[0]).toBeCloseTo(0.2, 5);
+    expect(walked?.position[1]).toBe(0);
+    expect(walked?.position[2]).toBeCloseTo(-0.1, 5);
+    expect(step.state.entities['npc_idle']?.position).toEqual([0, 0, 0.3]);
+    expect(step.arrivals).toHaveLength(0);
   });
 
   it('keeps a packed pair on its authored spacing', () => {

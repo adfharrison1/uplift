@@ -14,4 +14,4 @@
 
 ## 4. Hierarchical documentation and 6-subagent review
 
-- [ ] 4.1 Update `src/domain/README.md`, `src/domain/AGENTS.md`, `src/application/README.md`, `src/application/AGENTS.md`, `src/content/README.md`, `src/content/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md`, then run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence) and fold in verified fixes | Verify: `npm run verify` | Commit: `docs(sim): document live steering and the starter hold slice`
+- [x] 4.1 Update `src/domain/README.md`, `src/domain/AGENTS.md`, `src/application/README.md`, `src/application/AGENTS.md`, `src/content/README.md`, `src/content/AGENTS.md`, `tests/README.md`, and `tests/AGENTS.md`, then run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence) and fold in verified fixes | Verify: `npm run verify` | Commit: `docs(sim): document live steering and the starter hold slice`

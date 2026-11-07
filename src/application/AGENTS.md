@@ -15,3 +15,10 @@
 2. Re-export public classes, interfaces, schemas, and constants from `src/application/index.ts`.
 3. Add deterministic unit tests in `tests/unit/application/<UseCaseName>.test.ts`.
 4. Update both `src/application/README.md` and `src/application/AGENTS.md` and run `npm run verify`.
+
+## Waypoint requests
+
+- Do not import content packs. Build the space list and space-kind directory from `EpochModuleRegistry.getAllSpaces()` when the coordinator is constructed.
+- `requestWaypointMove` returns `paused` or `unknown_entity` before `dispatchEffects`. On a planned path, dispatch only `move_entity_to_waypoint`. Leave a deliberating entity in that phase. `already_there`, `blocked`, and `unknown_waypoint` do not change `WorldState`.
+- `requestSetPortalState` dispatches the existing `update_prop_state` effect. An unknown prop returns `unknown_prop`.
+- On an unpaused frame with `dtSeconds > 0`, truncate active paths once, including the hop off the current waypoint, and then call `stepKinematics` with the space-kind directory. Do not read portal state again during that step.

@@ -740,6 +740,26 @@ describe('EpochModuleRegistry and EpochBlueprints', () => {
     expect(() =>
       pair().registerCharacters([
         {
+          id: 'char_negative',
+          name: 'Negative',
+          lineageId: 'lineage_negative',
+          tier: 'ambient_crowd',
+          startingSpaceId: 'space_a',
+          startingWaypointId: 'wp_a1',
+          walkSpeedMetersPerSec: 1.4,
+          yawSpeedRadiansPerSec: 6,
+          listenerThreshold: 0.2,
+          drives: { duty: 0.2 },
+          emergencyVice: 'duty',
+          inertiaPillars: [],
+          separationWeight: -0.1,
+        },
+      ]),
+    ).toThrow(/Character 'char_negative'/);
+
+    expect(() =>
+      pair().registerCharacters([
+        {
           id: 'char_nan',
           name: 'Nan',
           lineageId: 'lineage_nan',

@@ -94,12 +94,15 @@ function buildGraph(
 } {
   const nodes = new Map<string, GraphNode>();
   const adjacency = new Map<string, Set<string>>();
+  const duplicateIds = new Set<string>();
 
   for (const space of spaces) {
     for (const waypoint of space.waypoints) {
-      if (!nodes.has(waypoint.id)) {
-        nodes.set(waypoint.id, { spaceId: space.id, position: waypoint.position });
+      if (nodes.has(waypoint.id)) {
+        duplicateIds.add(waypoint.id);
+        continue;
       }
+      nodes.set(waypoint.id, { spaceId: space.id, position: waypoint.position });
     }
 
     const explicit = space.waypoints.some(
@@ -140,7 +143,12 @@ function buildGraph(
     if (farWaypointId === undefined || !isPassable(portal.portalState)) {
       continue;
     }
-    if (!nodes.has(portal.nearWaypointId) || !nodes.has(farWaypointId)) {
+    if (
+      !nodes.has(portal.nearWaypointId) ||
+      !nodes.has(farWaypointId) ||
+      duplicateIds.has(portal.nearWaypointId) ||
+      duplicateIds.has(farWaypointId)
+    ) {
       continue;
     }
     link(adjacency, portal.nearWaypointId, farWaypointId);

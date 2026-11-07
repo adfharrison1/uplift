@@ -15,3 +15,10 @@
 2. Re-export public types, schemas, functions, and classes from `src/domain/index.ts`.
 3. Add matching deterministic unit tests in `tests/unit/domain/<ModuleName>.test.ts` covering both normal gameplay pacing (`DEFAULT_GAMEPLAY_PACING_CONFIG`) and fast evaluation pacing (`FAST_EVAL_PACING_CONFIG`) where applicable.
 4. Update both `src/domain/README.md` and `src/domain/AGENTS.md` and run `npm run verify`.
+
+## Waypoint steering
+
+- `neighborWaypointIds` are optional same-space ids. A listed neighbor is an undirected edge even when only one side declares it. A space with no non-empty neighbor list uses one declaration-order chain. A space with any explicit neighbor uses only those edges, and registration rejects a waypoint whose undirected degree is `0`.
+- Portal target ids are both present or both absent. Either target requires `portalState`. `portalState` alone adds no graph edge. `open` and `ajar` are the passable states, and that edge is undirected.
+- `planWaypointPath` omits the start and includes the destination. A duplicated waypoint id adds no chain or portal edge. `truncatePathAtClosedPortals` is pure, and its first hop is the entity's current `waypointId`. `SimulationCoordinator` calls it once on an unpaused frame with `dtSeconds > 0`, before kinematics.
+- `separationWeight` is `0..1`. Omitted means `1`. Weight `0` does not slide. This is not a flocking or crowd solver. Change weight with `set_separation_weight`, not by editing the integrator.

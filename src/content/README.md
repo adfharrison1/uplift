@@ -12,4 +12,6 @@ Content is organized into modular packs:
 ## Current Module Inventory
 
 - `scene/defaultStageContent.ts` — Deeply frozen starter Epoch 1 (_Highglass Hold_) visual blueprints (`DEFAULT_HIGHGLASS_VISUAL_THEME`, `DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT`, `DEFAULT_HIGHGLASS_CHARACTER_VISUALS`).
-- `index.ts` — Public content layer barrel re-exporting starter scene blueprints.
+- `worlds/starterHoldPack.ts` — Deeply frozen Epoch 1 proving pack (`STARTER_HOLD_PACK`): `space_glass_yard`, `space_player_chambers`, one open chambers door, a yard walker, and the player operative. No offices, rivals, or threads.
+- `scene/starterHoldStages.ts` — Matching yard and chambers `StageSceneBlueprint`s. The chambers door is `isPortal: true`.
+- `index.ts` — Public content layer barrel re-exporting starter scene blueprints and the starter hold pack.

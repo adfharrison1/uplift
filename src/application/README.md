@@ -14,7 +14,7 @@ Responsibilities include:
 
 ## Current Module Inventory
 
-- `simulation/SimulationCoordinator.ts` — Application simulation coordinator wiring `EpochModuleRegistry`, `stepKinematics`, `applyWorldEffects`, round-robin `pulseCognitiveScheduler`, `CivilizationLegacyState`, `SessionTelemetryPort`, and `SaveSlotRepositoryPort`.
+- `simulation/SimulationCoordinator.ts` — Application simulation coordinator wiring `EpochModuleRegistry`, `stepKinematics`, `applyWorldEffects`, round-robin `pulseCognitiveScheduler`, `CivilizationLegacyState`, `SessionTelemetryPort`, and `SaveSlotRepositoryPort`. `requestWaypointMove` plans a portal-gated path and dispatches only `move_entity_to_waypoint`. `requestSetPortalState` dispatches `update_prop_state`. On an unpaused `stepFrame` with `dtSeconds > 0`, closed-portal hops are truncated before kinematics, which receives a space-kind directory built from `getAllSpaces()` at construction. Spawn copies `separationWeight` (`1` when omitted).
 - `rendering/SceneVisualBlueprints.ts` — Layer 1–3 Zod schemas (`EpochVisualThemeSchema`, `StageSceneBlueprintSchema`, `StagePropVisualBlueprintSchema`, `CameraVolumeBlueprintSchema`, `CharacterVisualBlueprintSchema`), `resolveCharacterVisualForTheme`, and deterministic `semanticId` formatters/validators.
 - `rendering/RenderFrameBuilder.ts` — Pure `RenderFrameBuilder`, `selectActiveCameraVolume`, `stepCriticallyDampedSpring`, and `projectWorldToNdc`.
 - `index.ts` — Public application layer barrel re-exporting `SimulationCoordinator`, `RenderFrameBuilder`, and all 3-Layer Visual Blueprint schemas/types.
