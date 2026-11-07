@@ -75,3 +75,12 @@ export {
   SimulationCoordinator,
   type SimulationCoordinatorOptions,
 } from './simulation/SimulationCoordinator.js';
+export {
+  FLOOR_WAYPOINT_RADIUS_METERS,
+  type FloorClickResult,
+  type PlayFrameInput,
+  type PlayFrameResult,
+  PlaySession,
+  type PlaySessionLaunch,
+  type PlaySessionStatus,
+} from './shell/PlaySession.js';
