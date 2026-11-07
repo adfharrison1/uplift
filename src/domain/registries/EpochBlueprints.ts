@@ -4,7 +4,7 @@
  * Defines Zod-validated declarative contracts for Spaces, Waypoints, Props, Characters,
  * Contested Offices, Quiet Claims, Economy/Discovery enums, Rival Civilizations,
  * Trajectory Threads, Correspondence Channels, Emergency States, Orbital Pass rules,
- * and human-paced Behaviors. Contains zero feudal-specific lore or 3D presentation imports.
+ * and human-paced Behaviors. Contains zero epoch-specific lore or 3D presentation imports.
  */
 import { z } from 'zod';
 

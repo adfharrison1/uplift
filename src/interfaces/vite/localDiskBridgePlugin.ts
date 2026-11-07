@@ -1,7 +1,19 @@
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { resolve } from 'node:path';
+import { isAbsolute, relative, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 import { z } from 'zod';
+import {
+  CharacterVisualBlueprintSchema,
+  StageSceneBlueprintSchema,
+} from '../../application/index.js';
 import {
   SaveSlotWriteInputSchema,
   TelemetryEventInputSchema,
@@ -14,6 +26,9 @@ import {
 } from '../../infrastructure/index.js';
 
 export const MAX_BRIDGE_BODY_BYTES = 256 * 1024; // 256 KiB
+
+const SAFE_ASSET_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+let atomicWriteCounter = 0;
 
 export const StartSessionRequestSchema = z.object({
   sessionId: z.string().trim().min(1),
@@ -32,9 +47,18 @@ export const SaveSlotPutRequestSchema = SaveSlotWriteInputSchema.omit({ slotId: 
 export const LocalDiskBridgeOptionsSchema = z.object({
   logsDir: z.string().default(() => resolve(process.cwd(), 'logs')),
   savesDir: z.string().default(() => resolve(process.cwd(), 'saves')),
+  sceneBlueprintsDir: z.string().default(() => resolve(process.cwd(), 'src/content/scene/stages')),
+  characterVisualsDir: z
+    .string()
+    .default(() => resolve(process.cwd(), 'src/content/scene/characters')),
   maxBodyBytes: z.number().int().positive().default(MAX_BRIDGE_BODY_BYTES),
 });
 export type LocalDiskBridgeOptions = z.input<typeof LocalDiskBridgeOptionsSchema>;
+
+export interface BridgeVisualAssetDirectories {
+  readonly sceneBlueprintsDir?: string | undefined;
+  readonly characterVisualsDir?: string | undefined;
+}
 
 export interface BridgeHttpRequest {
   readonly method: string;
@@ -56,8 +80,62 @@ function extractSafeSlotIdFromPath(pathname: string): string {
   return validateSaveSlotId(rawSegment);
 }
 
+function extractSafeAssetIdFromPath(pathname: string, routePrefix: string): string {
+  const rawSegment = pathname.slice(routePrefix.length);
+  if (rawSegment.includes('%') || rawSegment.includes('/') || rawSegment.includes('\\')) {
+    throw new Error(`Invalid asset id in URL path: '${rawSegment}'`);
+  }
+  if (!SAFE_ASSET_ID_PATTERN.test(rawSegment)) {
+    throw new Error(`Invalid asset id '${rawSegment}': must match /^[a-z0-9][a-z0-9_-]{0,63}$/`);
+  }
+  return rawSegment;
+}
+
+function resolveContainedJsonFilePath(baseDir: string, assetId: string): string {
+  const resolvedBase = resolve(baseDir);
+  const resolvedTarget = resolve(resolvedBase, `${assetId}.json`);
+  const rel = relative(resolvedBase, resolvedTarget);
+  if (rel.startsWith('..') || isAbsolute(rel) || rel.includes('/') || rel.includes('\\')) {
+    throw new Error(`Asset path escapes base directory for id '${assetId}'`);
+  }
+  return resolvedTarget;
+}
+
+function writeJsonFileAtomically(filePath: string, data: unknown): void {
+  const parentDir = resolve(filePath, '..');
+  mkdirSync(parentDir, { recursive: true });
+  atomicWriteCounter += 1;
+  const tempPath = `${filePath}.tmp.${String(process.pid)}.${String(atomicWriteCounter)}`;
+  try {
+    writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+    renameSync(tempPath, filePath);
+  } finally {
+    if (existsSync(tempPath)) {
+      try {
+        unlinkSync(tempPath);
+      } catch {
+        // Ignore cleanup errors if rename already succeeded
+      }
+    }
+  }
+}
+
+export function isBridgeApiUrl(url: string): boolean {
+  return (
+    url.startsWith('/api/telemetry') ||
+    url.startsWith('/api/saves') ||
+    url.startsWith('/api/scene-blueprints') ||
+    url.startsWith('/api/character-visuals')
+  );
+}
+
 /**
- * Pure, deterministic HTTP request handler for `/api/telemetry/*` and `/api/saves/*`.
+ * Pure, deterministic HTTP request handler for:
+ * - `/api/telemetry/*`
+ * - `/api/saves/*`
+ * - `/api/scene-blueprints/:stageId`
+ * - `/api/character-visuals/:characterId`
+ *
  * Uses Zod `safeParseJsonWithSchema` for all JSON-to-TypeScript conversions and validation.
  */
 export function handleLocalDiskBridgeRequest(
@@ -65,6 +143,7 @@ export function handleLocalDiskBridgeRequest(
   telemetry: NdjsonSessionTelemetry,
   saves: FileSaveSlotRepository,
   maxBodyBytes: number = MAX_BRIDGE_BODY_BYTES,
+  visualDirs?: BridgeVisualAssetDirectories,
 ): BridgeHttpResponse {
   const measuredBytes = req.rawBody !== undefined ? Buffer.byteLength(req.rawBody, 'utf8') : 0;
   const bodyBytes = Math.max(measuredBytes, req.bodyByteLength ?? 0);
@@ -78,6 +157,9 @@ export function handleLocalDiskBridgeRequest(
 
   const pathname = (req.url.split('?')[0] ?? '/').trim();
   const method = req.method.toUpperCase();
+  const defaultDirs = LocalDiskBridgeOptionsSchema.parse({});
+  const sceneBlueprintsDir = visualDirs?.sceneBlueprintsDir ?? defaultDirs.sceneBlueprintsDir;
+  const characterVisualsDir = visualDirs?.characterVisualsDir ?? defaultDirs.characterVisualsDir;
 
   try {
     if (pathname === '/api/telemetry/session') {
@@ -175,6 +257,84 @@ export function handleLocalDiskBridgeRequest(
       return { statusCode: 405, body: { error: 'Method not allowed' } };
     }
 
+    if (pathname.startsWith('/api/scene-blueprints/')) {
+      const stageId = extractSafeAssetIdFromPath(pathname, '/api/scene-blueprints/');
+      const filePath = resolveContainedJsonFilePath(sceneBlueprintsDir, stageId);
+
+      if (method === 'GET') {
+        if (!existsSync(filePath)) {
+          return {
+            statusCode: 404,
+            body: { error: `Scene blueprint '${stageId}' does not exist` },
+          };
+        }
+        const raw = readFileSync(filePath, 'utf8');
+        const parsed = safeParseJsonWithSchema(raw, StageSceneBlueprintSchema);
+        if (!parsed.success) {
+          return { statusCode: 400, body: { error: parsed.error.message } };
+        }
+        return { statusCode: 200, body: { blueprint: parsed.data } };
+      }
+
+      if (method === 'PUT') {
+        const parsed = safeParseJsonWithSchema(req.rawBody ?? '', StageSceneBlueprintSchema);
+        if (!parsed.success) {
+          return { statusCode: 400, body: { error: parsed.error.message } };
+        }
+        if (parsed.data.stageId !== stageId) {
+          return {
+            statusCode: 400,
+            body: {
+              error: `Payload stageId '${parsed.data.stageId}' does not match URL stageId '${stageId}'`,
+            },
+          };
+        }
+        writeJsonFileAtomically(filePath, parsed.data);
+        return { statusCode: 200, body: { blueprint: parsed.data } };
+      }
+
+      return { statusCode: 405, body: { error: 'Method not allowed' } };
+    }
+
+    if (pathname.startsWith('/api/character-visuals/')) {
+      const characterId = extractSafeAssetIdFromPath(pathname, '/api/character-visuals/');
+      const filePath = resolveContainedJsonFilePath(characterVisualsDir, characterId);
+
+      if (method === 'GET') {
+        if (!existsSync(filePath)) {
+          return {
+            statusCode: 404,
+            body: { error: `Character visual '${characterId}' does not exist` },
+          };
+        }
+        const raw = readFileSync(filePath, 'utf8');
+        const parsed = safeParseJsonWithSchema(raw, CharacterVisualBlueprintSchema);
+        if (!parsed.success) {
+          return { statusCode: 400, body: { error: parsed.error.message } };
+        }
+        return { statusCode: 200, body: { visual: parsed.data } };
+      }
+
+      if (method === 'PUT') {
+        const parsed = safeParseJsonWithSchema(req.rawBody ?? '', CharacterVisualBlueprintSchema);
+        if (!parsed.success) {
+          return { statusCode: 400, body: { error: parsed.error.message } };
+        }
+        if (parsed.data.characterId !== characterId) {
+          return {
+            statusCode: 400,
+            body: {
+              error: `Payload characterId '${parsed.data.characterId}' does not match URL characterId '${characterId}'`,
+            },
+          };
+        }
+        writeJsonFileAtomically(filePath, parsed.data);
+        return { statusCode: 200, body: { visual: parsed.data } };
+      }
+
+      return { statusCode: 405, body: { error: 'Method not allowed' } };
+    }
+
     return { statusCode: 404, body: { error: `Unknown API route: ${pathname}` } };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Bad request';
@@ -221,10 +381,12 @@ function sendJsonResponse(res: ServerResponse, response: BridgeHttpResponse): vo
 }
 
 /**
- * Vite dev server plugin mounting `/api/telemetry/*` and `/api/saves/*` for local disk persistence.
+ * Vite dev server plugin mounting `/api/telemetry/*`, `/api/saves/*`,
+ * `/api/scene-blueprints/*`, and `/api/character-visuals/*` for local disk persistence.
  */
 export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plugin {
-  const { logsDir, savesDir, maxBodyBytes } = LocalDiskBridgeOptionsSchema.parse(options);
+  const { logsDir, savesDir, sceneBlueprintsDir, characterVisualsDir, maxBodyBytes } =
+    LocalDiskBridgeOptionsSchema.parse(options);
 
   let telemetry: NdjsonSessionTelemetry | undefined;
   let saves: FileSaveSlotRepository | undefined;
@@ -237,7 +399,7 @@ export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plu
 
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? '/';
-        if (!url.startsWith('/api/telemetry') && !url.startsWith('/api/saves')) {
+        if (!isBridgeApiUrl(url)) {
           next();
           return;
         }
@@ -268,6 +430,7 @@ export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plu
               telemetry,
               saves,
               maxBodyBytes,
+              { sceneBlueprintsDir, characterVisualsDir },
             );
             sendJsonResponse(res, result);
           })
