@@ -9,7 +9,7 @@ Presented from a dark, atmospheric **3rd-person fixed-orientation tracking camer
 ## Hardware Target & Zero-API-Key Guarantee
 
 - **Baseline Hardware**: Designed and budgeted for a **2019 Intel Core i7 MacBook Pro (16GB RAM)** at 60 FPS, running cross-platform on macOS and Windows.
-- **100% Offline / Zero Cloud API Keys**: No OpenAI, Anthropic, or cloud inference keys are ever used. All simulation decisions run deterministically in pure TypeScript, paired with a local ~23MB quantized ONNX embedding model (`Xenova/all-MiniLM-L6-v2`) running in a background Web Worker.
+- **100% Offline / Zero Cloud API Keys**: No OpenAI, Anthropic, or cloud inference keys are ever used. All simulation decisions run deterministically in pure TypeScript.
 
 ---
 
@@ -53,24 +53,23 @@ npm run verify
 
 Every dependency installed when cloning this repository is explicitly pinned:
 
-| Tool / Package                               | Pinned Version                       | Purpose & Security / CVE Notes                                                                                                       |
-| -------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Node.js LTS**                              | `24.22.2` (`.nvmrc`)                 | Includes Oct 21, 2026 security fixes (`CVE-2026-111497`, `CVE-2026-105482`, `CVE-2026-105483`, `CVE-2026-106069`, `CVE-2026-106074`) |
-| **npm**                                      | `12.2.1`                             | Package manager                                                                                                                      |
-| **`@fission-ai/openspec`**                   | `1.15.0`                             | Spec-Driven Development (`opsx`) CLI                                                                                                 |
-| **`@typescript/native`**                     | `npm:typescript@7.0.2`               | Native Go `tsc` compiler (`7.0.2`, `ES2025`, strict mode, zero `any`)                                                                |
-| **`typescript`**                             | `npm:@typescript/typescript6@6.0.2`  | Official Microsoft TS 6.0.3 JS AST API bridge required by `typescript-eslint`                                                        |
-| **`eslint`**                                 | `10.13.0` (`@eslint/js` `10.0.1`)    | Flat-config static analysis (`minimatch` overridden to `11.0.4` for `GHSA-g3hv-75wg-m249`)                                           |
-| **`typescript-eslint`**                      | `8.72.1`                             | Strict & stylistic TypeScript ESLint rules                                                                                           |
-| **`eslint-config-prettier`**                 | `10.1.8`                             | Disables formatting rules that conflict with Prettier                                                                                |
-| **`prettier`**                               | `3.9.10`                             | Automated code formatting                                                                                                            |
-| **`husky` + `lint-staged`**                  | `9.1.7` / `17.6.0`                   | Pre-commit formatting and linting on staged files                                                                                    |
-| **`zod`**                                    | `4.6.7`                              | Schema validation and `safeParse` JSON-to-TypeScript parsing across telemetry, save slots, and HTTP bridges                          |
-| **`vite`**                                   | `8.3.5`                              | Local dev server and bundler                                                                                                         |
-| **`vitest`**                                 | `5.0.5`                              | Fast unit, architecture, and headless simulation test runner                                                                         |
-| **`@types/node`**                            | `24.19.2`                            | Node.js type definitions for build and test scripts                                                                                  |
-| **`three`** _(Change 4)_                     | `0.186.1` (`@types/three` `0.186.0`) | 3D WebGL rendering for 3rd-person fixed-orientation tracking camera                                                                  |
-| **`@huggingface/transformers`** _(Change 8)_ | `4.3.2`                              | Local ONNX runtime in Web Worker for free-text semantic topic matching                                                               |
+| Tool / Package               | Pinned Version                       | Purpose & Security / CVE Notes                                                                                                       |
+| ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Node.js LTS**              | `24.22.2` (`.nvmrc`)                 | Includes Oct 21, 2026 security fixes (`CVE-2026-111497`, `CVE-2026-105482`, `CVE-2026-105483`, `CVE-2026-106069`, `CVE-2026-106074`) |
+| **npm**                      | `12.2.1`                             | Package manager                                                                                                                      |
+| **`@fission-ai/openspec`**   | `1.15.0`                             | Spec-Driven Development (`opsx`) CLI                                                                                                 |
+| **`@typescript/native`**     | `npm:typescript@7.0.2`               | Native Go `tsc` compiler (`7.0.2`, `ES2025`, strict mode, zero `any`)                                                                |
+| **`typescript`**             | `npm:@typescript/typescript6@6.0.2`  | Official Microsoft TS 6.0.3 JS AST API bridge required by `typescript-eslint`                                                        |
+| **`eslint`**                 | `10.13.0` (`@eslint/js` `10.0.1`)    | Flat-config static analysis (`minimatch` overridden to `11.0.4` for `GHSA-g3hv-75wg-m249`)                                           |
+| **`typescript-eslint`**      | `8.72.1`                             | Strict & stylistic TypeScript ESLint rules                                                                                           |
+| **`eslint-config-prettier`** | `10.1.8`                             | Disables formatting rules that conflict with Prettier                                                                                |
+| **`prettier`**               | `3.9.10`                             | Automated code formatting                                                                                                            |
+| **`husky` + `lint-staged`**  | `9.1.7` / `17.6.0`                   | Pre-commit formatting and linting on staged files                                                                                    |
+| **`zod`**                    | `4.6.7`                              | Schema validation and `safeParse` JSON-to-TypeScript parsing across telemetry, save slots, and HTTP bridges                          |
+| **`vite`**                   | `8.3.5`                              | Local dev server and bundler                                                                                                         |
+| **`vitest`**                 | `5.0.5`                              | Fast unit, architecture, and headless simulation test runner                                                                         |
+| **`@types/node`**            | `24.19.2`                            | Node.js type definitions for build and test scripts                                                                                  |
+| **`three`**                  | `0.186.1` (`@types/three` `0.186.0`) | 3D WebGL rendering for 3rd-person fixed-orientation tracking camera                                                                  |
 
 ---
 

@@ -7,7 +7,7 @@
 Content is organized into modular packs:
 
 - **3D Scene Blueprints (`scene/`)**: Presentation-only 3-Layer Encoded Visual Blueprints (`EpochVisualTheme`, `StageSceneBlueprint`, `CharacterVisualBlueprint`) consumed by `src/interfaces/three/`.
-- **Epochs / Eras, Characters, Rivals, Offices, Behaviors, Worlds & Mechanics** _(Changes 05–11)_: Declarative `EpochModulePackInput` packs (`SpaceNodeBlueprint`, `PropBlueprint`, `CharacterBlueprint` with `InertiaPillar[]`, `OfficeBlueprint`, `QuietClaimBlueprint`, `RivalCivBlueprint`, `TrajectoryThreadBlueprint`, `ChannelMediumBlueprint`, `EmergencyStateBlueprint`, `OrbitalPassBlueprint`, `BehaviorModule`, `PacingProfileBlueprint`, `RomanticMotiveBlueprint`, `VehicleKindBlueprint`, `TransitRouteBlueprint`, `TravelVignetteBlueprint`, `EnRouteEncounterTable`, `TravelSurfaceCueBlueprint`, `AssassinationVectorBlueprint`, `ContingencyEventBlueprint`, and `EpochTechCeilingBlueprint`).
+- **Epochs / Eras, Characters, Rivals, Offices, Behaviors, Worlds & Mechanics**: Declarative `EpochModulePackInput` packs (`SpaceNodeBlueprint`, `PropBlueprint`, `CharacterBlueprint` with `InertiaPillar[]`, `OfficeBlueprint`, `QuietClaimBlueprint`, `RivalCivBlueprint`, `TrajectoryThreadBlueprint`, `ChannelMediumBlueprint`, `EmergencyStateBlueprint`, `OrbitalPassBlueprint`, and `BehaviorModule`).
 
 ## Current Module Inventory
 
