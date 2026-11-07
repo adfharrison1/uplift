@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { defineStateSlice } from '../../../src/domain/core/StateSliceRegistry.js';
+import type { SpaceKind } from '../../../src/domain/registries/EpochBlueprints.js';
 import { stepKinematics } from '../../../src/domain/simulation/KinematicsEngine.js';
+import {
+  insertEmbodiedBodies,
+  SpatialHashGrid,
+} from '../../../src/domain/simulation/SpatialHashGrid.js';
 import { applyWorldEffects } from '../../../src/domain/simulation/WorldEffectReducer.js';
 import {
   createInitialWorldState,
   DEFAULT_GAMEPLAY_PACING_CONFIG,
   type EntitySimulationState,
   FAST_EVAL_PACING_CONFIG,
+  type WorldState,
 } from '../../../src/domain/simulation/WorldState.js';
 
 function makeTestEntity(
@@ -394,5 +400,269 @@ describe('stepKinematics and applyWorldEffects', () => {
     expect(() =>
       applyWorldEffects(state2, [{ type: 'spend_orbital_delta', mode: 'burn', cost: 999 }]),
     ).toThrow(/Insufficient orbital Delta/);
+  });
+});
+
+function xzDistance(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  return Math.hypot(a[0] - b[0], a[2] - b[2]);
+}
+
+function movingPair(
+  left: Partial<EntitySimulationState>,
+  right: Partial<EntitySimulationState>,
+): WorldState {
+  return createInitialWorldState({
+    epochId: 'epoch_test',
+    entities: {
+      npc_left: makeTestEntity('npc_left', {
+        cognitivePhase: 'moving',
+        position: [0, 1, 0],
+        activePath: [{ waypointId: 'wp_left', spaceId: 'space_alpha', position: [10, 1, 0] }],
+        ...left,
+      }),
+      npc_right: makeTestEntity('npc_right', {
+        cognitivePhase: 'moving',
+        position: [0, 1, 0.4],
+        activePath: [{ waypointId: 'wp_right', spaceId: 'space_alpha', position: [10, 1, 0.4] }],
+        ...right,
+      }),
+    },
+  });
+}
+
+describe('SpatialHashGrid', () => {
+  it('returns ids inside 0.75m from the 3×3 neighborhood in ascending order', () => {
+    const grid = new SpatialHashGrid();
+    grid.insert('npc_b', 1.9, 0.1);
+    grid.insert('npc_a', 2.2, 0.1);
+    grid.insert('npc_far', 1.9, 2);
+    expect(grid.query(1.9, 0.1, 0.75)).toEqual(['npc_a', 'npc_b']);
+  });
+
+  it('leaves an off-stage body out of the hash while that body still walks', () => {
+    const spaceKinds = new Map<string, SpaceKind>([
+      ['space_room', 'indoor_room'],
+      ['space_off', 'off_stage_region'],
+    ]);
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_indoor: makeTestEntity('npc_indoor', {
+          spaceId: 'space_room',
+          cognitivePhase: 'moving',
+          position: [0, 2, 0],
+          activePath: [{ waypointId: 'wp_room', spaceId: 'space_room', position: [10, 2, 0] }],
+        }),
+        npc_off: makeTestEntity('npc_off', {
+          spaceId: 'space_off',
+          cognitivePhase: 'moving',
+          position: [0, 2, 0.4],
+          activePath: [{ waypointId: 'wp_off', spaceId: 'space_off', position: [10, 2, 0.4] }],
+        }),
+      },
+    });
+    const grid = insertEmbodiedBodies(
+      [
+        { entityId: 'npc_indoor', spaceId: 'space_room', x: 0, z: 0 },
+        { entityId: 'npc_off', spaceId: 'space_off', x: 0.4, z: 0 },
+      ],
+      spaceKinds,
+    );
+    expect(grid.query(0, 0, 0.75)).toEqual(['npc_indoor']);
+    expect(grid.has('npc_off')).toBe(false);
+
+    const step = stepKinematics(state, 1 / 60, spaceKinds);
+    expect(step.state.entities['npc_off']?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(step.state.entities['npc_indoor']?.position[2]).toBe(0);
+    expect(step.state.entities['npc_indoor']?.position[0]).toBeCloseTo(1.4 / 60, 5);
+  });
+});
+
+describe('embodied separation', () => {
+  it('separates two walkers without increasing distance to their targets', () => {
+    const state = movingPair({}, { separationWeight: 1 });
+    const step = stepKinematics(state, 1 / 60);
+    const again = stepKinematics(state, 1 / 60);
+    const left = step.state.entities['npc_left'];
+    const right = step.state.entities['npc_right'];
+    expect(left).toBeDefined();
+    expect(right).toBeDefined();
+    if (left === undefined || right === undefined) {
+      return;
+    }
+    expect(xzDistance(left.position, right.position)).toBeGreaterThan(0.4);
+    expect(left.position[1]).toBe(1);
+    expect(right.position[1]).toBe(1);
+    expect(xzDistance(left.position, [10, 1, 0])).toBeLessThanOrEqual(10);
+    expect(xzDistance(right.position, [10, 1, 0.4])).toBeLessThanOrEqual(10);
+    expect(again.state.entities['npc_left']?.position).toEqual(left.position);
+    expect(again.state.entities['npc_right']?.position).toEqual(right.position);
+  });
+
+  it('keeps a packed pair on its authored spacing', () => {
+    const step = stepKinematics(
+      movingPair({ separationWeight: 0 }, { separationWeight: 0 }),
+      1 / 60,
+    );
+    expect(step.state.entities['npc_left']?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(step.state.entities['npc_left']?.position[2]).toBe(0);
+    expect(step.state.entities['npc_right']?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(step.state.entities['npc_right']?.position[2]).toBe(0.4);
+  });
+
+  it('lets a weight-1 walker slide around a packed body that does not move aside', () => {
+    const step = stepKinematics(
+      movingPair({ separationWeight: 1 }, { separationWeight: 0 }),
+      1 / 60,
+    );
+    const packed = step.state.entities['npc_right'];
+    const miller = step.state.entities['npc_left'];
+    expect(packed?.position[0]).toBeCloseTo(1.4 / 60, 5);
+    expect(packed?.position[2]).toBe(0.4);
+    expect(miller).toBeDefined();
+    if (miller === undefined) {
+      return;
+    }
+    expect(xzDistance(miller.position, [10, 1, 0])).toBeLessThanOrEqual(10);
+    expect(miller.position[2]).not.toBe(0);
+  });
+
+  it('does not let an idle body on the destination stall arrival', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_idle: makeTestEntity('npc_idle', {
+          position: [2, 0, 0],
+          waypointId: 'wp_dest',
+        }),
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          position: [0, 0, 0],
+          activePath: [{ waypointId: 'wp_dest', spaceId: 'space_alpha', position: [2, 0, 0] }],
+        }),
+      },
+    });
+    let current = state;
+    let arrived = false;
+    for (let frame = 0; frame < 120 && !arrived; frame += 1) {
+      const step = stepKinematics(current, 1 / 60);
+      current = step.state;
+      arrived = step.arrivals.some((event) => event.waypointId === 'wp_dest');
+    }
+    expect(arrived).toBe(true);
+    expect(current.entities['npc_idle']?.position).toEqual([2, 0, 0]);
+  });
+
+  it('does not separate entities that are in different spaces', () => {
+    const step = stepKinematics(
+      movingPair({}, { spaceId: 'space_beta', separationWeight: 1 }),
+      1 / 60,
+    );
+    expect(step.state.entities['npc_left']?.position[2]).toBe(0);
+    expect(step.state.entities['npc_right']?.position[2]).toBe(0.4);
+  });
+
+  it('snaps onto a target inside 0.05m instead of sliding off an overlapping body', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          position: [0, 3, 0],
+          activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.04, 3, 0] }],
+        }),
+        npc_block: makeTestEntity('npc_block', {
+          position: [0.04, 3, 0],
+          waypointId: 'wp_near',
+        }),
+      },
+    });
+    const step = stepKinematics(state, 1 / 60);
+    expect(step.state.entities['npc_walk']?.position).toEqual([0.04, 3, 0]);
+    expect(step.arrivals[0]?.waypointId).toBe('wp_near');
+  });
+
+  it('matches plain path integration for a lone walker', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_lone: makeTestEntity('npc_lone', {
+          cognitivePhase: 'moving',
+          activePath: [
+            { waypointId: 'wp_mid', spaceId: 'space_alpha', position: [1, 0, 0] },
+            { waypointId: 'wp_end', spaceId: 'space_alpha', position: [2, 0, 0] },
+          ],
+        }),
+      },
+    });
+    const step = stepKinematics(state, 0.5);
+    expect(step.state.entities['npc_lone']?.position[0]).toBeCloseTo(0.7, 5);
+    expect(step.state.entities['npc_lone']?.position[1]).toBe(0);
+    expect(step.state.entities['npc_lone']?.position[2]).toBe(0);
+    expect(step.arrivals).toHaveLength(0);
+  });
+
+  it('keeps leftover time when a close waypoint is already reachable', () => {
+    const neighbor = makeTestEntity('npc_block', {
+      position: [0.04, 0, 0],
+      waypointId: 'wp_near',
+    });
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_block: neighbor,
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          pendingDwellSeconds: 10,
+          activePath: [
+            { waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.04, 0, 0] },
+            { waypointId: 'wp_far', spaceId: 'space_alpha', position: [10, 0, 0] },
+          ],
+        }),
+      },
+    });
+    const step = stepKinematics(state, 1);
+    expect(step.arrivals.map((event) => event.waypointId)).toEqual(['wp_near']);
+    expect(step.state.entities['npc_walk']?.position[0]).toBeCloseTo(1.4, 5);
+    expect(step.state.entities['npc_walk']?.cognitivePhase).toBe('moving');
+  });
+
+  it('does not teleport a stationary mover onto a nearby waypoint', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_block: makeTestEntity('npc_block', { position: [0.04, 5, 0] }),
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          walkSpeedMetersPerSec: 0,
+          position: [0, 1, 0],
+          activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.04, 5, 0] }],
+        }),
+      },
+    });
+    const step = stepKinematics(state, 1 / 60);
+    expect(step.arrivals).toHaveLength(0);
+    expect(step.state.entities['npc_walk']?.position).toEqual([0, 1, 0]);
+  });
+
+  it('does not slide past the current waypoint', () => {
+    const state = createInitialWorldState({
+      epochId: 'epoch_test',
+      entities: {
+        npc_idle: makeTestEntity('npc_idle', { position: [-0.4, 0, 0] }),
+        npc_walk: makeTestEntity('npc_walk', {
+          cognitivePhase: 'moving',
+          activePath: [{ waypointId: 'wp_mark', spaceId: 'space_alpha', position: [1, 0, 0] }],
+        }),
+      },
+    });
+    const step = stepKinematics(state, 0.7);
+    const walked = step.state.entities['npc_walk']?.position[0] ?? 0;
+    expect(walked).toBeLessThanOrEqual(1);
+    expect(step.state.entities['npc_walk']?.position).toEqual([1, 0, 0]);
+    expect(step.arrivals[0]?.waypointId).toBe('wp_mark');
   });
 });

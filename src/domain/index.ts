@@ -143,6 +143,12 @@ export {
   type WaypointArrivalEvent,
 } from './simulation/KinematicsEngine.js';
 export {
+  type EmbodiedHashBody,
+  insertEmbodiedBodies,
+  SPATIAL_HASH_CELL_METERS,
+  SpatialHashGrid,
+} from './simulation/SpatialHashGrid.js';
+export {
   planWaypointPath,
   type PortalGate,
   truncatePathAtClosedPortals,

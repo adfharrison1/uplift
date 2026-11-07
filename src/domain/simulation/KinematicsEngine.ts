@@ -6,12 +6,23 @@
  * snaps to exact waypoint coordinates, emits `WaypointArrivalEvent`s in path order, advances
  * human-paced cognitive timers (`deliberating -> moving -> performing_dwell -> cooldown -> idle|awaiting_trigger`),
  * carries leftover intra-frame time across phase transitions, waterfalls zero-duration phases in a single pass
- * under `FAST_EVAL_PACING_CONFIG`, and freezes when `paused`.
+ * under `FAST_EVAL_PACING_CONFIG`, and freezes when `paused`. Moving embodied
+ * entities also take a same-space XZ separation slide from start-of-step positions.
  */
+import type { SpaceKind } from '../registries/EpochBlueprints.js';
 import type { CognitivePhase, EntitySimulationState, WorldState } from './WorldState.js';
+import {
+  type EmbodiedHashBody,
+  insertEmbodiedBodies,
+  type SpatialHashGrid,
+} from './SpatialHashGrid.js';
 
 const ZERO_SEGMENT_EPSILON_METERS = 1e-6;
 const TIME_EPSILON_SECONDS = 1e-9;
+const SEPARATION_RADIUS_METERS = 0.75;
+const SEPARATION_SNAP_RADIUS_METERS = 0.05;
+const SEPARATION_METERS_PER_SECOND = 0.15;
+const SEPARATION_REMAINING_FRACTION = 0.25;
 
 export interface WaypointArrivalEvent {
   readonly entityId: string;
@@ -37,6 +48,26 @@ interface PhaseStepOutcome {
   readonly entity: EntitySimulationState;
   readonly leftoverDt: number;
 }
+
+interface SeparationSample {
+  readonly dirX: number;
+  readonly dirZ: number;
+  readonly hasNeighbor: boolean;
+  readonly weight: number;
+}
+
+interface SeparationContext {
+  readonly grid: SpatialHashGrid;
+  readonly entities: WorldState['entities'];
+  readonly frameDtSeconds: number;
+}
+
+const NO_SEPARATION: SeparationSample = {
+  dirX: 0,
+  dirZ: 0,
+  hasNeighbor: false,
+  weight: 0,
+};
 
 function normalizeAngleRadians(angle: number): number {
   let a = angle;
@@ -185,12 +216,127 @@ function enterPerformingDwell(
   };
 }
 
+function separationSample(
+  entity: EntitySimulationState,
+  context: SeparationContext,
+): SeparationSample {
+  const weight = entity.separationWeight ?? 1;
+  if (!context.grid.has(entity.entityId) || !(weight > 0)) {
+    return NO_SEPARATION;
+  }
+  const originX = entity.position[0];
+  const originZ = entity.position[2];
+  let accX = 0;
+  let accZ = 0;
+  let hasNeighbor = false;
+  for (const otherId of context.grid.query(originX, originZ, SEPARATION_RADIUS_METERS)) {
+    if (otherId === entity.entityId) {
+      continue;
+    }
+    const other = context.entities[otherId];
+    if (other === undefined || other.spaceId !== entity.spaceId) {
+      continue;
+    }
+    hasNeighbor = true;
+    const awayX = originX - other.position[0];
+    const awayZ = originZ - other.position[2];
+    const apart = Math.hypot(awayX, awayZ);
+    if (apart <= ZERO_SEGMENT_EPSILON_METERS) {
+      accX += entity.entityId < otherId ? -1 : 1;
+    } else {
+      accX += awayX / apart;
+      accZ += awayZ / apart;
+    }
+  }
+  const accLen = Math.hypot(accX, accZ);
+  if (!hasNeighbor || accLen <= ZERO_SEGMENT_EPSILON_METERS) {
+    return { dirX: 0, dirZ: 0, hasNeighbor, weight };
+  }
+  return { dirX: accX / accLen, dirZ: accZ / accLen, hasNeighbor, weight };
+}
+
+/** Largest scale in `[0, 1]` that keeps XZ distance to the target from growing past `startDist`. */
+function maxOffsetScale(
+  walkedX: number,
+  walkedZ: number,
+  offsetX: number,
+  offsetZ: number,
+  targetX: number,
+  targetZ: number,
+  startDist: number,
+): number {
+  const a = offsetX * offsetX + offsetZ * offsetZ;
+  if (a <= ZERO_SEGMENT_EPSILON_METERS) {
+    return 0;
+  }
+  const toTargetX = targetX - walkedX;
+  const toTargetZ = targetZ - walkedZ;
+  const c = toTargetX * toTargetX + toTargetZ * toTargetZ - startDist * startDist;
+  if (c > 1e-9) {
+    return 0;
+  }
+  const b = -2 * (toTargetX * offsetX + toTargetZ * offsetZ);
+  const discriminant = b * b - 4 * a * c;
+  if (discriminant < 0) {
+    return 0;
+  }
+  const upper = (-b + Math.sqrt(discriminant)) / (2 * a);
+  if (!Number.isFinite(upper) || upper <= 0) {
+    return 0;
+  }
+  return upper >= 1 ? 1 : upper;
+}
+
+function separationSlide(
+  sample: SeparationSample,
+  frameDtSeconds: number,
+  segDx: number,
+  segDz: number,
+  walkedX: number,
+  walkedZ: number,
+  targetX: number,
+  targetZ: number,
+  startDist: number,
+): { readonly x: number; readonly z: number } {
+  const cap =
+    sample.weight *
+    Math.min(
+      SEPARATION_METERS_PER_SECOND * frameDtSeconds,
+      SEPARATION_REMAINING_FRACTION * startDist,
+    );
+  if (!(cap > 0)) {
+    return { x: 0, z: 0 };
+  }
+  let offsetX = sample.dirX * cap;
+  let offsetZ = sample.dirZ * cap;
+  const segLen = Math.hypot(segDx, segDz);
+  if (segLen > ZERO_SEGMENT_EPSILON_METERS) {
+    const forwardX = segDx / segLen;
+    const forwardZ = segDz / segLen;
+    const along = offsetX * forwardX + offsetZ * forwardZ;
+    if (along < 0) {
+      offsetX -= forwardX * along;
+      offsetZ -= forwardZ * along;
+    } else if (along > 0) {
+      const remainAlong = (targetX - walkedX) * forwardX + (targetZ - walkedZ) * forwardZ;
+      if (along > remainAlong) {
+        const excess = along - Math.max(0, remainAlong);
+        offsetX -= forwardX * excess;
+        offsetZ -= forwardZ * excess;
+      }
+    }
+  }
+  const scale = maxOffsetScale(walkedX, walkedZ, offsetX, offsetZ, targetX, targetZ, startDist);
+  return { x: offsetX * scale, z: offsetZ * scale };
+}
+
 function advanceEntityPath(
   entity: EntitySimulationState,
   dtSeconds: number,
   deliberationScale: number,
   arrivals: WaypointArrivalEvent[],
   transitions: CognitivePhaseTransitionEvent[],
+  separation: SeparationContext,
 ): PhaseStepOutcome {
   if (entity.cognitivePhase !== 'moving') {
     return { entity, leftoverDt: 0 };
@@ -210,6 +356,7 @@ function advanceEntityPath(
   const path = entity.activePath;
   const speed = entity.walkSpeedMetersPerSec;
   const yawSpeed = entity.yawSpeedRadiansPerSec;
+  const sample = separationSample(entity, separation);
 
   while (pathIndex < path.length && remainingDt > TIME_EPSILON_SECONDS) {
     const target = path[pathIndex];
@@ -272,9 +419,47 @@ function advanceEntityPath(
     }
 
     const ratio = (speed * timeSpent) / dist;
-    pos0 += dx * ratio;
+    const xzRemaining = Math.hypot(dx, dz);
+    const walkedX = pos0 + dx * ratio;
+    const walkedZ = pos2 + dz * ratio;
+    const slide = separationSlide(
+      sample,
+      separation.frameDtSeconds,
+      dx,
+      dz,
+      walkedX,
+      walkedZ,
+      target.position[0],
+      target.position[2],
+      xzRemaining,
+    );
+    const nextX = walkedX + slide.x;
+    const nextZ = walkedZ + slide.z;
+    const snapCloseNeighbor =
+      xzRemaining <= SEPARATION_SNAP_RADIUS_METERS && sample.hasNeighbor && sample.weight > 0;
+    const landedOnTarget =
+      Math.hypot(target.position[0] - nextX, target.position[2] - nextZ) <=
+      ZERO_SEGMENT_EPSILON_METERS;
+    if (snapCloseNeighbor || landedOnTarget) {
+      pos0 = target.position[0];
+      pos1 = target.position[1];
+      pos2 = target.position[2];
+      currentSpaceId = target.spaceId;
+      currentWaypointId = target.waypointId;
+      remainingDt = 0;
+      pathIndex += 1;
+      arrivals.push({
+        entityId: entity.entityId,
+        waypointId: target.waypointId,
+        spaceId: target.spaceId,
+        position: [pos0, pos1, pos2],
+        terminalArrival: pathIndex >= path.length,
+      });
+      continue;
+    }
+    pos0 = nextX;
     pos1 += dy * ratio;
-    pos2 += dz * ratio;
+    pos2 = nextZ;
     remainingDt = 0;
     break;
   }
@@ -304,6 +489,7 @@ function stepSingleEntity(
   deliberationScale: number,
   arrivals: WaypointArrivalEvent[],
   transitions: CognitivePhaseTransitionEvent[],
+  separation: SeparationContext,
 ): EntitySimulationState {
   let current = entity;
   let remainingDt = dtSeconds;
@@ -323,6 +509,7 @@ function stepSingleEntity(
         deliberationScale,
         arrivals,
         transitions,
+        separation,
       );
       current = motion.entity;
       remainingDt = motion.leftoverDt;
@@ -363,8 +550,14 @@ function stepSingleEntity(
  * Steps continuous 60Hz spatial kinematics and human-paced cognitive timers by `dtSeconds`.
  * Rejects negative or non-finite `dtSeconds` with `RangeError`, and returns the input state
  * unchanged when `dtSeconds === 0` or `state.paused === true`.
+ * `spaceKinds` omitted treats every entity as embodied. `off_stage_region` entities
+ * still follow paths and are left out of separation.
  */
-export function stepKinematics(state: WorldState, dtSeconds: number): KinematicsStepResult {
+export function stepKinematics(
+  state: WorldState,
+  dtSeconds: number,
+  spaceKinds?: ReadonlyMap<string, SpaceKind> | undefined,
+): KinematicsStepResult {
   if (!Number.isFinite(dtSeconds) || dtSeconds < 0) {
     throw new RangeError(
       `dtSeconds must be a non-negative finite number, received: ${String(dtSeconds)}`,
@@ -383,6 +576,24 @@ export function stepKinematics(state: WorldState, dtSeconds: number): Kinematics
   const arrivals: WaypointArrivalEvent[] = [];
   const cognitiveTransitions: CognitivePhaseTransitionEvent[] = [];
   const deliberationScale = state.pacingConfig.deliberationScale;
+  const hashedBodies: EmbodiedHashBody[] = [];
+  for (const id of sortedEntityIds) {
+    const entity = state.entities[id];
+    if (entity === undefined) {
+      continue;
+    }
+    hashedBodies.push({
+      entityId: id,
+      spaceId: entity.spaceId,
+      x: entity.position[0],
+      z: entity.position[2],
+    });
+  }
+  const separation: SeparationContext = {
+    grid: insertEmbodiedBodies(hashedBodies, spaceKinds),
+    entities: state.entities,
+    frameDtSeconds: dtSeconds,
+  };
 
   for (const id of sortedEntityIds) {
     const original = state.entities[id];
@@ -395,6 +606,7 @@ export function stepKinematics(state: WorldState, dtSeconds: number): Kinematics
       deliberationScale,
       arrivals,
       cognitiveTransitions,
+      separation,
     );
   }
 
