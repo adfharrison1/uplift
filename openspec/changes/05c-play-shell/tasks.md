@@ -4,7 +4,7 @@
 
 ## 2. First launch content
 
-- [ ] 2.1 Add `src/content/scene/starterHoldCharacterVisuals.ts` with a `CharacterVisualBlueprint` for `char_player_operative` and `char_yard_walker`, export `STARTER_HOLD_STAGE_DIRECTORY` from `src/content/scene/starterHoldStages.ts`, and re-export both from `src/content/index.ts`. Assert in `tests/unit/content/StarterHoldStage.test.ts` that every proving-slice character id has a visual with that id and that both pack spaces resolve a stage | Verify: `npx vitest run tests/unit/content/StarterHoldStage.test.ts && npm run verify` | Commit: `feat(content): give the proving slice visible bodies and a stage directory`
+- [x] 2.1 Add `src/content/scene/starterHoldCharacterVisuals.ts` with a `CharacterVisualBlueprint` for `char_player_operative` and `char_yard_walker`, export `STARTER_HOLD_STAGE_DIRECTORY` from `src/content/scene/starterHoldStages.ts`, and re-export both from `src/content/index.ts`. Assert in `tests/unit/content/StarterHoldStage.test.ts` that every proving-slice character id has a visual with that id and that both pack spaces resolve a stage | Verify: `npx vitest run tests/unit/content/StarterHoldStage.test.ts && npm run verify` | Commit: `feat(content): give the proving slice visible bodies and a stage directory`
 
 ## 3. The page
 

@@ -83,3 +83,9 @@ export const STARTER_HOLD_CHAMBERS_STAGE: StageSceneBlueprint = stageFor(
   'stone',
   [],
 );
+
+export const STARTER_HOLD_STAGE_DIRECTORY: Readonly<Record<string, StageSceneBlueprint>> =
+  deepFreeze({
+    [STARTER_HOLD_YARD_STAGE.spaceId]: STARTER_HOLD_YARD_STAGE,
+    [STARTER_HOLD_CHAMBERS_STAGE.spaceId]: STARTER_HOLD_CHAMBERS_STAGE,
+  });

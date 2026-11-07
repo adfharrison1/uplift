@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { SimulationCoordinator } from '../../../src/application/index.js';
 import {
   STARTER_HOLD_CHAMBERS_STAGE,
+  STARTER_HOLD_CHARACTER_VISUALS,
   STARTER_HOLD_PACK,
+  STARTER_HOLD_STAGE_DIRECTORY,
   STARTER_HOLD_YARD_STAGE,
 } from '../../../src/content/index.js';
 import {
@@ -87,6 +89,28 @@ describe('starter hold pack and stages', () => {
     expect(STARTER_HOLD_PACK.offices).toBeUndefined();
     expect(STARTER_HOLD_PACK.rivals).toBeUndefined();
     expect(STARTER_HOLD_PACK.threads).toBeUndefined();
+  });
+
+  it('gives every pack character a visual with the same id and resolves both stages', () => {
+    const characters = STARTER_HOLD_PACK.characters ?? [];
+    expect(characters.length).toBeGreaterThan(0);
+    for (const character of characters) {
+      const matches = STARTER_HOLD_CHARACTER_VISUALS.filter(
+        (visual) => visual.characterId === character.id,
+      );
+      expect(matches).toEqual([
+        expect.objectContaining({
+          characterId: character.id,
+          lineageId: character.lineageId,
+        }),
+      ]);
+    }
+    expect(Object.keys(STARTER_HOLD_STAGE_DIRECTORY).sort()).toEqual(
+      STARTER_HOLD_PACK.spaces.map((space) => space.id).sort(),
+    );
+    for (const space of STARTER_HOLD_PACK.spaces) {
+      expect(STARTER_HOLD_STAGE_DIRECTORY[space.id]?.spaceId).toBe(space.id);
+    }
   });
 
   it('poses the chambers door as a portal on the yard stage', () => {
