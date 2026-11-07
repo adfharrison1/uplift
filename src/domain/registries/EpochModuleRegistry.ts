@@ -165,6 +165,8 @@ export class EpochModuleRegistry {
       }
     }
 
+    this.assertWaypointNeighbors(stagedWaypoints);
+
     for (const [id, kind] of stagedIds) {
       this.allIds.set(id, kind);
     }
@@ -184,6 +186,7 @@ export class EpochModuleRegistry {
       const prop = PropBlueprintSchema.parse(rawProp);
       this.stageGlobalId(stagedIds, prop.id, 'prop');
       this.assertWaypointInSpace('prop', prop.id, prop.spaceId, prop.waypointId);
+      this.assertPortalTargets(prop);
       stagedProps.set(prop.id, prop);
     }
 
@@ -200,7 +203,12 @@ export class EpochModuleRegistry {
     const stagedCharacters = new Map<string, CharacterBlueprint>();
 
     for (const rawChar of characterList) {
-      const char = CharacterBlueprintSchema.parse(rawChar);
+      this.assertSeparationWeight(rawChar);
+      const parsed = CharacterBlueprintSchema.parse(rawChar);
+      const char: CharacterBlueprint = {
+        ...parsed,
+        separationWeight: parsed.separationWeight ?? 1,
+      };
       this.stageGlobalId(stagedIds, char.id, 'character');
       this.assertWaypointInSpace(
         'character',
@@ -495,6 +503,10 @@ export class EpochModuleRegistry {
     return Array.from(this.characters.values());
   }
 
+  public getAllSpaces(): ReadonlyArray<SpaceNodeBlueprint> {
+    return Array.from(this.spaces.values());
+  }
+
   public getAllProps(): ReadonlyArray<PropBlueprint> {
     return Array.from(this.props.values());
   }
@@ -569,6 +581,138 @@ export class EpochModuleRegistry {
     target.clear();
     for (const [k, v] of snapshot) {
       target.set(k, v);
+    }
+  }
+
+  private assertWaypointNeighbors(
+    stagedWaypoints: ReadonlyMap<
+      string,
+      { readonly spaceId: string; readonly waypoint: WaypointBlueprint }
+    >,
+  ): void {
+    const lookup = (waypointId: string) =>
+      stagedWaypoints.get(waypointId) ?? this.waypointsById.get(waypointId);
+
+    for (const [waypointId, entry] of stagedWaypoints) {
+      const seenNeighbors = new Set<string>();
+      for (const neighborId of entry.waypoint.neighborWaypointIds ?? []) {
+        if (neighborId === waypointId) {
+          throw new Error(`Waypoint '${waypointId}' cannot list itself as a neighbor`);
+        }
+        if (seenNeighbors.has(neighborId)) {
+          throw new Error(
+            `Waypoint '${waypointId}' has duplicate neighborWaypointId '${neighborId}'`,
+          );
+        }
+        seenNeighbors.add(neighborId);
+        const neighbor = lookup(neighborId);
+        if (neighbor === undefined) {
+          throw new Error(
+            `Waypoint '${waypointId}' references unknown neighborWaypointId '${neighborId}'`,
+          );
+        }
+        if (neighbor.spaceId !== entry.spaceId) {
+          throw new Error(
+            `Waypoint '${waypointId}' neighbor '${neighborId}' belongs to space '${neighbor.spaceId}', not '${entry.spaceId}'`,
+          );
+        }
+      }
+    }
+
+    const spaceIds = new Set<string>();
+    for (const entry of stagedWaypoints.values()) {
+      spaceIds.add(entry.spaceId);
+    }
+
+    for (const spaceId of spaceIds) {
+      const waypointsInSpace: Array<{ readonly id: string; readonly waypoint: WaypointBlueprint }> =
+        [];
+      for (const [id, entry] of this.waypointsById) {
+        if (entry.spaceId === spaceId && !stagedWaypoints.has(id)) {
+          waypointsInSpace.push({ id, waypoint: entry.waypoint });
+        }
+      }
+      for (const [id, entry] of stagedWaypoints) {
+        if (entry.spaceId === spaceId) {
+          waypointsInSpace.push({ id, waypoint: entry.waypoint });
+        }
+      }
+
+      const usesExplicitNeighbors = waypointsInSpace.some(
+        (entry) => (entry.waypoint.neighborWaypointIds?.length ?? 0) > 0,
+      );
+      if (!usesExplicitNeighbors) {
+        continue;
+      }
+
+      const degree = new Map<string, number>();
+      for (const entry of waypointsInSpace) {
+        degree.set(entry.id, 0);
+      }
+      for (const entry of waypointsInSpace) {
+        for (const neighborId of entry.waypoint.neighborWaypointIds ?? []) {
+          if (!degree.has(neighborId)) {
+            continue;
+          }
+          degree.set(entry.id, (degree.get(entry.id) ?? 0) + 1);
+          degree.set(neighborId, (degree.get(neighborId) ?? 0) + 1);
+        }
+      }
+      for (const [id, neighborCount] of degree) {
+        if (neighborCount === 0) {
+          throw new Error(
+            `Waypoint '${id}' has no neighbor in the explicit neighbor graph for space '${spaceId}'`,
+          );
+        }
+      }
+    }
+  }
+
+  private assertPortalTargets(prop: PropBlueprint): void {
+    const hasTargetSpace = prop.portalTargetSpaceId !== undefined;
+    const hasTargetWaypoint = prop.portalTargetWaypointId !== undefined;
+    if (hasTargetSpace !== hasTargetWaypoint) {
+      throw new Error(
+        `Prop '${prop.id}' must set both portalTargetSpaceId and portalTargetWaypointId`,
+      );
+    }
+    if ((hasTargetSpace || hasTargetWaypoint) && prop.portalState === undefined) {
+      throw new Error(`Prop '${prop.id}' portal targets require portalState`);
+    }
+    if (!hasTargetSpace || !hasTargetWaypoint || prop.portalState === undefined) {
+      return;
+    }
+    const targetSpaceId = prop.portalTargetSpaceId;
+    const targetWaypointId = prop.portalTargetWaypointId;
+    if (targetSpaceId === undefined || targetWaypointId === undefined) {
+      return;
+    }
+    const sourceSpace = this.spaces.get(prop.spaceId);
+    if (sourceSpace === undefined || !sourceSpace.connectedSpaceIds.includes(targetSpaceId)) {
+      throw new Error(
+        `Prop '${prop.id}' portal target space '${targetSpaceId}' is not connected to '${prop.spaceId}'`,
+      );
+    }
+    const targetWaypoint = this.waypointsById.get(targetWaypointId);
+    if (targetWaypoint === undefined || targetWaypoint.spaceId !== targetSpaceId) {
+      throw new Error(
+        `Prop '${prop.id}' portal target waypoint '${targetWaypointId}' does not belong to space '${targetSpaceId}'`,
+      );
+    }
+  }
+
+  private assertSeparationWeight(raw: unknown): void {
+    if (typeof raw !== 'object' || raw === null || !('separationWeight' in raw)) {
+      return;
+    }
+    const record = raw as { readonly id?: unknown; readonly separationWeight?: unknown };
+    if (record.separationWeight === undefined) {
+      return;
+    }
+    const characterId = typeof record.id === 'string' ? record.id : 'unknown';
+    const weight = record.separationWeight;
+    if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0 || weight > 1) {
+      throw new Error(`Character '${characterId}' separationWeight must be between 0 and 1`);
     }
   }
 

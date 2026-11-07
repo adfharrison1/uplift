@@ -96,6 +96,8 @@ export interface EntitySimulationState {
   readonly emergencyVice: string;
   readonly inertiaPillars: ReadonlyArray<InertiaPillar>;
   readonly pendingStimuli: ReadonlyArray<PendingStimulus>;
+  /** Omitted means `1` (personal space). `0` keeps packed authored spacing. */
+  readonly separationWeight?: number | undefined;
 }
 
 export interface PropSimulationState {

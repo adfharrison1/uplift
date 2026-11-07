@@ -28,6 +28,7 @@ export type SpaceKind = z.infer<typeof SpaceKindSchema>;
 export const WaypointBlueprintSchema = z.object({
   id: NonEmptyIdSchema,
   position: z.tuple([z.number(), z.number(), z.number()]).readonly(),
+  neighborWaypointIds: z.array(NonEmptyIdSchema).readonly().optional(),
 });
 export type WaypointBlueprint = z.infer<typeof WaypointBlueprintSchema>;
 
@@ -50,16 +51,40 @@ export type PortalState = z.infer<typeof PortalStateSchema>;
 export const PropTierSchema = z.enum(['interactive', 'static']);
 export type PropTier = z.infer<typeof PropTierSchema>;
 
-export const PropBlueprintSchema = z.object({
-  id: NonEmptyIdSchema,
-  name: NonEmptyIdSchema,
-  spaceId: NonEmptyIdSchema,
-  waypointId: NonEmptyIdSchema,
-  tier: PropTierSchema,
-  initialState: z.record(z.string(), z.unknown()),
-  portalState: PortalStateSchema.optional(),
-});
+export const PropBlueprintSchema = z
+  .object({
+    id: NonEmptyIdSchema,
+    name: NonEmptyIdSchema,
+    spaceId: NonEmptyIdSchema,
+    waypointId: NonEmptyIdSchema,
+    tier: PropTierSchema,
+    initialState: z.record(z.string(), z.unknown()),
+    portalState: PortalStateSchema.optional(),
+    portalTargetSpaceId: NonEmptyIdSchema.optional(),
+    portalTargetWaypointId: NonEmptyIdSchema.optional(),
+  })
+  .superRefine((prop, ctx) => {
+    const hasTargetSpace = prop.portalTargetSpaceId !== undefined;
+    const hasTargetWaypoint = prop.portalTargetWaypointId !== undefined;
+    if (hasTargetSpace !== hasTargetWaypoint) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Prop '${prop.id}' must set both portalTargetSpaceId and portalTargetWaypointId`,
+      });
+    }
+    if ((hasTargetSpace || hasTargetWaypoint) && prop.portalState === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Prop '${prop.id}' portal targets require portalState`,
+      });
+    }
+  });
 export type PropBlueprint = z.infer<typeof PropBlueprintSchema>;
+
+/** A portal adds a navigation edge only when both target ids are authored. `portalState` alone is hinge/acoustic. */
+export function hasPortalNavigationEdge(prop: PropBlueprint): boolean {
+  return prop.portalTargetSpaceId !== undefined && prop.portalTargetWaypointId !== undefined;
+}
 
 export const InertiaPillarKindSchema = z.enum([
   'doctrine',
@@ -98,6 +123,7 @@ export const CharacterBlueprintSchema = z.object({
   drives: z.record(z.string(), z.number().min(0).max(1)),
   emergencyVice: NonEmptyIdSchema,
   inertiaPillars: z.array(InertiaPillarSchema).readonly(),
+  separationWeight: z.number().min(0).max(1).optional(),
 });
 export type CharacterBlueprint = z.infer<typeof CharacterBlueprintSchema>;
 
