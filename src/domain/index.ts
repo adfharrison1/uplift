@@ -143,6 +143,12 @@ export {
   type WaypointArrivalEvent,
 } from './simulation/KinematicsEngine.js';
 export {
+  planWaypointPath,
+  type PortalGate,
+  truncatePathAtClosedPortals,
+  type WaypointPlan,
+} from './simulation/WaypointNavigator.js';
+export {
   applyLegacyToCharacterBlueprints,
   type CivilizationLegacyState,
   civilizationLegacyFromRecordedScars,
