@@ -10,7 +10,7 @@
 
 ## 3. Starter yard and chambers slice
 
-- [ ] 3.1 Add `src/content/worlds/starterHoldPack.ts` and `src/content/scene/starterHoldStages.ts`, re-export both from `src/content/index.ts`, and cover registration, open-door crossing, and barred refusal in `tests/unit/content/StarterHoldStage.test.ts` | Verify: `npx vitest run tests/unit/content/StarterHoldStage.test.ts && npm run verify` | Commit: `feat(content): add the yard and chambers embodied proving slice`
+- [x] 3.1 Add `src/content/worlds/starterHoldPack.ts` and `src/content/scene/starterHoldStages.ts`, re-export both from `src/content/index.ts`, and cover registration, open-door crossing, and barred refusal in `tests/unit/content/StarterHoldStage.test.ts` | Verify: `npx vitest run tests/unit/content/StarterHoldStage.test.ts && npm run verify` | Commit: `feat(content): add the yard and chambers embodied proving slice`
 
 ## 4. Hierarchical documentation and 6-subagent review
 

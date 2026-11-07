@@ -11,3 +11,5 @@ export {
   DEFAULT_HIGHGLASS_CHARACTER_VISUALS,
   DEFAULT_HIGHGLASS_VISUAL_THEME,
 } from './scene/defaultStageContent.js';
+export { STARTER_HOLD_CHAMBERS_STAGE, STARTER_HOLD_YARD_STAGE } from './scene/starterHoldStages.js';
+export { STARTER_HOLD_PACK } from './worlds/starterHoldPack.js';
