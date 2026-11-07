@@ -204,7 +204,7 @@ operations:
       - "create an atomic git commit with a conventional commit message, and mark it - [x] in tasks.md before starting the next task"
       - "Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/"
       - "Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section"
-      - "After all tasks in a change are delivered, run the mandatory 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence)on the commits in the change, double-check their findings, and commit any verified fixes. run all repository tests (omit AI eval tests if not relevant), and  before concluding"
+      - "After all tasks in a change are delivered, run the mandatory 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence)on the commits in the change, double-check their findings, and commit any verified fixes. run all repository tests (omit AI eval tests if not relevant), and npx verify before concluding"
   archive:
     guidance:
       - "Confirm npm run verify passes, the 6-subagent post-change review has been completed and addressed, and all task commits are clean before archiving"
