@@ -497,3 +497,176 @@ describe('SimulationCoordinator', () => {
     expect(exportedLegacy.communicationsBackboneControllerId).toBe('office_alpha');
   });
 });
+
+function doorCoordinator(options: {
+  readonly portalState: 'open' | 'ajar' | 'closed' | 'barred';
+  readonly startWaypointId: 'wp_lane' | 'wp_door';
+  readonly separationWeight?: number;
+}): SimulationCoordinator {
+  const registry = new EpochModuleRegistry();
+  registry.registerPack({
+    epochId: 'epoch_door',
+    spaces: [
+      {
+        id: 'space_yard',
+        name: 'Yard',
+        kind: 'outdoor_area',
+        earshotRadiusMeters: 12,
+        surfaceMaterial: 'mud',
+        acousticClass: 'open_court',
+        ambientMaskLoudness: 0.2,
+        connectedSpaceIds: ['space_room'],
+        waypoints: [
+          { id: 'wp_lane', position: [0, 0, 0] },
+          { id: 'wp_door', position: [4, 0, 0] },
+        ],
+      },
+      {
+        id: 'space_room',
+        name: 'Room',
+        kind: 'indoor_room',
+        earshotRadiusMeters: 6,
+        surfaceMaterial: 'stone',
+        acousticClass: 'tight_interior',
+        ambientMaskLoudness: 0.1,
+        connectedSpaceIds: ['space_yard'],
+        waypoints: [{ id: 'wp_inside', position: [8, 0, 0] }],
+      },
+    ],
+    props: [
+      {
+        id: 'prop_door',
+        name: 'Door',
+        spaceId: 'space_yard',
+        waypointId: 'wp_door',
+        tier: 'interactive',
+        initialState: {},
+        portalState: options.portalState,
+        portalTargetSpaceId: 'space_room',
+        portalTargetWaypointId: 'wp_inside',
+      },
+    ],
+    characters: [
+      {
+        id: 'char_walker',
+        name: 'Walker',
+        lineageId: 'lineage_walker',
+        tier: 'role_routine',
+        startingSpaceId: 'space_yard',
+        startingWaypointId: options.startWaypointId,
+        walkSpeedMetersPerSec: 1.4,
+        yawSpeedRadiansPerSec: 6,
+        listenerThreshold: 0.2,
+        drives: { duty: 0.4 },
+        emergencyVice: 'duty',
+        inertiaPillars: [],
+        ...(options.separationWeight !== undefined
+          ? { separationWeight: options.separationWeight }
+          : {}),
+      },
+    ],
+  });
+  return new SimulationCoordinator({
+    epochId: 'epoch_door',
+    registry,
+    telemetry: new InMemorySessionTelemetry('session_door', createClock()),
+    saveRepository: new InMemorySaveSlotRepository(),
+    clock: createClock(),
+    pacingConfig: FAST_EVAL_PACING_CONFIG,
+  });
+}
+
+describe('waypoint requests and portal truncation', () => {
+  it('copies authored separation weight and rejects an unknown or out-of-range change', () => {
+    const coordinator = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_lane' });
+    expect(coordinator.getWorldState().entities['char_walker']?.separationWeight).toBe(1);
+
+    const packed = doorCoordinator({
+      portalState: 'open',
+      startWaypointId: 'wp_lane',
+      separationWeight: 0,
+    });
+    expect(packed.getWorldState().entities['char_walker']?.separationWeight).toBe(0);
+    packed.dispatchEffects([{ type: 'set_separation_weight', entityId: 'char_walker', weight: 0 }]);
+    expect(() =>
+      packed.dispatchEffects([
+        { type: 'set_separation_weight', entityId: 'char_missing', weight: 0 },
+      ]),
+    ).toThrow(/Unknown entityId 'char_missing'/);
+    expect(packed.getWorldState().entities['char_walker']?.separationWeight).toBe(0);
+    expect(() =>
+      packed.dispatchEffects([
+        { type: 'set_separation_weight', entityId: 'char_walker', weight: 1.5 },
+      ]),
+    ).toThrow();
+    expect(packed.getWorldState().entities['char_walker']?.separationWeight).toBe(0);
+  });
+
+  it('stores a path for a deliberating entity without forcing moving', () => {
+    const coordinator = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_lane' });
+    coordinator.dispatchEffects([
+      {
+        type: 'set_cognitive_phase',
+        entityId: 'char_walker',
+        phase: 'deliberating',
+        durationSeconds: 4,
+      },
+    ]);
+    expect(coordinator.requestWaypointMove('char_walker', 'wp_inside')).toBe('path');
+    const entity = coordinator.getWorldState().entities['char_walker'];
+    expect(entity?.cognitivePhase).toBe('deliberating');
+    expect(entity?.activePath.map((target) => target.waypointId)).toEqual(['wp_door', 'wp_inside']);
+  });
+
+  it('leaves state unchanged for a blocked, unknown, already-there, or paused request', () => {
+    const barred = doorCoordinator({ portalState: 'barred', startWaypointId: 'wp_lane' });
+    const before = barred.getWorldState();
+    const entityBefore = before.entities['char_walker'];
+    expect(barred.requestWaypointMove('char_walker', 'wp_inside')).toBe('blocked');
+    expect(barred.getWorldState()).toBe(before);
+    expect(barred.getWorldState().entities['char_walker']).toEqual(entityBefore);
+
+    expect(barred.requestWaypointMove('char_missing', 'wp_door')).toBe('unknown_entity');
+    expect(barred.requestWaypointMove('char_walker', 'wp_missing')).toBe('unknown_waypoint');
+    expect(barred.requestWaypointMove('char_walker', 'wp_lane')).toBe('already_there');
+    expect(barred.getWorldState()).toBe(before);
+
+    barred.setPaused(true);
+    const paused = barred.getWorldState();
+    expect(barred.requestWaypointMove('char_walker', 'wp_door')).toBe('paused');
+    expect(barred.requestSetPortalState('prop_door', 'open')).toBe('paused');
+    expect(barred.getWorldState()).toBe(paused);
+    expect(barred.getWorldState().entities['char_walker']?.activePath).toEqual([]);
+    expect(barred.getWorldState().props['prop_door']?.portalState).toBe('barred');
+  });
+
+  it('returns unknown_prop without changing portal state', () => {
+    const coordinator = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_lane' });
+    const before = coordinator.getWorldState();
+    expect(coordinator.requestSetPortalState('prop_missing', 'barred')).toBe('unknown_prop');
+    expect(coordinator.getWorldState()).toBe(before);
+  });
+
+  it('drops the far side when the door bars before a large step', () => {
+    const fromLane = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_lane' });
+    expect(fromLane.requestWaypointMove('char_walker', 'wp_inside')).toBe('path');
+    expect(fromLane.requestSetPortalState('prop_door', 'barred')).toBe('updated');
+    const laneStep = fromLane.stepFrame(10);
+    const laneEntity = laneStep.state.entities['char_walker'];
+    expect(laneEntity?.spaceId).toBe('space_yard');
+    expect(laneEntity?.position).toEqual([4, 0, 0]);
+    expect(laneStep.arrivals.map((event) => event.waypointId)).toEqual(['wp_door']);
+
+    const atDoor = doorCoordinator({ portalState: 'open', startWaypointId: 'wp_door' });
+    expect(atDoor.requestWaypointMove('char_walker', 'wp_inside')).toBe('path');
+    expect(atDoor.getWorldState().entities['char_walker']?.activePath).toEqual([
+      expect.objectContaining({ waypointId: 'wp_inside', spaceId: 'space_room' }),
+    ]);
+    expect(atDoor.requestSetPortalState('prop_door', 'barred')).toBe('updated');
+    const doorStep = atDoor.stepFrame(10);
+    expect(doorStep.arrivals).toHaveLength(0);
+    expect(doorStep.state.entities['char_walker']?.spaceId).toBe('space_yard');
+    expect(doorStep.state.entities['char_walker']?.position).toEqual([4, 0, 0]);
+    expect(doorStep.state.entities['char_walker']?.activePath).toEqual([]);
+  });
+});

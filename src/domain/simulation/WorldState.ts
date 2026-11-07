@@ -162,6 +162,11 @@ export const WorldEffectSchema = z.discriminatedUnion('type', [
     path: z.array(WaypointTargetSchema).min(1).readonly(),
   }),
   z.object({
+    type: z.literal('set_separation_weight'),
+    entityId: z.string().trim().min(1),
+    weight: z.number().min(0).max(1),
+  }),
+  z.object({
     type: z.literal('set_cognitive_phase'),
     entityId: z.string().trim().min(1),
     phase: CognitivePhaseSchema,

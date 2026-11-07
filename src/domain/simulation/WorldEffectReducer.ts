@@ -83,6 +83,20 @@ function applySingleWorldEffect(state: WorldState, effect: WorldEffect): WorldSt
       };
     }
 
+    case 'set_separation_weight': {
+      const entity = requireEntity(state.entities, effect.entityId);
+      return {
+        ...state,
+        entities: {
+          ...state.entities,
+          [entity.entityId]: {
+            ...entity,
+            separationWeight: effect.weight,
+          },
+        },
+      };
+    }
+
     case 'move_entity_to_waypoint': {
       const entity = requireEntity(state.entities, effect.entityId);
       const updatedEntity: EntitySimulationState = {

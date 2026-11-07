@@ -24,6 +24,9 @@ import {
   type LineageMutation,
   parseLegacyState,
   type PendingStimulus,
+  planWaypointPath,
+  type PortalGate,
+  type PortalState,
   type PropSimulationState,
   type SaveSlotEnvelope,
   type SaveSlotRepositoryPort,
@@ -31,8 +34,11 @@ import {
   type SessionTelemetryPort,
   type SimulationPacingConfig,
   SimulationPacingConfigSchema,
+  type SpaceKind,
+  type SpaceNodeBlueprint,
   StateSliceStore,
   stepKinematics,
+  truncatePathAtClosedPortals,
   type TelemetryClock,
   type TelemetryLevel,
   type WorldEffect,
@@ -74,6 +80,11 @@ export interface ConsumedStimulusRecord {
   readonly entityId: string;
   readonly stimulus: PendingStimulus;
 }
+
+export type WaypointMoveRequestStatus =
+  'path' | 'already_there' | 'blocked' | 'unknown_waypoint' | 'unknown_entity' | 'paused';
+
+export type PortalStateRequestStatus = 'updated' | 'unknown_prop' | 'paused';
 
 export interface CognitivePulseResult {
   readonly state: WorldState;
@@ -148,6 +159,7 @@ function buildInitialEntities(
       emergencyVice: char.emergencyVice,
       inertiaPillars: char.inertiaPillars.map((p) => ({ ...p })),
       pendingStimuli: [],
+      separationWeight: char.separationWeight ?? 1,
     };
   }
   return entities;
@@ -165,6 +177,52 @@ function buildInitialProps(registry: EpochModuleRegistry): Record<string, PropSi
     };
   }
   return props;
+}
+
+interface PortalEdge {
+  readonly propId: string;
+  readonly nearWaypointId: string;
+  readonly farWaypointId: string;
+}
+
+function portalEdgesFromRegistry(registry: EpochModuleRegistry): readonly PortalEdge[] {
+  const edges: PortalEdge[] = [];
+  for (const prop of registry.getAllProps()) {
+    const farWaypointId = prop.portalTargetWaypointId;
+    if (prop.portalTargetSpaceId === undefined || farWaypointId === undefined) {
+      continue;
+    }
+    edges.push({
+      propId: prop.id,
+      nearWaypointId: prop.waypointId,
+      farWaypointId,
+    });
+  }
+  return edges;
+}
+
+function truncateEntityPaths(state: WorldState, portals: ReadonlyArray<PortalGate>): WorldState {
+  let changed = false;
+  const entities: Record<string, EntitySimulationState> = {};
+  for (const [entityId, entity] of Object.entries(state.entities)) {
+    if (entity === undefined || entity.activePath.length === 0) {
+      if (entity !== undefined) {
+        entities[entityId] = entity;
+      }
+      continue;
+    }
+    const truncated = truncatePathAtClosedPortals(entity.waypointId, entity.activePath, portals);
+    if (truncated === entity.activePath) {
+      entities[entityId] = entity;
+      continue;
+    }
+    changed = true;
+    entities[entityId] = { ...entity, activePath: truncated };
+  }
+  if (!changed) {
+    return state;
+  }
+  return { ...state, entities };
 }
 
 function inferEffectTelemetryCategory(effects: ReadonlyArray<WorldEffect>): string {
@@ -195,6 +253,9 @@ export class SimulationCoordinator {
   private resolvedCharacters: ReadonlyArray<CharacterBlueprint>;
   private inheritedLegacyState: CivilizationLegacyState | undefined;
   private state: WorldState;
+  private readonly spaces: ReadonlyArray<SpaceNodeBlueprint>;
+  private readonly spaceKinds: ReadonlyMap<string, SpaceKind>;
+  private readonly portalEdges: readonly PortalEdge[];
 
   public constructor(options: SimulationCoordinatorOptions) {
     const trimmedEpochId = options.epochId.trim();
@@ -203,6 +264,13 @@ export class SimulationCoordinator {
     }
 
     this.registry = options.registry;
+    this.spaces = this.registry.getAllSpaces();
+    const spaceKinds = new Map<string, SpaceKind>();
+    for (const space of this.spaces) {
+      spaceKinds.set(space.id, space.kind);
+    }
+    this.spaceKinds = spaceKinds;
+    this.portalEdges = portalEdgesFromRegistry(this.registry);
     this.telemetry = options.telemetry;
     this.saveRepository = options.saveRepository;
     this.clock = options.clock;
@@ -230,6 +298,19 @@ export class SimulationCoordinator {
 
   public getWorldState(): WorldState {
     return this.state;
+  }
+
+  private portalGates(): readonly PortalGate[] {
+    const gates: PortalGate[] = [];
+    for (const edge of this.portalEdges) {
+      const prop = this.state.props[edge.propId];
+      gates.push({
+        nearWaypointId: edge.nearWaypointId,
+        farWaypointId: edge.farWaypointId,
+        ...(prop?.portalState !== undefined ? { portalState: prop.portalState } : {}),
+      });
+    }
+    return gates;
   }
 
   public getRegistry(): EpochModuleRegistry {
@@ -282,6 +363,7 @@ export class SimulationCoordinator {
    * - Clamps `dtSeconds` to `MAX_FRAME_DT_SECONDS` (`0.25s`) when `allowUnclampedFrameDt === false`,
    *   emitting a `'warn'` telemetry event.
    * - Freezes completely when `state.paused === true`.
+   * - Truncates active paths at closed or barred portals once, before kinematics.
    */
   public stepFrame(dtSeconds: number): KinematicsStepResult {
     if (!Number.isFinite(dtSeconds) || dtSeconds < 0) {
@@ -316,7 +398,8 @@ export class SimulationCoordinator {
       });
     }
 
-    const result = stepKinematics(this.state, effectiveDt);
+    this.state = truncateEntityPaths(this.state, this.portalGates());
+    const result = stepKinematics(this.state, effectiveDt, this.spaceKinds);
     this.state = result.state;
 
     for (const arrival of result.arrivals) {
@@ -353,6 +436,63 @@ export class SimulationCoordinator {
     }
 
     return result;
+  }
+
+  /**
+   * Plans a portal-gated waypoint path and dispatches only `move_entity_to_waypoint`
+   * when a route exists. A deliberating entity keeps that phase. Failure and pause
+   * leave `WorldState` unchanged.
+   */
+  public requestWaypointMove(
+    entityId: string,
+    destinationWaypointId: string,
+  ): WaypointMoveRequestStatus {
+    if (this.state.paused) {
+      return 'paused';
+    }
+    const entity = this.state.entities[entityId];
+    if (entity === undefined) {
+      return 'unknown_entity';
+    }
+    const plan = planWaypointPath(
+      this.spaces,
+      this.portalGates(),
+      entity.waypointId,
+      destinationWaypointId,
+    );
+    if (plan.status !== 'path') {
+      return plan.status;
+    }
+    this.dispatchEffects([
+      {
+        type: 'move_entity_to_waypoint',
+        entityId,
+        path: [...plan.path],
+      },
+    ]);
+    return 'path';
+  }
+
+  /**
+   * Dispatches the existing `update_prop_state` effect. An unknown prop or a pause
+   * leaves `WorldState` unchanged.
+   */
+  public requestSetPortalState(propId: string, portalState: PortalState): PortalStateRequestStatus {
+    if (this.state.paused) {
+      return 'paused';
+    }
+    if (this.state.props[propId] === undefined) {
+      return 'unknown_prop';
+    }
+    this.dispatchEffects([
+      {
+        type: 'update_prop_state',
+        propId,
+        patch: {},
+        portalState,
+      },
+    ]);
+    return 'updated';
   }
 
   /**
