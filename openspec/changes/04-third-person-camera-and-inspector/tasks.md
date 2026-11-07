@@ -5,7 +5,7 @@
 
 ## 2. Three.js Chiaroscuro Stage & Parametric Kitbash Builders
 
-- [ ] 2.1 Implement stepped 3-band chiaroscuro toon material ramp, parametric architectural motif builders, and character posture/wardrobe kitbashers (`src/interfaces/three/StageKitbashBuilders.ts`) plus `ChiaroscuroStageRenderer` (`src/interfaces/three/ChiaroscuroStageRenderer.ts`) with `userData.semanticId` tagging, raycast lookup, and `disposeSceneGraph`, with unit tests in `tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts` | Verify: `npx vitest run tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts && npm run verify` | Commit: `feat(three): add chiaroscuro stage renderer and parametric motif/character kitbashers`
+- [x] 2.1 Implement stepped 3-band chiaroscuro toon material ramp, parametric architectural motif builders, and character posture/wardrobe kitbashers (`src/interfaces/three/StageKitbashBuilders.ts`) plus `ChiaroscuroStageRenderer` (`src/interfaces/three/ChiaroscuroStageRenderer.ts`) with `userData.semanticId` tagging, raycast lookup, and `disposeSceneGraph`, with unit tests in `tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts` | Verify: `npx vitest run tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts && npm run verify` | Commit: `feat(three): add chiaroscuro stage renderer and parametric motif/character kitbashers`
 
 ## 3. F3 Stage/Wardrobe Inspector, Agent DOM Mirror, Starter Content & Disk Bridge
 
