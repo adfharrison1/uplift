@@ -49,7 +49,7 @@ context: |
   Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):
   - Every event (player, NPC, rival operative, orbital, system) and every AI action (input, output, utility/NLP reasoning, and withheld `AdvisoryDuel` clauses) MUST be logged to `./logs/current-session.jsonl` (structured NDJSON via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`.
   - Only the latest session log is retained on new session start, and a Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events).
-  - A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.
+  - A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. `.agents/skills/uplift-design-notes/SKILL.md` is the workflow for processing a raw design-note dump into living docs (topic breakdown, three-agent research, approval, integration, coherence assessment). All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.
   - Multi-session Save/Load persists named session snapshots under `./saves/`.
 
   Code Architecture (standing directive — do not skip):

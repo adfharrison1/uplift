@@ -410,4 +410,24 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
     expect(skillContent).toContain('./saves/');
     expect(skillContent).toContain('Trace-and-Fix Debugging Workflow');
   });
+
+  it('verifies .agents/skills/uplift-design-notes/SKILL.md documents topic breakdown, three-agent research, integration, and final assessment', () => {
+    const skillPath = join(REPO_ROOT, '.agents/skills/uplift-design-notes/SKILL.md');
+    expect(existsSync(skillPath)).toBe(true);
+
+    const skillContent = readFileSync(skillPath, 'utf8');
+    expect(skillContent).toContain('name: uplift-design-notes');
+    expect(skillContent).toContain('## 1. Topic breakdown');
+    expect(skillContent).toContain('## 2. Three-agent research');
+    expect(skillContent).toContain('Game design and precedents');
+    expect(skillContent).toContain('Codebase and architecture fit');
+    expect(skillContent).toContain('Pacing, hardware, and coherence');
+    expect(skillContent).toContain('composer-2.5-fast');
+    expect(skillContent).toContain('grok-4.7-high-fast');
+    expect(skillContent).toContain('## 3. Integration');
+    expect(skillContent).toContain('DESIGN_NOTES.md');
+    expect(skillContent).toContain('openspec/config.yaml');
+    expect(skillContent).toContain('## 4. Final assessment');
+    expect(skillContent).toContain('Wait for approval before editing any living doc.');
+  });
 });
