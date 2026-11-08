@@ -12,6 +12,7 @@ import type {
   EpochVisualTheme,
   StageSceneBlueprint,
 } from '../rendering/SceneVisualBlueprints.js';
+import { assertWaypointsOnStage, spaceOrigin } from '../rendering/SpaceFrame.js';
 import type {
   PortalStateRequestStatus,
   SimulationCoordinator,
@@ -78,6 +79,7 @@ export class PlaySession {
     this.characterVisuals = [...launch.characterVisuals];
     this.theme = launch.theme;
     this.focusEntityId = launch.focusEntityId;
+    this.assertStageFloors();
     this.resolveResident();
   }
 
@@ -95,6 +97,29 @@ export class PlaySession {
 
   public getFreeCamOffset(): readonly [number, number, number] {
     return this.freeCamOffset;
+  }
+
+  /**
+   * Origin of the drawn stage: the center of that space's waypoints on X and Z.
+   * A floor hit from the stage is local and must add this before `clickFloor`.
+   */
+  /** True when the focus entity is standing in the space whose stage is drawn. */
+  public focusSharesDrawnSpace(): boolean {
+    const drawn = this.residentStage?.spaceId;
+    if (drawn === undefined) {
+      return false;
+    }
+    return this.coordinator.getWorldState().entities[this.focusEntityId]?.spaceId === drawn;
+  }
+
+  public getSpaceOrigin(): readonly [number, number, number] {
+    const spaceId =
+      this.residentStage?.spaceId ??
+      this.coordinator.getWorldState().entities[this.focusEntityId]?.spaceId;
+    if (spaceId === undefined) {
+      return [0, 0, 0];
+    }
+    return this.originFor(spaceId);
   }
 
   public setPaused(paused: boolean): void {
@@ -137,8 +162,8 @@ export class PlaySession {
 
   /**
    * Selects the nearest authored waypoint in the focus entity's space when the
-   * point is within `FLOOR_WAYPOINT_RADIUS_METERS` on XZ. Paused sessions do not
-   * query the coordinator.
+   * point is within `FLOOR_WAYPOINT_RADIUS_METERS` on XZ. `x` and `z` are world
+   * meters. Paused sessions do not query the coordinator.
    */
   public clickFloor(x: number, z: number): FloorClickResult {
     if (this.coordinator.getWorldState().paused) {
@@ -181,6 +206,7 @@ export class PlaySession {
       cameraDeAnchored: this.cameraDeAnchored,
       freeCamOffset: this.freeCamOffset,
       reduceMotionAndFlashing: this.reduceMotionAndFlashing,
+      spaceOrigin: this.getSpaceOrigin(),
     });
     return {
       renderFrame,
@@ -219,6 +245,27 @@ export class PlaySession {
       }
     }
     return nearestId;
+  }
+
+  private originFor(spaceId: string): readonly [number, number, number] {
+    const space = this.coordinator
+      .getRegistry()
+      .getAllSpaces()
+      .find((candidate) => candidate.id === spaceId);
+    if (space === undefined) {
+      return [0, 0, 0];
+    }
+    return spaceOrigin(space.waypoints.map((waypoint) => waypoint.position));
+  }
+
+  private assertStageFloors(): void {
+    const spaces = this.coordinator.getRegistry().getAllSpaces();
+    for (const stage of this.stages.values()) {
+      const space = spaces.find((candidate) => candidate.id === stage.spaceId);
+      if (space !== undefined) {
+        assertWaypointsOnStage(stage, space.waypoints);
+      }
+    }
   }
 
   /** Looks up the focus entity's space before replacing the resident stage. */

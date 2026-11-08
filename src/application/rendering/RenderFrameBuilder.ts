@@ -14,6 +14,7 @@
  * Depends strictly inward on `src/domain/` and `./SceneVisualBlueprints.js` with zero Three.js or DOM globals.
  */
 import type { CognitivePhase, PortalState, WorldState } from '../../domain/index.js';
+import { toLocal } from './SpaceFrame.js';
 import {
   type CameraVolumeBlueprint,
   type CharacterVisualBlueprint,
@@ -132,6 +133,8 @@ export interface BuildRenderFrameInput {
   readonly hoveredSemanticId?: string | null | undefined;
   readonly selectedSemanticId?: string | null | undefined;
   readonly reduceMotionAndFlashing?: boolean | undefined;
+  /** World-space center of the drawn space. Entity and prop positions subtract it. */
+  readonly spaceOrigin?: readonly [number, number, number] | undefined;
 }
 
 export interface WallSegmentPlacement {
@@ -507,13 +510,14 @@ export class RenderFrameBuilder {
       this.lastStageId = stage.stageId;
     }
 
+    const origin = input.spaceOrigin ?? [0, 0, 0];
     let focusPos: readonly [number, number, number] = [0, 0, 0];
     if (input.focusPositionOverride !== undefined) {
       focusPos = sanitizeFiniteTriple(input.focusPositionOverride);
     } else if (input.focusEntityId !== undefined) {
       const entity = worldState.entities[input.focusEntityId];
-      if (entity !== undefined) {
-        focusPos = sanitizeFiniteTriple(entity.position);
+      if (entity !== undefined && entity.spaceId === stage.spaceId) {
+        focusPos = toLocal(sanitizeFiniteTriple(entity.position), origin);
       }
     }
 
@@ -683,17 +687,18 @@ export class RenderFrameBuilder {
       const visual =
         visualsByCharId.get(entity.entityId) ?? visualsByLineageId.get(entity.lineageId);
       const heightScale = visual?.heightScale ?? 1.0;
+      const localPosition = toLocal(entity.position, origin);
       const headAnchor: readonly [number, number, number] = [
-        entity.position[0],
-        entity.position[1] + 1.8 * heightScale,
-        entity.position[2],
+        localPosition[0],
+        localPosition[1] + 1.8 * heightScale,
+        localPosition[2],
       ];
 
       entityPoses.push({
         entityId: entity.entityId,
         semanticId: formatCharacterRootSemanticId(entity.entityId),
         spaceId: entity.spaceId,
-        position: [entity.position[0], entity.position[1], entity.position[2]],
+        position: localPosition,
         yawRadians: entity.yawRadians,
         headAnchorWorldPosition: headAnchor,
         cognitivePhase: entity.cognitivePhase,
@@ -708,7 +713,7 @@ export class RenderFrameBuilder {
         propId: stageProp.propId,
         semanticId: stageProp.semanticId,
         kitbashId: stageProp.kitbashId,
-        position: [stageProp.position[0], stageProp.position[1], stageProp.position[2]],
+        position: toLocal(stageProp.position, origin),
         yawRadians: stageProp.yawRadians,
         hingeYawOffsetRadians: stageProp.isPortal ? portalStateToHingeYaw(portalState) : 0,
         scale: [stageProp.scale[0], stageProp.scale[1], stageProp.scale[2]],

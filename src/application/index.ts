@@ -26,6 +26,14 @@ export {
   type WallSegmentPlacement,
 } from './rendering/RenderFrameBuilder.js';
 export {
+  assertWaypointsOnStage,
+  localXzInsideFootprint,
+  spaceOrigin,
+  type StageFootprintMeters,
+  toLocal,
+  toWorld,
+} from './rendering/SpaceFrame.js';
+export {
   type CameraVolumeBlueprint,
   CameraVolumeBlueprintSchema,
   type CanonicalMotifId,

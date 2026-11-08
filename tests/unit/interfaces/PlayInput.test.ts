@@ -258,6 +258,42 @@ describe('play input and the stage lab', () => {
     expect(coordinator.getWorldState().props['prop_door']?.portalState).toBe('ajar');
   });
 
+  it('does not move a focus entity who has left the drawn stage', () => {
+    const { coordinator, session } = doorSession('open', false);
+    session.setFocusEntity('char_other');
+    const input = createPlayInput({
+      session,
+      isPaused: () => false,
+      waypointIds: () => ['wp_lane', 'wp_door'],
+      entityIds: () => ['char_other'],
+      readPortalState: () => undefined,
+      raycastFloor: () => ({ x: -4, z: 0 }),
+      raycastPortal: () => null,
+      raycastPick: () => null,
+      onPick: () => undefined,
+    });
+    input.pointerDown();
+    expect(coordinator.getWorldState().entities['char_other']?.activePath).toEqual([]);
+  });
+
+  it('adds the space origin to a stage-local floor hit', () => {
+    const { session } = doorSession();
+    const input = createPlayInput({
+      session,
+      isPaused: () => false,
+      waypointIds: () => ['wp_inside'],
+      entityIds: () => ['char_walker'],
+      readPortalState: () => undefined,
+      raycastFloor: () => ({ x: 0, z: 0 }),
+      raycastPortal: () => null,
+      raycastPick: () => null,
+      onPick: () => undefined,
+    });
+    input.pointerDown();
+    expect(session.getSpaceOrigin()).toEqual([8, 0, 0]);
+    expect(input.statusText()).toBe('already_there');
+  });
+
   it('pauses on F3 and backtick, and arrow keys change only the camera offset', () => {
     const { coordinator, session } = doorSession();
     const input = createPlayInput({

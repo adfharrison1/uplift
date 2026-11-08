@@ -71,7 +71,15 @@ While paused, a picked `semanticId` is passed to `StageInspectorDomMirror` and t
 
 No new dependency. Tests stay on the Node environment. The WebGL path is not part of `npm run verify`.
 
-### 7. Layer placement
+### 7. Each stage is drawn in its space frame
+
+Simulation positions stay in world coordinates. The space origin is the center of that space's waypoints on X and Z, with Y at 0. The chambers waypoints at x = 6 and x = 8, z = 1, give origin `(7, 0, 1)`, so the hearth is local `(1, 0, 0)`. The yard waypoints at x = 0 and x = 4 give origin `(2, 0, 0)`. A 12 m by 10 m floor centered on the stage covers both. The earlier 18 m chambers width is not the rule.
+
+`src/application/rendering/SpaceFrame.ts` owns `spaceOrigin`, `toLocal`, and `toWorld`. `PlaySession` passes the resident space origin into `buildFrame`. Entity positions and stage prop positions subtract it. The floor, the walls, the lights, and the camera volume stay centered on the stage and are not translated. A floor hit is stage-local. `playInput.ts` adds the origin before `clickFloor`, which still compares world meters. That conversion runs only when the focus entity is in the drawn space, so a click on a kept stage cannot start a move in another space. The camera follows the focus entity only while that entity is in the drawn space. Authored Y is kept, so a stair can leave the slab vertically. A waypoint whose local XZ is outside the footprint throws from the `PlaySession` constructor and does not change `WorldState`. The renderer does not receive a room width or an entity id in order to place the floor.
+
+The dev HUD focus list shows entities in the focus entity's space. `setFocusEntity` still accepts an entity in another registered space and swaps the stage.
+
+### 8. Layer placement
 
 ```text
 src/application/shell/PlaySession.ts     # pure session; no DOM, no content ids

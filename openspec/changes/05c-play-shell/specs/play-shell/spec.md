@@ -125,6 +125,25 @@ The renderer SHALL create an entity mesh only when a `CharacterVisualBlueprint.c
 - **WHEN** the proving-slice pack is loaded
 - **THEN** `char_player_operative` and `char_yard_walker` SHALL each resolve a `CharacterVisualBlueprint` with that same `characterId`
 
+### Requirement: A stage is drawn in its space frame
+The floor footprint SHALL be the walkable rectangle in the space's local frame. The space origin SHALL be the center of that space's waypoint positions on X and Z, with Y at 0. Entity positions and stage prop positions SHALL subtract that origin before they are placed on the stage. The floor, the walls, the lights, and the camera volume SHALL stay centered on the stage. A floor click SHALL add the origin before it is compared with waypoints, and SHALL NOT move the focus entity when that entity is not in the drawn space. The camera SHALL follow the focus entity only while that entity is in the drawn space, and SHALL look at the stage center otherwise. Waypoint Y SHALL be kept. A waypoint whose local XZ lies outside the footprint SHALL reject the launch and SHALL NOT change `WorldState`. The renderer SHALL NOT be given a room width or an entity id in order to place the floor. The dev HUD focus list SHALL list entities in the focus entity's space. `setFocusEntity` SHALL still accept an entity in another registered space.
+
+#### Scenario: The chambers hearth sits on the authored floor
+- **WHEN** the proving-slice chambers stage is launched
+- **THEN** its footprint SHALL be 12 m by 10 m and the hearth waypoint's local position SHALL lie on that floor
+
+#### Scenario: A waypoint outside the floor rejects the launch
+- **WHEN** a launch stage's space has a waypoint whose local XZ is outside the footprint
+- **THEN** constructing the session SHALL throw and `WorldState` SHALL be unchanged
+
+#### Scenario: A floor hit on a kept stage does not move a departed focus
+- **WHEN** the focus entity's space has no stage and a floor hit lands on the kept stage
+- **THEN** the focus entity's path SHALL be unchanged and the camera SHALL look at the stage center
+
+#### Scenario: A stage-local floor hit selects the world waypoint
+- **WHEN** the simulation is unpaused and a floor hit is the stage-local position of a waypoint in the drawn space
+- **THEN** the session SHALL call `requestWaypointMove` for that waypoint
+
 ### Requirement: Reduced motion is honored
 The shell SHALL set `reduceMotionAndFlashing` from the browser `prefers-reduced-motion` setting on every render frame. Waypoint commands and the request status SHALL be text, not color alone.
 

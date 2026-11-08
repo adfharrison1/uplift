@@ -309,7 +309,7 @@ describe('PlaySession', () => {
             acousticClass: 'open_court',
             ambientMaskLoudness: 0.1,
             connectedSpaceIds: [],
-            waypoints: [{ id: 'wp_away', position: [3, 0, 0] }],
+            waypoints: [{ id: 'wp_away', position: [30, 0, 0] }],
           },
         ],
         characters: [
@@ -331,6 +331,7 @@ describe('PlaySession', () => {
     expect(session.getResidentStage()?.spaceId).toBe('space_home');
     expect(session.getStatus()).toBe('missing_stage');
     expect(session.frame(1 / 60).renderFrame?.activeSpaceId).toBe('space_home');
+    expect(session.frame(1 / 60).renderFrame?.camera.lookAt[0]).toBe(0);
 
     const swapped = new PlaySession(coordinator, new RenderFrameBuilder(), {
       stages: new Map([
@@ -370,6 +371,111 @@ describe('PlaySession', () => {
     expect(session.requestPortalState('prop_missing', 'barred')).toBe('unknown_prop');
     expect(coordinator.getWorldState()).toBe(before);
     expect(session.getStatus()).toBe('unknown_prop');
+  });
+
+  it('draws entities and props around the space origin and keeps authored height', () => {
+    const coordinator = coordinatorFor(
+      {
+        epochId: 'epoch_play',
+        spaces: [
+          {
+            id: 'space_lane',
+            name: 'Lane',
+            kind: 'outdoor_area',
+            earshotRadiusMeters: 12,
+            surfaceMaterial: 'mud',
+            acousticClass: 'open_court',
+            ambientMaskLoudness: 0.2,
+            connectedSpaceIds: [],
+            waypoints: [
+              { id: 'wp_gate', position: [0, 1.25, 0] },
+              { id: 'wp_door', position: [4, 1.25, 0] },
+            ],
+          },
+        ],
+        characters: [character('char_walker', 'space_lane', 'wp_door')],
+      },
+      'fast',
+    );
+    const stage = StageSceneBlueprintSchema.parse({
+      stageId: 'stage_space_lane',
+      spaceId: 'space_lane',
+      themeId: 'theme_play',
+      footprint: { widthMeters: 20, depthMeters: 20, heightMeters: 6 },
+      floorSemanticId: 'space_lane.floor',
+      wallSegments: [
+        {
+          segmentId: 'seg_01',
+          compass: 'north',
+          semanticId: 'space_lane.wall.north.seg_01',
+        },
+      ],
+      props: [
+        {
+          propId: 'prop_marker',
+          semanticId: 'space_lane.prop.prop_marker',
+          position: [4, 1.25, 0],
+        },
+      ],
+      cameraVolumes: [
+        {
+          id: 'vol_space_lane',
+          spaceId: 'space_lane',
+          boundsMin: [-10, 0, -10],
+          boundsMax: [10, 6, 10],
+          offset: [0, 8, 10],
+        },
+      ],
+    });
+    const session = new PlaySession(coordinator, new RenderFrameBuilder(), {
+      stages: new Map([['space_lane', stage]]),
+      characterVisuals: [],
+      theme: THEME,
+      focusEntityId: 'char_walker',
+    });
+    expect(session.getSpaceOrigin()).toEqual([2, 0, 0]);
+    const frame = session.frame(1 / 60).renderFrame;
+    expect(frame?.entityPoses.find((pose) => pose.entityId === 'char_walker')?.position).toEqual([
+      2, 1.25, 0,
+    ]);
+    expect(frame?.propPoses[0]?.position).toEqual([2, 1.25, 0]);
+  });
+
+  it('rejects a launch whose waypoint is outside the stage floor', () => {
+    const coordinator = coordinatorFor(
+      {
+        epochId: 'epoch_play',
+        spaces: [
+          {
+            id: 'space_wide',
+            name: 'Wide',
+            kind: 'outdoor_area',
+            earshotRadiusMeters: 12,
+            surfaceMaterial: 'mud',
+            acousticClass: 'open_court',
+            ambientMaskLoudness: 0.2,
+            connectedSpaceIds: [],
+            waypoints: [
+              { id: 'wp_near', position: [0, 0, 0] },
+              { id: 'wp_far', position: [40, 0, 0] },
+            ],
+          },
+        ],
+        characters: [character('char_walker', 'space_wide', 'wp_near')],
+      },
+      'fast',
+    );
+    const world = coordinator.getWorldState();
+    expect(
+      () =>
+        new PlaySession(coordinator, new RenderFrameBuilder(), {
+          stages: new Map([['space_wide', makeStage('space_wide')]]),
+          characterVisuals: [],
+          theme: THEME,
+          focusEntityId: 'char_walker',
+        }),
+    ).toThrow("Waypoint 'wp_near' is outside the floor of space 'space_wide'");
+    expect(coordinator.getWorldState()).toBe(world);
   });
 });
 

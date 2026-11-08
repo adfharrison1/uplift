@@ -4,12 +4,13 @@
  * Waypoint commands run while paused and while unpaused. Floor and portal
  * raycasts run only while unpaused. Free-cam writes the camera offset.
  */
-import type { PlaySession } from '../../application/index.js';
+import { toWorld, type PlaySession } from '../../application/index.js';
 import type { PortalState } from '../../domain/index.js';
 
 const PORTAL_STATES = ['open', 'ajar', 'closed', 'barred'] as const;
 const FREE_CAM_STEP_METERS = 0.5;
 
+/** A floor hit in stage space. The play session's space origin converts it to world meters. */
 export interface FloorPoint {
   readonly x: number;
   readonly z: number;
@@ -90,10 +91,11 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
       when: () => !options.isPaused(),
       handle: () => {
         const floor = options.raycastFloor();
-        if (floor === null) {
+        if (floor === null || !options.session.focusSharesDrawnSpace()) {
           return false;
         }
-        const status = options.session.clickFloor(floor.x, floor.z);
+        const world = toWorld([floor.x, 0, floor.z], options.session.getSpaceOrigin());
+        const status = options.session.clickFloor(world[0], world[2]);
         if (status !== 'miss') {
           setStatus(status);
         }

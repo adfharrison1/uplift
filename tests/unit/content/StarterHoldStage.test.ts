@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { SimulationCoordinator } from '../../../src/application/index.js';
+import { SimulationCoordinator, spaceOrigin, toLocal } from '../../../src/application/index.js';
 import {
   STARTER_HOLD_CHAMBERS_STAGE,
   STARTER_HOLD_CHARACTER_VISUALS,
@@ -114,6 +114,8 @@ describe('starter hold pack and stages', () => {
       if (stage === undefined) {
         continue;
       }
+      expect(stage.footprint.widthMeters).toBe(12);
+      expect(stage.footprint.depthMeters).toBe(10);
       const halfWidth = stage.footprint.widthMeters / 2;
       const halfDepth = stage.footprint.depthMeters / 2;
       const volume = stage.cameraVolumes[0];
@@ -121,14 +123,20 @@ describe('starter hold pack and stages', () => {
       if (volume === undefined) {
         continue;
       }
+      const origin = spaceOrigin(space.waypoints.map((waypoint) => waypoint.position));
       for (const waypoint of space.waypoints) {
-        const [x, , z] = waypoint.position;
+        const [x, , z] = toLocal(waypoint.position, origin);
         expect(Math.abs(x)).toBeLessThanOrEqual(halfWidth);
         expect(Math.abs(z)).toBeLessThanOrEqual(halfDepth);
         expect(x).toBeGreaterThanOrEqual(volume.boundsMin[0]);
         expect(x).toBeLessThanOrEqual(volume.boundsMax[0]);
         expect(z).toBeGreaterThanOrEqual(volume.boundsMin[2]);
         expect(z).toBeLessThanOrEqual(volume.boundsMax[2]);
+      }
+      for (const prop of stage.props) {
+        const [x, , z] = toLocal(prop.position, origin);
+        expect(Math.abs(x)).toBeLessThanOrEqual(halfWidth);
+        expect(Math.abs(z)).toBeLessThanOrEqual(halfDepth);
       }
     }
   });
