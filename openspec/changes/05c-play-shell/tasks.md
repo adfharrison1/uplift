@@ -20,6 +20,6 @@
 
 ## 6. Interface guides
 
-- [ ] 6.1 Update `src/content/AGENTS.md`, `src/interfaces/README.md`, and `src/interfaces/AGENTS.md` to name the composition modules once they exist. Describe the modules. Do not cite an OpenSpec change id | Verify: `npm run verify` | Commit: `docs(ui): document the campaign play shell`
+- [x] 6.1 Update `src/content/AGENTS.md`, `src/interfaces/README.md`, and `src/interfaces/AGENTS.md` to name the composition modules once they exist. Describe the modules. Do not cite an OpenSpec change id | Verify: `npm run verify` | Commit: `docs(ui): document the campaign play shell`
 
 After task 6.1 is committed, run the post-change 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence) and fold verified fixes before archive. That review is not one of the six task commits.
