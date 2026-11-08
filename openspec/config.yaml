@@ -40,7 +40,7 @@ context: |
   - **Role pretext choices (planned: 07b-role-pretext-choices)**: A conversation choice row will be able to spend a held role pretext and dispatch that row's effect. Depends on `07` and the office pretext registry. [planned - revisable]
   - **Fund spending choices (planned: 07c-fund-spending-choices)**: A conversation choice row will be able to spend a fund and dispatch that row's effect. Depends on `07` and the fund instruments. [planned - revisable]
   - **Advisory duel omission (planned: 07d-advisory-duel-omission)**: Freezing out `advisor_integral` or `advisor_particular` will make that advisor sulk and drop an `omissible` clause. The lace page stays `07`. Depends on `07`. [planned - revisable]
-  - **Local AI eval framework (planned: 05f-eval-and-replay)**: One offline runner, `eval/` via `npm run eval:ai`, will score every AI subject. A case will be a fixture, a fixed seed, a fast-eval rollout, and assertions. The command stays outside `npm run verify`. The first case rolls the shipped headless simulation. Utility and rival cases register on `06`, and written-register cases on `07e`. Depends on archived `03` and `05`. [planned - revisable]
+  - **Local AI eval framework (planned: 05f-eval-and-replay)**: One offline runner, `eval/` via `npm run eval:ai`, will score every AI subject. A case will be a fixture, a fixed seed, a fast-eval rollout, and assertions. The command stays outside `npm run verify`. The first case rolls the shipped headless simulation. Utility and rival cases register on `06`, and written-register cases on `07e`. The text-pipeline gate and generation suites register once the text port exists (`07-text-port-and-history`, `08-generated-text-adapter`). Depends on archived `03` and `05`. [planned - revisable]
   - **Voice-register evals (planned: 07e-voice-register-evals)**: A suite on the `05f` runner: golden fixtures for banned lemmas, cadence, and clause omission. Depends on `05f`, `07`, and `07d`. "Voice" is a written register. [planned - revisable]
 
   Sound Design, Gameplay Acoustics & Procedural Web Audio:
@@ -50,28 +50,25 @@ context: |
 
   Hardware & Local-Only Constraints (non-negotiable):
   - Target baseline hardware: 2019 Intel Core i7 MacBook Pro, 16GB RAM (macOS / cross-platform browser & desktop).
-  - 100% local execution after `git clone`, `npm install`, and `npm run setup-models`.
+  - 100% local execution after `git clone` and `npm install`. A local model cache under `./public/models/` is planned for the text-generation worker and is gated on the timing spike (planned: 08a-timing-spike).
   - ZERO external API keys, ZERO paid tokens, and ZERO cloud LLM/inference calls in runtime or tests.
-  - Local NLP uses a 3-stage hybrid pipeline:
-      1. Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act, and rival linguistic tell detection).
-      2. Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`, ~23MB cached in `./public/models/`).
-      3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas — never generic chatbot prose).
+  - There is no free-text player input (P2). A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring. Text is produced behind `TextSourcePort`, with a `LineBrief` and a three-tier gate (lexical, grounding, tell compliance) (planned: 08a-timing-spike, 07-text-port-and-history, 08-generated-text-adapter). Rival linguistic tell detection is a deterministic `tellProfile` post-pass, and the sub-millisecond lexical check is gate tier 1. The local text-generation worker (`@huggingface/transformers`, an infrastructure adapter) is planned and gated on the timing spike. Lines are grounded in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas, never generic chatbot prose. See DESIGN_NOTES, Text pipeline (P2).
 
   Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):
-  - Every event (player, NPC, rival operative, orbital, system) and every AI action (input, output, utility/NLP reasoning, and withheld `AdvisoryDuel` clauses) MUST be logged to `./logs/current-session.jsonl` (structured NDJSON via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`.
-  - Only the latest session log is retained on new session start, and a Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events).
+  - **Telemetry policy (revisable; browser wiring planned: telemetry-wiring)**: The Act log records what happened and is the gameplay record (planned: cm-act-envelope-and-rolls). Telemetry holds crash, warn, frame spikes and hash checkpoints. Decision traces come from replaying the scripted command log with tracing on (planned: 05f-eval-and-replay): log nothing, replay with tracing. Today the infrastructure NDJSON logger writes `./logs/current-session.jsonl` (via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`. The browser game does not feed it yet; it keeps an in-memory log. Browser telemetry will go through the guarded bridge with a crash ring buffer flushed on throw (planned: telemetry-wiring).
+  - The logger will never truncate: the previous session rotates into `./logs/prev/` (planned: hx-ops-safety; today a new session still empties both files). A Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events). Query `limit`, `tail` and `count-by`, a newline guard and an `ENOSPC` warning are planned (telemetry-wiring).
   - A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. `.agents/skills/uplift-design-notes/SKILL.md` is the workflow for processing a raw design-note dump into living docs (topic breakdown, three-agent research, approval, integration, coherence assessment). All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.
   - Multi-session Save/Load persists named session snapshots under `./saves/`.
 
   Code Architecture (standing directive — do not skip):
   - Clean Architecture layering with strict inward dependency direction:
       interfaces (three, hud, composition, cli) -> application -> domain
-      infrastructure (onnx worker, telemetry logger/compactor, save repository) -> domain
+      infrastructure (telemetry logger/compactor, save repository; planned: local text-generation worker) -> domain
       content (eras, characters, behaviors, worlds, mechanics) -> domain (for logic/topology) or interfaces/three (for 3D scene blueprints only)
       domain MUST NOT import application, infrastructure, interfaces, content packs, `three`, `@huggingface/transformers`, or DOM/WebGL APIs.
   - Pure Reducer & Typed Plugin State:
       Behaviors and mechanics never mutate `WorldState` in place; they return `WorldEffect[]` applied by a deterministic reducer.
-      Custom module state MUST use typed `StateSliceKey<T>` descriptors, never untyped `Record<string, any>`.
+      Custom module state MUST use typed `StateSliceKey<T>` descriptors, never untyped `Record<string, any>`. Planned (hx-slice-store): slices are frozen on write and shared on read (today the store deep-clones), and a descriptor gains an optional schema, version, migrate and a plain-JSON guard; see DESIGN_NOTES, State, saves and pack identity.
       Freeze extension: no new registry kind or effect without content that uses it. Settle the clock model before more time-bearing schema. No deletion. A test in the kind-table change guards this (planned: pre-05b-launch-validation), not prose.
       The rules spine R1 to R8, the seven-primitive core model and the system graph are written in DESIGN_NOTES.md (planned, revisable). This file points at them and does not copy them.
   - Strict TypeScript, ESLint, Prettier & Zero `any` Policy (non-negotiable):
@@ -79,7 +76,7 @@ context: |
       Both implicit `any` and explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) are strictly forbidden across `src/` and `tests/` and enforced by both ESLint (`@typescript-eslint/no-explicit-any`) and `tests/architecture/layer_boundaries.test.ts` during `npm run verify`.
       Prettier formats on save (`.vscode/settings.json`), and Husky + `lint-staged` run ESLint and Prettier on every `git commit`.
   - Determinism:
-      `Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`. All simulation randomness MUST use the injected `SeededRandom` (Xorshift32) instance.
+      `Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`. All simulation randomness MUST use the injected `SeededRandom` (Xorshift32) instance. Planned (hx-determinism-harness): the same ban covers `src/application/`, plus `node:*`, `require` and non-literal `import()`; see DESIGN_NOTES, Engineering rules.
 
   Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:
   - Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or feudal-only lore. All game content and sub-types register through declarative, epoch-agnostic module contracts (`EpochModuleRegistry`):
@@ -174,7 +171,7 @@ rules:
     - "Include the pinned-versions table verified on 2026-10-29 (including CVE-patched runtime/package versions)"
     - "Document layer placement (domain, application, infrastructure, interfaces, content) for every new module"
     - "Ensure 3D presentation data (StageSceneBlueprint) never leaks into src/domain/"
-    - "Detail verification commands and headless testing strategy (no WebGL or 23MB ONNX load required in fast unit tests)"
+    - "Detail verification commands and headless testing strategy (no WebGL or model load required in fast unit tests)"
     - "Specify which section README.md and AGENTS.md files are created or updated by the change"
   tasks:
     - "Limit each change to 4-6 atomic tasks achievable within a single session"

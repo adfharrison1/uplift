@@ -38,7 +38,7 @@ Each section is `shipped`, `partial` or `planned`, with the roadmap ids that own
 | Competing Spacefaring Civilizations | partial | `06-rivals-remote-evidence` |
 | Illustrative Seed Exemplars & Tone Benchmarks | planned | `11-epoch1-content` |
 | Visual & UI Direction, Stage Lab, DOM inspection | shipped | `04-third-person-camera-and-inspector` |
-| Lightweight AI & NLP Evaluation Framework | planned | `05f-eval-and-replay` |
+| Local AI Evaluation Testing Framework | planned | `05f-eval-and-replay` |
 | Human-Paced NPC Cognition & Anti-Thundering-Herd | partial | `06-utility-ai` |
 | Sound Design, Gameplay Acoustics & Sound Lab | planned | `audio-minimal`, `05a-audio-engine`, `05a-sound-lab` |
 | 0. Campaign Pacing, 4-Clock Hierarchy, Curve Envelopes | planned | `05b-1-watch-clock-and-time-spend`, `05b-2-envelopes-and-gates`, `05b-2-storylets-and-lab` |
@@ -54,7 +54,8 @@ Each section is `shipped`, `partial` or `planned`, with the roadmap ids that own
 | 10. Conversation Paging and Ambient Lines | planned | `07-dialogue-paging` |
 | 10a to 10e. Interruption, Pretext, Fund, Duel, Voice Register | planned | `07a-dialogue-interruption` to `07e-voice-register-evals` |
 | 11. Local AI Eval Framework | planned | `05f-eval-and-replay` |
-| Engineering rules | planned | `hx-ops-safety` |
+| Text pipeline (P2) | planned | `08a-timing-spike`, `07-text-port-and-history`, `07-authoring-kit`, `08-generated-text-adapter`, `06-rivals-remote-evidence` |
+| Engineering rules | planned | `hx-ops-safety`, `hx-1-legacy-clamp-seed-scramble`, `hx-slice-store`, `hx-save-integrity`, `hx-fixed-step-tick`, `hx-kinematics`, `hx-reducer-and-frame-safety`, `hx-determinism-harness`, `pre-05b-launch-validation`, `pre-05b-pack-source-of-truth`, `pre-05d-renderer-shape`, `05b-1-watch-clock-and-time-spend`, `05f-eval-and-replay`, `telemetry-wiring` |
 | Rules spine R1 to R8 | partial (rules written here, R8 open; enforcing tests to be written by the owning changes) | `docs-spine-and-roadmap` |
 | Core model: seven primitives | planned | `05b-1-watch-clock-and-time-spend`, `cm-act-envelope-and-rolls`, `cm-observation-notebook`, `cm-presence-and-materialize`, `cm-threads-and-pillars`, `cm-ledger-and-emergency`, `07-text-port-and-history` |
 | Leverage Chain | planned | `cm-threads-and-pillars` |
@@ -158,7 +159,7 @@ Who writes and who reads each part of the economy and threat state today. Drafte
 | `pressureStocks` (3 scalars) | `adjust_pressure_stock`, `insert_illicit_instrument` (reducer only, no dispatcher) | snapshot and save serialisation only; the design wants storylets, travel cues, absorption friction, epoch export | reducer. No real writer, no real reader, no decay. |
 | `discoveryLayer` (1 global ordinal) | `insert_illicit_instrument` (ratchet via `maxDiscoveryLayer`), `set_discovery_layer` (raw setter that can also lower it) | nothing; the design wants rival strike (`attributed` or higher), `extracted_overt`, trial | reducer. No reader and no referent (discovered by whom?). |
 | illicit instruments (3 modes) | nobody (no player action, no office, no Delta cost) | the reducer case that fans out to stock, layer and scar | reducer. No writer, no cost, not tied to the orbital pass. Only the schema and the reducer reference it. |
-| `activeEmergencyId` (1 slot) | `trigger_emergency`, `resolve_emergency` (no dispatcher) | `RenderFrameBuilder` camera fog, roll and pitch (the only real consumer in the economy graph); `compound_emergency_vices`; the coordinator uses the effects for a telemetry category | consumed cosmetically. No writer; `fuseTicks` has no state to count in; no behaviour reads it. |
+| `activeEmergencyId` (1 slot) | `trigger_emergency`, `resolve_emergency` (no dispatcher) | `RenderFrameBuilder` camera fog, roll and pitch (the only real consumer in the economy graph); `compound_emergency_vices`; the coordinator uses the effects for a telemetry category | consumed cosmetically. No writer; `fuseTicks` (renamed `fuseWatches` by R1) has no state to count in; no behaviour reads it. |
 | `drives` / `emergencyVice` | `compound_emergency_vices` (all entities, same delta) | registry validation (`emergencyVice` must be in `drives`), the render-frame copy, and the reducer's own read; no utility AI reads them | reducer. The utility AI is unbuilt. |
 | `inertiaPillars` (per entity) | `collapse_inertia_pillar` (delete only) | registry validation and the seeding copy only | schema and reducer. No adder, no hardening writer, no reader, not linked to any thread; the starter pack authors empty arrays. |
 | `orbitalPass` (phase, delta, burn) | `advance_orbital_pass` (the caller supplies the phase; nothing owns the durations), `spend_orbital_delta` (throws on an illegal spend) | `RenderFrameBuilder` burn camera effect only | consumed cosmetically. No clock driver and no gate on any gameplay verb. |
@@ -181,6 +182,7 @@ Rival operatives belong to competing spacefaring civilizations registered via `R
 1. **The Tithe (*Predatory Hegemonists*)**: Believe civilizations are forged through administered suffering and hierarchy. *Tells*: Vocabulary cluster `earn / deserve / soft / cull`; spoofed news items always use **clean round numbers** (`100 dead`).
 2. **The Quiet (*Zealous Ascetics*)**: Believe surplus consciousness and ambition are a stain; want a static, incurious world. *Tells*: **Agentless passive voice** (*"It was decided"*); missing paragraphs; **deleted rumor slots** on the Wider World Overview.
 3. **House Reciprocal (*Bureaucratic Mercantilists*)**: Want the civilization to advance—so every discovery arrives pre-licensed as a debt monopoly. *Tells*: **Double-entry speech** (*"in consideration of"* applied to burials/pardons); overview rumors arriving **faster than era transit allows**.
+- Each rival's tells are applied to its lines by the `tellProfile` post-pass (see Text pipeline (P2); planned: 06-rivals-remote-evidence).
 - Whichever rival thesis gains ground in an Epoch exports its footprint into `CivilizationLegacyState`, evolving into an entrenched ideological or corporate pathology in the next Epoch.
 
 ### Illustrative Seed Exemplars & Tone Benchmarks (Non-Exhaustive — Content Scales to 500+ Characters, Multiple Regions & Many Threads)
@@ -213,20 +215,22 @@ Rival operatives belong to competing spacefaring civilizations registered via `R
   - **In-Game `F3` Stage, Lighting & Character Wardrobe Inspector**: Selecting any wall segment, floor, prop, light, or character part in the 3D viewport highlights that target (`charnel_stairs.wall.north.seg_02` or `npc.sorrel.part.headgear`), provides pure Zod-validated mutators to tweak wall `motifs[]`, character posture/garments/held props/colors, light intensity/color/falloff, fog density, and camera volume pitch/FOV, and persists edits via **"Save to Disk"** (`GET`/`PUT /api/scene-blueprints/:stageId` and `GET`/`PUT /api/character-visuals/:characterId` in `localDiskBridgePlugin.ts`). Interim caveat: until the loader exists (planned: pre-05b-pack-source-of-truth), a stage-lab save does not persist into the game. The same caveat holds for Save Patch to Disk in the Sound Lab. Lab JSON is then the source of truth: packs and stages are JSON, loaded and Zod-checked at runtime through `validateLaunch`, with no emitted TS.
   - **Agent DOM Mirror & Live Browser Inspection (`cursor-ide-browser` MCP + DOM Attributes)**: Because a raw WebGL `<canvas>` is opaque to standard DOM inspection, `StageInspectorDomMirror` mirrors `data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, and `data-camera-mode` plus `globalThis.__UPLIFT_STAGE_INSPECTOR__` (with `inspectableTargets`). The AI agent can inspect the live DOM (`browser_snapshot` / `browser_cdp`) and take visual screenshots (`browser_take_screenshot`) to see the exact wall or prop the user is looking at.
 
-### Lightweight AI & NLP Evaluation Testing Framework (planned: 05f-eval-and-replay)
+### Local AI Evaluation Testing Framework (planned: 05f-eval-and-replay)
 - The shared runner is its own change, recorded in section 11. It is `eval/` and `npm run eval:ai`, and it scores every AI subject. Later changes register suites on that runner. They do not create a second one.
-  - **Utility & Rival AI Scenario Evals (Change 06)**: Golden world-state fixtures verifying that NPC utility brains and rival operatives select sensible, non-thrashing goals and respect Inertia Pillars across multi-tick rollouts.
+  - **Utility & Rival AI Scenario Evals (Change 06)**: Golden world-state fixtures verifying that NPC utility brains and rival operatives select sensible, non-thrashing goals and respect Inertia Pillars across multi-step rollouts.
   - **Voice Register & Anti-LLM-Slop Evals (`07e-voice-register-evals`)**: Golden dialogue and `AdvisoryDuel` fixtures verifying banned-lemma compliance, cadence rules, and clause-omission behavior. Register means written diction and cadence. NPC conversation lines are the bubbles in section 9. Advisory lines are lace text. Neither is spoken. Clause-omission fixtures depend on `07d-advisory-duel-omission`.
-  - **Hybrid NLP & ONNX Intent Evals (Change 08)**: Golden dataset of free-text player inputs (testing negation polarity like *"Do NOT tell the Prelate"*, subject/object role inversion, oblique phrasing, and rival linguistic tells) measuring top-1/top-3 intent/topic accuracy and `<50ms` per-query latency on the 2019 Intel Mac.
+  - **Text-pipeline suites (planned: 07-text-port-and-history, 08-generated-text-adapter)**: The text-pipeline gate (lexical, grounding, tell compliance) and the text-generation suites register on this runner once the text port exists. They check that every grounding fact survives, that banned lemmas and cadence hold, and that a failing generated line falls back to the pool. There is no free-text player input (P2), so there is no intent-accuracy suite. See Text pipeline (P2).
 
 ### Human-Paced NPC Cognition & Anti-Thundering-Herd Cascade Guardrails (Changes 03 & 06)
 - **Human-Paced Cognitive Phases**: Even though the CPU evaluates utility scores in `<1ms`, NPCs must think, move, and act at a human pace in live gameplay. Every `BehaviorModule` defines `deliberationSeconds` (thinking pause before moving), `dwellSeconds` (time spent physically performing the action at the waypoint before its `WorldEffect` commits), `cooldownSeconds` (recovery pause after acting), and `requiresExternalTrigger` (allowing an NPC to make a decision and then pause in `awaiting_trigger` until the next player-created or macro-world trigger rather than speed-running an entire plot chain).
+  - The phase order of a whole step (commands, watch, materialize, kinematics, cognition, commit, flush) and the move outcomes that end a dwell are in Engineering rules, Step phases and move outcomes (planned: hx-fixed-step-tick, hx-kinematics).
 - **Anti-Thundering-Herd NPC-to-NPC Cascade Dampening**:
   1. **Digestion Delay & Exponential Hop Backoff (`cascadeHopCount`)**: When NPC A triggers NPC B (`enqueue_npc_stimulus`), the stimulus is queued with a digestion delay that scales with `cascadeHopCount` (`baseDigestionSeconds * backoffFactor^hopCount`). Once `cascadeHopCount` reaches `maxAutonomousCascadeHops` (default `2`), further propagation pauses in `awaiting_trigger` until a player or macro-world beat occurs (`release_external_trigger`).
   2. **Round-Robin Token-Bucket Evaluation (`maxCognitiveEvaluationsPerPulse = 1`)**: `SimulationCoordinator` staggers cognitive evaluations via `cognitiveRoundRobinCursor` so at most one NPC transitions into `deliberating` per pulse, eliminating synchronized NPC stampedes.
+  3. **Stimulus cap (planned: cm-act-envelope-and-rolls)**: the stimulus queue cap evicts by priority and then age, with dedupe of repeats, instead of by age alone, so a flood of low-priority stimuli cannot push out a high-priority one. The stateless `roll(worldSeed, streamKey, counter)` half comes with the Act envelope.
 - **Fast-Forward / Eval Override (`SimulationPacingConfig`: `DEFAULT_GAMEPLAY_PACING_CONFIG` vs. `FAST_EVAL_PACING_CONFIG`)**:
   - All pacing and anti-thundering-herd parameters live in an explicit `SimulationPacingConfig` (`deliberationScale`, `baseDigestionDelaySeconds`, `cascadeBackoffFactor`, `maxAutonomousCascadeHops`, `maxCognitiveEvaluationsPerPulse`, `allowUnclampedFrameDt`).
-  - Live gameplay uses `DEFAULT_GAMEPLAY_PACING_CONFIG` (human-paced timers, 2-hop cascade cap, 1 evaluation per pulse, `0.25s` frame clamp), while automated unit/simulation tests and the local AI eval runner (section 11) inject `FAST_EVAL_PACING_CONFIG` (or custom overrides) to zero out deliberation/digestion delays, waterfall zero-duration phases in a single pass, raise evaluation/hop caps, and step large virtual `dtSeconds` so 100-tick evals complete in `<20ms`.
+  - Live gameplay uses `DEFAULT_GAMEPLAY_PACING_CONFIG` (human-paced timers, 2-hop cascade cap, 1 evaluation per pulse, `0.25s` frame clamp), while automated unit/simulation tests and the local AI eval runner (section 11) inject `FAST_EVAL_PACING_CONFIG` (or custom overrides) to zero out deliberation/digestion delays, waterfall zero-duration phases in a single pass, raise evaluation/hop caps, and step large virtual `dtSeconds` so 100-step evals complete in `<20ms`. Planned: the fixed `1/60` s step with capped catch-up replaces raw-dt stepping (see Engineering rules, Determinism).
 
 ### Sound Design, Gameplay Acoustics & Live Sound Lab Backdoor (planned: audio-minimal, 05a-audio-engine, 05a-sound-lab; was `05a`)
 - **Two Acoustic Buses That Share a Skull and Never Share a Room**:
@@ -346,6 +350,7 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
   - **Claiming Kinship (`kin_claim`) vs. Starting Afresh (`fresh_start`)**: Claiming to be related to (or the direct lineal/institutional heir of) your predecessor unlocks warm `respect`/`obligation`/`trust` edges and fast-track Office access with lineages (`lineageId`) that revered your predecessor, but also inherits their `betrayed` faction grudges, rival targeting profile, and `coverPersecutionRisk`. Starting afresh gives a clean personal slate (`0` inherited personal grudges/persecution) while still letting you build on your predecessor's structural work.
 - **Seeded-Random Ship & Drone Temperament Ranges + Era-Appropriate `droneDisguisePool`**:
   - While the ethical poles remain fixed (Left-Ear Ship Mind = consequentialist *Integral*; Right-Ear Companion Drone = deontological *Particular*), each Epoch rolls their personality traits (`humor`, `patience`, `riskTolerance`, `primness`, `omissionSulkThreshold`) within curated `[min, max]` ranges via `SeededRandom`, and selects the Drone's physical disguise (`droneDisguise`) from a curated per-Epoch pool of `3–6` era-appropriate items (Feudal reliquary lamp/lantern -> Renaissance astrolabe/pocket-chronometer -> Colonial sextant/barometer -> Industrial brass theodolite/telegraph ticker -> Cold-War field-radio/dosimeter -> Computer-Age diagnostic terminal -> Space-Age telemetry drone).
+- **Legacy mutations clamp (planned: hx-1-legacy-clamp-seed-scramble)**: a legacy mutation clamps to `[0, 1]` with a telemetry note instead of throwing, and scars record the watch (R1). The rule is in Engineering rules, Legacy clamp.
 
 ### 5. Epoch 2+ Interactive Fast-Travel Vignettes (`06c-epoch-travel-vignettes`)
 - **Why Travel Is a Scene, Not a Skip and Not a Second Campaign**:
@@ -366,7 +371,7 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
   - `TravelSessionState` (`StateSliceKey`): route, remaining watches, passengers, rolled encounter ids, optional destination override. Arrival is a pure function of seed + state via `TravelVignetteCoordinator`.
   - Default-ladder vehicle *skins* (content exemplars, never engine constants): Epoch 2 hired coach / river barge (regional, 2–4 destinations, high watch cost) -> Epoch 3 coastal packet / post-coach -> Epoch 4 rail / steam packet -> Epoch 5 motorcade / propeller air -> Epoch 6 high-speed rail / airliner -> Epoch 7 indigenous suborbital hopper. Diegetic news prop evolves with the communications backbone (broadsheet bundle -> gazette -> telegraph clerk -> radio -> terminal) as a **delayed slice of `WorldOverviewModule`**, so rival spoof tells still work. Neural lace still works unless a `09a` blackout is active. A rival operative as a fellow passenger is a rare Storyteller beat, never a raw random roll.
 - **Live World-State Surface Cues (`TravelSurfaceCueBlueprint`) — Subtle Immersion, Not a Second HUD**:
-  - Every Epoch 2+ vehicle stage carries **small, data-driven visual/prop details that reflect current world state**, resolved on embark and at each watch tick (never per 60Hz frame). This is the travel-cabin sibling of Change 10's `bindPredecessorTraces`: predicates bind kitbash `semanticId` motifs, props, lights, extra gazette editions, grime, or an empty passenger slot — inspectable in the F3 Stage Lab, zero `.glb` bloat.
+  - Every Epoch 2+ vehicle stage carries **small, data-driven visual/prop details that reflect current world state**, resolved on embark and at each watch boundary (never per 60Hz frame). This is the travel-cabin sibling of Change 10's `bindPredecessorTraces`: predicates bind kitbash `semanticId` motifs, props, lights, extra gazette editions, grime, or an empty passenger slot — inspectable in the F3 Stage Lab, zero `.glb` bloat.
   - Cues stay **subtle and diegetic** (mud on a wheel-well, a folded extra broadsheet, quarantine yellow bunting, wartime paper blinds, a missing scheduled seat, blackout shutters when the 174 Hz carrier is dead). They are never billboards, objective markers, or lace-HUD dumps. Content authors register `TravelSurfaceCueBlueprint`s (`predicate` on pressure stocks, active emergency, weather, overview headline family, orbital phase, discovery layer, held Office, `Regard` bond, or `coverPersecutionRisk` band -> `visualDelta` on a `semanticId` target). The predicate language is epoch-agnostic so settlement stages can reuse it later; Change `06c` only authors travel-cabin cues.
   - Seed exemplars of the tone (not a closed list): coach wheel-well mud matching last weather; the news rack's extra edition matching the current overview headline (or a rival `early_surplus` spoof tell); an empty compartment when a scheduled passenger is in `ideological_trial`; blackout shutters / dead lace hum during `OrbitalBlackoutState`; colonial quarantine bunting when the destination carries `medical_quarantine`.
 
@@ -399,7 +404,7 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
 > **Status: planned.** Nothing here is shipped. This section is the accepted design, kept in the present tense for readability; read each verb as "will".
 
 - **Why use is a reach, not a click**:
-  - The player walks up to a prop, a portal, or a person and presses Space. The same keys drive every menu. This depends on the play shell and on section 7. Dialogue wording, interruption, pretexts, and free-text intent stay in their own changes. The menu stack leaves a slot those changes fill.
+  - The player walks up to a prop, a portal, or a person and presses Space. The same keys drive every menu. This depends on the play shell and on section 7. Dialogue wording, interruption, and pretexts stay in their own changes. The menu stack leaves a slot those changes fill.
 - **The loop**:
   - Space will use the nearest point of a prop footprint, or of a person's disc, within `0.4` m, and inside a `90°` arc centered on facing (`±45°`). Among the things inside that reach and that arc, the one closest to straight ahead wins. A tie at the same angle goes to the lower id. Nothing in the arc does nothing. The winner's name is the prompt.
   - While any menu is open, WASD moves the highlight and the body stands still. W and A go to the previous row. S and D go to the next. Space confirms. Escape pops one layer. Space and Escape ignore key repeat. The key that opens a menu does not also confirm a row. A key still held when the menu closes does not steer until it is released.
@@ -408,7 +413,7 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
 - **Epoch-agnostic contracts**:
   - `selectProximityTarget` is a pure function over plain candidates. The menu stack lives on the session. `interactionHold` lives on `WorldState`: `{ targetKind: 'entity' | 'prop', targetId }` or empty. Opening a person or a prop sets it. Closing the menu clears it. A held person does not advance a path, does not run the impatient timer, and does not slide the player. A held prop refuses any other writer until the player confirms or backs out. The player's confirm still applies. A door menu does not hold a passer-by, so their impatient timer keeps running. Opening a menu on the person who is waiting holds them, and the timer starts over if the disc still covers the mark when the menu closes. Domain never sees key names.
 - **What this change leaves out**:
-  - Conversation paging and ambient lines are section 10. Interruption, pretext choices, fund choices, advisor omission, and the voice-register evals are sections 10a through 10e. Free-text intent is the change after that family. The empty presenter and `interactionHold` are the hooks. Save and settings rows. A second pause flag.
+  - Conversation paging and ambient lines are section 10. Interruption, pretext choices, fund choices, advisor omission, and the voice-register evals are sections 10a through 10e. The empty presenter and `interactionHold` are the hooks. Save and settings rows. A second pause flag.
 
 ### 9. Conversation Text Bubbles, No Voice Acting (planned: 07-bubble-lace-skins-and-tone-blips)
 > **Status: planned.** Nothing here is shipped. The accepted design, read each verb as "will".
@@ -421,6 +426,36 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
 - **The contract**:
   - The NPC bubble and the lace page are two skins on one pager. Neither adds an `AudioContext` for speech. The audio change stays non-speech.
 
+### Text pipeline (P2) (planned: 08a-timing-spike, 07-text-port-and-history, 07-authoring-kit, 08-generated-text-adapter)
+> **Status: planned.** Nothing here is shipped. No `TextSourcePort`, `LineBrief` or gate exists in code and no model runs. The accepted design, read each verb as "will". It is a direction with room to change (P5).
+
+- **The rule (P2)**:
+  - There is no free-text player input. The player pages chunks and picks rows (sections 8 and 10). Surfaced text is a view of structured facts (Acts, Observations, claims), produced behind `TextSourcePort`, and frozen into `ConversationHistory` and the save when it is shown. A reload shows the same words, and the simulation never reads text back.
+  - Owner wording: see P2, above.
+  - This retires the earlier three-stage intent parser (a lexical extractor, a MiniLM embedding worker and an intent combiner). With no typed input there is nothing to parse. Its jobs are re-homed, not dropped. Negation and speech-act extraction served free-text parsing and go. Rival tells are applied by a deterministic `tellProfile` post-pass over rival lines, and gate tier 3 checks it (planned: 06-rivals-remote-evidence). `CharacterBible` and `RegisterCard` are the authoring-kit inputs, `VoiceProfile` is the blueprint-side data the gate reads (cadence, tics, banned lemmas), and `tellProfile` is its rival-only part (planned, revisable). The sub-millisecond lexical check survives as gate tier 1. The local text-generation worker, a Hugging Face / ONNX adapter in infrastructure, stays planned under P2.
+- **Hybrid generation (planned: 08a-timing-spike, 08-generated-text-adapter)**:
+  - Authoring-time SLM generation counts as P2 (accepted, S2-05): a model drafts lines, a person or the gate curates them, and accepted lines go into a pool. A runtime SLM tier for filler is first-class but gated on a one-day timing spike on the real 2019 Mac, measuring latency and memory. Runtime output is cached into the save.
+  - Slot (owner decision Q1, split): `08a-timing-spike` is a no-merge investigation that runs just before the 07 text skeleton, so the generated-adapter seam is designed with real numbers. The stubbed adapter and the authored pool carry everything meanwhile. `08-generated-text-adapter` (the adapter and the local worker) stays after `05b-2-storylets-and-lab`. This supersedes the earlier tag "before-06".
+  - Owner stipulation: also investigate a "JEV"-style decision network or decision web for runtime use, if it has a place (a JEV-style or LAYA-style model, not JEPA). The outcome is INV-A to INV-F below: it has no place in the simulation path.
+- **`TextSourcePort` (planned: 07-text-port-and-history)**:
+  - An application port with authored, pool and generated adapters. Infrastructure holds the planned Hugging Face / ONNX adapter, a local worker with no network. A fact-first realiser (every fact id survives restyling) and Tracery-style grammars supply the deterministic fallback when no generated line passes. Tier 3 text is templated through the same port. It is the first async port, which is the trigger for typed ESLint (see Layer-test blind spots).
+  - The model is reached only through `TextSourcePort`. `eval:ai` and the scripted command log use the authored and pool adapters or recorded generated lines, so replay and eval never call the live generated adapter. A suite that needs the real worker is opt-in and sits outside the runner's import rule.
+  - Root `AGENTS.md` and the section guides change only when the port ships.
+- **`LineBrief` and the gate (planned: 07-text-port-and-history)**:
+  - A `LineBrief` carries the grounding facts, the speaker, the register and the tells. `gate(line, brief)` is a pure function over Observations with three tiers: (1) lexical, banned lemmas, cadence and the chunk cap (at most two wrapped lines, about `120` characters; the port splits or retries a generated or templated line that is over it), under `1` ms; (2) grounding, where every fact id in the brief must survive in the line; (3) tell compliance, where a rival's line carries its `tellProfile` tells.
+  - On failure the source retries, then falls back to the pool and queues the line for review. The gate suites register on the runner in section 11, after `05f-eval-and-replay`. The text-source-port change lands before the 07 pager.
+- **Authored versus generated, and the authoring kit (planned: 07-authoring-kit)**:
+  - Hand-authored, with help: the spine, Tier 1 character bibles and keystone lines. Pool-generated and curated: Tier 2 lines, letters, the gazette and rumours. Templated: Tier 3.
+  - The authoring kit is `CharacterBible`, `RegisterCard`, a few-shot builder and a draft/accept CLI that records the authored or generated split per line. The owner is happy to get help with authoring (P2), so the kit exists to make that help cheap.
+- **AI notes (INV-A to INV-F)**: Owner: the INV verdict is accepted: no decision model in the sim path; integer belief maths and designed-in misbelief; small classifier parked as a later spike.
+  - **INV-A**: No decision model of the LAYA or JEV class in the simulation path. Zero-shot it scores below the majority baseline, its float output breaks bit-exact replay, and it needs about `520` MB of worker memory. An advisory authoring-time gate tier is allowed, never the pass/fail authority. Runtime selection of pooled lines is by tag and seed over Observations. This is also a spec rule in `07-text-port-and-history`. A small fine-tuned classifier for line selection, with its answer frozen into the save, is a parked later spike (`classifier-spike`).
+  - **INV-B** (planned: cm-observation-notebook): the belief combiner on the Observation table is integer fixed-point noisy-OR. Parents that share an origin or channel collapse before combining. Spoofing is a separate negative term. An order-independence test and a parent cap guard it, each step carries a reason tag so the notebook can show why a rumour is strong, and all of it is decided before the Observation schema freezes.
+  - **INV-C**: considerations read the actor's belief view, not world state, and a contract test catches omniscient reads. NPCs use belief-conditioned utility terms. Expected-utility planning is for rivals only. Low confidence maps to investigate or wait. Misbelief is designed in: NPCs acting on stale or spoofed beliefs are the readable mistakes P4 depends on.
+  - **INV-D**: the Ship Mind forecast is closed-form and banded (section 3). The Bayesian network stays parked (`inv-d-bayesian-network`) until self-play shows the closed form failing.
+  - **INV-E**: learning is offline only. Tuning keys and tables are fitted from deterministic self-play and committed as data tied to the rules hash, so a rule change invalidates them. Player style is tracked with counters.
+  - **INV-F**: general probabilistic-programming engines, learned nets and JEPA-style world models are rejected at runtime. A small, capped exact-inference network is bit-stable and acceptable only if a later need appears (`inv-f-exact-inference`).
+- **Writing Desk (planned: 06-overview-writing-desk-report)**: The Writing Desk uses the text port. There is no free-text player input.
+
 ### 10. Conversation Paging and Ambient Lines (planned: 07-dialogue-paging; was `07`)
 > **Status: planned.** Nothing here is shipped. The accepted design, read each verb as "will". Ambient lines and the per-conversation talk cost land in `07-dialogue-paging`; tone blips, `readingSpeed` and captions in `07-bubble-lace-skins-and-tone-blips`; the capture and return camera stack in `07-camera-directive-stack`.
 
@@ -428,17 +463,17 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
   - A conversation the player enters, or that a world event pulls them into, can be a long piece of text. Space advances it one readable chunk at a time. Speech the player did not enter — a market exchange, a passer-by's exclamation, the impatient beat in section 7 — is an ambient line. It is color. It is not a conversation. This folds into the dialogue change. It depends on the menu stack and `interactionHold` in section 8. The floor change only emits the impatient trigger.
 - **A conversation**:
   - The first chunk is on screen when the conversation opens. The Space that the player used to start it does not also advance it. A conversation the world opened has no such press, so the next Space advances. A held Space stays on the chunk already showing. A new press moves to the next chunk. WASD does nothing while a chunk is showing. Escape leaves, confirms nothing, and does not open pause on that same press.
-  - A chunk is at most two wrapped lines, about `120` characters. The author splits it. A chunk over that cap fails when the pack loads. The page shows a continue mark or an end mark.
+  - A chunk is at most two wrapped lines, about `120` characters. An authored chunk is split by its author and fails when the pack loads if it is over the cap. The text port measures and splits a generated or templated line the same way (gate tier 1, see Text pipeline (P2)). The page shows a continue mark or an end mark.
   - When a response is expected, the chunk stays up and a choice menu appears. W and A move to the previous row. S and D move to the next. Space selects the highlighted row. The conversation then continues with the next chunk, or it finishes. Leave is one of those rows when the talk can end there. The press that reveals the rows does not also select one.
   - An NPC's lines use the diegetic bubble. An advisor's lines, including `AdvisoryDuel`, use the lace page. The keys are the same. A second conversation opened while one is already open sits on top. Finishing or leaving it returns to the one underneath. Reading one chunk costs no watch; the conversation as a whole is charged once (see Loop cycles). Only the embodied person being talked to is held. Everyone else keeps walking, and another NPC can still emit an ambient line and slide the player. A shown chunk is the line `ConversationHistory` keeps. The unread tail is not. A person with no authored line still opens the empty presenter and its Leave row from section 8.
 - **An ambient line**:
   - One short line of text on a speaker the player is not in conversation with. It expires on its own. It takes no input, does not lock the player's feet, and does not offer a choice. Space still uses whatever is in front of the player. Interacting with that speaker clears the line and opens a conversation if one is authored.
-  - A market exchange is several ambient lines in order, each anchored to the speaker. A passer-by can fire one line. The impatient beat is the same primitive: one line at about `6` s while the player's disc covers an arrival point. The words are authored. The engine does not invent them.
+  - A market exchange is several ambient lines in order, each anchored to the speaker. A passer-by can fire one line. The impatient beat is the same primitive: one line at about `6` s while the player's disc covers an arrival point. The words come from the text port (authored, pooled or templated, see Text pipeline (P2)). The simulation composes no free text.
   - A line shows only when that speaker is audible under the earshot rule: distance, the room, and whether a door is `open`, `ajar`, `closed`, or `barred`. One line per speaker. Only a few lines are on screen at once. A line tied to a blocked arrival keeps its slot. Extra color waits. An ambient line does not spend a watch.
 - **Epoch-agnostic contracts**:
   - `ConversationPage` on the session menu stack: an anchor id, the chunks, the index, and any choice rows. Domain never sees key names. A choice that changes the world dispatches a `WorldEffect`. `AmbientLine` is an anchor id, one string, and a lifetime. Content registers the triggers. The floor change registers the blocked-arrival trigger. Later packs register overheard exchanges and exclamations. The pager has no epoch in it.
 - **What this change leaves out**:
-  - Interruption, pretext choices, fund choices, advisor omission, and the voice-register suite are their own changes (sections 10a through 10e). Those suites register on the runner in section 11. Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging. A back-page and a transcript on screen. A typewriter. Speech audio. Camera grabs.
+  - Interruption, pretext choices, fund choices, advisor omission, and the voice-register suite are their own changes (sections 10a through 10e). Those suites register on the runner in section 11. A back-page and a transcript on screen. A typewriter. Speech audio. Camera grabs.
 
 ### 10a. Dialogue Interruption (planned: 07a-dialogue-interruption)
 - **Why it is separate**: Cutting a live conversation short is its own change. It depends on the pager in section 10. It does not own chunks, ambient lines, pretexts, or funds.
@@ -463,19 +498,20 @@ Three nested cycles, each on its own clock. They are revisable (P5). Owner: the 
 ### 10e. Voice-Register Evals (planned: 07e-voice-register-evals)
 - **Why it is separate**: These fixtures are one suite on the runner in section 11. They are not the runner, not the pager, and not the sulk. The suite depends on section 11 for the command, on section 10 for the lines, and on section 10d for clause-omission fixtures.
 - **The loop**: Golden fixtures check banned lemmas, cadence, and, once omission exists, dropped clauses. Register means written diction. The lines are the conversation bubble and the lace page. The run is local. It does not add speech audio.
-- **What it leaves out**: The runner itself. The free-text intent suite. That suite belongs to the following change, and it registers on the same runner.
+- **What it leaves out**: The runner itself.
 
 ### 11. Local AI Eval Framework (planned: 05f-eval-and-replay; was `05f`)
 > **Status: planned.** Nothing here is shipped. The accepted design, read each verb as "will". The runner, `eval/` and `npm run eval:ai`, does not exist yet.
 
 - **Why it is its own change, and why it sits immediately before utility AI**: Every AI subject is scored by one harness. Utility AI is the first subject, and that change already owns the brains, the rivals, the threads, the desk, and the overview. It registers a suite. It does not invent the runner. The runner needs the shipped headless simulation only: `SeededRandom`, `WorldState`, and `FAST_EVAL_PACING_CONFIG`. It does not need floor walking, menus, clocks, dialogue, or a model, so it stays behind the play-shell work and in front of the AI block.
-- **The loop**: `npm run eval:ai` will load every registered case, roll it with a fixed seed under `FAST_EVAL_PACING_CONFIG`, and report pass or fail (planned: 05f-eval-and-replay). A case names a subject, a fixture, and assertions. The first case rolls the shipped headless simulation, so the command is real before any AI subject exists. A failing case fails the command. The command is local and offline. It is not part of `npm run verify`, and a 100-tick rollout stays inside the fast-eval budget already set for that pacing config.
-- **Epoch-agnostic contract**: The runner lives in `eval/` at the repo root, outside the four layers, the same way `tests/` does. It may import domain and application. Domain does not import it. A subject id is an open string. The runner does not import `three`, the ONNX runtime, or era content, and it does not read `Date.now()`. The change that owns an AI subject registers that subject's cases. Suites already named are utility and rival goals (change 06), the written register (section 10e), and free-text intent (change 08). Any later AI subject adds a suite the same way.
-- **What it leaves out**: The utility brain, rival behavior, dialogue lines, the written-register rules, and the intent dataset. Those stay on their own changes. The runner does not score a subject until that change registers its cases.
+- **The loop**: `npm run eval:ai` will load every registered case, roll it with a fixed seed under `FAST_EVAL_PACING_CONFIG`, and report pass or fail (planned: 05f-eval-and-replay). A case names a subject, a fixture, and assertions. The first case rolls the shipped headless simulation, so the command is real before any AI subject exists. A failing case fails the command. The command is local and offline. It is not part of `npm run verify`, and a 100-step rollout stays inside the fast-eval budget already set for that pacing config.
+- **Epoch-agnostic contract**: The runner lives in `eval/` at the repo root, outside the four layers, the same way `tests/` does. It may import domain and application. Domain does not import it. A subject id is an open string. The runner does not import `three`, a model runtime, or era content, and it does not read `Date.now()`. The change that owns an AI subject registers that subject's cases. Suites already named are utility and rival goals (change 06), the written register (section 10e), and the text-pipeline gate and text-generation suites (see Text pipeline (P2)). Any later AI subject adds a suite the same way.
+- **Who owns what (planned: 05f-eval-and-replay)**: `tests/` holds exact assertions, `golden/` holds state hashes, and `eval/` holds distributions and corpora. One headless harness, `runScenario` (planned: hx-determinism-harness), drives all three. The text-gate suites sit on the runner only after `07-text-port-and-history`. The scripted command log is the fixture format (see Engineering rules, Scripted command log).
+- **What it leaves out**: The utility brain, rival behavior, dialogue lines, the written-register rules, and the text-pipeline gate. Those stay on their own changes. The runner does not score a subject until that change registers its cases.
 
 ## Engineering rules
 
-Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append to this section.
+Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append to this section. Every subsection is planned unless a sentence says "today" or "as it is"; read the rest as "will".
 
 ### Bridge lock (planned: hx-ops-safety)
 
@@ -485,6 +521,64 @@ The dev-server write routes (`PUT /api/scene-blueprints`, `PUT /api/character-vi
 - **Explicit `server.cors`**: set in Vite config rather than left to the default.
 - **Test**: an http middleware test on `127.0.0.1:0` exercises the real middleware, not a mock.
 - **Logger partner**: the logger rotates the prior session into `logs/prev` instead of truncating it on start (S4-03).
+
+### Determinism (planned: hx-1-legacy-clamp-seed-scramble, hx-fixed-step-tick, hx-determinism-harness)
+
+- **Seed scramble**: a world seed passes `splitmix32` before it reaches `SeededRandom`, so adjacent seeds do not give correlated streams. A golden-vector test pins it. RNG held outside `WorldState` is replaced by the stateless `roll(worldSeed, streamKey, counter)` (planned: cm-act-envelope-and-rolls).
+- **Fixed step**: Clock 1 runs on a fixed `1/60` s step with an accumulator and capped catch-up. Raw-dt stepping is replaced, and tests split a frame's dt to prove the result is the same.
+- **Golden run**: `hashWorldState` and a golden run through `runScenario`, with shuffled insertion order and throwing `Math.random` and `Date` stubs, a slice JSON round trip and a phase-order test.
+- **One lint block**: a single ESLint determinism block covers domain, non-scene content and application, and bans `node:*`, `require` and non-literal `import()`. Today the guards are literal-only and application has none. When it ships, the `AGENTS.md` layer table gains `Math.random` and `Date.now` bans on the application row, which lists none today.
+
+### Interpolation seam (planned: hx-fixed-step-tick)
+
+- The accumulator keeps the previous `WorldState`. `RenderFrameBuilder` receives the previous and current poses, an `alpha` and a teleport marker, and lerps positions, shortest-arc yaw and the camera focus, so the render step can run between fixed steps. Teleports and room changes do not interpolate.
+- It lands as its own commit, separate from the step-phase work. The application README and `AGENTS.md` record it in the change that ships it.
+
+### Step phases and move outcomes (planned: hx-fixed-step-tick, hx-kinematics, hx-reducer-and-frame-safety)
+
+- **Phase order**: commands, watch, materialize, kinematics, cognition, commit, flush. A named `PHASES` order is pinned by a test, because phase order is the main determinism risk.
+- **Move outcomes as data**: a move ends with `Arrived`, `Blocked` or `Interrupted` and a `residualDt`. The door that closes mid-route no longer causes a silent doorway dwell, a retarget plans from the body's position and not from the last waypoint, a zero-speed move is rejected, and a hop is measured in metres.
+- **Frame safety**: the frame `try`/`catch` re-arms `requestAnimationFrame`, and `PlaySession.status` is recomputed per call instead of sticking. Section `AGENTS.md` updates ride the shipping change.
+
+### Legacy clamp (planned: hx-1-legacy-clamp-seed-scramble, 05b-1-watch-clock-and-time-spend)
+
+- A legacy mutation clamps to `[0, 1]` with a telemetry note. The throw stays only as an authoring-time contract test. `sourceScarId` is checked against the scar set (planned: 05b-1-watch-clock-and-time-spend). Scars record the watch (R1). Accumulation across epochs waits for `10-registry-swap-and-legacy`. The domain `AGENTS.md` legacy section is updated by the shipping change.
+
+### State, saves and pack identity (planned: hx-slice-store, hx-save-integrity)
+
+- **Slices**: frozen on write and shared on read. Today the store deep-clones on every read and write and appends in O(n). The target is O(1) append, guarded by frozen-output invariant tests. `StateSliceKey<T>` gains an optional `schema`, `version` and `migrate`, and a plain-JSON guard so a `Map` or `Set` cannot enter a slice.
+- **Codec**: `WorldStateCodec` owns `snapshotVersion`, the Zod load, the migrations chain and the epoch check. It replaces four copies of the world-state field list. A save round-trip scenario guards it, and each of the three parts is its own task with its own round-trip test.
+- **Pack identity**: saves carry `packId` and `version`, and load checks the pack and the epoch. Decision S4-10: one registry per epoch, with cameo content only through an explicit import list. Fingerprint reconciliation is parked with the epoch-transition change (`10-registry-swap-and-legacy`).
+- **Entity ids**: one entity-id pattern check at load and at materialize stops a bad id throwing in the render loop, and `listSlots` reports why a slot is unreadable.
+- **Save policy (owner decision)**: autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (`roll(worldSeed, streamKey, counter)`) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked (`ironman-mode`).
+
+### Launch validation, kind table and fixtures (planned: pre-05b-launch-validation, pre-05b-pack-source-of-truth)
+
+- `validateLaunch(pack, stages, visuals)` collects every error with ids and file hints, and runs in `PlaySession` and in pack tests. Shape validation before it uses an interim loader check (planned: pre-05d-renderer-shape), which is then folded into `validateLaunch`.
+- The epoch-agnostic denylist is derived from the exported packs and moved into `tests/architecture`, replacing the hand-typed list. `defineModuleKind` replaces the closed 11-kind registry, with a ref table. The freeze-extension guard from the Rules spine lives here: an arch test fails a new kind or effect that no content uses.
+- The docs-truth check first covers root `AGENTS.md` only. The check that every `*Blueprint` named in a section `AGENTS.md` exists lands in `pre-05b-pack-source-of-truth`, after those files are rewritten. Test fixtures leave the content barrel, and the content `AGENTS.md` recipes are rewritten to working steps.
+
+### Telemetry policy (planned: telemetry-wiring, hx-ops-safety)
+
+- **As it is today**: the infrastructure NDJSON logger and rolling compactor exist and their caps hold (`50` MiB active, `500` MiB compacted). The browser game does not feed them yet: it keeps an in-memory log. The logger still empties both files when a session starts (see Bridge lock for the fix).
+- **Policy**: the Act log records what happened and is the gameplay record. Telemetry holds crash, warn, frame spikes and hash checkpoints. Decision traces come from replaying the scripted command log with tracing on (planned: 05f-eval-and-replay). Log nothing, replay with tracing.
+- **Wiring**: browser telemetry goes through the guarded bridge, with a crash ring buffer flushed on throw. The CLI gains `limit`, `tail` and `count-by` on query, a newline guard and an `ENOSPC` warning. The debug skill text is made honest: no local ONNX decisions exist to trace. Root `AGENTS.md`, the infrastructure guide (it still names `npm run setup-models`, which does not exist), `README.md` and the debug skill still carry the old wording (every event logged, a local ONNX worker), and are rewritten in `process-gates-and-ledger` and again when the wiring and the text port ship. The `hybrid_nlp` pipeline value in the domain telemetry port and in the skill's `aiReasoning.pipeline` union is renamed or removed by `telemetry-wiring`, with a generated-text value added when the adapter ships.
+
+### Tests and builders (planned: hx-slice-store)
+
+- Each test ships with the fix that needs it. Shared builders live in `tests/support` (`makeRegistry`, `makeWorldState`, `makeStageBlueprint`). Monolithic tests are split onto them, and the bridge gets http-level tests. Acceptance lines for frozen inputs, RNG golden values, caps, mid-hop states and dt splits are added to the hardening changes. The split between `tests/`, `golden/` and `eval/` is in section 11.
+
+### Layer-test blind spots (planned: hx-determinism-harness)
+
+- The layer test is to close its blind spots: `import =`, `export *`, barrel files, type-only imports, and enforcement of the content/scene rule. Every new invariant ships with a guarded test. Typed ESLint is later, attached to the first async-port change (the text port). Compiler-API import scanning is parked (`compiler-api-import-scan`).
+
+### Scripted command log (planned: 05f-eval-and-replay)
+
+- The scripted command log is the artifact for golden tests, 05f fixtures and bug repro. It is not the player save format, because a reducer change invalidates a command log. The Act ring is frozen and bounded, and is chunked only if the benchmark at the expected cap fails. Dwell-site slots are later: data on the prop blueprint, with the final metre steered, not a new movement system. The replay-with-tracing tool is owned by the eval-runner change.
+
+### Allocation note
+
+- Per-frame allocation waste is a known cost. Decision: do nothing until a room holds `100+` bodies. No work is scheduled.
 
 ## Dispositions appendix
 
@@ -514,4 +608,5 @@ The last two rows only ever appeared in the dump, so they stay listed until thei
 | S1-12 tone is only flavour | rejected-by-review | Folded into S1-R2 (inference trails) |
 | R5C2 global "important" accent | rejected | Breaks P4 |
 | A LAYA-class or JEV-class decision model in the simulation path | rejected | INV-A |
+| Free-text intent parser (retired `08-local-onnx-hybrid-intent`) | rejected-by-owner | P2; jobs re-homed in Text pipeline |
 | General probabilistic-programming engines, learned nets and JEPA-style world models at runtime | rejected | INV-F |
