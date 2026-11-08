@@ -32,4 +32,4 @@
 - `clickFloor` while paused returns `paused` and does not query waypoints. A point farther than `FLOOR_WAYPOINT_RADIUS_METERS` (`1.5`) from every waypoint in the focus entity's space returns `miss`.
 - `requestMove` calls `requestWaypointMove`. `requestPortalState` calls `requestSetPortalState`. Both store the returned status.
 - `setFocusEntity` on an unknown id sets status `unknown_entity`, leaves the focus unchanged, and returns `null`. A known id resolves the resident stage before the method returns.
-- `setFreeCamOffset` changes the camera offset and does not write an entity position. `setPaused` and `setCameraDeAnchored` are separate calls. The page toggles them together.
+- `setFreeCamOffset` changes the camera offset and does not write an entity position. `setPaused` and `setCameraDeAnchored` are separate calls. The page toggles them together. `frame` forwards `cameraDeAnchored` without `debugMode`, so free-cam does not build inspector cards.

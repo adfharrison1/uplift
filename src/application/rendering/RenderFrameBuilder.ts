@@ -495,7 +495,7 @@ export class RenderFrameBuilder {
   public buildFrame(input: BuildRenderFrameInput): RenderFrame {
     const { worldState, theme, stage } = input;
     const debugMode = input.debugMode === true;
-    const cameraDeAnchored = debugMode && input.cameraDeAnchored === true;
+    const cameraDeAnchored = input.cameraDeAnchored === true;
     const reduceMotion = input.reduceMotionAndFlashing === true;
     const aspect = input.aspect ?? 16 / 9;
     const near = input.near ?? 0.1;

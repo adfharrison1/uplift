@@ -360,6 +360,7 @@ describe('PlaySession', () => {
     const framed = session.frame(1 / 60);
     expect(coordinator.getWorldState().entities['char_walker']?.position).toEqual(before);
     expect(framed.renderFrame?.camera.cameraMode).toBe('debug_free_cam');
+    expect(framed.renderFrame?.inspectorCards).toEqual([]);
     expect(session.getFreeCamOffset()).toEqual([4, 1, -2]);
   });
 

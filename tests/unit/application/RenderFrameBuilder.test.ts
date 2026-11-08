@@ -377,4 +377,25 @@ describe('RenderFrameBuilder', () => {
     expect(degenerate.visibleInFrustum).toBe(false);
     expect(Number.isFinite(degenerate.ndcX)).toBe(true);
   });
+
+  it('de-anchors the camera without building inspector cards', () => {
+    const theme = makeTheme();
+    const stage = makeStage();
+    const world = createInitialWorldState({
+      epochId: 'epoch_1',
+      entities: { char_alpha: makeEntity('char_alpha', [0, 0, 0]) },
+      props: {},
+    });
+    const frame = new RenderFrameBuilder().buildFrame({
+      worldState: world,
+      theme,
+      stage,
+      focusEntityId: 'char_alpha',
+      cameraDeAnchored: true,
+      freeCamOffset: [1, 0, 0],
+    });
+    expect(frame.camera.cameraMode).toBe('debug_free_cam');
+    expect(frame.inspectorCards).toEqual([]);
+    expect(frame.effectiveDesaturation).toBeCloseTo(0.7);
+  });
 });

@@ -178,7 +178,6 @@ export class PlaySession {
       ...(input?.aspect !== undefined && Number.isFinite(input.aspect) && input.aspect > 0
         ? { aspect: input.aspect }
         : {}),
-      debugMode: this.cameraDeAnchored,
       cameraDeAnchored: this.cameraDeAnchored,
       freeCamOffset: this.freeCamOffset,
       reduceMotionAndFlashing: this.reduceMotionAndFlashing,

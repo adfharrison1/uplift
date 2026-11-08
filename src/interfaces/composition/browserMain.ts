@@ -50,6 +50,7 @@ import {
   resolveSemanticIdFromObject,
 } from '../three/ChiaroscuroStageRenderer.js';
 import { createPlayInput } from './playInput.js';
+import { createResidentPlayLists } from './residentPlayLists.js';
 import {
   cappedDevicePixelRatio,
   createCampaignShell,
@@ -146,11 +147,20 @@ export function bootCampaignPage(
     },
   });
   let pointer = { x: 0, y: 0 };
+  const playLists = createResidentPlayLists({
+    focusSpaceId: () => coordinator.getWorldState().entities[session.getFocusEntityId()]?.spaceId,
+    entities: () => coordinator.getWorldState().entities,
+    waypointIds: (spaceId) =>
+      registry
+        .getAllSpaces()
+        .find((space) => space.id === spaceId)
+        ?.waypoints.map((waypoint) => waypoint.id),
+  });
   const input = createPlayInput({
     session,
     isPaused: () => coordinator.getWorldState().paused,
-    waypointIds: () => waypointIdsForFocus(coordinator, registry, session.getFocusEntityId()),
-    entityIds: () => Object.keys(coordinator.getWorldState().entities).sort(),
+    waypointIds: () => playLists.waypointIds(),
+    entityIds: () => playLists.entityIds(),
     readPortalState: (propId) => coordinator.getWorldState().props[propId]?.portalState,
     raycastFloor: () => raycastFloor(pointer, canvas, built),
     raycastPortal: () => raycastPortal(pointer, canvas, built, session.getResidentStage()),
@@ -220,23 +230,6 @@ function elementAttributeSink(element: HTMLElement): DomAttributeSink {
       element.removeAttribute(name);
     },
   };
-}
-
-function waypointIdsForFocus(
-  coordinator: SimulationCoordinator,
-  registry: EpochModuleRegistry,
-  focusEntityId: string,
-): readonly string[] {
-  const spaceId = coordinator.getWorldState().entities[focusEntityId]?.spaceId;
-  if (spaceId === undefined) {
-    return [];
-  }
-  return (
-    registry
-      .getAllSpaces()
-      .find((space) => space.id === spaceId)
-      ?.waypoints.map((waypoint) => waypoint.id) ?? []
-  );
 }
 
 function pointerIntersections(

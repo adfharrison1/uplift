@@ -62,7 +62,8 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
   let statusElement: HTMLElement | null = null;
   let commandList: HTMLElement | null = null;
   let focusList: HTMLElement | null = null;
-  let listKey = '';
+  let listedWaypoints: readonly string[] | null = null;
+  let listedEntities: readonly string[] | null = null;
   const bindings: PlayBinding[] = [
     {
       id: 'waypoint',
@@ -178,7 +179,8 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
       commandList = panel.ownerDocument.createElement('div');
       focusList = panel.ownerDocument.createElement('div');
       panel.append(statusElement, commandList, focusList);
-      listKey = '';
+      listedWaypoints = null;
+      listedEntities = null;
       controller.sync();
     },
     sync(): void {
@@ -193,11 +195,11 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
       }
       const waypoints = options.waypointIds();
       const entities = options.entityIds();
-      const key = `${waypoints.join('\u0000')}|${entities.join('\u0000')}`;
-      if (key === listKey) {
+      if (waypoints === listedWaypoints && entities === listedEntities) {
         return;
       }
-      listKey = key;
+      listedWaypoints = waypoints;
+      listedEntities = entities;
       replaceButtons(commandList, waypoints, (waypointId) => {
         controller.activateWaypoint(waypointId);
       });
