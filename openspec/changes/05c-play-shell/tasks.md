@@ -8,7 +8,7 @@
 
 ## 3. The page
 
-- [ ] 3.1 Add root `index.html`, `src/interfaces/composition/browserMain.ts`, and `src/interfaces/composition/shellDocument.ts`. One canvas, three layers (`viewport`, `diegetic`, `dev-hud`), pixel ratio capped at `1`, one animation frame calling `PlaySession.frame` once, and `prefers-reduced-motion` forwarded. The browser entry launches the proving-slice pack. The diegetic layer has no children. Cover the layer ids and a duplicate `stage` panel rejection in `tests/unit/interfaces/ShellDocument.test.ts` | Verify: `npx vitest run tests/unit/interfaces/ShellDocument.test.ts && npm run verify` | Commit: `feat(ui): boot the campaign page`
+- [x] 3.1 Add root `index.html`, `src/interfaces/composition/browserMain.ts`, and `src/interfaces/composition/shellDocument.ts`. One canvas, three layers (`viewport`, `diegetic`, `dev-hud`), pixel ratio capped at `1`, one animation frame calling `PlaySession.frame` once, and `prefers-reduced-motion` forwarded. The browser entry launches the proving-slice pack. The diegetic layer has no children. Cover the layer ids and a duplicate `stage` panel rejection in `tests/unit/interfaces/ShellDocument.test.ts` | Verify: `npx vitest run tests/unit/interfaces/ShellDocument.test.ts && npm run verify` | Commit: `feat(ui): boot the campaign page`
 
 ## 4. Play input and the stage lab
 

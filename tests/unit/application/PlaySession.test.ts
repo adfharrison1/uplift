@@ -349,8 +349,9 @@ describe('PlaySession', () => {
   it('forwards reduced motion and leaves the body in place when the camera offset changes', () => {
     const { coordinator, session } = doorSession('open');
     session.setReduceMotionAndFlashing(true);
-    const reduced = session.frame(1 / 60);
+    const reduced = session.frame(1 / 60, { aspect: 2 });
     expect(reduced.renderFrame?.suppressGodRays).toBe(true);
+    expect(reduced.renderFrame?.camera.aspect).toBe(2);
 
     session.setPaused(true);
     session.setCameraDeAnchored(true);

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uplift</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1f28;
+      }
+
+      [data-shell-layer] {
+        position: fixed;
+        inset: 0;
+      }
+
+      [data-shell-layer='viewport'] {
+        z-index: 0;
+      }
+
+      [data-shell-layer='diegetic'] {
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      [data-shell-layer='dev-hud'] {
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      [data-dev-hud-panel] {
+        pointer-events: auto;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="/src/interfaces/composition/browserMain.ts"></script>
+  </body>
+</html>

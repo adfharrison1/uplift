@@ -35,6 +35,7 @@ export interface PlaySessionLaunch {
 
 export interface PlayFrameInput {
   readonly reduceMotionAndFlashing?: boolean | undefined;
+  readonly aspect?: number | undefined;
 }
 
 export interface PlayFrameResult {
@@ -174,6 +175,9 @@ export class PlaySession {
       characterVisuals: this.characterVisuals,
       focusEntityId: this.focusEntityId,
       dtSeconds,
+      ...(input?.aspect !== undefined && Number.isFinite(input.aspect) && input.aspect > 0
+        ? { aspect: input.aspect }
+        : {}),
       debugMode: this.cameraDeAnchored,
       cameraDeAnchored: this.cameraDeAnchored,
       freeCamOffset: this.freeCamOffset,
