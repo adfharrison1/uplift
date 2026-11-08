@@ -16,7 +16,7 @@
 
 ## 5. Application and content guides
 
-- [ ] 5.1 Update `src/application/README.md`, `src/application/AGENTS.md`, and `src/content/README.md` to name `PlaySession` and the proving-slice visuals. Describe the modules. Do not cite an OpenSpec change id | Verify: `npm run verify` | Commit: `docs(app): document the play session launch`
+- [x] 5.1 Update `src/application/README.md`, `src/application/AGENTS.md`, and `src/content/README.md` to name `PlaySession` and the proving-slice visuals. Describe the modules. Do not cite an OpenSpec change id | Verify: `npm run verify` | Commit: `docs(app): document the play session launch`
 
 ## 6. Interface guides
 

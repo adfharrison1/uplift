@@ -11,7 +11,7 @@
 
 ## Adding New Application Use Cases or Coordinators
 
-1. Place application coordinators and pure frame builders in dedicated subdirectories (e.g., `src/application/simulation/`, `src/application/rendering/`).
+1. Place application coordinators, the play session, and pure frame builders in dedicated subdirectories (e.g., `src/application/simulation/`, `src/application/shell/`, `src/application/rendering/`).
 2. Re-export public classes, interfaces, schemas, and constants from `src/application/index.ts`.
 3. Add deterministic unit tests in `tests/unit/application/<UseCaseName>.test.ts`.
 4. Update both `src/application/README.md` and `src/application/AGENTS.md` and run `npm run verify`.
@@ -22,3 +22,14 @@
 - `requestWaypointMove` returns `paused` or `unknown_entity` before `dispatchEffects`. On a planned path, dispatch only `move_entity_to_waypoint`. Leave a deliberating entity in that phase. `already_there`, `blocked`, and `unknown_waypoint` do not change `WorldState`.
 - `requestSetPortalState` dispatches the existing `update_prop_state` effect. An unknown prop returns `unknown_prop`.
 - On an unpaused frame with `dtSeconds > 0`, truncate active paths once, including the hop off the current waypoint, and then call `stepKinematics` with the space-kind directory. Do not read portal state again during that step.
+
+## Play session
+
+- Keep `PlaySession` in `src/application/shell/PlaySession.ts` and re-export it from `src/application/index.ts`. Do not import `src/content/`, `three`, or DOM. `STARTER_HOLD_CHARACTER_VISUALS` and `STARTER_HOLD_STAGE_DIRECTORY` are a launch payload supplied by the caller.
+- `PlaySessionLaunch.stages` is keyed by `spaceId`. Throw when `stage.spaceId` does not equal that key.
+- `frame` calls `stepFrame` with the raw `dt`, then `pulseCognitiveScheduler` once, then resolves the resident stage. Forward `reduceMotionAndFlashing` when the caller sets it. Forward `aspect` only when it is finite and greater than `0`.
+- An unregistered focus space keeps the resident stage and sets status `missing_stage`. A registered space change returns the previous `stageId` as `releasedStageId`. The first resolve, when no stage was resident, returns `null`.
+- `clickFloor` while paused returns `paused` and does not query waypoints. A point farther than `FLOOR_WAYPOINT_RADIUS_METERS` (`1.5`) from every waypoint in the focus entity's space returns `miss`.
+- `requestMove` calls `requestWaypointMove`. `requestPortalState` calls `requestSetPortalState`. Both store the returned status.
+- `setFocusEntity` on an unknown id sets status `unknown_entity`, leaves the focus unchanged, and returns `null`. A known id resolves the resident stage before the method returns.
+- `setFreeCamOffset` changes the camera offset and does not write an entity position. `setPaused` and `setCameraDeAnchored` are separate calls. The page toggles them together.
