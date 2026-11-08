@@ -38,16 +38,24 @@ import {
   validateSaveSlotId,
 } from '../../domain/index.js';
 import {
+  type DomAttributeSink,
+  InMemoryDomAttributeSink,
+  StageInspectorDomMirror,
+} from '../hud/StageInspectorDomMirror.js';
+import {
   applyRenderFrameToScene,
   type BuiltStageScene,
   buildStageSceneGraph,
   disposeSceneGraph,
+  resolveSemanticIdFromObject,
 } from '../three/ChiaroscuroStageRenderer.js';
+import { createPlayInput } from './playInput.js';
 import {
   cappedDevicePixelRatio,
   createCampaignShell,
   prefersReducedMotion,
 } from './shellDocument.js';
+import { createStageLab } from './stageLabPanel.js';
 
 const TELEMETRY_ENTRY_CAP = 2048;
 
@@ -78,22 +86,19 @@ export function bootCampaignPage(
   const registry = new EpochModuleRegistry();
   registry.registerPack(launch.pack);
   const clock = browserClock(ownerWindow);
-  const session = new PlaySession(
-    new SimulationCoordinator({
-      epochId: launch.pack.epochId,
-      registry,
-      telemetry: new BrowserSessionTelemetry(clock),
-      saveRepository: new BrowserSaveRepository(clock),
-      clock,
-    }),
-    new RenderFrameBuilder(),
-    {
-      stages: launch.stages,
-      characterVisuals: launch.characterVisuals,
-      theme: launch.theme,
-      focusEntityId: launch.focusEntityId,
-    },
-  );
+  const coordinator = new SimulationCoordinator({
+    epochId: launch.pack.epochId,
+    registry,
+    telemetry: new BrowserSessionTelemetry(clock),
+    saveRepository: new BrowserSaveRepository(clock),
+    clock,
+  });
+  const session = new PlaySession(coordinator, new RenderFrameBuilder(), {
+    stages: launch.stages,
+    characterVisuals: launch.characterVisuals,
+    theme: launch.theme,
+    focusEntityId: launch.focusEntityId,
+  });
 
   let built: BuiltStageScene | null = null;
   const mountStage = (stage: StageSceneBlueprint): void => {
@@ -107,6 +112,70 @@ export function bootCampaignPage(
   if (initialStage !== null) {
     mountStage(initialStage);
   }
+  const applyStage = (
+    releasedStageId: string | null,
+    residentStage: StageSceneBlueprint | null,
+  ): void => {
+    if (releasedStageId !== null && built !== null) {
+      disposeSceneGraph(built.scene);
+      built = null;
+    }
+    if (built === null && residentStage !== null) {
+      mountStage(residentStage);
+    }
+  };
+
+  const stagePanel = ownerDocument.querySelector('[data-dev-hud-panel="stage"]');
+  const mirror = new StageInspectorDomMirror(
+    stagePanel instanceof HTMLElement
+      ? elementAttributeSink(stagePanel)
+      : new InMemoryDomAttributeSink(),
+  );
+  const lab = createStageLab({
+    mirror,
+    isPaused: () => coordinator.getWorldState().paused,
+    getStage: () => session.getResidentStage(),
+    getVisuals: () => launch.characterVisuals,
+    requestPortal: (propId, portalState) => input.requestPortal(propId, portalState),
+    transport: (request) => {
+      void ownerWindow.fetch(request.url, {
+        method: request.method,
+        headers: { 'content-type': 'application/json' },
+        body: request.rawBody,
+      });
+    },
+  });
+  let pointer = { x: 0, y: 0 };
+  const input = createPlayInput({
+    session,
+    isPaused: () => coordinator.getWorldState().paused,
+    waypointIds: () => waypointIdsForFocus(coordinator, registry, session.getFocusEntityId()),
+    entityIds: () => Object.keys(coordinator.getWorldState().entities).sort(),
+    readPortalState: (propId) => coordinator.getWorldState().props[propId]?.portalState,
+    raycastFloor: () => raycastFloor(pointer, canvas, built),
+    raycastPortal: () => raycastPortal(pointer, canvas, built, session.getResidentStage()),
+    raycastPick: () => raycastPick(pointer, canvas, built),
+    onPick: (semanticId) => {
+      lab.pick(
+        semanticId,
+        coordinator.getWorldState().paused ? 'debug_free_cam' : 'tracking_volume',
+      );
+    },
+    onFocusStage: (releasedStageId) => {
+      applyStage(releasedStageId, session.getResidentStage());
+    },
+  });
+  if (stagePanel instanceof HTMLElement) {
+    input.attach(stagePanel);
+    lab.attach(stagePanel);
+  }
+  canvas.addEventListener('pointerdown', (event) => {
+    pointer = { x: event.clientX, y: event.clientY };
+    input.pointerDown();
+  });
+  ownerWindow.addEventListener('keydown', (event) => {
+    input.keyDown(event.key);
+  });
 
   let previousMs = ownerWindow.performance.now();
   const onFrame = (nowMs: number): void => {
@@ -116,20 +185,144 @@ export function bootCampaignPage(
       reduceMotionAndFlashing: prefersReducedMotion((query) => ownerWindow.matchMedia(query)),
       aspect: ownerWindow.innerHeight > 0 ? ownerWindow.innerWidth / ownerWindow.innerHeight : 1,
     });
-    if (result.releasedStageId !== null && built !== null) {
-      disposeSceneGraph(built.scene);
-      built = null;
-    }
-    if (built === null && result.residentStage !== null) {
-      mountStage(result.residentStage);
-    }
+    applyStage(result.releasedStageId, result.residentStage);
     if (built !== null && result.renderFrame !== null) {
-      applyRenderFrameToScene(built, result.renderFrame, launch.theme);
+      const selection = lab.selection();
+      applyRenderFrameToScene(
+        built,
+        {
+          ...result.renderFrame,
+          domMirror: {
+            ...result.renderFrame.domMirror,
+            hoveredSemanticId: selection,
+            selectedSemanticId: selection,
+          },
+        },
+        launch.theme,
+      );
       renderer.render(built.scene, built.camera);
     }
+    input.sync();
     ownerWindow.requestAnimationFrame(onFrame);
   };
   ownerWindow.requestAnimationFrame(onFrame);
+}
+
+function elementAttributeSink(element: HTMLElement): DomAttributeSink {
+  return {
+    setAttribute(name: string, value: string): void {
+      element.setAttribute(name, value);
+    },
+    getAttribute(name: string): string | null {
+      return element.getAttribute(name);
+    },
+    removeAttribute(name: string): void {
+      element.removeAttribute(name);
+    },
+  };
+}
+
+function waypointIdsForFocus(
+  coordinator: SimulationCoordinator,
+  registry: EpochModuleRegistry,
+  focusEntityId: string,
+): readonly string[] {
+  const spaceId = coordinator.getWorldState().entities[focusEntityId]?.spaceId;
+  if (spaceId === undefined) {
+    return [];
+  }
+  return (
+    registry
+      .getAllSpaces()
+      .find((space) => space.id === spaceId)
+      ?.waypoints.map((waypoint) => waypoint.id) ?? []
+  );
+}
+
+function pointerIntersections(
+  pointer: { readonly x: number; readonly y: number },
+  canvas: HTMLCanvasElement,
+  built: BuiltStageScene | null,
+): THREE.Intersection[] {
+  if (built === null) {
+    return [];
+  }
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return [];
+  }
+  const ndc = new THREE.Vector2(
+    ((pointer.x - rect.left) / rect.width) * 2 - 1,
+    -((pointer.y - rect.top) / rect.height) * 2 + 1,
+  );
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(ndc, built.camera);
+  return raycaster
+    .intersectObject(built.stageRoot, true)
+    .filter((hit) => objectIsVisible(hit.object));
+}
+
+function objectIsVisible(object: THREE.Object3D): boolean {
+  let current: THREE.Object3D | null = object;
+  while (current !== null) {
+    if (!current.visible) {
+      return false;
+    }
+    current = current.parent;
+  }
+  return true;
+}
+
+function raycastPick(
+  pointer: { readonly x: number; readonly y: number },
+  canvas: HTMLCanvasElement,
+  built: BuiltStageScene | null,
+): { readonly semanticId: string } | null {
+  for (const hit of pointerIntersections(pointer, canvas, built)) {
+    const semanticId = resolveSemanticIdFromObject(hit.object);
+    if (semanticId !== null) {
+      return { semanticId };
+    }
+  }
+  return null;
+}
+
+function raycastPortal(
+  pointer: { readonly x: number; readonly y: number },
+  canvas: HTMLCanvasElement,
+  built: BuiltStageScene | null,
+  stage: StageSceneBlueprint | null,
+): { readonly propId: string; readonly semanticId: string } | null {
+  if (stage === null) {
+    return null;
+  }
+  for (const hit of pointerIntersections(pointer, canvas, built)) {
+    const semanticId = resolveSemanticIdFromObject(hit.object);
+    if (semanticId === null) {
+      continue;
+    }
+    const prop = stage.props.find(
+      (candidate) => candidate.semanticId === semanticId && candidate.isPortal,
+    );
+    if (prop !== undefined) {
+      return { propId: prop.propId, semanticId };
+    }
+  }
+  return null;
+}
+
+function raycastFloor(
+  pointer: { readonly x: number; readonly y: number },
+  canvas: HTMLCanvasElement,
+  built: BuiltStageScene | null,
+): { readonly x: number; readonly z: number } | null {
+  for (const hit of pointerIntersections(pointer, canvas, built)) {
+    const semanticId = resolveSemanticIdFromObject(hit.object);
+    if (semanticId !== null && semanticId.endsWith('.floor')) {
+      return { x: hit.point.x, z: hit.point.z };
+    }
+  }
+  return null;
 }
 
 function browserClock(ownerWindow: Window): TelemetryClock {
