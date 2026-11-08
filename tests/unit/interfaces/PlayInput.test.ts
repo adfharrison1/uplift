@@ -346,11 +346,22 @@ describe('play input and the stage lab', () => {
       raycastPick: () => null,
       onPick: () => undefined,
     });
+    expect(input.activateWaypoint('wp_lane')).toBe('path');
+    expect(dispatches).toBe(1);
+    const planned = coordinator.getWorldState().entities['char_walker']?.activePath;
+    const doc = {
+      createElement(): FakeNode {
+        return fakeNode(doc);
+      },
+    };
+    const panel = fakeNode(doc);
+    input.attach(panel as unknown as HTMLElement);
     session.setPaused(true);
     expect(input.activateWaypoint('wp_lane')).toBe('paused');
     expect(input.statusText()).toBe('paused');
-    expect(dispatches).toBe(0);
-    expect(coordinator.getWorldState().entities['char_walker']?.activePath).toEqual([]);
+    expect(panel.children[0]?.textContent).toBe('paused');
+    expect(dispatches).toBe(1);
+    expect(coordinator.getWorldState().entities['char_walker']?.activePath).toBe(planned);
   });
 
   it('mirrors a paused pick and does not change a portal from the stage panel while paused', () => {

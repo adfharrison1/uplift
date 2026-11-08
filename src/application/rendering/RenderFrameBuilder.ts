@@ -517,7 +517,7 @@ export class RenderFrameBuilder {
     } else if (input.focusEntityId !== undefined) {
       const entity = worldState.entities[input.focusEntityId];
       if (entity !== undefined && entity.spaceId === stage.spaceId) {
-        focusPos = toLocal(sanitizeFiniteTriple(entity.position), origin);
+        focusPos = sanitizeFiniteTriple(toLocal(entity.position, origin));
       }
     }
 
@@ -687,7 +687,7 @@ export class RenderFrameBuilder {
       const visual =
         visualsByCharId.get(entity.entityId) ?? visualsByLineageId.get(entity.lineageId);
       const heightScale = visual?.heightScale ?? 1.0;
-      const localPosition = toLocal(entity.position, origin);
+      const localPosition = sanitizeFiniteTriple(toLocal(entity.position, origin));
       const headAnchor: readonly [number, number, number] = [
         localPosition[0],
         localPosition[1] + 1.8 * heightScale,

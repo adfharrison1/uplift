@@ -232,7 +232,7 @@ export class PlaySession {
     let nearestDistance = Number.POSITIVE_INFINITY;
     for (const waypoint of space.waypoints) {
       const distance = Math.hypot(waypoint.position[0] - x, waypoint.position[2] - z);
-      if (distance > FLOOR_WAYPOINT_RADIUS_METERS) {
+      if (!(distance <= FLOOR_WAYPOINT_RADIUS_METERS)) {
         continue;
       }
       if (

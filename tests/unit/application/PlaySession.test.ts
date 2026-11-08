@@ -272,6 +272,7 @@ describe('PlaySession', () => {
 
     expect(session.clickFloor(1.5, 0)).toBe('already_there');
     expect(session.clickFloor(10, 0)).toBe('path');
+    expect(session.clickFloor(Number.NaN, 0)).toBe('miss');
     expect(
       coordinator
         .getWorldState()
@@ -330,8 +331,9 @@ describe('PlaySession', () => {
     expect(session.setFocusEntity('char_away')).toBeNull();
     expect(session.getResidentStage()?.spaceId).toBe('space_home');
     expect(session.getStatus()).toBe('missing_stage');
-    expect(session.frame(1 / 60).renderFrame?.activeSpaceId).toBe('space_home');
-    expect(session.frame(1 / 60).renderFrame?.camera.lookAt[0]).toBe(0);
+    const kept = session.frame(1 / 60).renderFrame;
+    expect(kept?.activeSpaceId).toBe('space_home');
+    expect(kept?.camera.lookAt).toEqual([0, 0, 0]);
 
     const swapped = new PlaySession(coordinator, new RenderFrameBuilder(), {
       stages: new Map([
@@ -349,6 +351,10 @@ describe('PlaySession', () => {
 
   it('forwards reduced motion and leaves the body in place when the camera offset changes', () => {
     const { coordinator, session } = doorSession('open');
+    const fromFrame = session.frame(1 / 60, { reduceMotionAndFlashing: true });
+    expect(fromFrame.renderFrame?.suppressGodRays).toBe(true);
+    const cleared = session.frame(1 / 60, { reduceMotionAndFlashing: false });
+    expect(cleared.renderFrame?.suppressGodRays).toBe(false);
     session.setReduceMotionAndFlashing(true);
     const reduced = session.frame(1 / 60, { aspect: 2 });
     expect(reduced.renderFrame?.suppressGodRays).toBe(true);
