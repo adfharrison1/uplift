@@ -1,3 +1,94 @@
+# Uplift Design Notes
+
+This file is the design home. It is a direction with room to add and modify, not a frozen spec (P5). The sections below the frame are dated and keep their original order. Planned behaviour carries a `(planned: <change id>)` mark. Change ids live in this file and under `openspec/` only.
+
+## Pillars
+
+Owner pillars stated during the 2026-11-08 root-and-branch review. Everything below is read against them.
+
+- **P1.** The engine, modules, content objects and 3D render UI are built as a strong, decoupled, epoch-agnostic framework. The owner and an agent can then add detail and colour collaboratively as they go. The underlying tech and mechanics in the design notes are wanted. Some rules should still be set early enough to guide how the architecture evolves.
+- **P2.** There is no free-text player input. A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring.
+- **P3.** Each epoch has a new operative with their own new Ship and Drone crew, because that is how the Culture works. The new crew, and the loss of the previous one, are part of the fun.
+- **P4.** Some feedback is meant to be indirect: the player pieces together related events, NPC behaviour and world outcomes.
+- **P5.** Everything the review settles stays open to later change. Core model, rules spine and roadmap order are a direction with room to add and modify, not a frozen spec.
+- **De-weighted:** scale versus solo-developer time, and the number of review gates.
+
+## Where facts live
+
+One owner per duplicated fact. Other files point at the owner and do not restate the fact.
+
+| Fact | Owner |
+| --- | --- |
+| Epoch ladder (default 7-epoch arc) | Section 4 of this file (no epoch-ladder blueprint exists in code yet) |
+| Dependency versions | `package.json` and `.nvmrc` only |
+| Verify steps and budget | `package.json` scripts; one sentence in the `AGENTS.md` Quick Verify |
+| Layer rules | root `AGENTS.md` plus `tests/architecture` |
+| Roadmap order and `depends_on` | `openspec/roadmap.yaml` |
+| Review gates | the `uplift-review-gates` skill (planned: process-gates-and-ledger) |
+| Engine counts such as the 7-epoch default arc | asserted by the docs-truth test against code constants (planned: process-gates-and-ledger) |
+
+## Status index
+
+Each section is `shipped`, `partial` or `planned`, with the roadmap ids that own the unshipped part. Heading markers inside the sections are written section by section as each is checked against code. This table is the only place the full set is listed.
+
+| Section | Status | Roadmap id |
+| --- | --- | --- |
+| Core Rule: epoch-agnostic abstractions (5 Nov) | shipped | `03-modular-registries-and-kinematics` |
+| Generational Operatives & the Culture Advisory Pair | partial | `10-crew-handoff` |
+| Competing Spacefaring Civilizations | partial | `06-rivals-remote-evidence` |
+| Illustrative Seed Exemplars & Tone Benchmarks | planned | `11-epoch1-content` |
+| Visual & UI Direction, Stage Lab, DOM inspection | shipped | `04-third-person-camera-and-inspector` |
+| Lightweight AI & NLP Evaluation Framework | planned | `05f-eval-and-replay` |
+| Human-Paced NPC Cognition & Anti-Thundering-Herd | partial | `06-utility-ai` |
+| Sound Design, Gameplay Acoustics & Sound Lab | planned | `audio-minimal`, `05a-audio-engine` |
+| 0. Campaign Pacing, 4-Clock Hierarchy, Curve Envelopes | planned | `05b-1-watch-clock-and-time-spend`, `05b-2-envelopes-and-gates` |
+| 1. Interpersonal `Regard` Web & Romantasy | planned | `06a-interpersonal-regard-and-romantasy` |
+| 2. Assassination & Cover Persecution | planned | `06b-assassination-and-cover-persecution` |
+| 3. Orbital Blackout, Doomsday Clocks, Scheduler | planned | `09a-doomsday-clocks-and-rival-unveiling` |
+| 4. N-Epoch Ladder, Operative Rotation, Extraction Stills | partial | `10-registry-swap-and-legacy` |
+| 5. Epoch 2+ Fast-Travel Vignettes | planned | `06c-epoch-travel-vignettes` |
+| 6. Play Shell | shipped | `05c-play-shell` |
+| 7. Direct Floor Locomotion | planned | `05d-input-and-control-frame`, `05d-locomotion-footprint` |
+| 8. Proximity Use and Menu Grammar | planned | `05e-modal-stack-use-and-menu` |
+| 9. Conversation Text Bubbles, No Voice Acting | planned | `07-bubble-lace-skins-and-tone-blips` |
+| 10. Conversation Paging and Ambient Lines | planned | `07-dialogue-paging` |
+| 10a to 10e. Interruption, Pretext, Fund, Duel, Voice Register | planned | `07a-dialogue-interruption` to `07e-voice-register-evals` |
+| 11. Local AI Eval Framework | planned | `05f-eval-and-replay` |
+| Engineering rules | planned | `hx-ops-safety` |
+| Rules spine R1 to R8 | partial (skeleton; rules filled by `docs-spine-and-roadmap`) | `docs-spine-and-roadmap` |
+
+A "Minimal audio" section (footsteps by surface, doors, menu sounds, murmur on a provisional audibility-tier table) is written by `docs-spine-and-roadmap`; its change is `audio-minimal` (planned), directly after `05e-settings-model`. Per-NPC tone blips ride with `07-bubble-lace-skins-and-tone-blips`, not with it.
+
+### Open, deferred and parked
+
+Explicit open items, one line each. No content is written for them yet. Each parked spike has a parked entry in `openspec/roadmap.yaml` with a revisit trigger.
+
+- **Onboarding / first-10-minutes design (S1-R8)**: deferred by the owner. "Owner isn't ready for this yet. Revisit later."
+- **Epoch 1 as the definition of done, with its own ending (R8)**: open. "Open; owner didn't address it." Parked entry `epoch1-definition-of-done`.
+- **Text-only advisor / writing prototype (R5)**: open. Becomes a generation-quality prototype under P2 (`08a-timing-spike`).
+- **Authored quality-gated storylet cards versus generated cards (route RC/R7, finding S2-08)**: resolved by the authored/generated split and the hybrid pipeline. Only the storylet-card question is left to the storyteller change (`05b-2-storylets-and-lab`).
+- **Save policy (S1-R5, owner decision)**: autosave at watch boundaries plus named manual saves. Loading any earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (`roll(worldSeed, streamKey, counter)`) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked (`ironman-mode`). Gate before `cm-observation-notebook`.
+- **GPU profile (slice 5)**: open.
+- **Parked spikes**: small fine-tuned classifier for line selection (`classifier-spike`), runtime reranker (`rc2-runtime-reranker`), compiler-API import scanning (`compiler-api-import-scan`), typed ESLint (attach to the first async-port change), INV-D Bayesian network (`inv-d-bayesian-network`), INV-F exact-inference network (`inv-f-exact-inference`).
+
+#### Ideas, not scheduled
+
+- **Past advisors in later epochs**: owner's addition. Past advisors occasionally appear with help or notes over the Culture's galactic network. Design-note candidate only (parked entry `past-advisor-cameo`).
+
+## Rules spine
+
+Eight architecture-constraining rules, numbered R1 to R8, are the minimal player-and-engine contract set early so it can guide how the architecture evolves (S1-R1, S2-17). The owner accepted the eight-rule spine, leaving room to modify, so every rule below is revisable under P5. Each rule's text, status and enforcing test or lint land with `docs-spine-and-roadmap` (planned). Rule numbers here are R1 to R8 only; the review's slice-1 route RC/R7 (authored storylet cards) is a different label.
+
+| Rule | Subject | Status |
+| --- | --- | --- |
+| R1 | One watch clock | planned |
+| R2 | Actor and cause on every effect | planned |
+| R3 | Thread structure (stages; one spine thread in `crisis_fuse`) | planned |
+| R4 | Discovery has a referent and an observer | planned |
+| R5 | Emergency cardinality and fuse | planned |
+| R6 | Reject instead of throw | planned |
+| R7 | Resource ledger | planned |
+| R8 | Epoch-end reads both ledgers and the Observation table | planned |
 
 
 ## Creative Review Enrichments & Multi-Epoch Continuity Architecture (5th Nov 2026)
@@ -160,6 +251,8 @@ Rival operatives belong to competing spacefaring civilizations registered via `R
 - **Anti-Clustering & Epoch-Spacing Framework (`CampaignContingencyScheduler`)**:
   - **Stratified Campaign Draw (`maxContingenciesPerEpoch = 2`)**: At campaign start, `SeededRandom` draws `2–3` random contingencies from the 5-event pool across the configured `epochs` list (persisted in `CivilizationLegacyState.orbitalContingencyLedger`). If $\ge 2$ are drawn, they **must** span at least 2 distinct Epochs (never all piling into the same Epoch), while any given Epoch may naturally roll **`0` contingencies** (a quiet orbital age), `1`, or at most `2` (including the conditional Rival Ambush).
   - **Mutual Exclusion + Mandatory Recovery Cooldown (`minCooldownWatches`)**: Only one blackout can ever be active at a time (`pausedByActiveBlackout: true`). When an Epoch has two contingencies (or a random contingency plus the Endgame Rival Ambush), the second event cannot trigger until `elapsedWatches >= lastBlackoutResolvedWatch + minCooldownWatches` ($\ge 35\%$ of `epochWatchBudget`), preventing back-to-back orbital blackouts.
+- **Ship Mind forecast (planned: 09-delta-coupling-and-forecast)**:
+  - A closed-form banded hazard computed from the Mind's own Observations, shown as a band plus its top two causes. Band edges are fixed, with hysteresis so the band does not flicker. Owned by the orbital-mechanics change. The Bayesian network for forecasts (INV-D) stays parked (`inv-d-bayesian-network`).
 
 ### 4. Configurable $N$-Epoch Civilizational Ladder (Default 7-Epoch Arc), Generational Operative Rotation, Anti-Over-Acceleration Ceilings & Extraction Stills (`10-epoch-transition-maturation-and-succession`)
 - **Uplift-Driven Historical Compression Across a Configurable $N$-Epoch Ladder (Default 7 Epochs)**:
@@ -300,15 +393,45 @@ Rival operatives belong to competing spacefaring civilizations registered via `R
 - **Epoch-agnostic contract**: The runner lives in `eval/` at the repo root, outside the four layers, the same way `tests/` does. It may import domain and application. Domain does not import it. A subject id is an open string. The runner does not import `three`, the ONNX runtime, or era content, and it does not read `Date.now()`. The change that owns an AI subject registers that subject's cases. Suites already named are utility and rival goals (change 06), the written register (section 10e), and free-text intent (change 08). Any later AI subject adds a suite the same way.
 - **What it leaves out**: The utility brain, rival behavior, dialogue lines, the written-register rules, and the intent dataset. Those stay on their own changes. The runner does not score a subject until that change registers its cases.
 
+## Engineering rules
 
-world interaction notes 8th nov 2026
+Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append to this section.
 
-the player should move their character with WSAD, freely moving around any non-occupied point of the floor. this should NOT be click-to-move.
+### Bridge lock (planned: hx-ops-safety)
 
-the player should interact with items/portals/npcs/other interactable things in the same way - by moving near to them and pressing space. all interaction menus/dialog should be interacted with/scrolled using wsad, with space to make a choice, and escape to quit the menu/dialog. specifically with dialogue, lets settle on an elder-scrolls stlye where the user doesnt scroll the dialoge, instead its split into readable single chunks, with space bar used to go to the next chunk once read, and space exits the dialogue from the last chunk.
+The dev-server write routes (`PUT /api/scene-blueprints`, `PUT /api/character-visuals`, the session log and save routes) currently accept a cross-origin simple POST. This was reproduced twice on loopback-only probes (S4-02), so the fix runs first in the whole plan, ahead of docs and process work, and is independent of everything else.
 
-player pause menu should be reachable via esc when no other dialogs/interacts are open, and have the same interaction controls as above.
+- **One guarded write-route helper (planned)**: every lab route reuses it, and no route re-implements the checks. It enforces an `Origin` allow-list, a `Host` check, `Content-Type`, a per-run token, size limits that destroy the stream, and allowlisted paths with realpath containment.
+- **Explicit `server.cors`**: set in Vite config rather than left to the default.
+- **Test**: an http middleware test on `127.0.0.1:0` exercises the real middleware, not a mock.
+- **Logger partner**: the logger rotates the prior session into `logs/prev` instead of truncating it on start (S4-03).
 
-the camera should move with the players charachter centred, but we should leave the option open for certain world events to capture that centring, to show action, before automatically returning the camera to the player. we should research best practices/improvements/suggestions on this
+## Dispositions appendix
 
-there should be a single "further out zoom" available to the player to help them navigate
+Where each raw note went, one row each. Raw dumps wait in `notes/inbox.md` until the design-notes skill dispositions them. Rejected options are logged so they are not re-proposed.
+
+### Integrated and partly integrated notes
+
+| Raw note (8 Nov 2026 world interaction notes) | Disposition | Where |
+| --- | --- | --- |
+| WASD free movement on any unoccupied floor point, not click-to-move | integrated | Section 7 |
+| Interact by moving near and pressing Space; menus on WASD / Space / Escape | integrated | Section 8 |
+| Dialogue as single readable chunks advanced by Space; Space exits from the last chunk | integrated | Section 10 |
+| Pause menu on Escape when nothing else is open, same controls | integrated | Section 8 |
+| Camera centred on the player, with world events able to capture it and hand it back | integrated in part (S5-11): the control-frame latch and the single zoom-out land with the first locomotion change (planned: 05d-input-and-control-frame); the capture / return directive stack lands with dialogue and events (planned: 07-camera-directive-stack) | Sections 7, 10 |
+| A single "further out zoom" for the player to navigate | integrated in part (S5-11): the single yaw-neutral zoom-out scalar (planned: 05d-input-and-control-frame) | Section 7 |
+
+The last two rows only ever appeared in the dump, so they stay listed until their changes land.
+
+### Considered and rejected
+
+| Option | Verdict | Note |
+| --- | --- | --- |
+| R6 seasonal council with rooms as scenes | rejected-by-review | |
+| R9 CK3 numeric odds | rejected-by-review | Qualitative odds in advisor speech instead |
+| S1-R9 re-rolled advisors weaken the through-line | rejected-by-owner | P3; the new crew each epoch is the design |
+| S1-13 no epoch-handoff payoff | rejected-by-review | Already specified in the epoch-transition section |
+| S1-12 tone is only flavour | rejected-by-review | Folded into S1-R2 (inference trails) |
+| R5C2 global "important" accent | rejected | Breaks P4 |
+| A LAYA-class or JEV-class decision model in the simulation path | rejected | INV-A |
+| General probabilistic-programming engines, learned nets and JEPA-style world models at runtime | rejected | INV-F |

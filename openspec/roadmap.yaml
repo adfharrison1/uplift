@@ -1,0 +1,638 @@
+# Living roadmap for Uplift: an ordered array of planned OpenSpec changes.
+# Seeded from the root-and-branch review change plan (64 changes in 6 milestones, plus parked entries).
+# Order is the intended build order. depends_on is an ordering edge, not always a technical one.
+# status: archived | planned | parked | proposed. The roadmap is a direction with room to add and modify.
+# Change ids are allowed here and in DESIGN_NOTES.md only; AGENTS.md, README.md, src/ and tests/ never cite them.
+# Original ids of untouched changes keep their meaning (07a, 07b, 07c, 07d, 07e, 06a, 06b, 06c, 09a, 05a).
+# Retired: 08-local-onnx-hybrid-intent (free-text ONNX parser) is replaced by 08a-timing-spike and 08-generated-text-adapter.
+# validated_by lists the later entries that rely on this entry passing.
+# status: archived entries are depends_on anchors only; whether a change is archived or active is derived from openspec/changes/.
+
+milestones:
+  - id: M1
+    name: "Trustworthy foundation"
+    outcome: "Docs say what is true, the gates exist, saves round-trip, and a golden seeded run hashes identically twice."
+  - id: M2
+    name: "Walkable, usable room"
+    outcome: "Walk a character around a room with footsteps, bump props, press Space to use things, open menus and change settings."
+  - id: M3
+    name: "Core model alive"
+    outcome: "Spend watch time, act, and see NPCs, beliefs and pressure shift in a headless run and in a crowd room, with telemetry visible."
+  - id: M4
+    name: "Talk and notebook"
+    outcome: "Hold a paged, menu-driven conversation with bubbles and lace page, then read what you learned in the notebook; eval:ai replays it."
+  - id: M5
+    name: "Vertical slice"
+    outcome: "Play one Epoch 1 thread from first clue to a stub end card; the go/no-go point for everything after."
+  - id: M6
+    name: "Breadth"
+    outcome: "Rivals, overview, generated text, advisors, audio lab, Delta/emergency and crew handoff across epochs, ending in a finished Epoch 1."
+
+entries:
+  - id: "01-clean-scaffold-and-verify"
+    title: "Toolchain, Clean Architecture boundary test, SeededRandom, StateSliceKey, verify loop"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: archived
+  - id: "01a-eslint-prettier-and-hooks"
+    title: "Prettier format-on-save, ESLint flat config (TS 7 side-by-side), Husky + lint-staged"
+    milestone: null
+    depends_on: ["01-clean-scaffold-and-verify"]
+    specs_modified: []
+    status: archived
+  - id: "02-telemetry-saves-and-debug-skill"
+    title: "NDJSON session logger, rolling compactor, Vite disk middleware, multi-session Save/Load, uplift-debug skill"
+    milestone: null
+    depends_on: ["01a-eslint-prettier-and-hooks"]
+    specs_modified: []
+    status: archived
+  - id: "03-modular-registries-and-kinematics"
+    title: "Epoch-agnostic module registries, WorldEffect reducer, 60Hz kinematics, human-paced cognition and fast-eval pacing, dual-ledger CivilizationLegacyState"
+    milestone: null
+    depends_on: ["02-telemetry-saves-and-debug-skill"]
+    specs_modified: []
+    status: archived
+  - id: "04-third-person-camera-and-inspector"
+    title: "Pure RenderFrameBuilder, Three.js stage-paint renderer, 3-layer visual framework, volume-aware tracking camera, F3 stage lab, Agent DOM mirror"
+    milestone: null
+    depends_on: ["03-modular-registries-and-kinematics"]
+    specs_modified: []
+    status: archived
+  - id: "05-live-npc-steering-and-world-stage"
+    title: "60 FPS NPC waypoint steering, doors and props, spatial hash grid, headless Highglass Hold proving slice"
+    milestone: null
+    depends_on: ["04-third-person-camera-and-inspector"]
+    specs_modified: []
+    status: archived
+  - id: "05c-play-shell"
+    title: "The campaign's single browser page: one canvas, whichever pack is registered, waypoint and door requests, stage swap on focus-space change, F3 stage lab"
+    milestone: null
+    depends_on: ["04-third-person-camera-and-inspector", "05-live-npc-steering-and-world-stage"]
+    specs_modified: []
+    status: archived
+  - id: "hx-ops-safety"
+    title: "Hardening 0: guarded bridge, logger rotation, parallel verify"
+    milestone: M1
+    depends_on: ["05c-play-shell"]
+    specs_modified: ["multi-session-saves", "stage-inspector", "session-telemetry-and-compaction", "clean-architecture-and-quality-gate"]
+    status: planned
+    scope: "Runs first in the whole plan because the bridge CSRF was reproduced and the fix is independent of everything else. One guarded write-route helper (Origin allow-list, Sec-Fetch-Site, Content-Type, per-run token, size cap that destroys the stream, realpath containment) with explicit server.cors and a real http middleware test on 127.0.0.1:0, plus the logger rotating the prior session into logs/prev instead of truncating it (spec delta replaces the requirement that the prior log SHALL be replaced). Then verify runs format, lint, typecheck and vitest in parallel with buffered one-line PASS/FAIL, keeps verify:serial, deletes the prose-pinning arch tests and runs verify in pre-commit, with the unmeasured under-5-seconds clause replaced by a measured budget."
+  - id: "docs-spine-and-roadmap"
+    title: "Docs: rules spine, system graph, roadmap.yaml"
+    milestone: M1
+    depends_on: ["hx-ops-safety"]
+    specs_modified: ["(none: doc-only)", "(new) roadmap-graph"]
+    status: planned
+    scope: "Doc-only, anchored on quoted passages not line numbers. DESIGN_NOTES.md gets the index, pillars P1-P5, the Where-facts-live owner table, a section status index (this change writes the index only; heading markers are written once, by the amendment that touches each section), the numbered 8-rule spine, minute/session/epoch cycles, the clock decision record, the Leverage Chain definition with the owner wording kept, the 7-primitive system graph with economy hubs, an emergency cardinality and scope note, one pause/lab definition (player pause sets the single domain freeze bit: time freezes, effects still reduce and return outcomes; lab mode is a PlaySession flag that also holds the bit; free-cam keys gate on lab mode), the owner's save-policy decision (autosave at watch boundaries plus named manual saves; loading any earlier save is allowed and restores that save's notebook), the INV-1 verdicts (INV-A to INV-F), a reserved tellProfile note, the section 9 amendment (tone blips are not a synthesised voice), the past-advisor cameo as a design-note candidate only, and the S2-04 edits retiring free-text and ONNX wording. It also moves the planned camera, play-shell and core-model blocks out of config.yaml into DESIGN_NOTES with a diff proving nothing is lost, writes notes/inbox.md, triages the half-integrated 8 Nov dump into it, adds the ch2 doc shape for review outputs and a dispositions appendix, and adds the planned economy, Regard, storyteller-deck and Writing Desk passages so every change has a doc home. openspec/roadmap.yaml (ordered array, depends_on, specs_modified, status) is seeded from this plan with the original ids restored, plus the roadmap:next script and DAG check, and parked entries each with a revisit trigger (onboarding, DPR/antialiasing, silhouette budget, theme roles, later notebook categories, offline self-play tuning, small classifier spike, INV-D Bayesian network, INV-F exact-inference network, RC2 runtime reranker, dither-fade wall occlusion, merged Tier-3 crowd, compiler-API import scan, Epoch 1 definition of done)."
+  - id: "process-gates-and-ledger"
+    title: "Process: design-notes skill fix, docs-truth test, gates skill, defect ledger"
+    milestone: M1
+    depends_on: ["docs-spine-and-roadmap"]
+    specs_modified: ["clean-architecture-and-quality-gate", "(new) review-process", "(new) defect-ledger"]
+    status: planned
+    scope: "Fixes .agents/skills/uplift-design-notes so it writes DESIGN_NOTES, notes/inbox.md and roadmap.yaml and never AGENTS.md; rewrites root AGENTS.md to shipped code only (target about 900 words, test ceiling 1050, no change ids), single-sources versions in package.json, drops CVE ids, and cuts config.yaml context under 1.5k words by whole-block cuts that point to DESIGN_NOTES, only after the no-loss diff from the spine change passes. Creates .agents/skills/uplift-review-gates/SKILL.md with gates G1-G6 (additions only, task-size rule replacing the 4-6 count, retargeting the old Subagent B wording into the skill, consumer scenarios and MODIFIED deltas for contradicted requirements) and adds a tracked openspec/defect-ledger.yaml (id, source, severity, fixing change id; a finding with no fixing change is recorded as parked) whose entries are deleted by an opsx-archive wrapper script, with the skill only pointing at that script. The single docs-truth test lands last so it starts green: it checks root AGENTS.md only (identifiers and scripts resolve, versions match, change ids only in openspec/ and DESIGN_NOTES, status markers resolve to roadmap.yaml, word budgets, numeric facts) and fails on ledger entries naming archived or absent changes; the ledger seed (all severities or majors only) awaits Q3. Ledger seed: every open code defect this review found that has a slotted fixing change, all severities."
+  - id: "hx-1-legacy-clamp-seed-scramble"
+    title: "Hardening 1+2: legacy clamp, seed scramble"
+    milestone: M1
+    depends_on: ["hx-ops-safety"]
+    specs_modified: ["deterministic-simulation-primitives"]
+    status: planned
+    scope: "Clamps legacy mutations to [0,1] with a telemetry note (the throw stays in an authoring-time contract test) and adds a splitmix32 seed scramble with a golden-vector test. This is deliberately only the clamp half of S3-14: accumulation is deferred on purpose to 10-registry-swap-and-legacy and sourceScarId to 05b-1, each carried by its own source id so the three pieces sum to the finding. Adds acceptance lines for the frozen-input and RNG golden-value test gaps."
+  - id: "hx-slice-store"
+    title: "Hardening 3: test builders, share-on-read slice store, typed slice keys"
+    milestone: M1
+    depends_on: ["hx-1-legacy-clamp-seed-scramble"]
+    specs_modified: ["deterministic-simulation-primitives"]
+    status: planned
+    scope: "Adds tests/support makeRegistry, makeWorldState and makeStageBlueprint, splits the monolithic tests onto them, gives the bridge its first tests, and carries the S3-17 acceptance lines (caps, mid-hop states, dt splits) for later hardening changes. StateSliceStore then freezes on write and shares on read with O(1) append (the default-fallback scenario no longer demands a clone), guarded by frozen-output invariant tests. StateSliceKey gains optional schema/version/migrate and a plain-JSON guard so Map and Set cannot enter a slice."
+  - id: "hx-save-integrity"
+    title: "Hardening 4: WorldStateCodec, pack identity, id pattern"
+    milestone: M1
+    depends_on: ["hx-slice-store"]
+    specs_modified: ["multi-session-saves"]
+    status: planned
+    scope: "WorldStateCodec with snapshotVersion, Zod load and a migrations chain replaces the four copies of the world-state field list (the S3-09 field-list half), with a save round-trip scenario. packId/version go on the registry and save envelope with an epoch and pack check on load, recording the decision of one registry per epoch with cameo content only through an explicit import list. One entity-id pattern check at load and at materialize stops a bad id throwing in the render loop, and listSlots reports why a slot is unreadable. This is the cheapest migration to get wrong, so each of the three parts is its own task with a round-trip test."
+  - id: "hx-reducer-and-frame-safety"
+    title: "Hardening 5: reducer outcomes, pause bit, frame guard"
+    milestone: M1
+    depends_on: ["hx-save-integrity"]
+    specs_modified: ["deterministic-simulation-primitives", "play-shell"]
+    status: planned
+    scope: "Reducers return applied/rejected with a reason and a throw no longer aborts the batch, kept to at most 3 files per task because it touches every reducer. The player pause sets the single domain freeze bit (time freezes; dispatched effects still reduce and return outcomes), PlaySession.status is recomputed per call, and lab mode becomes a PlaySession flag that also holds the bit with free-cam keys gated on lab mode, not isPaused. A frame try/catch re-arms rAF, and the 05e clause is reworded to no second domain pause flag."
+  - id: "hx-fixed-step-tick"
+    title: "Hardening 6a: coordinator.tick, fixed step, interpolation seam"
+    milestone: M1
+    depends_on: ["hx-reducer-and-frame-safety"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "coordinator.tick(dt, commands) with a named phase order separates the roughly seven coordinator jobs, a 1/60 s accumulator with capped catch-up runs it, and PlaySession frame order moves into tick, with test-gap lines for dt splits. The accumulator keeps the previous WorldState and exposes alpha plus a teleport marker so RenderFrameBuilder lerps positions, shortest-arc yaw and the camera focus. The seam is a task of this change, not a separate capability; phase order is the main determinism risk and is pinned by the harness change that follows."
+  - id: "hx-determinism-harness"
+    title: "Hardening 6b: state hash, golden run, determinism lint"
+    milestone: M1
+    depends_on: ["hx-fixed-step-tick"]
+    specs_modified: ["deterministic-simulation-primitives", "clean-architecture-and-quality-gate"]
+    status: planned
+    scope: "hashWorldState and src/application/headless/runScenario drive a golden run with shuffled insertion, throwing Math.random and Date stubs, a slice JSON round trip and a PHASES-order test (spec delta replaces raw-dt stepping with the fixed step). One ESLint determinism block covers domain, non-scene content and application, bans node:*, require and non-literal import(), and closes the layer-test blind spots."
+  - id: "hx-kinematics"
+    title: "Hardening 7: kinematics mode split and portal fixes"
+    milestone: M1
+    depends_on: ["hx-determinism-harness"]
+    specs_modified: ["kinematics"]
+    status: planned
+    scope: "Refactor under the golden run first: step per locomotion mode behind a context object so commit, steer and presence can be hosted, with a total phase-transition helper and the stale phase fields removed. Then transition events {behaviourId, outcome Arrived|Blocked|Interrupted, residualDt}, spaceId flipping on portal-plane crossing, fixes for door-closes-mid-route dwell and retarget-from-last-waypoint, zero-speed moves rejected, and hop distance in metres, with the waypoint-truncation and blocked-outcome scenarios."
+  - id: "pre-05d-renderer-shape"
+    title: "Pre-05d: shape descriptor and resident-space renderer"
+    milestone: M2
+    depends_on: ["hx-kinematics"]
+    specs_modified: ["(new) shape-descriptor", "play-shell"]
+    status: planned
+    scope: "A content shape descriptor (primitive, dims, offset; box, cylinder, cone, icosahedron) is read by the renderer and the application footprint builder and also carries the surface attribute that footsteps need; unknown shape ids fail an interim loader check that validateLaunch later absorbs. The renderer builds only resident-space poses, caches geometry and materials with shared-resource-safe dispose, and warms up with compileAsync so a room change no longer hitches."
+  - id: "05d-input-and-control-frame"
+    title: "05d (amended) part 1: InputFrame and control frame"
+    milestone: M2
+    depends_on: ["pre-05d-renderer-shape"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "InputState/InputFrame on event.code with blur and visibility reset and edge-triggered Space, plus a camera control frame derived from volume yaw/pitch with latch and a single zoom-out so the dead fields drive the view. A return-to-player seam is left for the later capture directive stack, which is deferred to 07."
+  - id: "05d-locomotion-footprint"
+    title: "05d (amended) part 2: direct locomotion and mesh footprints"
+    milestone: M2
+    depends_on: ["05d-input-and-control-frame"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "Camera-relative WASD for a direct-mode body, mesh-footprint prop blocking with the 0.03 m slop and 0.22 m body disc, and portal hops; the original 05d tasks keep their meaning and NPCs stay on waypoint paths."
+  - id: "05d-arrival-hold-readability"
+    title: "05d (amended) part 3: arrival hold and readability test"
+    milestone: M2
+    depends_on: ["05d-locomotion-footprint"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "The player-only arrival hold emits an ambient line then slides the player if the disc still covers the point, verified separately as a feel check. A readability contract test pins three value tiers and reserves signal hues so mood cannot mask a signal."
+  - id: "05e-modal-stack-use-and-menu"
+    title: "05e (amended) part 1: modal stack, proximity use, warm mark"
+    milestone: M2
+    depends_on: ["05d-arrival-hold-readability"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "A modal input stack consumes Space and Escape in the frame, proximity use selects the same-room target within 0.4 m and 45 degrees, and prop state variants live in the shape table. The selected target gets a warm mark with the debug highlight moved off cyan, and the pause clause is reworded to no second domain pause flag."
+  - id: "05e-settings-model"
+    title: "05e (amended) part 2: Settings model"
+    milestone: M2
+    depends_on: ["05e-modal-stack-use-and-menu"]
+    specs_modified: []
+    status: planned
+    scope: "A minimal Settings model held outside the world hash with exactly reduceMotion, hold-or-toggle movement and textScale; readingSpeed and captions are not here and arrive only with the 07 bubble and lace skins."
+  - id: "audio-minimal"
+    title: "Minimal audio: footsteps, doors, menu, murmur"
+    milestone: M2
+    depends_on: ["05e-settings-model", "docs-spine-and-roadmap"]
+    specs_modified: ["(new) audio-minimal"]
+    status: planned
+    scope: "Its own change directly after 05e: footsteps by surface (reading the surface attribute from the shape descriptor), doors, menu confirm and back sounds, and murmur through doors using a provisional audibility-tier table that the Observation-step change replaces. Tone blips are excluded and ride with the 07 text pages; the full 05a stays later."
+  - id: "pre-05b-launch-validation"
+    title: "Pre-05b-1: validateLaunch, kind table, ref table"
+    milestone: M3
+    depends_on: ["audio-minimal", "hx-save-integrity"]
+    specs_modified: ["(new) launch-validation", "clean-architecture-and-quality-gate"]
+    status: planned
+    scope: "validateLaunch(pack, stages, visuals) collects all errors with ids and file hints and folds in the interim shape-id check from the renderer change. defineModuleKind replaces the closed 11-kind registry, the registry gets a ref table (institutionalLineageId ref added, duplicate check dropped), the epoch-agnostic denylist is derived from exported packs and moved to tests/architecture, and an arch test forbids a new kind or effect without content using it."
+  - id: "pre-05b-pack-source-of-truth"
+    title: "Pre-05b-1: JSON packs and stages, section docs truth"
+    milestone: M3
+    depends_on: ["pre-05b-launch-validation", "process-gates-and-ledger"]
+    specs_modified: ["stage-inspector", "multi-session-saves", "clean-architecture-and-quality-gate"]
+    status: planned
+    scope: "The runtime loader reads allowlisted, Zod-checked JSON packs and stages through validateLaunch with no TS emission, the stage-lab save gets an end-to-end scenario to its consumer, and kitbash recipes become data with a resolve contract test. Section AGENTS recipes are rewritten to working steps, stale HF/ONNX pointers fixed (the planned local generation worker stays), the lab Save caveat added, fixtures moved out of the content barrel, the pre-P2 plan lines (config line 56) removed, and the docs-truth test extended to section AGENTS with the check that every named *Blueprint exists unless tagged (planned)."
+  - id: "05b-1-watch-clock-and-time-spend"
+    title: "05b-1 (split of 05b): watch clock and Committed Time-Spend"
+    milestone: M3
+    depends_on: ["pre-05b-pack-source-of-truth"]
+    specs_modified: ["(new) watch-clock"]
+    status: planned
+    scope: "elapsedWatches, advance_watches, the *Ticks to *Watches rebase, timeHorizonConfig and the Committed Time-Spend verbs with the watch budget, including the fractional-watch time-spend verb that 07 dialogue paging later charges per conversation. Scars record the watch and sourceScarId is checked (the sourceScarId half of S3-14)."
+  - id: "telemetry-wiring"
+    title: "Telemetry wiring: browser feed, crash ring, CLI and log guards"
+    milestone: M3
+    depends_on: ["05b-1-watch-clock-and-time-spend", "hx-reducer-and-frame-safety"]
+    specs_modified: ["session-telemetry-and-compaction"]
+    status: planned
+    scope: "Placed directly after 05b-1 so Act events can be traced: the browser posts telemetry through the guarded bridge, a crash ring buffer flushes on throw, and click-to-waypoint is labelled dev tooling. The CLI and compaction half (query limit/tail/count-by, honest skill text, newline guard, ENOSPC warning, compaction gaps) is the last task and is not needed before the Act ring, so it may slip as late as 05f."
+  - id: "cm-act-envelope-and-rolls"
+    title: "Core step 1: effect envelope, Act ring, counter-based rolls"
+    milestone: M3
+    depends_on: ["telemetry-wiring"]
+    specs_modified: ["(new) act-ring", "deterministic-simulation-primitives"]
+    status: planned
+    scope: "Effect envelope {effect, actorId?, causeActId?}, a bounded frozen Act ring slice, BehaviorModule commit, and stateless roll(worldSeed, streamKey, counter) replacing RNG outside WorldState, with stimulus dedupe and priority-aware eviction. Records that the Act log is the gameplay record and telemetry is separate (replay with tracing). Because 30+ changes consume this contract, freeze it only after a throwaway spike with the observation table wired in as a second consumer."
+  - id: "cm-observation-notebook"
+    title: "Core step 2: Observation table, integer belief, notebook model"
+    milestone: M3
+    depends_on: ["cm-act-envelope-and-rolls"]
+    specs_modified: ["(new) observation", "(new) notebook"]
+    status: planned
+    scope: "A sparse who-learned-what Observation table with discovery derived per observer, integer noisy-OR belief with reason tags (designed-in misbelief) and a branded BeliefView projector; INV-B is decided before the Observation schema freezes: parents sharing an origin or channel collapse, spoofing is a separate negative term, a parent cap applies, and an order-independence test guards it. A hidden-truth contract test catches omniscient reads of BeliefView. The notebook data model holds facts, suspicions, partial knowledge with open questions, omissions with the omission-referent rule, passive noticing entries and ambient lines heard (core step 5, 07); persistence follows the owner's save policy below. Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked."
+    note: "Save policy (owner decision Q2) is settled and recorded as a gate before this entry: autosave at watch boundaries plus named manual saves, loading any earlier save, notebook part of the save."
+  - id: "cm-instrument-profiles-audibility-tells"
+    title: "Core step 2c: instrument profiles, audibility tiers, tells"
+    milestone: M3
+    depends_on: ["cm-observation-notebook", "audio-minimal"]
+    specs_modified: ["(new) instrument-profiles"]
+    status: planned
+    scope: "This Observation-step change is the single owner of the audibility-tier rule: it replaces the audio-minimal provisional table with the integrated rule, and 05a only consumes it. Instrument data profiles and decay keys replace hard-coded reducer coupling, each visual tell is paired with a non-visual noticing path that writes the passive noticing entry, and diegetic tells are defined for the instruments."
+  - id: "cm-presence-and-materialize"
+    title: "Core step 3a: presence function and materialize-on-entry"
+    milestone: M3
+    depends_on: ["cm-instrument-profiles-audibility-tells"]
+    specs_modified: ["(new) presence"]
+    status: planned
+    scope: "A pure (entityId, watch, seed) to placement presence table per watch, materialization on room entry, and WorldBuilder, addressing the three S2-11 blockers: entities start off-stage rather than spawning at a start waypoint, room-second timers are reconciled with watches, and in-flight phases and stimuli resolve deterministically across a watch jump. Per-frame allocation cleanup applies only when a room holds 100+ bodies, and every macro lever must reach the player somehow."
+  - id: "cm-presence-render-crowd"
+    title: "Core step 3b: meshes for crowd and materialized NPCs"
+    milestone: M3
+    depends_on: ["cm-presence-and-materialize"]
+    specs_modified: []
+    status: planned
+    scope: "A renderer subset gives crowd and materialized NPCs meshes via the shape descriptor and residency cache; the merged Tier-3 crowd route stays parked until a measured frame budget needs it."
+  - id: "cm-threads-and-pillars"
+    title: "Core step 4a: ThreadRuntime and pillar relations"
+    milestone: M3
+    depends_on: ["cm-presence-render-crowd"]
+    specs_modified: ["(new) thread-runtime"]
+    status: planned
+    scope: "StateSlice-based ThreadRuntime and Leverage Chain pillar relations per the spine definition; the old 06 Leverage/Butterfly runtime scope is removed from 06."
+  - id: "cm-ledger-and-emergency"
+    title: "Core step 4b: ResourceLedger and EmergencyRuntime (no fuse)"
+    milestone: M3
+    depends_on: ["cm-threads-and-pillars"]
+    specs_modified: ["(new) resource-ledger", "(new) emergency-runtime"]
+    status: planned
+    scope: "ResourceLedger as the economy hub (stipends, funds and pressure stocks as ledger entries, reconciling the Omen Ledger naming), with diegetic tells for pressure stocks (the stock-bookkeeping and tell part of S2-18). EmergencyRuntime slice with trigger, compound and resolve is core step 7, a prerequisite and not the S2-19 feature; the fuse and non-uniform compounding stay in 09."
+  - id: "cm-diffusion-and-balancing"
+    title: "Core step 4d: closed-form diffusion, balancing loops"
+    milestone: M3
+    depends_on: ["cm-ledger-and-emergency"]
+    specs_modified: ["(new) diffusion"]
+    status: planned
+    scope: "Closed-form diffusion with the player-gated world split, and balancing loops against the discovery ratchet and decay, including that forged fiat no longer jumps straight to attributed. Verified against the headless run before 05f cases are written."
+  - id: "05f-eval-and-replay"
+    title: "05f (amended): eval runner reuse, golden/eval split, command-log replay"
+    milestone: M4
+    depends_on: ["cm-diffusion-and-balancing"]
+    specs_modified: ["(new) ai-eval-runner"]
+    status: planned
+    scope: "Reuses the hx runScenario with tests/ exact, golden/ hashes and eval/ distributions and corpora, with Zod-checked fixtures for evidence-coverage, diffusion, tell/noticing coverage (validating S5-13) and the invariant that every macro lever is aware at some point (S2-09). The scripted command log is the artifact for golden tests, eval fixtures and bug repro, with a replay-with-tracing tool per the telemetry policy."
+  - id: "08a-timing-spike"
+    title: "Generation timing spike and quality prototype"
+    milestone: M4
+    depends_on: ["05f-eval-and-replay"]
+    specs_modified: []
+    status: planned
+    scope: "A no-merge investigation on the real 2019 Mac that measures generation latency and memory and prototypes generated-line quality, run just before the 07 text skeleton so the generated-adapter seam is designed with real numbers. The generated adapter itself stays later; the stubbed adapter and authored pool carry everything meanwhile."
+    note: "Slot owner decision settled after slice 7 (Q1): split the timing spike. 08a runs just before the 07 text skeleton; the generated adapter 08-generated-text-adapter stays after 05b-2. Replaces the investigation half of retired 08-local-onnx-hybrid-intent."
+  - id: "07-text-port-and-history"
+    title: "07 text skeleton: TextSourcePort, LineBrief, gate, ConversationHistory"
+    milestone: M4
+    depends_on: ["08a-timing-spike", "cm-observation-notebook"]
+    specs_modified: ["(new) text-source", "(new) conversation-history"]
+    status: planned
+    scope: "TextSourcePort application port with authored and pool adapters (generated stubbed), LineBrief, a pure gate(line, brief) over Observations with three tiers, a fact-first rule that every fact id survives restyling, and Tracery-style grammars. Spec rule INV-A: no decision model in the sim path; runtime pool selection is by tag and seed over Observations, with an optional authoring-time advisory gate tier. ConversationHistory is owned here, shown text is frozen into it and the save, and the typed ESLint trigger is recorded as the first async port."
+  - id: "07-authoring-kit"
+    title: "07 text skeleton: authoring kit"
+    milestone: M4
+    depends_on: ["07-text-port-and-history"]
+    specs_modified: ["(new) authoring-kit"]
+    status: planned
+    scope: "CharacterBible, RegisterCard, few-shot builder and a draft/accept CLI for assisted authoring, recording the authored/generated split per line."
+  - id: "07-dialogue-paging"
+    title: "07 (amended) a: paging, response menus, ambient lines, talk cost"
+    milestone: M4
+    depends_on: ["07-authoring-kit", "05e-settings-model", "05b-1-watch-clock-and-time-spend"]
+    specs_modified: ["(new) tactical-dialogue"]
+    status: planned
+    scope: "Space-paged conversation chunks, WASD response menus, and the ambient-line mechanism (short expiring text that takes no input and is recorded in the notebook); 07a keeps only interruption. Each conversation charges the fractional time-spend verb and budget owned by 05b-1 so talking costs time from the world."
+  - id: "07-camera-directive-stack"
+    title: "07 (amended) b: camera capture directive stack"
+    milestone: M4
+    depends_on: ["07-dialogue-paging"]
+    specs_modified: ["play-shell"]
+    status: planned
+    scope: "A capture and return directive stack with its own scheduling: Space never skips, no captures in conversation, reduce-motion cuts, a max hold, and the return-to-player seam left by 05d."
+  - id: "07-bubble-lace-skins-and-tone-blips"
+    title: "07 (amended) c: bubble and lace skins, captions, tone blips"
+    milestone: M4
+    depends_on: ["07-camera-directive-stack", "audio-minimal"]
+    specs_modified: ["(new) tactical-dialogue"]
+    status: planned
+    scope: "Diegetic NPC bubble and advisor lace text panel, Settings readingSpeed and captions (added here only), and per-NPC tone blips on page turns using audio-minimal."
+  - id: "07-notebook-presenter"
+    title: "07 notebook presenter"
+    milestone: M4
+    depends_on: ["07-bubble-lace-skins-and-tone-blips", "cm-observation-notebook"]
+    specs_modified: ["(new) notebook"]
+    status: planned
+    scope: "Lace-log notebook UI over the notebook data model, honouring the save-policy decision (Q2) for what persists across reloads. Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked."
+  - id: "11-pass-1-slice"
+    title: "Vertical slice a: one Epoch 1 thread end to end"
+    milestone: M5
+    depends_on: ["07-notebook-presenter", "cm-diffusion-and-balancing"]
+    specs_modified: ["(new) epoch-1-pack"]
+    status: planned
+    scope: "First Epoch 1 pack pass: few NPCs, one office and pretext, authored lines through the text port, and one thread wired through Act, Observation, presence and ledger with inference trails the player can find (authored advisor nudge stubs as signposting), run through the real entry point (G1). The G1 trace names which macro levers are excluded because rivals arrive only in 06. It tests the engine and does not replace engine work; it is the go/no-go point for M6. NPC utility in the slice is NOT yet belief-conditioned (INV-C lands with 06). The slice tests inference trails through Acts and Observations, with authored behaviour plus the Act commit."
+    validated_by: ["06-utility-ai", "06-rivals-remote-evidence"]
+    note: "Owner playthrough of the one-thread slice is the go/no-go point for M6; the edge into 06-utility-ai is an ordering and go/no-go edge."
+  - id: "11-pass-1-ledger-end-card"
+    title: "Vertical slice b: ledger and stub end card"
+    milestone: M5
+    depends_on: ["11-pass-1-slice"]
+    specs_modified: []
+    status: planned
+    scope: "Ledger visible, win/fail shape and an epoch-end evaluation stub card; the end card states which 06 assumptions the slice tested and feeds tuning of 05b-2."
+  - id: "06-utility-ai"
+    title: "06 (rescoped) a: hysteresis utility AI"
+    milestone: M6
+    depends_on: ["11-pass-1-ledger-end-card"]
+    specs_modified: ["(new) utility-ai"]
+    status: planned
+    scope: "Hysteresis utility AI whose utility is belief-conditioned for NPCs, with expected-utility planning for rivals only and low confidence mapping to investigate or wait. Includes the omniscient-read contract test over BeliefView (INV-C), and Leverage Chains and thread runtime stay removed (owned by cm-threads-and-pillars). Its depends_on on the slice is an ordering and go/no-go gate, not a technical edge."
+  - id: "06-rivals-remote-evidence"
+    title: "06 (rescoped) b: rivals and remote evidence"
+    milestone: M6
+    depends_on: ["06-utility-ai"]
+    specs_modified: ["(new) rival-evidence"]
+    status: planned
+    scope: "Rivals with tellProfile and agenda and the common remote-evidence path so every remote adversary leaves evidence the player can meet, with the invariant eval that each lever is aware at some point registered on the 05f runner."
+  - id: "06-overview-writing-desk-report"
+    title: "06 (rescoped) c: overview, Writing Desk, Report-as-Observation"
+    milestone: M6
+    depends_on: ["06-rivals-remote-evidence"]
+    specs_modified: ["(new) wider-world-overview"]
+    status: planned
+    scope: "Wider World Overview, Writing Desk on the text port, Report-as-Observation, and the full advisor nudges and notebook prompts that deliver signposting of inference trails, with qualitative odds only in advisor speech."
+  - id: "06a-interpersonal-regard-and-romantasy"
+    title: "06a: Regard and romantasy"
+    milestone: M6
+    depends_on: ["06-overview-writing-desk-report", "cm-diffusion-and-balancing"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning kept: the 500+ character two-tier RegardGraph, triangulation and letter co-signing, manipulative romantasy and hidden RomanticMotiveBlueprint discovery, sharing data with presence and Regard.exposure no longer the only knowledge record."
+  - id: "05b-2-envelopes-and-gates"
+    title: "05b-2 a: curve envelopes and 5-stage thread gates"
+    milestone: M6
+    depends_on: ["06a-interpersonal-regard-and-romantasy"]
+    specs_modified: []
+    status: planned
+    scope: "Curve envelopes and 5-stage thread point-release gates tuned against the vertical slice end card."
+  - id: "05b-2-storylets-and-lab"
+    title: "05b-2 b: storylet grammar and F3 Pacing Lab"
+    milestone: M6
+    depends_on: ["05b-2-envelopes-and-gates"]
+    specs_modified: ["stage-inspector"]
+    status: planned
+    scope: "The storyteller as a seeded card deck, the StoryletTemplate grammar with authored versus generated cards under P2, and the F3 Pacing Lab with PUT route through the guarded helper, shipped together because the lab is the only way to verify the grammar."
+  - id: "08-generated-text-adapter"
+    title: "08 (rescoped): generated TextSourcePort adapter and worker"
+    milestone: M6
+    depends_on: ["05b-2-storylets-and-lab", "08a-timing-spike"]
+    specs_modified: ["(new) text-generation"]
+    status: planned
+    scope: "Replaces the obsolete ONNX intent parser: the generated adapter and local worker, with model-drafted phrase banks feeding the fact-first realiser, runtime SLM tier only if the spike passed, and a suite registered on the 05f runner."
+    note: "Replaces retired 08-local-onnx-hybrid-intent (free-text ONNX parser). Intent, negation and latency eval cases are dropped."
+  - id: "07a-dialogue-interruption"
+    title: "07a: dialogue interruption"
+    milestone: M6
+    depends_on: ["08-generated-text-adapter"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: cut a live conversation short; shown chunks stay in ConversationHistory and the unread tail does not fire. Ambient lines stay in 07 paging."
+  - id: "07b-role-pretext-choices"
+    title: "07b: role pretext choices"
+    milestone: M6
+    depends_on: ["07a-dialogue-interruption", "cm-threads-and-pillars"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: a choice row may spend a held role pretext and dispatch its effect; needs role pretexts exposed by threads."
+  - id: "07c-fund-spending-choices"
+    title: "07c: fund spending choices"
+    milestone: M6
+    depends_on: ["07b-role-pretext-choices", "cm-ledger-and-emergency"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: a choice row may spend a fund and dispatch its effect; needs the ResourceLedger."
+  - id: "07d-advisory-duel-omission"
+    title: "07d: advisor duel and omission"
+    milestone: M6
+    depends_on: ["07c-fund-spending-choices", "06-overview-writing-desk-report"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: freezing out an advisor sulks them and drops an omissible clause from the next lace briefing, on top of generated text and the 06 advisor entities."
+  - id: "07e-voice-register-evals"
+    title: "07e (reshaped): voice register evals and line gates"
+    milestone: M6
+    depends_on: ["07d-advisory-duel-omission"]
+    specs_modified: []
+    status: planned
+    scope: "Banned-lemma, cadence and clause-omission fixtures registered as gates and as evals on the 05f runner."
+  - id: "05a-audio-engine"
+    title: "05a a: AudioRenderFrame and two-bus engine"
+    milestone: M6
+    depends_on: ["07e-voice-register-evals", "cm-instrument-profiles-audibility-tells"]
+    specs_modified: []
+    status: planned
+    scope: "Original 05a engine half: AudioRenderFrame builder, two-bus procedural WebAudioEngine, hybrid samples and audio settings. It consumes the audibility-tier rule owned by the instrument-profiles change and drops the calculator from its scope."
+  - id: "05a-sound-lab"
+    title: "05a b: F3 Sound Lab"
+    milestone: M6
+    depends_on: ["05a-audio-engine"]
+    specs_modified: ["stage-inspector"]
+    status: planned
+    scope: "The Sound Lab backdoor UI and disk persistence mounted on the 05c page through the guarded bridge, split from the engine as a separate review story."
+  - id: "06c-epoch-travel-vignettes"
+    title: "06c: epoch travel vignettes"
+    milestone: M6
+    depends_on: ["05a-sound-lab", "05b-2-storylets-and-lab", "06-overview-writing-desk-report"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: bounded vehicle-cabin fast-travel scenes with Clock-2 spend, encounter tables and world-news slice; needs 06, 05b-1 Clock-2 spend and 05b-2 encounter tables."
+  - id: "06b-assassination-and-cover-persecution"
+    title: "06b: assassination and cover persecution"
+    milestone: M6
+    depends_on: ["06c-epoch-travel-vignettes", "06a-interpersonal-regard-and-romantasy"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: four last-resort assassination vectors, counter-assassination weighted by Drone Regard and rival timing, and coverPersecutionRisk Witch-Hunt trials."
+  - id: "09-delta-coupling-and-forecast"
+    title: "09 (amended) a: Delta coupling and banded forecast"
+    milestone: M6
+    depends_on: ["06b-assassination-and-cover-persecution"]
+    specs_modified: []
+    status: planned
+    scope: "Orbital pass with Delta spent on insertion and instrument coupling, plus a closed-form banded Ship Mind forecast from offline-fitted tables (the INV-D forecast use; the Bayesian network stays parked)."
+  - id: "09-weather-omen-and-export-gate"
+    title: "09 (amended) b: weather, Omen Ledger, Legacy Export Gate"
+    milestone: M6
+    depends_on: ["09-delta-coupling-and-forecast"]
+    specs_modified: []
+    status: planned
+    scope: "Original 09 remainder: Weather Modification, the Omen Ledger reconciled with the ResourceLedger naming, Psychohistory Forecast hooks and the end-of-Epoch Legacy Export Gate."
+  - id: "09-emergency-fuse"
+    title: "09 (amended) c: emergency fuse"
+    milestone: M6
+    depends_on: ["09-weather-omen-and-export-gate"]
+    specs_modified: []
+    status: planned
+    scope: "Fuse and non-uniform compounding on the EmergencyRuntime built earlier; this is the S2-19 feature proper."
+  - id: "09a-doomsday-clocks-and-rival-unveiling"
+    title: "09a: doomsday clocks and rival unveiling"
+    milestone: M6
+    depends_on: ["09-emergency-fuse"]
+    specs_modified: []
+    status: planned
+    scope: "Original meaning: OrbitalBlackoutState, endgame rival ship ambush, five-event random pool and CampaignContingencyScheduler anti-clustering; needs 09, the 06 rival ship and 05b-2 pacing."
+  - id: "10-crew-handoff"
+    title: "10 (amended) a: new crew per epoch"
+    milestone: M6
+    depends_on: ["09a-doomsday-clocks-and-rival-unveiling"]
+    specs_modified: []
+    status: planned
+    scope: "A new operative with their own Ship and Drone crew each epoch and loss of the previous crew; the past-advisor cameo is a design note only and is not built here."
+  - id: "10-registry-swap-and-legacy"
+    title: "10 (amended) b: registry swap, legacy accumulation"
+    milestone: M6
+    depends_on: ["10-crew-handoff", "hx-save-integrity"]
+    specs_modified: ["multi-session-saves"]
+    status: planned
+    scope: "Per-epoch registry swap with codec migrations, the deliberately deferred legacy accumulation fix (the accumulation half of S3-14), and fingerprint reconciliation."
+  - id: "11-epoch1-content"
+    title: "11 a: Epoch 1 content"
+    milestone: M6
+    depends_on: ["10-registry-swap-and-legacy"]
+    specs_modified: []
+    status: planned
+    scope: "The full cast, buildings, props, Contested Offices, factions, spine threads and storylets for Epoch 1 built on the slice, lab JSON source and 06/06a content."
+  - id: "11-epoch-ending-and-handoff-hook"
+    title: "11 b: Epoch 1 ending and handoff hook"
+    milestone: M6
+    depends_on: ["11-epoch1-content"]
+    specs_modified: []
+    status: planned
+    scope: "Epoch 1 ending and the hook into the 10 crew handoff, replacing the stub end card."
+  - id: "11-playtest-and-tuning"
+    title: "11 c: playtest and tuning"
+    milestone: M6
+    depends_on: ["11-epoch-ending-and-handoff-hook"]
+    specs_modified: []
+    status: planned
+    scope: "Playtest of the finished Epoch 1 against the definition of done and tuning of pacing and balance."
+  - id: "onboarding"
+    title: "First-10-minutes design (S1-R8)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "After the vertical slice is playable"
+  - id: "dpr-antialiasing"
+    title: "DPR above 1 and antialiasing (S5-08)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "A measured frame budget on the 2019 Mac has headroom"
+  - id: "silhouette-budget"
+    title: "Silhouette budget (S5-16)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Epoch 1 content pass"
+  - id: "theme-roles"
+    title: "Theme schema roles (S5-17)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "A second epoch theme is authored"
+  - id: "notebook-later-categories"
+    title: "Extra notebook categories (S2-12)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "After the notebook presenter is played in the slice"
+  - id: "offline-self-play-tuning"
+    title: "Offline self-play tuning"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "After 05b-2 envelopes exist"
+  - id: "classifier-spike"
+    title: "Small fine-tuned classifier for line selection (INV-classifier-spike, INV-E)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "After the timing spike and 08 adapter, frozen into the save if adopted"
+  - id: "inv-d-bayesian-network"
+    title: "INV-D Bayesian network for forecasts"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Banded forecast tables prove too coarse"
+  - id: "inv-f-exact-inference"
+    title: "Small capped exact-inference network (INV-F)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Integer noisy-OR belief shows misbelief errors that cannot be tuned"
+  - id: "rc2-runtime-reranker"
+    title: "Runtime reranker (RC2)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "After the timing spike result"
+  - id: "dither-fade-occlusion"
+    title: "Dither-fade wall occlusion (R5B2)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Camera occlusion playtests report lost sight lines"
+  - id: "merged-tier3-crowd"
+    title: "Merged Tier-3 crowd rendering (R5A2)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Crowd rooms miss the 60 FPS budget"
+  - id: "compiler-api-import-scan"
+    title: "Compiler-API import scan"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Layer-test blind spots recur after the determinism lint"
+  - id: "epoch1-definition-of-done"
+    title: "Epoch 1 as definition of done (R8)"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Before 11-playtest-and-tuning"
+  - id: "past-advisor-cameo"
+    title: "Past advisors appearing over the galactic network (S1-R9), design note only"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "Owner schedules it"
+  - id: "ironman-mode"
+    title: "Optional no-reload save mode"
+    milestone: null
+    depends_on: []
+    specs_modified: []
+    status: parked
+    revisit_when: "after the vertical slice"

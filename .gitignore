@@ -9,3 +9,6 @@ logs/
 saves/
 .prettiercache
 .eslintcache
+
+# Root-and-branch review registers (local only)
+reviews/
