@@ -4,6 +4,8 @@
 
 `tests/` verifies architectural integrity, deterministic domain behavior, application simulation and rendering frame coordination, infrastructure persistence/telemetry, interface CLI/HTTP/Three.js/HUD adapters, plug-and-play content contracts, and headless multi-tick simulation stability in under 3 seconds as part of `npm run verify` (`format:check` -> `lint` -> `typecheck` -> `test:arch` -> `test:unit`).
 
+AI subject cases are not a tier under `tests/`. They live in `eval/` and run with `npm run eval:ai`, outside `npm run verify`.
+
 ## Test Tiers
 
 - **`tests/architecture/`**: Static and structural verification (`layer_boundaries.test.ts`) enforcing Clean Architecture inward imports, zero explicit `any`, ban on `Math.random()` / `Date.now()` in `domain`/`content`, presence/linking of hierarchical `README.md` and `AGENTS.md` files, ESLint/Prettier/Husky config checks, and `.agents/skills/uplift-debug/SKILL.md` plus `.agents/skills/uplift-design-notes/SKILL.md` verification.

@@ -8,3 +8,4 @@
 4. **Zero `any` & Zero Non-Null Assertions (`!`) in Tests**: Explicit `any` (`: any`, `as any`, `<any>`) and non-null assertions (`!`) are banned in `tests/` just as in `src/` (enforced by ESLint and `layer_boundaries.test.ts`). Use strongly typed test helpers, explicit `undefined` guards, Zod schemas, or `unknown`.
 5. **Pre-Commit Verification**: Always run `npm run verify` (`format:check`, `lint`, `typecheck`, `test:arch`, `test:unit`) before committing any task.
 6. **Content exemplars stay in content**: A headless content test may register a pack on `SimulationCoordinator` and step it with `FAST_EVAL_PACING_CONFIG`. Do not copy that pack's space, character, or prop ids into `src/domain/` or `src/application/`.
+7. **AI evals stay on their own command**: Cases for any AI subject live under `eval/` and run with `npm run eval:ai`. Do not put them in `tests/unit/` or on `npm run verify`.
