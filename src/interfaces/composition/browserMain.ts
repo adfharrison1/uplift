@@ -174,7 +174,7 @@ export function bootCampaignPage(
     input.pointerDown();
   });
   ownerWindow.addEventListener('keydown', (event) => {
-    input.keyDown(event.key);
+    input.keyDown(event.key, event.repeat);
   });
 
   let previousMs = ownerWindow.performance.now();

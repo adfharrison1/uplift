@@ -32,20 +32,30 @@ function stageFor(
     readonly position: readonly [number, number, number];
     readonly isPortal: boolean;
   }>,
+  size: { readonly widthMeters: number; readonly depthMeters: number } = {
+    widthMeters: 12,
+    depthMeters: 10,
+  },
 ): StageSceneBlueprint {
+  const halfWidth = size.widthMeters / 2;
+  const halfDepth = size.depthMeters / 2;
   return deepFreeze(
     StageSceneBlueprintSchema.parse({
       stageId,
       spaceId,
       themeId: DEFAULT_HIGHGLASS_VISUAL_THEME.id,
-      footprint: { widthMeters: 12, depthMeters: 10, heightMeters: 4.5 },
+      footprint: {
+        widthMeters: size.widthMeters,
+        depthMeters: size.depthMeters,
+        heightMeters: 4.5,
+      },
       floorSemanticId: formatFloorSemanticId(spaceId),
       wallSegments: [
         {
           segmentId: 'seg_01',
           compass: 'north',
           semanticId: formatWallSegmentSemanticId(spaceId, 'north', 'seg_01'),
-          widthMeters: 12,
+          widthMeters: size.widthMeters,
           heightMeters: 4.5,
           surfaceMaterial,
         },
@@ -61,8 +71,8 @@ function stageFor(
         {
           id: 'vol_main',
           spaceId,
-          boundsMin: [-6, 0, -5],
-          boundsMax: [6, 4.5, 5],
+          boundsMin: [-halfWidth, 0, -halfDepth],
+          boundsMax: [halfWidth, 4.5, halfDepth],
           offset: [0, 6, 8],
         },
       ],
@@ -82,6 +92,7 @@ export const STARTER_HOLD_CHAMBERS_STAGE: StageSceneBlueprint = stageFor(
   'space_player_chambers',
   'stone',
   [],
+  { widthMeters: 18, depthMeters: 10 },
 );
 
 export const STARTER_HOLD_STAGE_DIRECTORY: Readonly<Record<string, StageSceneBlueprint>> =

@@ -341,4 +341,78 @@ describe('ChiaroscuroStageRenderer and StageKitbashBuilders', () => {
     disposeSceneGraph(rebuilt.stageRoot, { disposeSharedRamp: true });
     expect(rampDisposeSpy).toHaveBeenCalledOnce();
   });
+
+  it('does not create a mesh for a pose with no matching visual', () => {
+    const theme = EpochVisualThemeSchema.parse({
+      id: 'theme_highglass',
+      epochId: 'epoch_1',
+      name: 'Highglass Chiaroscuro',
+      stoneColorHex: '#4a525d',
+      mudColorHex: '#3b3228',
+      ironColorHex: '#2c3137',
+      woodColorHex: '#523d2b',
+    });
+    const stage = StageSceneBlueprintSchema.parse({
+      stageId: 'stage_bare',
+      spaceId: 'space_bare',
+      themeId: 'theme_highglass',
+      footprint: { widthMeters: 12, depthMeters: 10, heightMeters: 4.5 },
+      floorSemanticId: 'space_bare.floor',
+      wallSegments: [
+        {
+          segmentId: 'seg_01',
+          compass: 'north',
+          semanticId: 'space_bare.wall.north.seg_01',
+        },
+      ],
+      props: [],
+      cameraVolumes: [
+        {
+          id: 'vol_bare',
+          spaceId: 'space_bare',
+          boundsMin: [-6, 0, -5],
+          boundsMax: [6, 4.5, 5],
+          offset: [0, 6, 8],
+        },
+      ],
+    });
+    const built = buildStageSceneGraph({ theme, stage, characterVisuals: [] });
+    expect(built.entityGroups.size).toBe(0);
+    const world = createInitialWorldState({
+      epochId: 'epoch_1',
+      entities: {
+        absent: {
+          entityId: 'absent',
+          lineageId: 'lineage_absent',
+          spaceId: 'space_bare',
+          waypointId: 'wp_1',
+          position: [0, 0, 0],
+          yawRadians: 0,
+          walkSpeedMetersPerSec: 1.4,
+          yawSpeedRadiansPerSec: 6,
+          cognitivePhase: 'idle',
+          phaseRemainingSeconds: 0,
+          pendingDwellSeconds: 0,
+          pendingCooldownSeconds: 0,
+          requiresExternalTrigger: false,
+          activePath: [],
+          drives: { duty: 0.4 },
+          emergencyVice: 'duty',
+          inertiaPillars: [],
+          pendingStimuli: [],
+        },
+      },
+      props: {},
+    });
+    const frame = new RenderFrameBuilder().buildFrame({
+      worldState: world,
+      theme,
+      stage,
+      characterVisuals: [],
+      focusEntityId: 'absent',
+    });
+    expect(frame.entityPoses.some((pose) => pose.entityId === 'absent')).toBe(true);
+    expect(() => applyRenderFrameToScene(built, frame, theme)).not.toThrow();
+    expect(built.entityGroups.has('absent')).toBe(false);
+  });
 });

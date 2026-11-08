@@ -109,7 +109,27 @@ describe('starter hold pack and stages', () => {
       STARTER_HOLD_PACK.spaces.map((space) => space.id).sort(),
     );
     for (const space of STARTER_HOLD_PACK.spaces) {
-      expect(STARTER_HOLD_STAGE_DIRECTORY[space.id]?.spaceId).toBe(space.id);
+      const stage = STARTER_HOLD_STAGE_DIRECTORY[space.id];
+      expect(stage?.spaceId).toBe(space.id);
+      if (stage === undefined) {
+        continue;
+      }
+      const halfWidth = stage.footprint.widthMeters / 2;
+      const halfDepth = stage.footprint.depthMeters / 2;
+      const volume = stage.cameraVolumes[0];
+      expect(volume).toBeDefined();
+      if (volume === undefined) {
+        continue;
+      }
+      for (const waypoint of space.waypoints) {
+        const [x, , z] = waypoint.position;
+        expect(Math.abs(x)).toBeLessThanOrEqual(halfWidth);
+        expect(Math.abs(z)).toBeLessThanOrEqual(halfDepth);
+        expect(x).toBeGreaterThanOrEqual(volume.boundsMin[0]);
+        expect(x).toBeLessThanOrEqual(volume.boundsMax[0]);
+        expect(z).toBeGreaterThanOrEqual(volume.boundsMin[2]);
+        expect(z).toBeLessThanOrEqual(volume.boundsMax[2]);
+      }
     }
   });
 

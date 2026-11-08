@@ -9,7 +9,10 @@ import {
   SimulationCoordinator,
   StageSceneBlueprintSchema,
 } from '../../../src/application/index.js';
-import { DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT } from '../../../src/content/index.js';
+import {
+  DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT,
+  STARTER_HOLD_CHARACTER_VISUALS,
+} from '../../../src/content/index.js';
 import { EpochModuleRegistry, type TelemetryClock } from '../../../src/domain/index.js';
 import {
   FileSaveSlotRepository,
@@ -37,7 +40,10 @@ function createClock(): TelemetryClock {
   };
 }
 
-function doorSession(portalState: 'open' | 'barred' = 'open'): {
+function doorSession(
+  portalState: 'open' | 'barred' = 'open',
+  includeYardStage = true,
+): {
   readonly coordinator: SimulationCoordinator;
   readonly session: PlaySession;
 } {
@@ -122,11 +128,12 @@ function doorSession(portalState: 'open' | 'barred' = 'open'): {
     saveRepository: new InMemorySaveSlotRepository(),
     clock: createClock(),
   });
+  const stages = new Map<string, ReturnType<typeof roomStage>>([['space_room', roomStage()]]);
+  if (includeYardStage) {
+    stages.set('space_yard', yardStage());
+  }
   const session = new PlaySession(coordinator, new RenderFrameBuilder(), {
-    stages: new Map([
-      ['space_room', roomStage()],
-      ['space_yard', yardStage()],
-    ]),
+    stages,
     characterVisuals: [],
     theme: EpochVisualThemeSchema.parse(theme()),
     focusEntityId: 'char_walker',
@@ -269,6 +276,8 @@ describe('play input and the stage lab', () => {
     expect(session.getFreeCamOffset()).toEqual([0, 0, 0]);
     input.keyDown('F3');
     expect(coordinator.getWorldState().paused).toBe(true);
+    input.keyDown('F3', true);
+    expect(coordinator.getWorldState().paused).toBe(true);
     input.keyDown('ArrowRight');
     expect(coordinator.getWorldState().entities['char_walker']?.position).toEqual(origin);
     expect(session.getFreeCamOffset()).toEqual([0.5, 0, 0]);
@@ -349,6 +358,73 @@ describe('play input and the stage lab', () => {
     expect(session.getFocusEntityId()).toBe('char_other');
   });
 
+  it('lists a text command for every waypoint in the active space', () => {
+    const { coordinator, session } = doorSession();
+    const input = createPlayInput({
+      session,
+      isPaused: () => coordinator.getWorldState().paused,
+      waypointIds: () => ['wp_inside', 'wp_lane'],
+      entityIds: () => ['char_walker'],
+      readPortalState: () => undefined,
+      raycastFloor: () => null,
+      raycastPortal: () => null,
+      raycastPick: () => null,
+      onPick: () => undefined,
+    });
+    const doc = {
+      createElement(): FakeNode {
+        return fakeNode(doc);
+      },
+    };
+    const panel = fakeNode(doc);
+    input.attach(panel as unknown as HTMLElement);
+    expect(panel.children[1]?.children.map((button) => button.textContent)).toEqual([
+      'wp_inside',
+      'wp_lane',
+    ]);
+  });
+
+  it('shows missing_stage when the focus space has no stage', () => {
+    const { session } = doorSession('open', false);
+    const input = createPlayInput({
+      session,
+      isPaused: () => false,
+      waypointIds: () => ['wp_inside'],
+      entityIds: () => ['char_walker', 'char_other'],
+      readPortalState: () => undefined,
+      raycastFloor: () => null,
+      raycastPortal: () => null,
+      raycastPick: () => null,
+      onPick: () => undefined,
+    });
+    input.setFocus('char_other');
+    expect(session.getStatus()).toBe('missing_stage');
+    expect(input.statusText()).toBe('missing_stage');
+    expect(session.getResidentStage()?.spaceId).toBe('space_room');
+  });
+
+  it('does not save a blueprint while the simulation is playing', () => {
+    let calls = 0;
+    const lab = createStageLab({
+      mirror: new StageInspectorDomMirror(new InMemoryDomAttributeSink()),
+      isPaused: () => false,
+      getStage: () => DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT,
+      getVisuals: () => STARTER_HOLD_CHARACTER_VISUALS,
+      requestPortal: () => 'ready',
+      transport: () => {
+        calls += 1;
+      },
+    });
+    lab.saveStage();
+    const visual = STARTER_HOLD_CHARACTER_VISUALS[0];
+    expect(visual).toBeDefined();
+    if (visual === undefined) {
+      return;
+    }
+    lab.saveVisual(visual.characterId);
+    expect(calls).toBe(0);
+  });
+
   it('saves the stage blueprint through the scene-blueprint disk route', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'uplift-play-input-'));
     try {
@@ -379,4 +455,79 @@ describe('play input and the stage lab', () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it('saves a character visual through the character-visual disk route', () => {
+    const visual = STARTER_HOLD_CHARACTER_VISUALS[0];
+    expect(visual).toBeDefined();
+    if (visual === undefined) {
+      return;
+    }
+    const tempDir = mkdtempSync(join(tmpdir(), 'uplift-play-visual-'));
+    try {
+      const telemetry = new NdjsonSessionTelemetry(join(tempDir, 'logs'));
+      const saves = new FileSaveSlotRepository(join(tempDir, 'saves'));
+      const lab = createStageLab({
+        mirror: new StageInspectorDomMirror(new InMemoryDomAttributeSink()),
+        isPaused: () => true,
+        getStage: () => null,
+        getVisuals: () => STARTER_HOLD_CHARACTER_VISUALS,
+        requestPortal: () => 'ready',
+        transport: (request) => {
+          const response = handleLocalDiskBridgeRequest(
+            { method: request.method, url: request.url, rawBody: request.rawBody },
+            telemetry,
+            saves,
+            MAX_BRIDGE_BODY_BYTES,
+            {
+              sceneBlueprintsDir: join(tempDir, 'stages'),
+              characterVisualsDir: join(tempDir, 'characters'),
+            },
+          );
+          expect(response.statusCode).toBe(200);
+          expect(request.url).toBe(`/api/character-visuals/${visual.characterId}`);
+          expect(response.body['visual']).toEqual(visual);
+        },
+      });
+      lab.saveVisual(visual.characterId);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
+
+interface FakeNode {
+  readonly style: {
+    position: string;
+    top: string;
+    left: string;
+    color: string;
+    font: string;
+  };
+  readonly dataset: Record<string, string>;
+  textContent: string;
+  type: string;
+  readonly ownerDocument: { createElement: (tag: string) => FakeNode };
+  readonly children: FakeNode[];
+  append: (...nodes: FakeNode[]) => void;
+  replaceChildren: () => void;
+  addEventListener: (type: string, listener: () => void) => void;
+}
+
+function fakeNode(doc: { createElement: (tag: string) => FakeNode }): FakeNode {
+  const node: FakeNode = {
+    style: { position: '', top: '', left: '', color: '', font: '' },
+    dataset: {},
+    textContent: '',
+    type: '',
+    ownerDocument: doc,
+    children: [],
+    append: (...nodes: FakeNode[]) => {
+      node.children.push(...nodes);
+    },
+    replaceChildren: () => {
+      node.children.length = 0;
+    },
+    addEventListener: () => undefined,
+  };
+  return node;
+}

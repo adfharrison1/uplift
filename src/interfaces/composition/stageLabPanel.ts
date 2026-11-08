@@ -76,6 +76,9 @@ export function createStageLab(options: StageLabOptions): StageLabPanel {
       );
     },
     saveStage(): void {
+      if (!options.isPaused()) {
+        return;
+      }
       const stage = options.getStage();
       if (stage === null) {
         return;
@@ -88,6 +91,9 @@ export function createStageLab(options: StageLabOptions): StageLabPanel {
       });
     },
     saveVisual(characterId: string): void {
+      if (!options.isPaused()) {
+        return;
+      }
       const visual = options
         .getVisuals()
         .find((candidate) => candidate.characterId === characterId);

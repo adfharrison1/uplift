@@ -37,7 +37,7 @@ export interface PlayInputController {
   activateWaypoint(waypointId: string): string;
   requestPortal(propId: string, portalState: PortalState): string;
   pointerDown(): void;
-  keyDown(key: string): void;
+  keyDown(key: string, repeat?: boolean): void;
   setFocus(entityId: string): void;
   statusText(): string;
   attach(panel: HTMLElement): void;
@@ -139,8 +139,11 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
         }
       }
     },
-    keyDown(key: string): void {
+    keyDown(key: string, repeat = false): void {
       const normalized = key === 'Backquote' ? '`' : key;
+      if (repeat && (normalized === 'F3' || normalized === '`')) {
+        return;
+      }
       if (normalized === 'F3' || normalized === '`') {
         const paused = !options.isPaused();
         options.session.setPaused(paused);
@@ -179,6 +182,12 @@ export function createPlayInput(options: PlayInputOptions): PlayInputController 
       controller.sync();
     },
     sync(): void {
+      const sessionStatus = options.session.getStatus();
+      if (sessionStatus === 'missing_stage') {
+        setStatus('missing_stage');
+      } else if (statusText === 'missing_stage') {
+        setStatus(sessionStatus);
+      }
       if (commandList === null || focusList === null) {
         return;
       }
