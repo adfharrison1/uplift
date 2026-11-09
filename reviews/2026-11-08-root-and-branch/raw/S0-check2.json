@@ -1,0 +1,117 @@
+[
+ {
+  "id": "S0A-02",
+  "verdict": "holds",
+  "note": "browserMain.ts:90-96,333,418"
+ },
+ {
+  "id": "S0A-03",
+  "verdict": "holds",
+  "note": "browserMain.ts:333-377 cap splice; compact void"
+ },
+ {
+  "id": "S0A-05",
+  "verdict": "holds",
+  "note": "PlaySession.ts:184-196"
+ },
+ {
+  "id": "S0A-07",
+  "verdict": "holds",
+  "note": "only WorldState.ts:180 and WorldEffectReducer.ts:151 mention it"
+ },
+ {
+  "id": "S0A-08",
+  "verdict": "holds",
+  "note": "dispatchEffects callers at Coordinator:466,487 only (move_entity_to_waypoint, update_prop_state)"
+ },
+ {
+  "id": "S0A-09",
+  "verdict": "holds",
+  "note": "grep: only definitions in coordinator"
+ },
+ {
+  "id": "S0A-10",
+  "verdict": "holds",
+  "note": "only queryLogs.ts and localDiskBridgePlugin.ts import infrastructure (domain/index.ts is a comment)"
+ },
+ {
+  "id": "S0A-13",
+  "verdict": "holds",
+  "note": "grep: only getOrbitalPass at Coordinator:288"
+ },
+ {
+  "id": "S0A-19",
+  "verdict": "holds",
+  "note": "browserMain.ts:186; playInput.ts:145-170 F3/backquote, arrows"
+ },
+ {
+  "id": "S0A-24",
+  "verdict": "holds",
+  "note": "starterHoldPack.ts: spaces 2, props 1, characters 2, only those keys; epochId aside"
+ },
+ {
+  "id": "S0A-26",
+  "verdict": "holds",
+  "note": "no orbitalPass in pack; Coordinator:288 gets undefined"
+ },
+ {
+  "id": "S0A-35",
+  "verdict": "holds",
+  "note": "no code; telemetry kinds list advisory_duel and also 'pretext' (SessionTelemetryPort.ts:16,127), minor"
+ },
+ {
+  "id": "S0A-36",
+  "verdict": "holds",
+  "note": "getBehaviorsInTopologicalOrder has no callers; no behavior content"
+ },
+ {
+  "id": "S0B-04",
+  "verdict": "holds",
+  "note": "grep none"
+ },
+ {
+  "id": "S0B-05",
+  "verdict": "holds",
+  "note": "grep none"
+ },
+ {
+  "id": "S0B-06",
+  "verdict": "holds",
+  "note": "playInput.ts only F3/backquote/arrows"
+ },
+ {
+  "id": "S0B-07",
+  "verdict": "holds",
+  "note": "0.22/0.03 only unrelated"
+ },
+ {
+  "id": "S0B-12",
+  "verdict": "holds",
+  "note": "only in openspec/config.yaml:33,97-99,132; none in src/tests"
+ },
+ {
+  "id": "S0B-14",
+  "verdict": "holds",
+  "note": "only content/README.md and AGENTS.md"
+ },
+ {
+  "id": "S0B-36",
+  "verdict": "holds",
+  "note": "archive tasks.md [x] counts: 02=8, 05c=7; config says 4-6"
+ },
+ {
+  "id": "S0B-40",
+  "verdict": "holds",
+  "note": "7 archive dirs; 20 listed others on roadmap"
+ },
+ {
+  "id": "S0B-44",
+  "verdict": "holds",
+  "note": "openspec/changes has only archive/"
+ },
+ {
+  "id": "S0B-55",
+  "verdict": "holds",
+  "note": "05c: 4 feat, 3 fix, 1 perf; earlier changes have <=1 fix (801ce92, 42bf8c8); change 04 had no browser page"
+ }
+]

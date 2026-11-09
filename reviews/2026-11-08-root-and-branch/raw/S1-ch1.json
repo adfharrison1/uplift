@@ -1,0 +1,86 @@
+[
+ {
+  "id": "S1-01",
+  "verdict": "overstated",
+  "evidence": "README.md:5: \"Your goal is to guide the society toward cooperative, scientific progress while managing Contested Offices...\"; openspec/config.yaml:145 lists a \"Psychohistory Forecast\" and \"end-of-Epoch Legacy Export Gate\" in change 09; DESIGN_NOTES.md:16: \"lets a clever player topple both with one Leverage Chain\"; DESIGN_NOTES.md:146-147 define failure states (clear->condemned, ideological_trial, extracted_overt); DESIGN_NOTES.md:179 stills 'parameterized by your operative's actual deeds'.",
+  "note": "A one-line goal, a forecast, an epoch-end gate, and persecution/trial failure states exist, and Leverage Chain has one implicit usage line. Still no real Epoch 1 player contract or formal Leverage Chain definition, so the core thrust holds but 'no document' is too strong."
+ },
+ {
+  "id": "S1-02",
+  "verdict": "overstated",
+  "evidence": "DESIGN_NOTES.md:207 only bans 'lace-HUD dumps' for travel-cabin cues (scoped to 06c, not global). DESIGN_NOTES.md:53 lists lace 'inertia rings, orbital pass windows, and rival spoof conflicts'; config.yaml:29 'rival spoof indicators'; DESIGN_NOTES.md:85 'Obra Dinn-style fracture cues for Inertia Pillar collapses'; DESIGN_NOTES.md:130 'The Ending's Statistical Anomaly Briefings'; config.yaml:145 'Psychohistory Forecast'; DESIGN_NOTES.md:142 Noisy Miracle explicitly 'advances discoveryLayer'.",
+  "note": "The ban is scoped to travel cues, and several feedback surfaces (lace indicators, advisor briefings, forecast, audio cues) are named. True that no surface is specified for discovery layer/persecution risk/pressure stocks specifically."
+ },
+ {
+  "id": "S1-03",
+  "verdict": "overstated",
+  "evidence": "Count of 27 entries and change 11 = first content pack hold (config.yaml:122-148). But DESIGN_NOTES.md:268 (07) 'A choice that changes the world dispatches a WorldEffect' and 05e door menu 'Confirm calls requestSetPortalState' (DESIGN_NOTES.md:239) precede 07b/07c; src/content/worlds/starterHoldPack.ts holds 2 spaces/1 door/2 characters, not literally empty; config.yaml:134 puts threads and Writing Desk in change 06, not 11. No doc says writing is never human-read.",
+  "note": "Core sequencing point (full content pack only at 11) holds, but 'first decision-with-consequence is 07b/07c', 'empty world' and 'not a human read' are overstated."
+ },
+ {
+  "id": "S1-04",
+  "verdict": "overstated",
+  "evidence": "Quotes confirmed: DESIGN_NOTES.md:262 'Reading costs no watch.' and :266 'An ambient line does not spend a watch.'; :100 lists time-spend actions as nouns. Qualifier: DESIGN_NOTES.md:262 'Only the embodied person being talked to is held. Everyone else keeps walking', and 07b/07c/07d spend pretexts, funds, and advisor goodwill in talk.",
+  "note": "Talking being free of watches is confirmed, but talk is not costless (real-time Clock 1 world keeps moving; pretext/fund/advisor costs), so 'nothing makes the player choose' is overstated. Loop under-specification holds."
+ },
+ {
+  "id": "S1-05",
+  "verdict": "overstated",
+  "evidence": "DESIGN_NOTES.md:74 'further propagation pauses in awaiting_trigger until a player or macro-world beat occurs (release_external_trigger)' - macro beats also release, not only the player. DESIGN_NOTES.md:100 Clock 2 watches are advanced by player time-spend actions and then drive Clocks 3 and 4 (:101-102), a coupling beyond generic WorldEffects. DESIGN_NOTES.md:193 mentions 'off_stage_region LOD'. Searches for schedule/presence/routine found no NPC placement model.",
+  "note": "No NPC schedule/presence model confirmed, but the 2-hop sentence omits macro-world beats and the clocks are coupled via watch advance, not just WorldEffects."
+ },
+ {
+  "id": "S1-06",
+  "verdict": "holds",
+  "evidence": "Searches for notebook|journal|codex|knowledge|reload|save-scum found nothing in DESIGN_NOTES.md. config.yaml:64 'Multi-session Save/Load persists named session snapshots under ./saves/' (mechanism, not policy). ConversationHistory (DESIGN_NOTES.md:262) keeps shown chunks but is not a player notebook.",
+  "note": "No player knowledge/notebook system or reload policy is specified; save mechanism exists but no policy about hidden-info reload."
+ },
+ {
+  "id": "S1-07",
+  "verdict": "overstated",
+  "evidence": "config.yaml:58 'Intent Combiner + Anti-LLM-Speak Period-Voice Composer' is the only mention of a composer; DESIGN_NOTES.md:265 'The words are authored. The engine does not invent them.' sits in the ambient-line paragraph (scope: ambient lines), and :260 'The author splits it' concerns conversation chunks; DESIGN_NOTES.md:101 StoryletTemplate slot grammar.",
+  "note": "Real unreconciled tension (composer never appears in DESIGN_NOTES), but the 'authored' statement is scoped to ambient lines/chunks and the composer targets free-text replies, so 'contradicts itself' is stronger than the text."
+ },
+ {
+  "id": "S1-08",
+  "verdict": "overstated",
+  "evidence": "Facts confirmed: DESIGN_NOTES.md:23 new operative per epoch; :24-25 advisor traits/identity rolled per epoch; :140 Regard(advisor_particular->player) drives droneInterceptQuality. Qualifiers: DESIGN_NOTES.md:26 'both cite your predecessor operatives' past sacrifices from CivilizationLegacyState'; :131 LineageBondLegacy. No doc calls advisors 'the main characters'.",
+  "note": "The re-roll facts hold; 'main characters' is an inference and Regard is per-operative within an epoch, so the 'contradiction' is an interpretation with partial bridges."
+ },
+ {
+  "id": "S1-09",
+  "verdict": "holds",
+  "evidence": "Counts verified: 3 IllicitInstrumentType, 3 PressureStockType, 5 pillars, 4 discovery layers, 3 orbital phases (DESIGN_NOTES.md:14-18). wc -l: EpochBlueprints.ts 255 + EpochModuleRegistry.ts 796 + WorldEffectReducer.ts 494 + CivilizationLegacyState.ts 349 = 1894. EpochBlueprints.ts has exactly 8 *Tick(s) fields (stipendPerTick, orbitalOffsetTicks, baseTransitTicks, fuseTicks, 3 pass durations, burnCostPerTick), matching DESIGN_NOTES.md:100 rebase list. starterHoldPack.ts is 94 lines.",
+  "note": "All quantitative parts verify; 'unvalidated' is an assessment but the docs themselves mark these as design numbers."
+ },
+ {
+  "id": "S1-10",
+  "verdict": "overstated",
+  "evidence": "Threads do have stated levers: DESIGN_NOTES.md:16 pillars toppled by 'one Leverage Chain' needing 'an Emergency or Orbital Miracle'; :46-48 thread exemplars ('Guiding open inquiry vs. public spectacle...'). Acquisition: config.yaml:93 orbital drops gated by pass state; DESIGN_NOTES.md:14 instruments are orbital insertions. Pressure-stock readers: :14 instruments move subsistence prices, :177, :207 (so more than two touchpoints). DESIGN_NOTES.md:285 'How the fund was acquired. That stays on the instrument registry.' (deferred).",
+  "note": "Fund acquisition rule is deferred and pressure-stock consumers are thin, but threads clearly have levers, so the combined claim is overstated."
+ },
+ {
+  "id": "S1-11",
+  "verdict": "overstated",
+  "evidence": "Searches for 'first 10 minutes|onboard|tutorial|opening' in DESIGN_NOTES.md, config.yaml, README.md returned nothing (supports onboarding point). Counter: tone/feel stated at DESIGN_NOTES.md:36, :85 (Obra Dinn cues), :189 ('not a Last Express-length minigame'), :207 ('Subtle Immersion, Not a Second HUD'), and thread exemplars :46 describe the player moment.",
+  "note": "No onboarding design confirmed; but docs do state experiential intent in places, so 'mechanisms far more than experiences' is a fair emphasis while 'without stating the intended moment or feeling' is too absolute."
+ },
+ {
+  "id": "S1-12",
+  "verdict": "overstated",
+  "evidence": "DESIGN_NOTES.md:135 'severe Lamp moral revulsion'; :16/:20 Material Scars (famine, oligarchy, warlord guilds) vs Veil Scars; :177 future-shock backlash, riots, Dual-Use Ceiling wars; :24 Integral vs Particular ethics duel ('expected bowls of soup'); :136 'martyrdom backfire'.",
+  "note": "Many costs are exposure-based, but world-harm scars, riots/wars, and the Integral/Particular ethical duel are ethical costs too; 'one ethical cost' is overstated."
+ },
+ {
+  "id": "S1-13",
+  "verdict": "wrong",
+  "evidence": "DESIGN_NOTES.md:179 stills 'parameterized by your operative's actual deeds, Office, wardrobe, and scars'; :182 'bindPredecessorTraces ... grafts visible and uncoverable traces of your predecessor's work onto the new stage (semanticId wall motifs, monuments, refurbished Chambers props, marginalia in ledgers/archives, dynastic descendants, and cautionary ballads/folklore)'; :174 NPCs 'personally remember your predecessor'; :26 advisors cite predecessor sacrifices.",
+  "note": "The docs specify several explicit player-facing payoffs (visible traces, stills, NPC memory, advisor citations), so 'no specified player-facing payoff' is refuted."
+ },
+ {
+  "id": "S1-14",
+  "verdict": "holds",
+  "evidence": "browserMain.ts:333-355 BrowserSessionTelemetry keeps an in-memory capped array (TELEMETRY_ENTRY_CAP=2048), no write to ./logs, vs config.yaml:61 'MUST be logged to ./logs/current-session.jsonl'. browserMain.ts:418 BrowserSaveRepository is an in-memory Map; grep for saveToSlot/exportLegacyState( finds callers only inside SimulationCoordinator (no UI/session caller). starterHoldPack.ts has no behaviors, so pulseCognitiveScheduler (PlaySession.ts:185) has nothing to promote. DESIGN_NOTES.md:214 says the shipped click is replaced by sections 7/8; src/application/shell/PlaySession.ts:168 clickFloor still exists.",
+  "note": "All four sub-claims verify; scheduler pulse is inert only because the proving-slice has no behaviors, which is a deliberate placeholder."
+ }
+]

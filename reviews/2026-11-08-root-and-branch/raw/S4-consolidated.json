@@ -1,0 +1,325 @@
+{
+ "findings": [
+  {
+   "id": "S4-01",
+   "sev": "major",
+   "from": [
+    "S4B-01"
+   ],
+   "claim": "Lab saves go to JSON files under src/content/scene/stages and src/content/scene/characters; neither directory exists and nothing loads from them, so runtime content comes only from the TS constants and every stage-lab save is a dead write (split-brain).",
+   "rec": "Pick one source of truth now: either the lab round-trips (boot GETs JSON and overlays TS defaults, with a schema check and a stage-vs-pack validator), or the lab emits a TS patch/printout for the author to paste. Until then label the Save button dev-only and unloaded in interfaces docs.",
+   "paths": [
+    "src/interfaces/composition/browserMain.ts:465-467",
+    "src/interfaces/vite/localDiskBridgePlugin.ts:51-54"
+   ]
+  },
+  {
+   "id": "S4-02",
+   "sev": "major",
+   "from": [
+    "S4C-02"
+   ],
+   "claim": "The disk bridge has no Origin, Content-Type or token check, so any web page the developer has open can fire simple cross-origin POSTs at localhost:5173 and wipe or poison the logs; today PUT/DELETE and DNS rebinding are blocked only by browser preflight and Vite's own host check, not by the bridge.",
+   "rec": "In the middleware, before reading the body: reject any request whose Origin header is present and not exactly http://127.0.0.1:<port> or http://localhost:<port>; require Content-Type: application/json on POST/PUT; require a per-run random token (generated in configureServer, injected into index.html via transformIndexHtml, sent as a custom header, which also forces a preflight); assert Host equals the bound address instead of trusting Vite. Also destroy the request once the cap is exceeded (readRequestBody keeps consuming the whole stream), and have GET asset routes use lstat and refuse symlinks (probe: a stages/evil.json symlink to /etc/hosts echoed '##\\n# Host' in the parse error).",
+   "paths": [
+    "src/interfaces/vite/localDiskBridgePlugin.ts:166-174",
+    "src/interfaces/vite/localDiskBridgePlugin.ts:417-424",
+    "vite.config.ts:4-4"
+   ]
+  },
+  {
+   "id": "S4-03",
+   "sev": "major",
+   "from": [
+    "S4C-01"
+   ],
+   "claim": "The disk logger truncates both log files whenever it is constructed or a session is started, and it stamps time on arrival, so wiring browser telemetry (S1-R11) as the logger stands will destroy the crash it exists to record: any dev-server restart or page reload wipes the previous session.",
+   "rec": "Constructor must never truncate: append to, or rotate, the previous session into logs/prev/<timestamp>.jsonl (keep last N), and truncate only on an explicit new-session call. Let the client send occurredAt (elapsed sim ms plus worldTick) and keep the server stamp only as receivedAt, and add a client-side crash path (window.onerror, unhandledrejection, the rAF catch from S3-05) that posts level 'crash' via sendBeacon-style flush.",
+   "paths": [
+    "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:207-207",
+    "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:245-247",
+    "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:278-279",
+    "src/interfaces/vite/localDiskBridgePlugin.ts:414-414"
+   ]
+  },
+  {
+   "id": "S4-04",
+   "sev": "major",
+   "from": [
+    "S4A-01"
+   ],
+   "claim": "The determinism guard is two regexes/selectors that only match the literal call shapes Math.random(), Date.now(), performance.now(), new Date(); aliasing, destructuring, Math.random.call, crypto.getRandomValues/randomUUID, Date() and Math?.random?.() pass both, and application (which will host tick) has no determinism rule at all.",
+   "rec": "Replace both with ESLint no-restricted-properties (Math.random, globalThis.Math, Date.*, performance.*) + no-restricted-globals (Date, performance, crypto, setTimeout, setInterval, requestAnimationFrame, window, document, navigator, localStorage), applied to domain, content (non-scene) AND application. I ran this config on the same probes: it flagged alias, destructure, globalThis, bracket, optional-chain, crypto and Date(). Delete the regex copy.",
+   "paths": [
+    "eslint.config.mjs:39",
+    "tests/architecture/layer_boundaries.test.ts:121-122"
+   ]
+  },
+  {
+   "id": "S4-05",
+   "sev": "major",
+   "from": [
+    "S4A-02"
+   ],
+   "claim": "The layer test is a regex import scanner that cannot see require(), import x = require(), template-literal or variable dynamic import(), or node: built-ins in domain/application, and it does not enforce the content/scene -> interfaces/three-only rule or detect cycles.",
+   "rec": "Move boundaries to ESLint no-restricted-imports with per-directory patterns (covers static, export-from and literal dynamic import), ban require via no-restricted-globals/no-restricted-syntax on ImportExpression with non-literal source, and add `node:*` to the domain/application ban. Keep one small test that asserts the config rejects a fixture, instead of 200 lines of regex.",
+   "paths": [
+    "AGENTS.md:30",
+    "tests/architecture/layer_boundaries.test.ts:49"
+   ]
+  },
+  {
+   "id": "S4-06",
+   "sev": "major",
+   "from": [
+    "S4A-03"
+   ],
+   "claim": "Epoch-agnosticism of domain/application is guarded by a hand-typed denylist of 5 Highglass ids (plus a PlaySession-only string check); the second content pack is unguarded, and no check forbids any content-id-shaped literal in domain/application.",
+   "rec": "Make it derive its denylist: iterate every pack exported from src/content, collect all ids from the registry, and assert none occurs as a substring in src/domain or src/application (non-test). Move it into tests/architecture so it is on the guardrail list, not buried in a content test.",
+   "paths": [
+    "tests/unit/application/PlaySession.test.ts:124-126",
+    "tests/unit/content/StarterHoldStage.test.ts:23-26"
+   ]
+  },
+  {
+   "id": "S4-07",
+   "sev": "major",
+   "from": [
+    "S4A-04"
+   ],
+   "claim": "The accepted core-model and hardening invariants have no automated guard and the codebase already shows the drift they would catch: id-order is sorted at some sites and not at others, and slices accept Map/Set silently.",
+   "rec": "Automate in this order. (1) Golden-run hash test (hardening 6) is the master guard: also run it with entity insertion order shuffled. (2) Slice codec rejects non-plain-JSON at defineStateSlice and the test round-trips every registered slice through JSON. (3) A tick-phase contract test: PHASES const array asserted equal to the documented order, and a spy test that each phase runs once in order. (4) Belief-only considerations: type-level, make consideration/gate functions take `BeliefView` (a branded read type exported from domain) and keep WorldState out of that module's imports via no-restricted-imports in src/domain/cognition/**; plus a contract test that mutating hidden truth with beliefs fixed leaves considerations unchanged. (5) Generated text never feeds state: TextSourcePort returns `FrozenText` branded; ESLint no-restricted-imports forbids that module from reducer/phase files; a test that two runs with different text sources hash identical. (6) Rules-hash binding: unit test that every committed fitted-data file's rulesHash equals hashOf(current rules module) so a rule edit fails verify until refit. Skip a custom 'ban Object.entries' lint; the shuffle-order golden test catches the real failure.",
+   "paths": [
+    "src/application/simulation/SimulationCoordinator.ts:207",
+    "src/domain/core/StateSliceRegistry.ts:21",
+    "src/domain/simulation/KinematicsEngine.ts:574"
+   ]
+  },
+  {
+   "id": "S4-08",
+   "sev": "major",
+   "from": [
+    "S4B-02"
+   ],
+   "claim": "Adding one character or prop touches 3 hand-synced files joined by bare string ids, and only two of the joins are checked by one pack-specific test, not by any load-time validator; stage props are never checked against the pack.",
+   "rec": "Add one pure validateLaunch(pack, stages, visuals) in application (or domain) that fails loudly: every character has a visual, every stage prop id exists in the registry as a prop in that space, every portal prop has isPortal, prop position is inside the footprint, every pack space has a stage. Call it from the PlaySession ctor and make every future pack test call it.",
+   "paths": [
+    "src/application/rendering/RenderFrameBuilder.ts:710-711",
+    "src/application/shell/PlaySession.ts:263-267",
+    "src/content/scene/starterHoldStages.ts:87",
+    "src/content/worlds/starterHoldPack.ts:56-57"
+   ]
+  },
+  {
+   "id": "S4-09",
+   "sev": "major",
+   "from": [
+    "S4B-03",
+    "S4B-05"
+   ],
+   "claim": "The registry is a closed 11-kind class: adding a kind means editing the Zod file, EpochModulePackInput, a Map field, a snapshot and a restore line in registerPack, a registerX, a getX and the domain barrel, and the accepted-core-model kinds (thread runtime, resource ledger profile, instrument profiles, presence tables, tellProfile, CharacterBible, pools) would make it a god-registry. | Several registry checks are inconsistent or redundant: assertSeparationWeight re-implements a Zod bound, while OfficeBlueprint.institutionalLineageId, which is the same kind of reference as the checked thread lineage ids, is never validated; 7 of 8 typed getters have no non-test caller.",
+   "rec": "Replace the class body with a typed kind table: defineModuleKind<T>({ kind, schema, idOf, validate(ctx), dependsOn }) and a pack as Record<kindId, unknown[]>. One generic registerPack loops kinds in dependsOn order, uses one staged-commit/rollback, and one typed get<T>(kind, id). Keep spaces/waypoints special-cased as the spatial core. Domain keeps the generic engine; each core-model module ships its own kind definition file. | Delete assertSeparationWeight, move self/duplicate-neighbour checks into schema refinements, and make cross-reference rules a per-kind table (ref field, target kind, optional same-space rule) so every ref is checked the same way.",
+   "paths": [
+    "src/domain/registries/EpochBlueprints.ts:126",
+    "src/domain/registries/EpochBlueprints.ts:242-255",
+    "src/domain/registries/EpochModuleRegistry.ts:109-123",
+    "src/domain/registries/EpochModuleRegistry.ts:266",
+    "src/domain/registries/EpochModuleRegistry.ts:63-75",
+    "src/domain/registries/EpochModuleRegistry.ts:713-716"
+   ]
+  },
+  {
+   "id": "S4-10",
+   "sev": "major",
+   "from": [
+    "S4B-04"
+   ],
+   "claim": "Pack identity and composition are unmodelled: epochId is only checked non-empty and never stored, there is no pack id or version, a second pack silently merges into the same flat id space, and there is no override semantics.",
+   "rec": "Store packId, version and a content hash on the registry at registerPack, expose them for the save envelope, and decide now whether a registry is one-epoch (new registry per epoch, cameo content via an explicit import list) or layered (explicit extends/override with a reported diff).",
+   "paths": [
+    "src/domain/registries/EpochModuleRegistry.ts:574-578",
+    "src/domain/registries/EpochModuleRegistry.ts:58-61"
+   ]
+  },
+  {
+   "id": "S4-11",
+   "sev": "major",
+   "from": [
+    "S4B-06",
+    "S4B-07",
+    "S4B-08"
+   ],
+   "claim": "Section guides instruct agents to use blueprints that do not exist and describe recipes the code cannot do: content AGENTS recipes name VehicleKindBlueprint, TransitRouteBlueprint, TravelVignetteBlueprint, EnRouteEncounterTable, TravelSurfaceCueBlueprint and EpochProfileBlueprint[], and a CharacterVisualBlueprint 'keyed by characterId and lineageId'. | Guides still carry the pre-P2 AI plan and stale pointers: infrastructure AGENTS blesses @huggingface/transformers and tests/AGENTS references a 23MB ONNX model for an intent flow that P2 removed; interfaces/application guides say stage-lab writes persist content ('Stage-lab disk writes use fetch PUT') without saying they are not loaded. | The content barrel ships test fixtures as content: DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT (space 'charnel_stairs') and DEFAULT_HIGHGLASS_CHARACTER_VISUALS are not in the starter pack and are consumed only by tests, so a new author sees three scene files and cannot tell which is the real pack; scene content also imports its schemas from interfaces/three, pulling Three.js into the data layer.",
+   "rec": "Rewrite the content AGENTS recipes to the 5 starter-pack steps that work today, and move the vehicle/route recipe into DESIGN_NOTES as planned. Add a doc check in test:arch that every PascalCase `*Blueprint` named in section AGENTS.md exists in src. | Reword to 'a generation worker port, Node-side runtime, text out only' and add a one-line caveat on lab saves until S4B-01 is settled. | Move the Charnel fixtures to tests/fixtures, and point scene content at the pure schemas in application/rendering (or domain) rather than interfaces/three.",
+   "paths": [
+    "src/content/AGENTS.md:21",
+    "src/content/AGENTS.md:9",
+    "src/content/index.ts:9-13",
+    "src/content/scene/starterHoldStages.ts:9-15",
+    "src/infrastructure/AGENTS.md:5",
+    "src/interfaces/AGENTS.md:15"
+   ]
+  },
+  {
+   "id": "S4-12",
+   "sev": "major",
+   "from": [
+    "S4C-03"
+   ],
+   "claim": "The rule 'every AI input/output/reasoning trace logs' and the Act ring are the same event stream recorded twice, and the compactor keeps every AI trace and every high-signal category verbatim, so telemetry volume scales with NPC count times evaluations times Observation fan-out, not with anything the developer reads.",
+   "rec": "Make the Act log the single source of truth for what happened (persist it, spill evicted ring entries to disk, key every row by actId). Reserve telemetry for out-of-band facts: warn/error/crash, frame-time spikes, state-hash checkpoints every N frames. Make decision traces opt-in per actor or per watch and by default recorded only for Tier-1 actors, and reproduce the rest by replaying the deterministic command log with tracing on (see routes).",
+   "paths": [
+    "AGENTS.md:65-65",
+    "reviews/2026-11-08-root-and-branch/slices/02-systems.md:23-23",
+    "src/domain/telemetry/SessionTelemetryPort.ts:143-146"
+   ]
+  },
+  {
+   "id": "S4-13",
+   "sev": "major",
+   "from": [
+    "S4C-05",
+    "S4C-06"
+   ],
+   "claim": "The 133 tests are mostly real behaviour tests, but they are packed into a few monolithic 'it' blocks (EpochModuleRegistry has 5 cases in 780 lines, 46 expects) built from hand-pasted full-structure fixtures, so the core model and hardening batch will break whole files at once instead of one assertion, and a failure will not say which behaviour regressed. | Several load-bearing behaviours have no test at all, and a few existing assertions test nothing: the bridge middleware that actually runs, the browser frame loop, torn/disk-full logging, and the committed telemetry caps are only checked by restating the constant.",
+   "rec": "Before the hardening batch, add three shared builders (makeRegistry, makeWorldState, makeStageBlueprint) under tests/support and split each mega-case into one behaviour per 'it' with the builder doing the setup. Treat the new golden-run hash as the broad regression net so unit tests can assert narrow facts. Do the split as part of each hardening step's own test change, not as a separate refactor. | Add one middleware-level test using a real node http server on 127.0.0.1:0 with the plugin's handler wired (covers 413, 500, passthrough, and later Origin checks). Delete the constant-restating assertions and reduce the SKILL/doc string tests to existence plus frontmatter name.",
+   "paths": [
+    "tests/architecture/layer_boundaries.test.ts:425-431",
+    "tests/unit/application/SimulationCoordinator.test.ts:384-384",
+    "tests/unit/domain/EpochModuleRegistry.test.ts:6-6",
+    "tests/unit/infrastructure/NdjsonSessionTelemetry.test.ts:237-237",
+    "tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts:20-20",
+    "tests/unit/interfaces/LocalDiskBridge.test.ts:39-40"
+   ]
+  },
+  {
+   "id": "S4-14",
+   "sev": "minor",
+   "from": [
+    "S4C-04",
+    "S4C-07"
+   ],
+   "claim": "Compaction is a synchronous read-parse-rewrite of both whole files inside the Vite request handler, repeats on every batch while the window cannot shrink the file, and the failure paths (disk full, torn append) are untested and lossy; the '100% Preserved Verbatim' claim in the skill is false at the cap. | The uplift-debug skill and logs:query only work as a dump-everything tool over a log nothing feeds: output is unbounded, there is no tail, limit, summary or per-category count, and an empty logs dir silently prints nothing.",
+   "rec": "Switch to size-rotated segments (log.0001.jsonl ...) with a tiny in-memory index, so compaction becomes 'summarise the oldest segment, delete it' and never rewrites the world; prefix every append with a newline guard; map ENOSPC to a visible warning and a dropped-count record rather than a 400. Lower the caps to what a session really needs (a few tens of MiB) and fix the skill sentence to say eviction can drop old warn/error records. | Add --limit/--tail, --count-by category|actor|action, and --around-tick N --window M, make the default output compact one-liners, print a stderr note when the log is missing or empty, and mark the skill as 'inert until /api/telemetry is wired'.",
+   "paths": [
+    ".agents/skills/uplift-debug/SKILL.md:17-17",
+    ".agents/skills/uplift-debug/SKILL.md:3-3",
+    "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:286-291",
+    "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:297-300",
+    "src/infrastructure/telemetry/RollingLogCompactor.ts:329-329",
+    "src/interfaces/cli/queryLogs.ts:186-190",
+    "src/interfaces/vite/localDiskBridgePlugin.ts:356-358"
+   ]
+  },
+  {
+   "id": "S4-15",
+   "sev": "minor",
+   "from": [
+    "S4A-06"
+   ],
+   "claim": "verify is 5.3-6.7 s wall because five steps run sequentially as five nested npm processes with two separate vitest startups; running them in parallel measured 2.4 s and merging the vitest runs saves ~0.5 s, with nothing weakened.",
+   "rec": "Add `verify` = run format:check, lint, typecheck, `vitest run tests/` concurrently (a 10-line node script or npm-run-all2 -p) with fail-all output, keep `verify:serial` for debugging; set vitest `isolate:false` for tests/unit only if no test mutates globals. Expect ~2.5 s. Also correct the 'under 3 s' unit claim: unit is 1.8-2.3 s now.",
+   "paths": [
+    "package.json:24"
+   ]
+  },
+  {
+   "id": "S4-16",
+   "sev": "minor",
+   "from": [
+    "S4A-07"
+   ],
+   "claim": "Part of the architecture suite guards prose rather than behaviour: it pins literal sentences and model names inside two SKILL.md files and the exact lint-staged array, so editing a skill or hook fails verify while protecting no engine property, and the real hook never runs verify.",
+   "rec": "Delete the two SKILL.md content tests and the config-string assertions (keep file-existence and the .cursor/skills ban). Spend the saved attention on S4A-01/02: swap in the pre-commit `npm run verify` (now ~2.5 s) instead of lint-staged-only.",
+   "paths": [
+    ".husky/pre-commit:1",
+    "tests/architecture/layer_boundaries.test.ts:392",
+    "tests/architecture/layer_boundaries.test.ts:425",
+    "tests/architecture/layer_boundaries.test.ts:431"
+   ]
+  },
+  {
+   "id": "S4-17",
+   "sev": "minor",
+   "from": [
+    "S4A-05"
+   ],
+   "claim": "ESLint runs only untyped configs (tseslint.configs.strict, no projectService), so no-floating-promises and switch-exhaustiveness-check cannot fire; a floating promise and a non-exhaustive switch both lint clean.",
+   "rec": "Add parserOptions.projectService only for src/application, src/interfaces and src/infrastructure with no-floating-promises + no-misused-promises; add switch-exhaustiveness-check to src/domain via a tiny assertNever pattern. Do it when the first async port lands.",
+   "paths": [
+    "eslint.config.mjs:10"
+   ]
+  },
+  {
+   "id": "S4-18",
+   "sev": "minor",
+   "from": [
+    "S4C-08"
+   ],
+   "claim": "05f is specified as 'one runner for every AI subject' but the accepted core model adds three other test-like artifacts (golden run, evidence-coverage eval, text gates) with no rule for which lives where, so they will overlap on fixtures, harness and thresholds unless the split is fixed before eval/ is created.",
+   "rec": "Adopt the minimal shape in the first unconsidered route below: one headless harness in src/application, tests/ for exact and fast, golden/ for hashes, eval/ only for distributions and content corpora.",
+   "paths": [
+    "openspec/config.yaml:133-133",
+    "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md:105-105",
+    "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md:43-43"
+   ]
+  }
+ ],
+ "routes": [
+  {
+   "id": "R4A1",
+   "title": "Compiler-API or dependency-cruiser instead of regex",
+   "proposal": "typescript@6 is already a devDependency: walk each file with ts.preProcessFile (or use dependency-cruiser with a rules file) to get every import form, including import=require and non-literal import(). Add cycle detection and a 'no node: in domain' rule in the same pass."
+  },
+  {
+   "id": "R4A2",
+   "title": "Branded capability types as the guardrail for the hidden-information rule",
+   "proposal": "Instead of a lint on imports, make considerations take `BeliefView` and give the domain no function that turns WorldState into a BeliefView except one audited projector. The compiler then forbids reading world truth in NPC decisions; a single test covers the projector."
+  },
+  {
+   "id": "R4A3",
+   "title": "Parallel verify with a one-line agent-friendly summary",
+   "proposal": "One node script runs the four tasks concurrently, buffers output, and prints a single PASS/FAIL line per step plus failures only. Cuts wall time to ~2.5 s and shrinks the transcript the agent has to read each turn."
+  },
+  {
+   "id": "R4A4",
+   "title": "Shuffled-insertion golden test as the determinism oracle",
+   "proposal": "Run the hardening-6 golden run twice, the second time with entity/prop/slice insertion order permuted and with Math.random/Date stubbed to throw. This catches unsorted iteration, hidden randomness and wall-clock reads that no regex can."
+  },
+  {
+   "id": "R4B1",
+   "title": "Typed kind table with per-kind modules",
+   "proposal": "Each kind is a small module exporting defineModuleKind({kind, schema, idOf, refs, dependsOn}). The registry is generic over a table of them; packs are Record<kind, items[]>. New core-model kinds (presence table, tellProfile, CharacterBible, pools) are new files, not edits to the registry."
+  },
+  {
+   "id": "R4B2",
+   "title": "Content pack as a validated JSON bundle compiled to a frozen TS module",
+   "proposal": "Authors (and the SLM authoring kit) edit one data file per pack; a build step runs the full cross-validator (pack, stages, visuals) and emits the frozen TS constant. The stage lab edits the same file via the bridge, closing the split-brain."
+  },
+  {
+   "id": "R4B3",
+   "title": "Launch-time content lint as the single gate",
+   "proposal": "One pure validateLaunch(registry, stages, visuals) run in the PlaySession ctor and in every pack test, returning all errors with an id and a file hint rather than throwing on the first."
+  },
+  {
+   "id": "R4C1",
+   "title": "Log nothing, replay: deterministic reproduction instead of always-on AI tracing",
+   "proposal": "Because the sim is meant to be seeded and fixed-step, the scripted command log plus seed is a complete record of a run (this is already accepted as the golden-test artifact, R3C1). Keep production telemetry to crash/warn, frame-time spikes and a state hash every N frames. When a bug appears, replay the command log with a trace sink enabled, and have the replay stop at the first hash divergence or at a chosen tick. Decision traces then cost zero disk in normal play and can be as verbose as wanted on replay."
+  },
+  {
+   "id": "R4C2",
+   "title": "Minimal eval/ shape with a one-way ownership rule",
+   "proposal": "One harness, src/application/headless/runScenario(fixture, script, seed, pacing) returns {worldStateHashes, actLog, observations}. tests/golden/ calls it for 2-3 short scripts and compares committed hash files (verify, under 1 s). eval/ holds eval/cases/*.case.json (fixture id, seed list, script, assertions as data), eval/assertions/ (a registry of evidence_coverage, diffusion_bounds, text_gate_pool, and so on), eval/run.ts, and eval/out/ (gitignored). Exact-answer, one-seed, millisecond checks stay in tests/. Anything over many seeds, over the real content pack, or reporting a distribution goes in eval/. Fitted tables live in data/fitted/*.json with the rules hash inside; one fast test in tests/ asserts every fitted table's hash equals the current rulesHash, and `npm run eval:ai -- --refit` regenerates them. Text gates: the pure gateLine(brief, text) function and about ten adversarial cases live in tests/; eval/ only runs it over the whole pool for coverage and duplication metrics."
+  },
+  {
+   "id": "R4C3",
+   "title": "Per-run token and Origin lock for every dev-server write route",
+   "proposal": "Generate a random token in configureServer, inject it into the served page via transformIndexHtml, and have the bridge require it as a custom header plus an exact Origin match. All future write routes (authoring-kit accept, stage-lab saves) register through one guarded helper, so a new route cannot be added unauthenticated."
+  },
+  {
+   "id": "R4C4",
+   "title": "Single-purpose crash box instead of a general session log",
+   "proposal": "Split the debug channel in two: a small ring buffer of the last N seconds of structured events kept in memory in the browser and flushed to logs/crash-<timestamp>.json on any error or on demand via a key, and a separate opt-in trace file for deliberate investigation. Normal play writes nothing to disk."
+  }
+ ]
+}

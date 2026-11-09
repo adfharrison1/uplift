@@ -1,0 +1,47 @@
+[
+ {
+  "id": "R1",
+  "title": "One-thread vertical slice first",
+  "proposal": "Before 05a/05b/06, hand-author one thread (e.g. Sorrel/Pell) end to end: 3 rooms, 3-8 people, one office pretext, Space-driven choices, a visible delayed consequence and an end card with the ledger diff. Play with friends, then generalize."
+ },
+ {
+  "id": "R2",
+  "title": "Advisors are the feedback channel and the ethics",
+  "proposal": "The Ship Mind gives a delayed per-watch statistical debrief; the Drone reports the bodily/room truth; their disagreement is the readout of success/notice/backfire, and major choices show both the expected-lives and the named-person cost."
+ },
+ {
+  "id": "R3",
+  "title": "Lace log as notebook / evidence board",
+  "proposal": "The Ship Mind auto-records overview states, conversation chunks and briefings; the player can diff them; omitted clauses appear as gaps; optionally a diegetic string board in Chambers shows which acts were noticed and by whom."
+ },
+ {
+  "id": "R4",
+  "title": "Content-first, extract abstractions later",
+  "proposal": "Quarantine registry kinds/effects with no content behind a draft area; author Epoch 1 as plain typed data; promote to the epoch-agnostic registry only when a second use exists. Keep lineageId as the forward hook."
+ },
+ {
+  "id": "R5",
+  "title": "Text-only advisor/writing prototype",
+  "proposal": "Before engine work on dialogue/NLP, test the writing and the advisory-duel idea as a plain text page: two conflicting briefings on a hand-authored scenario, the player picks."
+ },
+ {
+  "id": "R6",
+  "title": "Seasonal council macro loop; rooms as scenes",
+  "proposal": "Make the watch clock the primary loop: each season a few verb slots (court, write, study, travel) with advisor advice; rooms are entered when a storylet or office case needs embodiment rather than as free roam (King of Dragon Pass style)."
+ },
+ {
+  "id": "R7",
+  "title": "Quality-based storylet decks",
+  "proposal": "Replace slot-grammar storylets with authored cards gated by qualities (stocks, regard, discovery layer, office); slots only for names/places (Sunless Sea / StoryNexus)."
+ },
+ {
+  "id": "R8",
+  "title": "Epoch as cartridge",
+  "proposal": "Each epoch is a complete game with its own ending screen; Epoch 1 is a standalone 3-5 hour scenario; later epochs import the ledger like a sequel."
+ },
+ {
+  "id": "R9",
+  "title": "CK3-style scheme odds",
+  "proposal": "Show success %, secrecy and a breakdown of Regard modifiers on every scheme, pretext spend and letter."
+ }
+]

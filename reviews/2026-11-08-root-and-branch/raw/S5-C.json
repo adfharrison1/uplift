@@ -1,0 +1,293 @@
+{
+ "findings": [
+  {
+   "id": "S5C-01",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "There is no mood-versus-signal rule: the palette is built so everything converges on near-black, and the player operative's own colour is indistinguishable from the iron walls and the shadow background, so P4 cues (who, what carried, what changed) have no reserved visual channel.",
+   "evidence": [
+    {
+     "path": "src/content/scene/starterHoldCharacterVisuals.ts",
+     "lines": "34-34",
+     "quote": "primaryColorHex: '#2c3138',"
+    },
+    {
+     "path": "src/content/scene/defaultStageContent.ts",
+     "lines": "38-38",
+     "quote": "ironColorHex: '#2c3137',"
+    },
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "53-53",
+     "quote": "const data = new Uint8Array([45, 45, 52, 255, 135, 135, 140, 255, 235, 232, 224, 255]);"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "51-51",
+     "quote": "Shared stepped toon/chiaroscuro ramp with deep blue-gray (`#1a1f28`) shadows, `-30%` desaturated stone/mud/iron palettes"
+    }
+   ],
+   "bites_when": "now: the first guard-posted or who-carries-what cue is authored; the walker (#3d342c) vs mud (#3b3228) is also ~1.03:1 before grime, and body-vs-background contrast is ~1.26:1 (computed WCAG ratio). Nothing in code adds outline, rim light, or a value floor for actors.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Grepped src for rim/outline/silhouette passes: none exist (only MeshToonMaterial + emissive for selection/hover). Checked DESIGN_NOTES visual section for a contrast or readability rule: none. The 3-band ramp gives the lit band 235 so lit actors may read, but the player's torso is the same hue as the iron walls so lit-vs-lit also fails.",
+   "recommendation": "Write a 3-line readability rule now: actors and gameplay-relevant props get a value band no wall/floor may enter (e.g. actor min luminance above stone, plus a thin fixed inverted-hull outline or warm rim), and 'signal' hues (torch warm, one accent per faction) are reserved from environment use. Add a unit test that fails when any CharacterVisualBlueprint colour is within N contrast of its stage's materials.",
+   "fix_cost": "S",
+   "ignore_cost": "Every later inference trail (a posted guard, a swapped prop) has to be fought out of the palette by tuning individual rooms."
+  },
+  {
+   "id": "S5C-02",
+   "topic": "content",
+   "kind": "problem",
+   "claim": "Props cannot show state or identity: every non-portal prop renders as the same 0.9 m cube regardless of kitbashId, and only door hinge angle varies, so 'a changed prop' (P4) has no renderable vocabulary.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "292-292",
+     "quote": "    : new THREE.BoxGeometry(0.9, 0.9, 0.9);"
+    },
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "204-204",
+     "quote": "kitbashId: IdentifierTokenSchema.default('crate_prop'),"
+    }
+   ],
+   "bites_when": "the first room with two different props (desk, bed, chest) or a prop whose state matters (moved ledger, opened chest, broken seal) is authored.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Read buildStagePropGroup in full: kitbashId is stored in userData and never switched on, unlike motif/headgear/cloak which have switch tables. Prop footprint rule in DESIGN_NOTES (blocks the oriented footprint of the drawn mesh) assumes shapes that do not yet exist.",
+   "recommendation": "Add a prop shape table (and a 'state variant' field, e.g. open/disturbed/absent) before 05d footprints are specced; make prop variants data-declared parts so a state change swaps a part rather than needing a code branch.",
+   "fix_cost": "M",
+   "ignore_cost": "Footprint collision and state cues get designed around cubes and then re-done."
+  },
+  {
+   "id": "S5C-03",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "The kitbash vocabulary is a closed, feudal-named switch in interfaces code, so each new motif, garment or prop shape needs a TypeScript edit and rebuild, and unknown ids silently fall back to a generic shape; the F3 lab and the JSON bridge cannot extend it, which undercuts the 'owner and agent enrich collaboratively' loop.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "169-171",
+     "quote": "  switch (headgearId) {\n    case 'synod_cowl':\n      return new THREE.ConeGeometry(0.22, 0.32, 6);"
+    },
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "37-44",
+     "quote": "export const CanonicalMotifIdSchema = z.enum([\n  'ossuary_skull_niche',"
+    }
+   ],
+   "bites_when": "Epoch 2 content or the first 10 distinct named NPCs: 4 headgear + 3 cloaks + 4 held props + 6 motifs total exist, with one default branch each. A typo in a JSON id renders a wrong generic shape with no error.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether geometry ids are validated against the switch: the schema uses open IdentifierToken (not an enum) for headgear/cloak/held props, so nothing catches a missing id. No style guide for shape language, palette per faction/class, or silhouette budget exists in DESIGN_NOTES or any AGENTS.md I could find via grep (silhouette-first is asserted, not defined).",
+   "recommendation": "Move parts to a data-declared recipe (primitive + dims + slot anchor, JSON in content) registered on the epoch pack, with a contract test that every referenced id resolves. Write a one-page shape-language rule: one dominant silhouette cue per class (hat or tool or cloak profile), faction accent hue, max N cues per body.",
+   "fix_cost": "M",
+   "ignore_cost": "Each of the 40-60 characters costs a code change in interfaces, and visuals drift from the registry-driven content model."
+  },
+  {
+   "id": "S5C-04",
+   "topic": "content",
+   "kind": "problem",
+   "claim": "The kitbash figure has only eight tuning knobs and one body mesh (box torso, icosahedron head, no limbs, no gait animation), and the two shipped NPCs already share the same cloak; at the ~11-14 m gameplay camera 40-60 characters will collapse to the same three or four silhouettes.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "333-340",
+     "quote": "    new THREE.BoxGeometry(0.48, 0.72, 0.28),\n    createChiaroscuroToonMaterial({\n      baseHex: visual.primaryColorHex,"
+    },
+    {
+     "path": "src/content/scene/defaultStageContent.ts",
+     "lines": "194-194",
+     "quote": "        offset: [0, 8.5, 10.5],"
+    },
+    {
+     "path": "src/content/scene/starterHoldCharacterVisuals.ts",
+     "lines": "42-42",
+     "quote": "    cloak: 'waxed_mantle',"
+    }
+   ],
+   "bites_when": "the first scene with 5+ NPCs in one room (a council or market), which is exactly when the plan wants ambient lines and 'who is where' inference.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Grep of the renderer for gait/walk/bob/animation: none, though gaitStyle exists in the schema and is not read by the builder. Height scale 0.5-2.0 and posture pitch give some variety, but silhouette differences at 10 m under 30% desaturation are untested.",
+   "recommendation": "Define a silhouette budget (3-4 discriminating cues from: hat profile, cloak length, held tool, height class, stance) and add a throwaway lab view that renders the whole cast as black silhouettes at the gameplay camera distance. Wire gaitStyle to a bob/lean pose so movement carries identity.",
+   "fix_cost": "M",
+   "ignore_cost": "Crowd scenes read as one group and NPC tells (posture, carried item) are invisible."
+  },
+  {
+   "id": "S5C-05",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "The epoch theme schema is a four-material, one-palette struct and resolveCharacterVisualForTheme's palette rebind overwrites every character's colours with the same stone and iron hexes, so applying a new epoch theme erases per-character identity and the 7-era claim is untested.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "436-441",
+     "quote": "    primaryColorHex:\n      options?.rebindPaletteToTheme === true\n        ? validatedTheme.stoneColorHex\n        : matched.primaryColorHex,"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "56-56",
+     "quote": "Defines material palettes (`stoneColorHex`, `mudColorHex`, `ironColorHex`, `woodColorHex`)"
+    }
+   ],
+   "bites_when": "Epoch 2: the first theme with glass, brick, painted plaster, electric light or CRT glow has no material slot, and the fixed torchWarmHex tint plus fog model assumes firelight. Rebinding with the option on turns the whole cast one colour.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "The theme is data (a second theme can be authored without code), lineage rebinding preserves silhouette, and rebind is optional. But the only theme in the repo is Highglass era 1, the CanonicalMotifId enum is feudal, and nothing tests a second theme.",
+   "recommendation": "Make materials an open map (id to hex) with palette roles (ground, wall, accent, signal) instead of four named fields, and have rebinding shift hue/value of a character's own colours toward the theme instead of replacing them. Author a throwaway Epoch 4 theme as a schema test.",
+   "fix_cost": "S",
+   "ignore_cost": "Schema and saved JSON need a migration at Epoch 2."
+  },
+  {
+   "id": "S5C-06",
+   "topic": "design",
+   "kind": "risk",
+   "claim": "The diegetic UI split reuses cyan for two jobs: the lace is 'razor-thin cyan-white vector arcs', which read poorly as text, while the debug selection highlight already uses the same cyan (#4fd2ff) on world meshes, so lace-equals-cyan is already spent in the scene.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "53-53",
+     "quote": "**Sub-Retinal Culture Neural Lace** (razor-thin cyan-white vector arcs, inertia rings, orbital pass windows, and rival spoof conflicts)"
+    },
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "330-330",
+     "quote": "      mat.emissive.set('#4fd2ff');"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "248-248",
+     "quote": "An advisor conversation is lace text."
+    }
+   ],
+   "bites_when": "05e/07d, the first time lace text (paged, multi-line, advisor duels) must be read for minutes at a time over a dark scene; thin strokes also shimmer on a 2019 MBP at non-retina scaling.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "Not yet built, so this is a design check. The parchment-vs-lace split itself is coherent and per-epoch evolution is sensible; the conflict is only stroke style versus paged text.",
+   "recommendation": "Spec the lace as two parts: arcs/rings are decoration, but text sits on a solid-ish panel with a heavier weight and a fixed type size; move the debug highlight to a colour the game never uses.",
+   "fix_cost": "S",
+   "ignore_cost": "Lace text becomes the main reading surface and ships with its worst legibility."
+  },
+  {
+   "id": "S5C-07",
+   "topic": "design",
+   "kind": "problem",
+   "claim": "The shared audibility formula is not yet a predictable gameplay rule: localMask is undefined, there is no player-facing earshot readout, and a purely multiplicative scalar gives the player no threshold to learn, so eavesdropping and stealth will feel arbitrary.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "48-48",
+     "quote": "`audibility = loudness * distanceFalloff(earshotRadiusMeters) * portalTransmission(open|ajar|closed|barred) * (1 - localMask)`"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "130-130",
+     "quote": "(3) **Acoustic Eavesdropping through Ajar Doors**"
+    }
+   ],
+   "bites_when": "05a design, and again when eavesdropping becomes an inference channel: if the player cannot predict from the picture whether they can hear or be heard, they either never use it or learn it by trial.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Searched src for audibility/earshot: nothing exists, so this is paper. The shared player/NPC formula is a good idea (symmetric rules); the problem is the lack of a threshold, a legible display (visible footfall ring that tracks surface loudness, door-state cue) and a tested ladder per door state.",
+   "recommendation": "Pick 3 discrete audibility tiers (silent, murmur, clear) with fixed thresholds, expose them as a diegetic cue (NPC head turn, a visible ripple under your feet, dust at the ajar door), and define localMask as named things (rain, forge, crowd). Use the same tiers for 'overheard line' text in the ambient-line system.",
+   "fix_cost": "S",
+   "ignore_cost": "Stealth and eavesdropping, two of the six hidden-motive channels, ship as invisible-number mechanics."
+  },
+  {
+   "id": "S5C-08",
+   "topic": "sequencing",
+   "kind": "gap",
+   "claim": "Procedural-only audio with no voice acting leaves character carried by nothing in sound, and the plan specs settlement ambience and footsteps richly while NPC identity in audio (babble, blips, instrument motifs) is absent; because audio is also an inference channel, it should not sit late.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "49-49",
+     "quote": "**100% Procedural Web Audio API + Live Sound Lab**: Zero large `.wav` assets in git"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "82-82",
+     "quote": "No generic background score; the settlement is the score"
+    }
+   ],
+   "bites_when": "first conversation or overheard-line system lands (05e/05f, before 05a in the accepted order): lines appear as silent text, and the 'exclamation' and 'impatient beat' ambient lines get no audible hook.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "No-voice is an explicit owner rule and a fine one (Disco Elysium, Pentiment text-only). Physical synthesis suits footsteps, wind, forge and hum well. The risk is textures (rain, crowd, cloth, wood door) which sound cheap when synthesised from noise only, and no speech-babble/per-NPC voice-blip plan.",
+   "recommendation": "Allow a small curated sample set (CC0, tens of KB) for textures and door/cloth foley alongside synthesis, behind the same patch schema. Give each NPC a tiny procedural 'tone signature' (pitch, timbre, rhythm from lineage) for text-blips. Move a minimal footstep/door/murmur slice ahead of 05d/05f.",
+   "fix_cost": "M",
+   "ignore_cost": "Conversations and ambient lines feel flat, and audible tells arrive after the systems that need them."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "Semantic IDs on every mesh plus the F3 lab and DOM mirror give a real authoring loop for an agent (address 'that wall') with schema-validated JSON and no .glb bloat.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "54-54",
+     "quote": "3-Layer Encoded Visual Authoring Framework"
+    }
+   ]
+  },
+  {
+   "claim": "One shared stepped toon ramp, fog and desaturation derive from theme data, and desaturation override is applied live (Free-Cam), which gives a cheap, cohesive look on the target hardware.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "73-90",
+     "quote": "export function computeChiaroscuroColor("
+    }
+   ]
+  },
+  {
+   "claim": "The two-bus audio split (groundside versus non-speech lace cues) and the text-only conversation rule are coherent and cheap, and the shared player/NPC audibility idea gives symmetric stealth.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "84-84",
+     "quote": "This bus does not speak."
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Value-first readability rule with an outline pass",
+   "proposal": "Author the game in three value tiers: environment low, actors mid-high, signal props brightest, and enforce with a test. Add an inverted-hull outline or a thin warm rim to actors and interactables only (cheap on a toon pipeline).",
+   "reference": "Return of the Obra Dinn, Darkest Dungeon, Inside (value separation of actor from background)",
+   "replaces_or_changes": "Adds a readability layer on the chiaroscuro look without changing mood."
+  },
+  {
+   "title": "Signal-by-exception attention cue",
+   "proposal": "Keep the world dark, but let a single warm accent (candle, lantern, seal colour) mark things that currently matter, and let the Drone's tell (the lamp) brighten near a cue. A Hitman-instinct style optional toggle can outline people on demand with the lace rather than a permanent HUD.",
+   "reference": "Hitman instinct, Pentiment font/colour cues",
+   "replaces_or_changes": "Gives P4 light signposting a reserved visual channel."
+  },
+  {
+   "title": "Recipe-based kitbash data",
+   "proposal": "Each garment/prop is a JSON list of primitives with anchors and tints that lives in the epoch pack; the builder interprets recipes, and the F3 lab edits them. Agents can then add a hat in one JSON file.",
+   "reference": "Voxel/part recipe systems (Dwarf Fortress-style raws; Townscaper-style part kits)",
+   "replaces_or_changes": "Replaces the switch tables in StageKitbashBuilders.ts."
+  },
+  {
+   "title": "Per-NPC audio signature plus text blips",
+   "proposal": "Derive a 3-note tone and timbre per lineage and play a soft blip per chunk of bubble text; use the same signature for footstep cadence or a tool sound.",
+   "reference": "Animal Crossing / Undertale text blips, Papers Please",
+   "replaces_or_changes": "Gives character in sound without voice acting; one more field on the audio patch schema."
+  },
+  {
+   "title": "Minimal audio slice early",
+   "proposal": "Ship a 100-line AudioContext with footstep (surface table), door state, murmur-through-door driven by the audibility tiers, and nothing else, before 05d/05f.",
+   "reference": "Thief (sound as a stealth readout)",
+   "replaces_or_changes": "Splits 05a so the inference-bearing cues come early and the Sound Lab stays late."
+  }
+ ],
+ "could_not_verify": [
+  "The 'dark chiaroscuro' mood is only a theme config; I did not render screens or measure post-fog, post-lighting pixels, so contrast numbers are base-colour WCAG ratios, not on-screen values.",
+  "No audio code exists to test; audio findings are paper-design only.",
+  "Whether gaitStyle is read anywhere beyond the schema was found by grep, not by running the page."
+ ]
+}

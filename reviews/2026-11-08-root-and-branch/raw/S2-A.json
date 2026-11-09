@@ -1,0 +1,337 @@
+{
+ "findings": [
+  {
+   "id": "S2A-01",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "The cognition shell is a timer machine with no decision and no commit: nothing selects a behavior, no utility/hysteresis exists, drives are read only by the emergency-vice reducer, and a finished dwell emits no WorldEffect, so there is no NPC behaviour yet that could be legible evidence.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "231-239",
+     "quote": "export const BehaviorModuleSchema = z.object({"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "236-238",
+     "quote": "dwellSeconds: z.number().nonnegative().default(10),"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "156-166",
+     "quote": "if (phase === 'performing_dwell') {"
+    },
+    {
+     "path": "src/domain/simulation/WorldEffectReducer.ts",
+     "lines": "356",
+     "quote": "const currentViceVal = entity.drives[entity.emergencyVice] ?? 0;"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "72",
+     "quote": "dwellSeconds` (time spent physically performing the action at the waypoint before its `WorldEffect` commits)"
+    }
+   ],
+   "bites_when": "Change 03/06 content starts: the first Tier-1 schemer needs a reason to walk anywhere, and the first inference trail needs an act to attribute.",
+   "severity": "critical",
+   "confidence": "high",
+   "disconfirm": "Grepped src for drives/utility/hysteresis/behaviors: drives only appear in Coordinator spawn, Reducer compound_emergency_vices, legacy inheritance and RenderFrameBuilder; BehaviorModule has only id/label/dependencyIds/timers/requiresExternalTrigger. The dwell->cooldown transition pushes a phase change and no effect. A utility layer could live in an unread file, but no registry or coordinator code consumes behaviors.",
+   "recommendation": "Before more cognition schema, define BehaviorModule as {preconditions, considerations (drive/regard/pillar inputs), commit: WorldEffect[], actRecord} and a selection step with an explicit stickiness bonus for the current behavior (the hysteresis), then ship two behaviors for the yard walker. Nothing is observable until a commit exists.",
+   "fix_cost": "M",
+   "ignore_cost": "The 'utility AI with hysteresis' described in the notes stays a promise, and every later system (Regard, motives, rivals) has no place to hook into NPC action."
+  },
+  {
+   "id": "S2A-02",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "There is no Act/Intent record connecting what an NPC does, why, and who could perceive it; stimuli carry a free topic string and a source id, and the six romantic-motive discovery channels each presuppose a shared intent object that does not exist, so P4 inference trails have nothing to be made of.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "67-68",
+     "quote": "topic: z.string().trim().min(1),"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "130",
+     "quote": "(1) **60Hz Waypoint vs. Conversation-Promise Mismatch** (the promise is a line in that NPC's conversation bubble, section 9, while the player is talking to them)"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "129",
+     "quote": "Tier 1–2 NPCs carry a hidden `RomanticMotiveBlueprint`"
+    },
+    {
+     "path": "src/domain/telemetry/SessionTelemetryPort.ts",
+     "lines": "14",
+     "quote": "'utility_ai',"
+    }
+   ],
+   "bites_when": "Change 06a (motives, 6 channels) and 06b (persecution rumor chain) are proposed, and when the first inference-trail content for S1-R2 is authored.",
+   "severity": "critical",
+   "confidence": "high",
+   "disconfirm": "Looked for any Act/Intent/Plan/Goal type in src/domain: none. Telemetry reasoning is developer-facing and, per S0, the browser does not even feed the NDJSON pipeline, so it cannot double as player-facing evidence. Channel 1 could be implemented ad hoc per motive, but then the other five channels each invent their own evidence type.",
+   "recommendation": "Add one domain primitive, Act {actorId, verb, objectRef, motiveTag (drive/regard/pillar that won), spaceId, watch, perceptibility (visible/audible/traceable)}, written by every behavior commit. Everything the player can perceive (bubble line, ambient line, door sound, missing item, courier letter) is a rendering of an Act to an observer, and the notebook entries cite Act ids. Motive channels become different observers of the same Act.",
+   "fix_cost": "M",
+   "ignore_cost": "Inference trails get built as per-thread scripted events, which is exactly the authored-puzzle cost the sim was meant to avoid, and tells cannot be generated or tested uniformly."
+  },
+  {
+   "id": "S2A-03",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "No model of what an NPC knows exists anywhere; the only stand-in is Regard.exposure, a scalar, so the generation pipeline's 'grounded strictly in NPC epistemic memory' and the player notebook both lack ground truth and provenance.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "58",
+     "quote": "3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas — never generic chatbot prose)."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "123",
+     "quote": "`exposure` (`[0, 1]`): Scandal/leverage this holder knows about the target."
+    },
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "79-101",
+     "quote": "export interface EntitySimulationState {"
+    }
+   ],
+   "bites_when": "Change 07 (conversation) and 08 (generation) start: any generated or authored line about 'what I heard' has no source to read, and the first spoof/forgery mechanic needs claims that can be false.",
+   "severity": "critical",
+   "confidence": "high",
+   "disconfirm": "grep -rni 'epistemic|rumor|gossip' src returned only a doc-comment in CivilizationLegacyState (scar category label). EntitySimulationState has no knowledge field; ConversationHistory (DN 262) keeps only shown chunks. A 'StateSlice' could hold it later but nothing reserves one.",
+   "recommendation": "Adopt a minimal shared model now (see unconsidered route 1): Fact (ground truth, owned by the world), Claim (a proposition, may be false), Belief {holder, claimId, confidence, source: witnessed|told|inferred|forged, sourceId, learnedWatch, hops}. Player notebook = the Belief table with holder=player; NPC speech generation reads Beliefs of the speaker only; Regard.exposure becomes a derived summary, not the store.",
+   "fix_cost": "M",
+   "ignore_cost": "P2 generation will invent facts, and the notebook can only be a hand-authored checklist; both are expensive to retrofit once content exists."
+  },
+  {
+   "id": "S2A-04",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "Remote actors have three disjoint evidence channels (Wider World Overview, correspondence queue, a single global discoveryLayer scalar) but no common Report primitive and no rival agenda, so the owner's rule 'aware of the interaction at some point' cannot be checked or tested.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "179-186",
+     "quote": "export const RivalCivBlueprintSchema = z.object({"
+    },
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "150",
+     "quote": "readonly discoveryLayer: 'noticed' | 'assayed' | 'attributed' | 'theorized' | null;"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "87",
+     "quote": "Multi-channel news/rumor board (with trust/spoof seams) and time-lagged async correspondence"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "102",
+     "quote": "Closed-form per-watch / per-season drift on NPC `drives`, passive `Regard` cooling/grudge decay"
+    }
+   ],
+   "bites_when": "Change 09 (rivals) and the first remote lever (a letter to an off-stage correspondent) are proposed: a rival blueprint has only {orbitalOffsetTicks, spoofMode, coverEntityId}, so it has no actions, goals or footprint to leave evidence of.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether discoveryLayer could carry per-rival evidence: it is one scalar on WorldState, so it cannot say which act was seen by whom. Checked whether Clock 4 closed-form drift covers remote actions: it lists drives, Regard and pillars only, not acts.",
+   "recommendation": "Define Report {actId, channelId, latencyWatches, reliability, spoofSignature?} as the only way a remote Act reaches the player (letter, overview item, rumor from a visitor, advisor briefing). Give each rival a small hidden agenda that emits Acts on the Storyteller clock. Add an invariant test: any remote Act above a weight threshold yields at least one Report to a player-reachable channel within N watches.",
+   "fix_cost": "M",
+   "ignore_cost": "Remote levers silently become either invisible (player feels nothing happened) or told by the advisor in prose that bypasses the inference trail."
+  },
+  {
+   "id": "S2A-05",
+   "topic": "loop",
+   "kind": "risk",
+   "claim": "The anti-thundering-herd rule makes the world player-gated by construction: chains stop at 2 hops until a 'player or macro-world beat', and macro beats only come from watches the player spends, so autonomous gossip and NPC-to-NPC consequence cannot propagate while the player talks or explores (reading costs no watch).",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "74",
+     "quote": "Once `cascadeHopCount` reaches `maxAutonomousCascadeHops` (default `2`), further propagation pauses in `awaiting_trigger` until a player or macro-world beat occurs"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "100",
+     "quote": "advanced when the player performs **Committed Time-Spend Actions**"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "262",
+     "quote": "Reading costs no watch."
+    },
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "185",
+     "quote": "this.coordinator.pulseCognitiveScheduler();"
+    }
+   ],
+   "bites_when": "The first rumor or reaction chain longer than 2 hops is authored (gossip to a 500-character web needs many hops), and in any playtest where the player lingers in one room.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "The 1-per-pulse cap itself is harmless: pulseCognitiveScheduler runs every frame, so it admits about 60 promotions per second, not a bottleneck. FAST_EVAL sets the hop cap to 32 (WorldState 52), so tests never exercise the capped gameplay regime. Nothing dispatches enqueue_npc_stimulus today, so inertness is a design prediction, not an observed bug.",
+   "recommendation": "Split two things the notes merge: embodied reactive cascades (keep the hop cap, they are what stampedes) and information diffusion (rumors, news), which should be closed-form per watch over the Regard/Belief graph with no per-NPC deliberation. Let the Storyteller release an off-screen beat on wall-clock time too, not only on watch spend, so something is always in motion.",
+   "fix_cost": "M",
+   "ignore_cost": "A world that waits for the player to act, which the owner's 'living world' premise and every rival/romance design assumes it is not."
+  },
+  {
+   "id": "S2A-06",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "A per-watch presence table has a clean seam (materialize at room entry using the existing off_stage_region space kind) but three shipped details fight it: every character spawns at its start waypoint at construction, cognition timers live on the room-seconds clock while presence changes on the watch clock, and pending stimuli have no defined fate across a watch jump.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "143-146",
+     "quote": "spaceId: char.startingSpaceId,"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "25",
+     "quote": "export const SpaceKindSchema = z.enum(['indoor_room', 'outdoor_area', 'off_stage_region']);"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "99",
+     "quote": "Never advances macro calendar watches."
+    },
+    {
+     "path": "src/domain/simulation/WorldEffectReducer.ts",
+     "lines": "21",
+     "quote": "export const MAX_PENDING_STIMULI_PER_ENTITY = 32 as const;"
+    }
+   ],
+   "bites_when": "05b lands watches and the first Committed Time-Spend action advances the clock with NPCs mid-dwell or with queued stimuli.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "KinematicsEngine already skips off_stage_region bodies from collision (SpatialHashGrid 85-95), so parking people off-stage is supported. Could not find a schedule or time-of-day field anywhere, so the table is wholly additive. Nothing shipped blocks it.",
+   "recommendation": "Make presence a pure function (entity, watch, seed) -> {spaceId, waypointId, activityAct}, applied by a materialize step when the player enters a space or a watch is spent; on a watch jump, resolve in-flight phases to idle, drop non-persistent stimuli, and run the closed-form catch-up that emits Acts (S2A-02) for what happened while away. Start entities in off_stage_region, not at start waypoints.",
+   "fix_cost": "M",
+   "ignore_cost": "People pop in and out with no reason (immersion break) or keep stale mid-action state across a four-hour skip."
+  },
+  {
+   "id": "S2A-07",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "The player notebook as specified (known, suspected, partial, omitted) mixes how sure the player is with what the world holds; 'complete omissions' cannot be shown without leaking that the unknown exists, and the six hidden-motive channels have no shared evidence type to feed any category.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "31",
+     "quote": "**deleted rumor slots** on the Wider World Overview."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "130",
+     "quote": "Players uncover an NPC's hidden motive via 6 gameplay channels"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "32",
+     "quote": "overview rumors arriving **faster than era transit allows**."
+    }
+   ],
+   "bites_when": "The lace-log notebook is specified (S1-R5), and when the first rival tell has to be recorded as something the player 'noticed'.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "The Quiet's deleted rumor slot is itself a visible hole, so an omission with edges is displayable; the contradiction does arise only if omissions with no referent are promised. Could not find a notebook spec beyond the S1-R5 register line.",
+   "recommendation": "Show an omission only when a referent exists (a deleted slot, a sealed letter, a name used once, a time gap). Add: source+reliability per entry, learned-on watch, staleness vs the fact's volatility, contradiction pairs (free from the Belief table), 'who else knows' as the player's belief only, player-made links/hypotheses that the engine grades only when corroborated by independent sources (Obra Dinn confirm-on-three), and a spoof-suspicion flag on sources and channels.",
+   "fix_cost": "S",
+   "ignore_cost": "A notebook that is either a quest log that solves the mystery or an unfalsifiable scrapbook."
+  },
+  {
+   "id": "S2A-08",
+   "topic": "ai",
+   "kind": "risk",
+   "claim": "Rival tells (round numbers, agentless passive, double-entry phrasing) are properties of surface text, so under P2 a local SLM may normalise them away unless each tell is a structured attribute on the Claim and the generator is evaluated for preserving it.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "30",
+     "quote": "spoofed news items always use **clean round numbers** (`100 dead`)."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "31",
+     "quote": "**Agentless passive voice** (*\"It was decided\"*)"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "58",
+     "quote": "banned lemmas — never generic chatbot prose"
+    }
+   ],
+   "bites_when": "Generated news items and rival correspondence start (changes 08/09), because a small ONNX/WebGPU-class model on a 2019 i7 tends to smooth numbers and voice.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "A deterministic post-pass could re-inject tells, and tells could be authored templates for rival text only. No generation code exists yet to test; this is a prediction.",
+   "recommendation": "Store spoofSignature (rounding, voice, deleted-slot, early-arrival) on the Claim/Report, render rival text through constrained templates or a post-validator, and add an eval case per tell asserting the output contains it and that non-rival text does not.",
+   "fix_cost": "S",
+   "ignore_cost": "The main inference trail for the late game (unmasking rivals) silently fails to appear in generated text."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "Regard two-tier sparse design (O(1) baseline priors, materialized edges only on contact) is the right scaling shape and already contains the 'witness' and 'touched by a rumor' hooks the epistemic model can reuse.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "115",
+     "quote": "Tier 1 — Zero-Allocation Faction/Role/Lineage Baseline Priors"
+    }
+   ]
+  },
+  {
+   "claim": "Cognitive phases (deliberate, move, dwell, cooldown) with a digestion delay give legible human pacing, and FAST_EVAL override keeps tests quick; keep the phase timers as the visible 'telegraph' of an act.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "40-47",
+     "quote": "export const DEFAULT_GAMEPLAY_PACING_CONFIG: SimulationPacingConfig = Object.freeze({"
+    }
+   ]
+  },
+  {
+   "claim": "off_stage_region space kind and body-skipping in the spatial hash already give a parking place for non-present NPCs.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "25",
+     "quote": "export const SpaceKindSchema = z.enum(['indoor_room', 'outdoor_area', 'off_stage_region']);"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Fact/Claim/Belief triple as one shared store",
+   "proposal": "World owns Facts (ground truth). Anything said, written or posted is a Claim pointing at a Fact or marked false. Each holder (NPC or player) has Beliefs {claimId, confidence, source kind, source id, learnedWatch, hops}. Gossip is Belief copy with decay along Regard edges per watch. The notebook is the player's Belief view; NPC lines are generated from the speaker's Beliefs only.",
+   "reference": "Dwarf Fortress thoughts/rumor logs, Shadows of Doubt's case board, CK3 secrets/hooks",
+   "replaces_or_changes": "Replaces Regard.exposure as the only knowledge carrier; gives P2 generation and S1-R5 a single ground truth."
+  },
+  {
+   "title": "Act record with observers, not scripted trails",
+   "proposal": "Every committed behavior writes an Act with motive tag and perceptibility. Observers (player, NPC witnesses by room/earshot, remote channels) each receive a rendering. Passion-style tags (Levine's Narrative Lego) such as 'protects kin' or 'hates debt' are the same data as drives/pillars and are what make the Act attributable.",
+   "reference": "Ken Levine 'Narrative Lego' passions; Hitman NPC witness/suspicion states; Watch Dogs Legion trait-driven behaviour",
+   "replaces_or_changes": "Replaces authored per-thread inference events with generated, testable evidence."
+  },
+  {
+   "title": "Diffusion as closed-form per watch, embodied reaction as the only cascade",
+   "proposal": "Rumor and news spread by a per-watch pass over the Belief/Regard graph (SIR-style), never as per-NPC deliberation. Only visible reactions (walk to the door, shout) go through the 2-hop cascade. Autonomy budget per watch comes from the Storyteller.",
+   "reference": "CK3 secret and rumor spread; Dwarf Fortress thought propagation; RimWorld Storyteller",
+   "replaces_or_changes": "Narrows the anti-herd rule to its real job and removes the player-gating from information flow."
+  },
+  {
+   "title": "Evidence coverage test",
+   "proposal": "A headless eval that rolls an epoch with fast pacing and asserts every Act above a weight threshold produces at least one Report or witnessed trace within N watches, and every notebook omission has a referent.",
+   "reference": "Obra Dinn's solvability checking; Outer Wilds ship-log rumor graph audits",
+   "replaces_or_changes": "Turns the owner's 'be aware at some point' rule into an automated invariant under the existing eval runner."
+  }
+ ],
+ "could_not_verify": [
+  "Whether any thinking about the lace-log notebook exists outside the register line (no spec found).",
+  "How the SLM will actually be run (no model code exists) so tell preservation is a prediction.",
+  "Behaviour of the hop cap in play, since nothing dispatches enqueue_npc_stimulus."
+ ]
+}

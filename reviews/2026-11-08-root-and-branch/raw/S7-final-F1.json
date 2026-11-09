@@ -1,0 +1,8 @@
+{"unapplied":[
+"A4: Q2 save-policy owner-decision gate before the notebook model is expressed only as owner_pending and scope prose; no depends_on or gate_edges item (minor)",
+"A1 INV-C note: 06 follows the slice so NPC utility in the slice is not belief-conditioned; the slice scope does not state this exclusion (it names only rival levers) (minor)"
+],
+"invented":[],
+"spot_check_failures":[],
+"notes":"09-weather-omen-and-export-gate is the original config 09 remainder (Weather Modification, Omen Ledger, Legacy Export Gate) and A2 lists '09-*'; supported though its source id '09(weather-omen-gate)' is a new label. 08a-timing-spike is Opus's Q1 recommendation (owner-pending). gate_edges and validated_by come from ruling 9 and A1/A4. docs-spine ids P4, P5, R4A1, S6B-06 are not individually named in scope text; treated as covered by the spine/roadmap description.",
+"verdict":"approve_with_minor"}

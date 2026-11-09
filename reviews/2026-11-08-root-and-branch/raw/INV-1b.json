@@ -1,0 +1,153 @@
+{
+ "facts": [
+  {
+   "claim": "LAYA is a 421M-parameter model (ModernBERT-large 395M backbone + from-scratch head); multilingual checkpoint is mmBERT-base 322M; typed-decisions checkpoint 421M",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "Bidirectional encoder, non-autoregressive: each option scored at its own [MASK] token, softmaxed per question; one forward pass, no text generated",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "Input: state text/JSON plus typed questions (choice, score, noul); output: option probabilities, expected ordinal level, calibrated P(true). 512-token budget per question (1024 for multilingual/typed); keep choice lists under ~20 options",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "License Apache-2.0",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "Zero-shot is weak: typed-decisions accuracy 0.362 vs 0.318 random and 0.461 majority; 0.766 only after fine-tuning; score is weakest primitive; ships over-confident; English only for base",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "GPU latency on T4: 39.5 ms for 1 question, 158.6 ms for 10",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "CPU latency measured by the authors on a 56-core Intel Mac Pro: ~453 ms per 4-question call (~113 ms/question) for English; multilingual ~48 ms/question. No figure for a 2019 laptop i7 exists",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "med"
+  },
+  {
+   "claim": "ONNX: Python extra laya[onnx]; a laya-ts npm package runs ONNX in-process; README does not mention transformers.js or WASM in-browser latency",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "med"
+  },
+  {
+   "claim": "Determinism not guaranteed: README warns batch shape changes and the CPU fast path can alter floats and flip decisions near ties/thresholds; CUDA uses mixed precision, CPU fp32",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "Fine-tuning: RLCD recipe via Kaggle 2xT4 notebook or Apple Silicon script; also gradient-free agent.fit() of logistic heads over frozen features (>=35 rows); per-(type, option count) temperature recalibration cut ECE 0.466 to 0.081",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "high"
+  },
+  {
+   "claim": "Intel Macs need pinned torch==2.2.2, numpy<2, transformers==4.57.6 for the Python package",
+   "source_url": "https://github.com/NandhaKishorM/laya",
+   "confidence": "med"
+  },
+  {
+   "claim": "Author says TypeSafe AI's closed Jev came later with a similar concept (author's account); Jev p50 236-276 ms is third-party and unmeasured by LAYA",
+   "source_url": "https://huggingface.co/aaroncool9/laya",
+   "confidence": "low"
+  }
+ ],
+ "candidates": [
+  {
+   "id": "I1b-01",
+   "place": "NPC behaviour choice (choice over candidate behaviours vs change 06 hysteresis utility AI)",
+   "benefit": "None visible; NPCs would pick plausible behaviours the utility AI already picks, minus legibility.",
+   "determinism": "Not bit-stable (batch shape, CPU path, backend). Would feed simulation state, so replay and the headless sim break. Quarantine is impossible because the choice IS state.",
+   "cost": "~110 ms/question on a big Intel CPU; 421M params ~1.7 GB fp32 / ~0.4-0.8 GB quantized, in a worker, competing with Three.js. Dozens of NPCs per tick is not viable; it is far over the 3 s unit budget.",
+   "training": "Would need labelled behaviour data from the sim, but the labels would just be the utility AI output: distilling a function you already have.",
+   "testability": "Poor: fixtures stop being exact, assertions become tolerances.",
+   "fit": "Possible as infra adapter behind a port, but the port would be in the domain tick path, which must be pure.",
+   "simpler_alternative": "Hysteresis utility AI with considerations reading the NPC's own Observations (INV-1a). Integer, deterministic, tunable.",
+   "verdict": "reject",
+   "why": "Slower, nondeterministic, opaque, no payoff; violates replay."
+  },
+  {
+   "id": "I1b-02",
+   "place": "Text selection: choice/score over pooled curated lines given a LineBrief (parked RC2)",
+   "benefit": "Better line-to-situation fit than keyed lookup; fewer repeated lines.",
+   "determinism": "Not bit-stable across machines. Quarantinable: pick when shown, freeze the chosen line id into ConversationHistory and the save, never feed back. Replays reuse the frozen id.",
+   "cost": "Encoder pass over N candidates in a worker, once per shown line, not per frame. Likely 100 ms to a few seconds on the target Mac and ~0.5-1.7 GB RAM resident; unmeasured.",
+   "training": "Weak zero-shot, so needs fine-tuning on (brief, line, good/bad) pairs. Labels come from authoring-time judgments and the gate, not the sim; the sim supplies briefs only.",
+   "testability": "Eval-only: assert gate tier passes and chosen line is in the pool; accuracy tolerant, not exact. Fine on 05f as non-gating metric.",
+   "fit": "Clean: application port SelectLinePort (already TextSourcePort pool adapter), infra adapter in worker; domain untouched.",
+   "simpler_alternative": "Deterministic scoring: match LineBrief tags/facts to pool line tags, seeded tie-break, recency penalty. Handles pools of tens of lines with zero RAM.",
+   "verdict": "investigate_later",
+   "why": "Only earns a place if keyed selection demonstrably yields poor fit after a real pool exists. Revisit after the timing spike; start with tag matching."
+  },
+  {
+   "id": "I1b-03",
+   "place": "Observation confidence via noul (P(claim true | evidence)) vs INV-1a integer noisy-OR",
+   "benefit": "Nothing the player sees that noisy-OR does not; noul reads text evidence, the Observation table is structured.",
+   "determinism": "Float, backend-dependent, and it would write simulation state. Breaks replay.",
+   "cost": "Per-claim forward pass in a worker; far too heavy for a table updated every watch.",
+   "training": "No labelled source: the sim's ground truth is by construction what noisy-OR computes.",
+   "testability": "Tolerance-based only; cannot assert invariants like 'aware at some point'.",
+   "fit": "Would force an ML call into a domain reducer: layering violation.",
+   "simpler_alternative": "INV-1a fixed-point noisy-OR with parent cap; closed form, microseconds.",
+   "verdict": "reject",
+   "why": "Structured evidence needs arithmetic, not a text encoder; also wrong direction for determinism."
+  },
+  {
+   "id": "I1b-04",
+   "place": "Ship Mind forecast and qualitative odds",
+   "benefit": "Odds that feel opinionated.",
+   "determinism": "Forecast is displayed, not fed back, so it can be frozen into the save when shown. But calibrated against what? The sim's true hazard is computable.",
+   "cost": "As above, per forecast shown; cheap enough in a worker.",
+   "training": "Could fit from 05f self-play outcomes (labels = realised thread outcomes), but a counted table does the same.",
+   "testability": "Calibration (ECE) testable on 05f; that is a strength.",
+   "fit": "Fine via port.",
+   "simpler_alternative": "Closed-form per-thread hazard banded to qualitative odds, or table counted offline from self-play (INV-1a).",
+   "verdict": "reject",
+   "why": "A 421M model to reproduce a small table; and it would invent odds not grounded in the sim, harming P4 fairness."
+  },
+  {
+   "id": "I1b-05",
+   "place": "Authoring-time gate tier: rival-tell and grounding checks on drafted/generated text",
+   "benefit": "Catches smoothed tells and ungrounded claims in the review queue; noul over 'this line states fact X' / 'this line keeps tell Y' is a natural fit.",
+   "determinism": "Irrelevant to replay: runs offline, outputs a review flag, not game state. Pin the commit and fp32 CPU, batch size 1, for repeatable CI.",
+   "cost": "Dev machine only; no runtime cost.",
+   "training": "Labelled pairs come from authored lines plus mutated negatives (tells stripped, facts dropped), which the deterministic realiser and tell post-pass can generate for free. Use agent.fit() first (35+ rows).",
+   "testability": "Fits 05f: runs outside npm run verify, case fixtures with thresholds, reports precision/recall against synthetic negatives.",
+   "fit": "Python tool outside src/; only emits JSON verdicts. No repo layer concerns, but adds a Python dependency to a TypeScript-only repo.",
+   "simpler_alternative": "Lexical checks plus fact-id survival (RC3 gate) are exact and already planned; they cover the tell and grounding tiers deterministically. A model adds only fuzzy 'reads wrong' judgment.",
+   "verdict": "authoring_only",
+   "why": "Reasonable as an advisory third tier after the deterministic gates, never as the pass/fail authority. Optional."
+  },
+  {
+   "id": "I1b-06",
+   "place": "Authoring-time scoring of drafted lines against the specificity bar (score)",
+   "benefit": "Faster triage of SLM drafts in the draft/accept CLI.",
+   "determinism": "Not an issue offline.",
+   "cost": "Dev machine only.",
+   "training": "Needs human-rated specificity labels (a few hundred), authoring burden; score is LAYA's weakest primitive (SST-5 0.372).",
+   "testability": "Measurable against owner ratings on 05f.",
+   "fit": "Same Python-tool caveat.",
+   "simpler_alternative": "Deterministic specificity heuristics (named entities, concrete nouns, fact-id density) plus the owner's accept/reject click.",
+   "verdict": "investigate_later",
+   "why": "Weakest primitive and labelling cost exceeds the review time it saves at the volumes this project has."
+  }
+ ],
+ "recommendation": "Do not put LAYA, or any decision model of this class, in the simulation path at runtime. It is real and checks out: 421M-parameter ModernBERT-large encoder with a non-autoregressive head, Apache-2.0, choice/score/noul outputs, but the model card itself says it is a base to fine-tune (zero-shot 0.362 against 0.461 majority-class), the authors' own CPU figure is about 110 ms per question on a 56-core Intel Mac Pro, and the README warns that batch shape and the CPU fast path can flip near-tie decisions. That makes it neither bit-stable nor cheap on a 2019 i7 beside Three.js, and the three candidates that would write simulation state (behaviour choice, Observation confidence, forecast) are better served by the hysteresis utility AI, the INV-1a fixed-point noisy-OR, and a counted hazard table, all integer and replayable. The only runtime seam where it is even arguable is pooled line selection behind TextSourcePort, because the chosen line id can be frozen into ConversationHistory and the save and never feed back, so verdict investigate_later: build tag-and-seed selection first and revisit only if fit proves poor and the already-planned timing spike shows headroom. At authoring time it has a modest, optional role as an advisory third gate tier (tell and grounding checks, trained on synthetic negatives that the realiser generates for free), run outside npm run verify on the 05f runner with pinned fp32 CPU and batch size 1, never as the pass/fail authority over the deterministic lexical and fact-survival tiers. Its cost is a Python and PyTorch dependency (Intel Mac needs pinned torch 2.2.2) in a TypeScript repo, so keep it as an external tool emitting JSON. The browser route (laya-ts npm over ONNX) exists but is unmeasured, and a 421M model is a poor neighbour for the 16 GB budget, so any later runtime trial should use the multilingual 322M checkpoint or a distilled small encoder, and does not need LAYA specifically. Overall verdict: not at runtime in the sim, authoring-only at most, one parked runtime seam. Uncertain: JEV and the alternatives (Nimble, Kev, NanoJev, Clef-flash) were not verified, no latency exists for a 2019 laptop, and ONNX/WASM behaviour was not tested.",
+ "could_not_verify": [
+  "JEV, TypeSafe AI, Microsoft Decision-1, Nimble, Kev, NanoJev and Clef-flash were not independently checked; only LAYA sources were fetched",
+  "Latency on a 2019 i7 laptop or in browser WASM; no published figure",
+  "Whether laya-ts runs in a browser worker or only Node, and its quantized size",
+  "Bit-level run-to-run determinism on a fixed machine (README only warns about batch/CPU-path variation)",
+  "Final 57k characters of the GitHub README were not read",
+  "The author-vs-TypeSafe priority dispute is the author's account only"
+ ]
+}

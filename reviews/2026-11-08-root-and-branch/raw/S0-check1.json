@@ -1,0 +1,117 @@
+[
+ {
+  "id": "S0A-02",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-03",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-05",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-07",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-08",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-09",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-10",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-13",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-19",
+  "verdict": "holds",
+  "note": "browserMain.ts:186 single keydown; playInput.ts:145 handles F3/backquote and free-cam arrow keys only"
+ },
+ {
+  "id": "S0A-24",
+  "verdict": "holds",
+  "note": "starterHoldPack.ts: 2 spaces,1 prop,2 chars plus epochId"
+ },
+ {
+  "id": "S0A-26",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0A-35",
+  "verdict": "partly",
+  "note": "No conversation/advisor/lace/ambient/interactionHold/locomotionMode/eval code, but PretextKindSchema/PretextKind exists in EpochBlueprints.ts:130 (offices/quiet claims) and 'pretext' is a telemetry category (SessionTelemetryPort.ts:127); only spending is absent"
+ },
+ {
+  "id": "S0A-36",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-04",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-05",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-06",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-07",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-12",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-14",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-36",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-40",
+  "verdict": "holds",
+  "note": "7 archive dirs; config roadmap lists the other 20 ids; no active changes"
+ },
+ {
+  "id": "S0B-44",
+  "verdict": "holds",
+  "note": "verified in repo"
+ },
+ {
+  "id": "S0B-55",
+  "verdict": "partly",
+  "note": "Commit counts verified (05c: 4 feat, 3 fix, 1 perf; earlier changes 0-1 fix each) but 'only change with an interactive page' is a judgment; change 04 also shipped F3 lab"
+ }
+]

@@ -1,0 +1,32 @@
+{
+ "unapplied": [
+  "A3 coverage gap (S1-R10 system graph): A-19 still says only 'Owner asked for help drafting it' and never states that the graph is drafted from raw/S2-system-graph.json or that its completeness is verified. Rest of A3 (12 fidelity fixes, 7 gaps) and A4 (14 conflicts, 7 missing targets, cross-slice items) is applied."
+ ],
+ "shipped_only_violations": [
+  "A-68 / budget_plan.agents_md: keeps the registry bullets with only 'future-tense claims dropped'. No amendment words them as schema contracts ('the registry accepts X blueprints; no content or runtime yet'). Add that wording rule to A-68 and the test in A-75.",
+  "A-68 Rival Spacefaring Operatives bullet: existing text says rival actions propagate across nodes and are spoofed or detected on the Wider World Overview. No RivalCivBlueprint content and no overview exist.",
+  "A-68 Contested Offices bullet: describes offices, pretext families, stipends, 3 insertion modes impacting 3 stocks and 4 discovery layers as working. Only schemas and reducer cases exist; the starter pack has none.",
+  "A-68 Correspondence Channels and Inertia/Threads bullets: ChannelMediumBlueprint and TrajectoryThreadBlueprint are schemas with zero content or callers, but are kept as live behaviour (transit, interception, martyrdom/succession rules, dualUseCeiling).",
+  "A-68 Emergency States and Orbital Pass bullets: 'pauses non-related traits', 'advance_orbital_pass applies deltaRegen', 'spend_orbital_delta throws' read as running systems. Only reducer cases with unit tests exist, with no content and no gameplay caller.",
+  "A-52: 'AGENTS.md keeps describing the current logger until the wiring ships' retains 'every event and AI input/output/reasoning trace logs to current-session.jsonl'. No AI traces exist (A-52 itself says no ONNX decisions exist) and the Act/telemetry wiring is unshipped.",
+  "A-68 / A-29: the kept section-map row for Infrastructure says 'local ONNX Web Worker'. No such worker exists, and neither amendment edits root AGENTS.md or the section AGENTS files that mention ONNX (src/application, src/domain, src/infrastructure AGENTS.md). A-29 covers only README and tests/AGENTS.",
+  "A-68 Characters bullet is kept after dropping locomotionMode. Confirm its 'direct' wording is gone and that it describes only the two starter characters' blueprint fields. The keep list gives no such check."
+ ],
+ "invented": [
+  "A-60 and A-58: the 06 to slice depends_on edge 'marked waivable' / 'gate edges marked so they can be waived'. Ruling 9 says the edge is an ordering and go/no-go gate. A waiver mechanism is not in the register, the rulings or the audits.",
+  "A-99: 'the player composes by choosing among generated or pooled options' invents a Writing Desk mechanic. The plan and A4 give only 'Writing Desk on the text port'.",
+  "A-100: lists 'a stub end card' as a pass criterion of 11-pass-1-slice. The plan puts the end card in the separate 11-pass-1-ledger-end-card. 'One office and pretext' and 'few NPCs' do match the plan scope.",
+  "A-97: duplicates A-10, which already records that Regard.exposure is no longer the only knowledge record. It adds nothing from the register. Merge it into A-10 or drop it. A-96, A-98 and the rest of A-99/A-100 trace to plan scopes (A4 plan_without_doc_home) and are supported."
+ ],
+ "apply_issues": [
+  "A-79 contradicts itself: 'faithful copy with no reorder, then reorder in A-58' versus 'seed roadmap.yaml directly from the v3 plan (64 ids)'. A-58 also says it seeds. Pick one seeding owner. A-72 'removes the pointer text' also conflicts with budget_plan 'one pointer line stays'.",
+  "Line-number stripping left debris in the summaries of A-69, A-70, A-13, A-71, A-51 and A-40, such as 'this amendment owns ;', '(, planned for ...)', 'DESIGN_NOTES , mark' and 'Ambient lines still spend no watch ()'. Anchors resolve against the current files, but the instructions read as broken. Clean them up.",
+  "A-18 (Presence model), A-96 (Resource ledger) and A-98 (Storyteller deck) all insert before the same heading '### 1. Unified Interpersonal Regard Web' in B7. The resulting section order is unspecified, and A-98 says 'after section 0'. State the order: presence, then ledger, then storyteller.",
+  "R7 label collision: A-63 uses R7 for the register's authored versus generated storylet cards, while A-96 and A-05 use R7 for the ResourceLedger spine rule.",
+  "A-61 and A-46 put tone blips, ambient lines, readingSpeed/captions and the talk cost under 'the 07 pager'. Ruling 3 puts ambient lines and the talk cost in 07-dialogue-paging. Ruling 8 puts blips and readingSpeed/captions in 07-bubble-lace-skins-and-tone-blips. Name the entries.",
+  "A-31 ('### 9. Conversation Text Bubbles') and A-100 ('### 11. Local AI Eval Framework') anchor on headings that A-69 (B3) suffixes with status markers. The anchor match must be by prefix.",
+  "A-45 (B1) says it depends on A-46 (B8) and on a section 9 amendment that has not landed yet. Also, A-44's whole-block rewrite (B8) must be ordered after the A-71 tense edit (B3). A-44 carries it forward, which is stated.",
+  "A-75 item 4 (status markers resolve to roadmap ids) and item 7 (ledger) are green only if A-69 (B3) and the A-83 seed (B9) use plan ids. The batch order allows this. Q3 (ledger seed scope) is still owner-pending, so A-83 and A-75 cannot finish until the owner answers."
+ ],
+ "verdict": "approve_with_minor"
+}

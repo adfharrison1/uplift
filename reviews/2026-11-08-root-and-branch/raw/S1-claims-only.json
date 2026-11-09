@@ -1,0 +1,119 @@
+[
+ {
+  "id": "S1-01",
+  "claim": "No document defines a player contract for Epoch 1: what the player is trying to achieve, what verbs act on a thread, how they know they are winning, what an epoch-end evaluation shows, or what failure looks like. 'Leverage Chain' is named but never defined.",
+  "paths": [
+   "DESIGN_NOTES.md",
+   "openspec/config.yaml"
+  ]
+ },
+ {
+  "id": "S1-02",
+  "claim": "The design has no player-facing feedback loop for covert actions: discovery layers, pressure stocks and persecution risk are simulation state, HUD readouts are explicitly banned, and no surface is specified that tells the player an action worked, was noticed, or backfired.",
+  "paths": [
+   "DESIGN_NOTES.md:207",
+   "DESIGN_NOTES.md:144"
+  ]
+ },
+ {
+  "id": "S1-03",
+  "claim": "Roadmap sequencing defers every test of the core fantasy: the first content pack (first office/behavior/thread) is change 11 of 27; the first decision-with-consequence is 07b/07c; utility AI (06), regard (06a), pacing (05b), audio (05a), ONNX (08), orbital (09) and epoch transition (10) are all specified and built against an empty world; writing quality is first tested by a banned-lemma fixture (07e), not a human read.",
+  "paths": [
+   "openspec/config.yaml:120-148"
+  ]
+ },
+ {
+  "id": "S1-04",
+  "claim": "The minute-to-minute and session loops cannot be reconstructed from the docs; embodied talking costs no campaign time ('Reading costs no watch') and the time-spend actions are listed as nouns, so nothing makes the player choose between talking and acting.",
+  "paths": [
+   "DESIGN_NOTES.md:262",
+   "DESIGN_NOTES.md:100"
+  ]
+ },
+ {
+  "id": "S1-05",
+  "claim": "There is no bridge between the watch clock and the room: no NPC presence/schedule model says where bodies are after watches pass, NPC chains stop at 2 hops until the player acts, and the two halves of agency (Clock 1 embodied, Clock 2 macro levers) are coupled only by generic WorldEffects.",
+  "paths": [
+   "DESIGN_NOTES.md:74",
+   "DESIGN_NOTES.md:99",
+   "DESIGN_NOTES.md:130"
+  ]
+ },
+ {
+  "id": "S1-06",
+  "claim": "The design depends on hidden information the player must remember (romantic motives, rival tells, deleted rumor slots) but has no player knowledge/notebook system and no save/reload policy.",
+  "paths": [
+   "DESIGN_NOTES.md:31",
+   "DESIGN_NOTES.md:130"
+  ]
+ },
+ {
+  "id": "S1-07",
+  "claim": "The writing pipeline contradicts itself: config describes a runtime 'Period-Voice Composer' generating replies, DESIGN_NOTES says the words are authored and the engine does not invent them, storylets use a slot grammar, and the specificity bar is hand-authored character detail.",
+  "paths": [
+   "openspec/config.yaml:58",
+   "DESIGN_NOTES.md:265",
+   "DESIGN_NOTES.md:101"
+  ]
+ },
+ {
+  "id": "S1-08",
+  "claim": "The emotional spine contradicts itself: the Drone's Regard toward the player decides assassination survival and the advisors are the main characters, yet the operative is replaced each epoch and the advisors' personality traits and the Drone's identity are re-rolled per epoch.",
+  "paths": [
+   "DESIGN_NOTES.md:24-26",
+   "DESIGN_NOTES.md:140",
+   "DESIGN_NOTES.md:185"
+  ]
+ },
+ {
+  "id": "S1-09",
+  "claim": "Shipped schemas encode unvalidated design numbers and enums (3 instruments, 3 pressure stocks, 5 pillars, 4 discovery layers, 3 orbital phases), ~1.9k lines of registry/schema/reducer/legacy code serve 3 content entries, and rework is already queued: 8 *Tick fields in EpochBlueprints.ts are to be rebased onto Watches in 05b.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts",
+   "src/domain/registries/EpochModuleRegistry.ts",
+   "src/domain/simulation/WorldEffectReducer.ts",
+   "src/domain/legacy/",
+   "DESIGN_NOTES.md:98"
+  ]
+ },
+ {
+  "id": "S1-10",
+  "claim": "Several systems lack a documented input or consumer: pressure stocks have no reader beyond a travel cue and a transition bonus; fund acquisition is deferred with no acquisition rule; threads have no stated player lever.",
+  "paths": [
+   "DESIGN_NOTES.md:15",
+   "DESIGN_NOTES.md:177",
+   "DESIGN_NOTES.md:285"
+  ]
+ },
+ {
+  "id": "S1-11",
+  "claim": "The design specifies mechanisms far more than experiences: no first-10-minutes/onboarding design exists, and threads, romance channels, assassination vectors and contingencies are enumerated without stating the intended player moment or feeling.",
+  "paths": [
+   "DESIGN_NOTES.md"
+  ]
+ },
+ {
+  "id": "S1-12",
+  "claim": "The Culture tone sits mostly as flavor over exposure mechanics: nearly every player cost is self-protective (cover, discovery, persecution) rather than ethical; the one ethical cost is a Drone Regard drop.",
+  "paths": [
+   "DESIGN_NOTES.md:135",
+   "DESIGN_NOTES.md:146"
+  ]
+ },
+ {
+  "id": "S1-13",
+  "claim": "The epoch handoff has data hooks (legacy state, predecessor traces) but no specified player-facing payoff showing what the previous operative changed.",
+  "paths": [
+   "DESIGN_NOTES.md:23",
+   "DESIGN_NOTES.md:182"
+  ]
+ },
+ {
+  "id": "S1-14",
+  "claim": "Built subsystems are inert or will be contradicted: cognitive scheduler pulses over zero behaviors, legacy export/save never called, browser telemetry cannot meet the 'must log to ./logs' rule, click-to-waypoint is to be replaced by WASD.",
+  "paths": [
+   "src/interfaces/composition/browserMain.ts",
+   "src/application/simulation/SimulationCoordinator.ts"
+  ]
+ }
+]

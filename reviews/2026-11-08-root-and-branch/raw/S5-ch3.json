@@ -1,0 +1,275 @@
+{
+  "prereqs_05d_05e": [
+    "1. hardening-5 (amended): define the domain bit as simulationFrozen only (freeze time, still accept commands) and move lab mode (desaturate, de-anchor, free-cam, picking) to a session flag in PlaySession. Frame-body try/catch that re-arms rAF also lands here (S5-14, S5-03b, S3-05, S3-06, S3-18). Reword the 05e leaves-out clause: no second domain pause flag; lab mode is session state.",
+    "2. hardening-6 (amended): the fixed 1/60 accumulator also retains the previous WorldState reference (free under freeze-on-write structural sharing) and exposes alpha plus a teleport marker (portal hop, stage change, spawn). RenderFrameBuilder in application lerps position and shortest-arc yaw from {prev, curr, alpha} and the camera focus reads the interpolated position. Interpolation never enters WorldState or the hash; add a golden-run assertion that it does not (S5-04, R5A3).",
+    "3. hardening-4 / materialize phase: one entity-id pattern check at WorldState load and at materialize, so buildFrame cannot throw on an id (S5-03a).",
+    "4. 05d task 1 (content + application): prop and character footprint dims come from a content shape descriptor (primitive, dims, offset, resolved from kitbashId) that both the renderer and the application footprint builder read. Application hands domain plain rectangles. Unknown shape ids fail validation instead of falling back silently (S5-05a, R5C3 first slice).",
+    "5. 05d task 2 (application): InputState with keydown, keyup, blur and visibilitychange clear, event.code, per-frame pressed/released/held sets, a data action table, and a steer vector. The DOM listener is in interfaces; the pure state machine and table are in application. Dev HUD focus is neutralised so Space cannot re-click a dev button (S5-09, R5B3).",
+    "6. 05d task 3 (application): the control frame. Derive control yaw from the rendered camera forward, or make yaw/pitch/distance authoritative and derive offset. Delete the dead fields otherwise. Latch the frame while any move key is held across a volume change, with a unit test. Captures and zoom never alter it (S5-06, S5-11b).",
+    "7. 05d task 4 (interfaces/three): build and mount stage groups only from poses in the resident space, cache geometry by (slot, shape id) and materials by (hex, grime) with shared-resource-safe dispose, drop the per-frame sort for a cached stable order, and warm up with compileAsync before the first draw. This also leaves the add/remove seam for runtime-materialized bodies (S5-01 base, S5-02, S5-07 partial).",
+    "8. 05d task 5 (tests): readability contract test, so actor colours stay above stage material luminance by a set margin. Name the signal hues reserved from environment use (S5-15).",
+    "9. 05e task 1 (application): modal input stack on the same InputFrame. The topmost layer consumes each Space/Escape press in the frame it arrives; arrow keys are a second binding set in the action table; a key held when the menu closes is released before it steers (S5-10, R5B3).",
+    "10. 05e task 2 (content): prop state-variant field in the shape table, so a prop state change swaps a declared part. Move the debug selection highlight off cyan #4fd2ff to a colour the game never uses, and give the proximity target a warm rim distinct from it (S5-05b, S5-18, S5-15).",
+    "11. 05e task 3 (application): minimal Settings model (reduceMotion, hold-or-toggle move, textScale), kept outside WorldState and outside the hash, persisted by a port. It replaces the per-frame media-query read (S5-12 first slice)."
+  ],
+  "findings": [
+    {
+      "id": "S5-01",
+      "verdict": "amend",
+      "amended": "Split. Now: stage mount builds groups from the poses present in the resident space, and an entity with no visual is skipped with a once-only warn. Later: syncEntities add/remove with a pooled release, and reading pose.visual (lineage fallback) for Tier 3, landing with materialize-on-entry. Pooling is the same cache as S5-07, not a second mechanism. Interfaces only; the sim already carries the visual on the pose.",
+      "conflicts": ["S5-02 (same mount path)", "S5-07", "R5A2", "S2-11 presence step", "S4-08 validateLaunch (missing visual is silently invisible today)"],
+      "slot": "with-05d (mount from present poses); core-model step 6 (syncEntities add/remove)",
+      "note": "Nothing materializes at runtime until step 6, so a full add/remove path in 05d would be unused code. The seam has to be right in 05d so step 6 is an addition, not a rewrite."
+    },
+    {
+      "id": "S5-02",
+      "verdict": "amend",
+      "amended": "Mount cost is the real defect (72 ms), and 05d hits it on every portal hop. Fix: build only resident poses, compileAsync warm-up, cached stable order. The per-space entity index does not go in domain. Derive it in application from the WorldState spaceId and cache it until a structural change. The measured per-frame cost (0.9 ms at 400) is fine today and is not a reason to add sim-side indexes. Dropping the sort is safe because draw order is presentation only; keep sorted-id iteration inside the sim.",
+      "conflicts": ["S3-16 (do nothing until 100+ bodies, consistent)", "S5-04/R5A3 (stable order falls out of the snapshot)", "hardening-6 phase order"],
+      "slot": "with-05d (mount, warm-up); later (per-space index, measure-triggered)",
+      "note": "The doorway hop with a 0.4 s lockout makes a 72 ms synchronous build visible as a hitch exactly where 05d adds it."
+    },
+    {
+      "id": "S5-03",
+      "verdict": "amend",
+      "amended": "The try/catch half duplicates hardening-5 and is dropped here. The id half moves from the hot loop to the boundaries: one pattern check at WorldState load (codec Zod schema, hardening-4) and at materialize, and in validateLaunch for packs. buildFrame keeps semanticId by string concat and stops parsing per entity.",
+      "conflicts": ["hardening-5 (try/catch, duplicate)", "hardening-4 codec", "S4-08/05b-1 validateLaunch"],
+      "slot": "hardening-5 (loop survival); hardening-4 (id schema); 05b-1 (validateLaunch)",
+      "note": "Re-arm rAF first in the frame body, or in a finally, so a throw can never end the loop. Log once per distinct error to avoid flooding telemetry at 60 Hz."
+    },
+    {
+      "id": "S5-04",
+      "verdict": "amend",
+      "amended": "Right problem and a real prerequisite. Minimal form: PlaySession keeps the previous WorldState reference (structural sharing means no copy), and RenderFrameBuilder takes {prev, curr, alpha}. It lerps x, z and shortest-arc yaw for entities in both states with the same spaceId. The teleport case is an explicit marker (portal hop, spawn, stage change), not inferred from distance. Camera focus follows the interpolated position. Pure function in application; the renderer is untouched. A flat Float32Array is premature, because the resident set is small. Cap catch-up steps and clamp alpha to [0,1]. Interpolation is presentation: it never enters WorldState, the hash or the golden run.",
+      "conflicts": ["R5A3 (same fix, merged)", "hardening-6 (extends the accumulator)", "hardening-3 (prev reference relies on freeze-on-write)", "S5-11 (camera focus input)"],
+      "slot": "hardening-6",
+      "note": "Without it, 05d direct walking at the fixed step shows 0 or 2 steps per frame, exactly where the player watches the focus body. Do not let 05d ship against raw dt."
+    },
+    {
+      "id": "S5-05",
+      "verdict": "amend",
+      "amended": "One finding, three scopes. (a) Footprint dims: a shape descriptor on StagePropVisualBlueprint (primitive, dims, offset), read by the renderer and by application when it builds the plain rectangles 05d needs. Domain never sees it. Land in 05d, since the 'footprint of the drawn mesh' rule is otherwise unimplementable without the renderer's literals. (b) Prop state variants as declared parts: a field in the same table, with 05e since it introduces the prop-state effect. (c) Full per-epoch part recipes and the shape-language rule: 05b-1, built with validateLaunch and the JSON-source-of-truth lab ruling (S4-01). Fallback shapes log a warning and fail validateLaunch, never render silently.",
+      "conflicts": ["R5C3 (same as (c))", "S5-07 (geometry cache keyed by shape id)", "S4-01/R4B2 (JSON is source of truth, no TS emission)", "S4-08 validateLaunch", "S5-16", "S5-17"],
+      "slot": "with-05d (a); with-05e (b); 05b-1 (c)",
+      "note": "Shape data belongs in content so the sim and the renderer agree by construction. Keep (a) to the smallest table that serves the door leaf and crate."
+    },
+    {
+      "id": "S5-06",
+      "verdict": "amend",
+      "amended": "05d needs one authoritative control yaw. Cheapest: compute it in application from the settled camera forward (ground-projected offset), and delete the dead pitch and yaw fields and their springs from the blueprint and spring state with a pack migration. If the owner prefers authored angles, derive offset from yaw/pitch/distance instead; do not keep two sources.",
+      "conflicts": ["S5-11b (control-frame latch uses this yaw)", "05d spec: W follows the settled yaw"],
+      "slot": "with-05d",
+      "note": "Dead fields that look tunable are an authoring trap and P1 depends on collaborative tuning. Deleting needs the same schema-freeze care as any content change."
+    },
+    {
+      "id": "S5-07",
+      "verdict": "amend",
+      "amended": "Do the cache now: geometry by (slot, shape id), toon materials by (hex, grime), with a refcount or owner so the stage dispose-and-rebuild does not free shared resources. Highlight stops writing emissive on shared materials. Use a dev-only clone-on-select or the rim from S5-15, never a mutation of a cache entry. Merged Tier 3 geometry is deferred to R5A2 and gated on a measurement.",
+      "conflicts": ["R5A2", "R5B2 (per-material fade uniform needs separate materials for fadable walls)", "S5-18 (highlight)", "S5-05 (shape ids)"],
+      "slot": "with-05d (caches); later (Tier 3 merge)",
+      "note": "Draw calls at 40-60 characters are tolerable on the target Mac; the geometry and material count is the stage-swap and GC cost."
+    },
+    {
+      "id": "S5-08",
+      "verdict": "amend",
+      "amended": "Make the cap a setting in the Settings model with a stepped adaptive policy: rolling frame-time average, hysteresis, one step per several seconds and never mid-transition. Verify on the 2019 Mac before changing the default, because the shell chose 1 for hardware. Edge quality may be cheaper than resolution (FXAA or a thin outline from S5-15). Text stays DOM, as already planned.",
+      "conflicts": ["S5-12 (settings home)", "S5-15/R5C1 (outline helps edges)", "60 FPS budget on Intel iGPU"],
+      "slot": "later (after 05e, with the Settings model)",
+      "note": "Interfaces only. The measurement belongs to the 05b-2 pacing/perf pass, not to 05d."
+    },
+    {
+      "id": "S5-09",
+      "verdict": "endorse",
+      "amended": "Endorsed as the first 05d task. Placement: DOM listeners and focus handling in interfaces; InputState, the action table and the steer vector in application; domain sees only set_direct_steer. Use event.code for actions and event.key for labels. Keep the steer a vector. Neutralise the dev HUD: ignore events from its controls and blur them on click, with the canvas as default focus. Rebinding UI and gamepad are later; the table is data from day one.",
+      "conflicts": ["S5-10", "R5B3 (same fix, merged)", "05d release-stops-the-body-on-that-frame rule needs keyup"],
+      "slot": "with-05d",
+      "note": "Section 8's rules (opener does not confirm, held key after close, repeat ignored) cannot be expressed on a stateless keyDown. Building it in 05e would force a rewrite of 05d's movement input."
+    },
+    {
+      "id": "S5-10",
+      "verdict": "amend",
+      "amended": "Adopt the global consumption rule as a property of the InputFrame: pressed actions are consumed by the topmost layer in the frame they arrive. It subsumes the four 'does not also' exceptions. Do not change the owner's section 8 grammar. Keep W/A previous and S/D next as written, add arrows as a second set via the action table, and decide A/D left/right semantics only when the first horizontal row appears. All current menus are vertical.",
+      "conflicts": ["S5-09", "R5B3", "07 response menu (first likely horizontal row)"],
+      "slot": "with-05e (consumption, arrows); 07 (horizontal-row semantics)",
+      "note": "Test: the Escape that leaves a conversation does not open pause in the same frame."
+    },
+    {
+      "id": "S5-11",
+      "verdict": "amend",
+      "amended": "Split. (b) Control-frame latch: the frame stays fixed while any move key is held across a volume change and updates on release. Land in 05d with a unit test, and add it to the 05d spec. Captures and zoom never change the control frame. (a) CameraDirective stack: needed first by world-opened conversations and events. Slot it with 07. 05d and 05e keep only the base rig plus the existing override.",
+      "conflicts": ["R5B1 (same as (a))", "S5-06", "05e: pause leaves camera anchored", "07 world-opened conversations"],
+      "slot": "with-05d (latch); 07 (directive stack)",
+      "note": "Build the stack when a consumer exists (freeze extension rule, S1-R6). Make sure its base layer is the same interpolated focus from S5-04."
+    },
+    {
+      "id": "S5-12",
+      "verdict": "amend",
+      "amended": "Settings model in application, outside WorldState and the hash, persisted via a port beside (not inside) world saves. 05e takes the minimal slice: reduceMotion, hold-or-toggle move, textScale. 07 takes the rest: ambient lifetime scaled by text length, aria-live DOM, AA contrast against the palette. 05a takes captions, and sound cues get a lace caption line. Replace the per-frame media-query read with the setting, seeded from the OS.",
+      "conflicts": ["R5B4", "S5-08 (settings home)", "S5-18 (contrast)", "S3 save codec (settings must not enter snapshot)"],
+      "slot": "with-05e (model, minimal); 07 (text, ambient lifetime, DOM); 05a (captions)",
+      "note": "Settings that change timing (ambient lifetime) must not change simulation outcomes, or the golden run breaks."
+    },
+    {
+      "id": "S5-13",
+      "verdict": "amend",
+      "amended": "Adopt as a content-contract rule. The paired noticing is an Observation on a non-sight channel, gated by proximity or an attention roll, and appears in the notebook as 'noticed'. It is not a billboard, which keeps P4. Enforce as a validateLaunch rule once cues and the Observation table exist. Different shape or motion, not only colour. The highlight mode is opt-in and is the same toggle as R5C2's salvage.",
+      "conflicts": ["S2-03 Observation", "S2-12 notebook categories", "INV-B/INV-C (noticing must come from the belief view)", "R5C2"],
+      "slot": "core-model step 5 (rule + Observation channel); 05b-1/05f (validate rule when cues exist)",
+      "note": "An attention roll must use the stateless counter roll from the Act step, not Math.random."
+    },
+    {
+      "id": "S5-14",
+      "verdict": "endorse",
+      "amended": "Endorsed. Place with hardening-5, which already splits simulationFrozen from command acceptance. Domain keeps one freeze bit. Lab mode is a PlaySession flag. The pause menu sets the freeze bit with the lab flag off. F3 and backtick are ignored while a menu or the pause menu is up. Reword the 05e leaves-out clause accordingly. 05d also depends on it, because its dev-HUD waypoint gating is phrased in terms of unpaused.",
+      "conflicts": ["hardening-5", "S3-06", "S3-18"],
+      "slot": "hardening-5",
+      "note": "Doing this in 05e would mean rewriting 05d's gating. Gating by lab flag belongs in 05d."
+    },
+    {
+      "id": "S5-15",
+      "verdict": "amend",
+      "amended": "Three parts. Rule and contrast test (actors above stage material luminance, signal hues reserved) land with 05d, when the walking operative must stay readable. Warm rim on the proximity target lands with 05e. A fixed outline on all actors comes later with R5C1 and is measured. The test fails on authored data, per stage, and is a pure function over colours in tests/contract.",
+      "conflicts": ["R5C1 (same, merged)", "S5-17 (theme rebind can break the test)", "S5-18 (highlight colour)", "S5-13 (reserved signal hue)"],
+      "slot": "with-05d (rule, test); with-05e (rim); later (outline)",
+      "note": "The margin value needs one tuning pass in the F3 lab; keep it a number in data."
+    },
+    {
+      "id": "S5-16",
+      "verdict": "amend",
+      "amended": "Silhouette budget and the black-silhouette lab view are a dev aid. Do them when there are enough bodies to compare, with Tier 3 materialization and the recipe work. Gait lean or bob is a stateless presentation derived from interpolated speed, in the renderer. It goes in as a small later polish.",
+      "conflicts": ["S5-05c/R5C3", "R5A2"],
+      "slot": "later (with step 6 Tier 3 and 05b-1 recipes)",
+      "note": "Not a prerequisite for 05d or 05e."
+    },
+    {
+      "id": "S5-17",
+      "verdict": "amend",
+      "amended": "Open material map with palette roles is right. Do not hue-shift character colours algorithmically. Instead, characters declare roles or tints against the theme, so identity survives and a theme change is predictable. Author a throwaway Epoch 4 theme as a schema-test fixture in tests/support, not in the content barrel.",
+      "conflicts": ["S5-15 (contrast test per theme)", "S5-05c recipes with tints", "S4-11 (fixtures out of content)"],
+      "slot": "later (before the second epoch pack, with 06c)",
+      "note": "Interfaces and content/scene only. Nothing in domain touches themes."
+    },
+    {
+      "id": "S5-18",
+      "verdict": "endorse",
+      "amended": "Endorsed. Move the debug highlight now, because 05e adds a proximity highlight on the same meshes. Lace text on a heavier panel is part of the lace page in 07.",
+      "conflicts": ["S5-15", "S5-12 (contrast)"],
+      "slot": "with-05e (highlight colour); 07 (lace panel)",
+      "note": "Trivial and avoids a colour clash that would confuse the first playtest."
+    },
+    {
+      "id": "S5-19",
+      "verdict": "amend",
+      "amended": "Three discrete tiers (silent, murmur, clear) with integer thresholds, defined as a domain function on Observation inputs with named mask sources (rain, forge, crowd) from the Observation step. Deliverable is one function, one table and one test, not a scalar in several places. The diegetic cue and the overheard-line text come later and read the tier. Audio maps the tier in 05a.",
+      "conflicts": ["S2-03/S2-18 per-observer discovery", "INV-B (integer, fixed-point)", "R5B4", "S5-20"],
+      "slot": "core-model step 5 (tiers); 07 (overheard text); 05a (audio mapping)",
+      "note": "Impatient lines from 05d are exclamations on a speaker the player is adjacent to and do not need the tiers."
+    },
+    {
+      "id": "S5-20",
+      "verdict": "amend",
+      "amended": "Curated CC0 samples behind the same patch schema are fine, offline and small. The per-NPC tone signature is a presentation derivation from lineage and is not in the hash. Do not move audio ahead of 05d or 05f. That contradicts the accepted order, and the audibility tiers it needs arrive at step 5. Pull a minimal footstep, door and murmur slice to the front of 05a, after step 5.",
+      "conflicts": ["02b order (05a is deferred)", "R5C5 (same, merged)", "R5C4", "DESIGN_NOTES section 9 (non-speech: blips need an owner ruling)", "S5-19"],
+      "slot": "05a (early, after core-model step 5)",
+      "note": "Footstep cadence is distance based and reads the interpolated pose from S5-04. P4 says audio is an inference channel, which supports an early 05a but not a pre-05d one."
+    }
+  ],
+  "routes": [
+    {
+      "id": "R5A1",
+      "verdict": "endorse",
+      "amended": "Endorsed. Interfaces only. The projection helper is a pure function and may sit in application. Compute only for visible speakers, from the interpolated head anchor so there is no lag. Pool nodes, clamp to the viewport edge, and mark the layer aria-live (S5-12).",
+      "conflicts": ["S5-04 (reads interpolated pose)", "S5-12", "R5B4"],
+      "slot": "07",
+      "note": "05d only emits the impatient trigger; no text surface is needed there."
+    },
+    {
+      "id": "R5A2",
+      "verdict": "amend",
+      "amended": "Defer. First do S5-07 caching and measure with a realistic Tier 3 count (40-60). InstancedMesh needs per-instance picking maps and has no per-instance emissive highlight. Only adopt if the measurement misses the 60 FPS budget on the Mac.",
+      "conflicts": ["S5-07", "S5-01", "S5-16"],
+      "slot": "later (measure-triggered, after step 6)",
+      "note": "Tier 1 and 2 stay full kitbash."
+    },
+    {
+      "id": "R5A3",
+      "verdict": "amend",
+      "amended": "Same fix as S5-04, merged. Use the retained previous WorldState reference, not a Float32Array, until measurement says otherwise. Keep the stable entity ordering benefit by caching the sorted id list in application.",
+      "conflicts": ["S5-04", "S5-02"],
+      "slot": "hardening-6",
+      "note": "None."
+    },
+    {
+      "id": "R5B1",
+      "verdict": "amend",
+      "amended": "Same as S5-11a. Build when 07 world-opened conversations exist. Authored shot volumes can wait for the first event that needs one. Never rotate yaw or roll; a capture is blocked only while the player is in a menu the player opened, not by the world event's own conversation. Blend cap 0.6-1.0 s, Space/Escape skips.",
+      "conflicts": ["S5-11", "05e interactionHold and pause camera anchoring"],
+      "slot": "07",
+      "note": "Pure application logic; the renderer only applies the resulting rig."
+    },
+    {
+      "id": "R5B2",
+      "verdict": "amend",
+      "amended": "Defer until a stage has a wall between camera and focus. First prefer authoring volumes that avoid it. Fade needs per-fadable-part materials or an instance attribute, because S5-07 shares materials by hex. A precomputed hide list per volume is fine for static geometry. Interfaces only.",
+      "conflicts": ["S5-07", "S5-06"],
+      "slot": "later (with 06c cabin stages)",
+      "note": "Check the proving-slice stages in the 05d visual pass to see whether it is needed sooner."
+    },
+    {
+      "id": "R5B3",
+      "verdict": "endorse",
+      "amended": "Endorsed, merged with S5-09 and S5-10. Gamepad is later and only adds to the same table.",
+      "conflicts": ["S5-09", "S5-10"],
+      "slot": "with-05d (InputFrame); with-05e (top-down consumption)",
+      "note": "None."
+    },
+    {
+      "id": "R5B4",
+      "verdict": "amend",
+      "amended": "Two things. A session-local ring of the recent ambient lines for accessibility and reread, kept in the interface layer, outside WorldState, unaffected by lifetime. Plus a notebook record of the fact heard, as an Observation with the audibility tier (S5-19). Do not mirror every verbatim line into the notebook: it would hold omniscient text and flood the lace log.",
+      "conflicts": ["S2-12 notebook", "S5-19", "S5-12", "INV-C"],
+      "slot": "07 (ring, lifetime); core-model step 5 (notebook data model)",
+      "note": "Generated lines are frozen on show, so a reread is exact."
+    },
+    {
+      "id": "R5C1",
+      "verdict": "amend",
+      "amended": "Same as S5-15, merged. Three tiers and the test now; the outline pass later. Outline on actors and interactables only; the rim on the current proximity target comes with 05e.",
+      "conflicts": ["S5-15", "S5-17", "S5-18"],
+      "slot": "with-05d (tiers, test); with-05e (rim); later (outline)",
+      "note": "None."
+    },
+    {
+      "id": "R5C2",
+      "verdict": "reject",
+      "amended": "Reject the default-on warm accent that marks things that matter. It is a billboard and contradicts P4 and S1-R2. Salvage: an opt-in 'highlight what I could notice' mode, owned by S5-13. The lamp tell belongs with the Drone crew design (P3). Any 'instinct' outline must be an Observation-gated reveal and never show hidden truth.",
+      "conflicts": ["P4", "S5-13", "S5-15 (reserved signal hue)", "INV-C"],
+      "slot": "later (opt-in mode); 06 (Drone tell)",
+      "note": "Reserving the warm hue for non-environment use stays, via S5-15."
+    },
+    {
+      "id": "R5C3",
+      "verdict": "endorse",
+      "amended": "Endorsed as the end state of S5-05. JSON recipes in the epoch pack, loaded and Zod-checked through validateLaunch, with the F3 lab writing through the guarded bridge to allowlisted files, as the S4 lab ruling says. The footprint slice lands earlier (S5-05a). A contract test that every referenced id resolves.",
+      "conflicts": ["S5-05", "S4-01/R4B2", "S4-08"],
+      "slot": "05b-1",
+      "note": "No TS emission, per the S4 ruling."
+    },
+    {
+      "id": "R5C4",
+      "verdict": "amend",
+      "amended": "Presentation only and not in the hash. Derive the signature deterministically from lineage ids. Make blips a setting, off under reduced motion or on request. The owner should confirm that tone blips fit the no-speech rule in section 9; they are non-speech tones, but they sit close to it.",
+      "conflicts": ["DESIGN_NOTES section 9", "S5-12", "S5-20"],
+      "slot": "05a (after the 07 pager exists)",
+      "note": "Footstep cadence reuse is fine."
+    },
+    {
+      "id": "R5C5",
+      "verdict": "amend",
+      "amended": "The 100-line slice (footsteps by surface table, door state, murmur-through-door by audibility tier) is right. Its slot is wrong: not before 05d/05f. It needs step 5 tiers, and the accepted order defers 05a. Place it as the first task of 05a.",
+      "conflicts": ["02b order", "S5-19", "S5-20"],
+      "slot": "05a (first task, after core-model step 5)",
+      "note": "No AudioContext in 05d or 05e, per the DESIGN_NOTES."
+    }
+  ]
+}

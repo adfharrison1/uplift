@@ -1,0 +1,296 @@
+{
+ "hardening_batch": [
+  "S3-14 clamp legacy mutations (tiny, user-visible crash)",
+  "S3-08a seed scramble + SeededRandom golden vector",
+  "S3-01 + S3-02 slice store: frozen-on-write/shared-on-read, schema/version/migrate on StateSliceKey, plain-JSON guard",
+  "S3-03 + S3-09b WorldStateCodec: snapshotVersion, Zod load, migrations, epoch check, one field list, listSlots reasons",
+  "S3-04 + S3-06 + S3-05 + S3-18 outcome channel: applyWorldEffects returns outcomes, reject not throw, simulationFrozen vs commandsAccepted, per-call status, frame try/catch",
+  "S3-09a + S3-07 + R3A1 + R3C2(min): coordinator.tick fixed order, fixed 1/60 step, hashWorldState, golden run test incl. save/load continue",
+  "S3-10 + S3-11 + S3-12 + S3-15a + R3A2: kinematics split by locomotion mode under golden test, total phase-transition helper, Arrived/Blocked/Interrupted outcome as data, nav-position retarget, zero-speed/yaw fixes",
+  "then 05d, 05e, 05b-1 (worldSeed, elapsedWatches arrive through the codec migration; sourceScarId check)"
+ ],
+ "findings": [
+  {
+   "id": "S3-01",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "R3B2",
+    "S3-02"
+   ],
+   "note": "Right problem; it is the slice-3 prerequisite named in 02-systems. Minimal fix is frozen-on-write/shared-on-read in the store. The chunked Act ring and holder-keyed Observation are structure for slices that do not exist yet.",
+   "amended": "Pre-core: deepFreeze once in withSlice, get() returns the frozen ref, drop the redundant defineStateSlice in set_state_slice, toSnapshot without clone, cap tests on append cost. Chunked ring and per-holder buckets are built inside the Act and Observation steps, with a benchmark as the gate."
+  },
+  {
+   "id": "S3-02",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-03",
+    "S3-04",
+    "R3C3"
+   ],
+   "note": "Needed before any new slice exists (Act, Observation, ThreadRuntime are all registered slices). Zod schema plus version plus migrate on StateSliceKey is the per-slice half of the save story. Keep Zod in domain only if already allowed there; otherwise validate-by-callback. Unknown id -> rejection depends on S3-04's outcome channel."
+  },
+  {
+   "id": "S3-03",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-09",
+    "S3-02",
+    "R3C3"
+   ],
+   "note": "Right and urgent: first added WorldState field (elapsedWatches in 05b-1) breaks saves. Part 1 (snapshotVersion, Zod, migrations, listSlots reasons) must precede 05b-1. Part 2: epoch mismatch rejection is cheap and belongs with it; id-drift reconcile policy is speculative until packs change between saves.",
+   "amended": "Pre-core: snapshotVersion + Zod load + migrations[] + epoch check + unreadable-slot reasons, delivered as the WorldStateCodec of S3-09. Fingerprint and id-drift reconcile (drop unknown, add new, re-home) later, when the first pack revision exists."
+  },
+  {
+   "id": "S3-04",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-05",
+    "S3-06",
+    "R3B3"
+   ],
+   "note": "This is the S2-17 'reject instead of throw' rule and the base for the effect envelope (R3B3) and for set_state_slice rejection. Do it before the envelope so the envelope is not retrofitted. Throw only for schema violations. Deleting or exempting set_paused is covered by S3-06."
+  },
+  {
+   "id": "S3-05",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-04"
+   ],
+   "note": "Cheap, removes a permanent-death failure mode; with S3-04 the frame body stops throwing on ordinary rejections. try/catch is last resort, must pause the sim and log, not hide errors in eval/headless (rethrow in tests)."
+  },
+  {
+   "id": "S3-06",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-04",
+    "S3-18"
+   ],
+   "note": "Correct and it contradicts the accepted model: advance_watches, Act logging and text freeze must run while a menu pauses the room, and AGENTS.md says player pause freezes the room. Two flags is the right minimum.",
+   "amended": "Pre-core: replace boolean with simulationFrozen (gates stepFrame and pulse) and an explicit accepted/rejected result from dispatchEffects (shared with S3-04). Allow all effect types through while frozen except motion; no per-effect allowlist table until a case needs one."
+  },
+  {
+   "id": "S3-07",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "R3A1",
+    "S3-08",
+    "S3-09",
+    "R3C1"
+   ],
+   "note": "Two separable parts. Fixed 1/60 step (=R3A1) and hash+golden test are both required before the core work, since every later step is checked against the golden run. Slice map in hash must use toSnapshot (depends on S3-02).",
+   "amended": "Pre-core: fixed-step accumulator (render interpolates, cap catch-up steps to avoid spiral of death on the i7), hashWorldState with sorted keys and quantised floats, tests/golden/run.test.ts with save-mid-run-load-continue equality. Seed use is covered by S3-08."
+  },
+  {
+   "id": "S3-08",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "R3B1"
+   ],
+   "note": "Scramble is a real bug (seed 1 -> 6e-5) but the counter-based roll is the right long-term shape for determinism (stable under added rolls, matches P5). Needs worldSeed in WorldState, so the field lands with the codec.",
+   "amended": "Pre-core: splitmix32 seed scramble plus golden vector test. 05b-1 or act-step: worldSeed on WorldState (immutable) and pure rollFloat(worldSeed, streamKey, counter) with counter = actId or watch. Keep SeededRandom for sequential local use."
+  },
+  {
+   "id": "S3-09",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-03",
+    "S3-07",
+    "R3C2",
+    "S3-06"
+   ],
+   "note": "coordinator.tick(dt, commands) with one documented order is the right home for advance_watches/materialize/commit slots and for headless evals. The codec extraction is mandatory before adding fields. pulseCognition move and WorldBuilder are tidy but only WorldBuilder is needed by materialize.",
+   "amended": "Pre-core: WorldStateCodec (single field list, versioned, Zod); coordinator.tick with the seven-step order as plain code with empty named seams; CoordinatorTelemetry helper. WorldBuilder extraction goes with the presence step; pulseCognition move is optional."
+  },
+  {
+   "id": "S3-10",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "R3A2",
+    "S3-11",
+    "S3-12",
+    "S3-15"
+   ],
+   "note": "Three real defects and the kinematics split must precede 05d (direct steer is the second producer). Behaviour-commit emission is the act step; the engine must only report outcomes. Stale phase fields make 'what is this NPC doing' unreadable, which Presence and Act need.",
+   "amended": "Pre-core: one total phase-transition helper (table-tested), transition event carries behaviourId, outcome, residual dt, per-locomotion-mode step behind a context object, spaceId flips on portal-plane crossing, off-stage entities skip integration. Act-step: app layer turns performing_dwell->cooldown into commit effects. Presence-step: the placement function replaces off-stage handling."
+  },
+  {
+   "id": "S3-11",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-10",
+    "R3A2"
+   ],
+   "note": "Fold into the S3-10 outcome event: truncation yields 'blocked'. Must exist before the behaviour commit consumes outcomes. Snap-back vs finish-hop: choose finish-hop (simpler, no visual teleport)."
+  },
+  {
+   "id": "S3-12",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-10"
+   ],
+   "note": "Must be decided before 05d floor-to-waypoint handoff (as stated). Nav-position helper belongs in the same kinematics split."
+  },
+  {
+   "id": "S3-13",
+   "verdict": "amend",
+   "slot": "act-step",
+   "conflicts": [
+    "S3-04"
+   ],
+   "note": "Real, but the stimulus model gains actId/perceptibility in the Act step; priority eviction should be designed with that field, not before. Dedupe on stimulusId is trivial and can ride along. Do not drop silently: emit rejection via S3-04's channel.",
+   "amended": "Act-step: stimulus carries actId; dedupe on stimulusId; evict by lowest priority among evictable stimuli with a rejected outcome."
+  },
+  {
+   "id": "S3-14",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-03"
+   ],
+   "note": "Hard throw at epoch start / load is a user-visible crash and tiny to fix. Clamp is right for runtime. The scar-lineage validation overlaps with the S2-01 rule that scars record the watch, so do that with the clock.",
+   "amended": "Pre-core: clamp [0,1] with telemetry note, keep the throw in an authoring-time contract test. sourceScarId check goes in 05b-1 when scars gain a watch field."
+  },
+  {
+   "id": "S3-15",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-10"
+   ],
+   "note": "Zero-speed and yaw are one-line fixes best done in the S3-10 split. Dijkstra on metres is not needed until edge lengths vary meaningfully or 05d uses floor graphs; hop-count BFS is deterministic.",
+   "amended": "Pre-core: reject zero-speed at plan time, skip yaw when dx,dz~0. Dijkstra later, when a route choice is observed wrong."
+  },
+  {
+   "id": "S3-16",
+   "verdict": "endorse",
+   "slot": "presence-step",
+   "conflicts": [],
+   "note": "Measured fine (0.6 ms/200). Skip-when-idle micro-opts are cheap but the presence function removes most bodies anyway. Defer; the 'do nothing until 100+ bodies' line is correct."
+  },
+  {
+   "id": "S3-17",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-07",
+    "S3-10",
+    "S3-08",
+    "S3-04"
+   ],
+   "note": "Tests are the gate for the hardening batch, not a separate item. Each fix lands with its own test. Items (1) seed golden, (2) deepFreeze input-non-mutation helper, (5) exhaustive per-variant fixtures are pre-core because they guard the reducer before the envelope. Property test on dt splits is only valid after fixed-step and is a substitute for the kinematics tests.",
+   "amended": "Split by owner: ride with S3-08, S3-04, S3-10, S3-07. Do not track as one pre-core item. Cap and replay tests when the Act step introduces them."
+  },
+  {
+   "id": "S3-18",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-04",
+    "S3-06"
+   ],
+   "note": "Trivial status-per-call fix; fold into the S3-04/S3-06 result-type change so the PlayFrameResult has one source of truth. Doc comment fix free."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R3A1",
+   "verdict": "endorse",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-07"
+   ],
+   "note": "Same as S3-07 second half. Required for replayable evals and 05d direct steer to be rate-independent. Cap steps per frame."
+  },
+  {
+   "id": "R3A2",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-10",
+    "S3-11"
+   ],
+   "note": "Right idea: a uniform outcome from each producer; matches the Act step where the commit consumes outcomes. A MoveIntent with an onComplete callback is not serialisable or hashable and breaks save/determinism.",
+   "amended": "Outcome type {Arrived|Blocked|Interrupted} as data with behaviourId; MoveIntent as plain data with no callback. Producer split is S3-10. Presence snaps join in presence-step."
+  },
+  {
+   "id": "R3A3",
+   "verdict": "reject",
+   "slot": "later",
+   "conflicts": [],
+   "note": "Scope expansion beyond hardening; couples 05d to a slot authoring burden on every prop and changes the proven prop footprint model (AGENTS.md: oriented footprint plus 0.03 m). Revisit if 05d shows waypoint spam in play."
+  },
+  {
+   "id": "R3B1",
+   "verdict": "amend",
+   "slot": "act-step",
+   "conflicts": [
+    "S3-08"
+   ],
+   "note": "Right model; fits core model (Act ids as counters). The seed scramble ships pre-core, the roll API with worldSeed lands with the Act step (or 05b-1 if a roll is needed sooner)."
+  },
+  {
+   "id": "R3B2",
+   "verdict": "amend",
+   "slot": "act-step",
+   "conflicts": [
+    "S3-01"
+   ],
+   "note": "Matches core model slices #2 and #3 and the slice-3 perf prerequisite. Build only as the Act ring and Observation table are implemented, after S3-01's frozen store; benchmark first, because bounded ring size (a few hundred rows) may make one flat frozen array adequate.",
+   "amended": "Use a flat frozen bounded ring unless the benchmark at expected cap exceeds budget; chunking is the fallback. Observation keyed by holderId stays."
+  },
+  {
+   "id": "R3B3",
+   "verdict": "amend",
+   "slot": "act-step",
+   "conflicts": [
+    "S3-04"
+   ],
+   "note": "The envelope is exactly core step 3 and fits 'wrapper so variants are untouched'. Outcomes half is S3-04 and belongs pre-core; the causeActId stamping is act-step. Land in this order: outcomes then envelope.",
+   "amended": "Split: outcomes now (S3-04); Envelope{effect, actorId?, causeActId?} at the Act step."
+  },
+  {
+   "id": "R3C1",
+   "verdict": "reject",
+   "slot": "later",
+   "conflicts": [
+    "S3-07"
+   ],
+   "note": "As a save format it conflicts with bounded storage, text frozen into the save, and revisable model (P5): a command log is invalidated by any reducer change. Keep the useful part, golden-run replay, as a test/eval artifact only.",
+   "amended": "Reuse as: scripted command list in golden tests and 05f eval fixtures. Periodic checkpoints only if saves get slow."
+  },
+  {
+   "id": "R3C2",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-09"
+   ],
+   "note": "The fixed order is the point; making phases pack-registered lets packs reorder simulation and weakens determinism and the domain epoch-agnostic rule is not served by it. A plain ordered function with named seams and an order test is the minimal adequate form.",
+   "amended": "coordinator.tick with a fixed ordered phase list (const array of engine phases) and one order test; no pack registration."
+  },
+  {
+   "id": "R3C3",
+   "verdict": "amend",
+   "slot": "pre-core",
+   "conflicts": [
+    "S3-02",
+    "S3-03"
+   ],
+   "note": "Duplicates S3-02+S3-03 in a heavier form. Per-slice version and migrate on StateSliceKey plus one snapshotVersion for the core covers it without a chunk framework.",
+   "amended": "Fold into S3-02/S3-03/S3-09 codec; no separate chunk abstraction."
+  }
+ ]
+}

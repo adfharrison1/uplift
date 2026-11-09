@@ -1,0 +1,316 @@
+{
+ "findings": [
+  {
+   "id": "S3A-01",
+   "topic": "sim",
+   "kind": "problem",
+   "claim": "When a portal closes mid-route, the truncated path is treated as a normal arrival: the entity runs its full destination dwell and cooldown at the stop point, including inside the doorway, and nothing reports that the move was blocked.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "214",
+     "quote": "const truncated = truncatePathAtClosedPortals(entity.waypointId, entity.activePath, portals);"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "480-481",
+     "quote": "  if (pathIndex >= path.length) {\n    return enterPerformingDwell(updated, remainingDt, deliberationScale, transitions);"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r2.ts",
+     "lines": "S2",
+     "quote": "S2 pos before close [ 5.5, 0, 0 ] A door  ->  performing_dwell [ 5.5, 0, 0 ] A door 4.9"
+    }
+   ],
+   "bites_when": "now: the player can click the door to cycle state while the walker crosses it. Worse once a BehaviorModule commit fires at dwell end: the NPC 'completes' an Act (steals, signs, prays) in a doorway.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Repro: entity at x=5.5 between 'door' (x=4) and 'far' (x=6) with door closed. truncate returns [] and the next step enters performing_dwell at [5.5,0,0] with spaceId 'A' and waypointId 'door' (physically past the portal plane, state says old room). I looked for a blocked/aborted outcome in the engine and coordinator: there is none. The unit test only checks truncate returns []. ",
+   "recommendation": "Make truncation produce an explicit abort (clear pending dwell, emit a 'path_blocked' transition, go straight to cooldown/idle) and either finish the current hop or snap back to the last waypoint. Put the blocked outcome in the transition event so the behaviour commit can skip.",
+   "fix_cost": "M",
+   "ignore_cost": "Door toggles produce NPCs performing their jobs in doorways and Acts committed at places the behaviour never reached."
+  },
+  {
+   "id": "S3A-02",
+   "topic": "sim",
+   "kind": "problem",
+   "claim": "Re-targeting a moving entity plans from its last reached waypoint, not its position, so a click back to the waypoint it just left returns 'already_there' and is ignored while the old path keeps running; other retargets cut a straight line from mid-hop to the new first node.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "457-458",
+     "quote": "    const plan = planWaypointPath(\n      this.spaces,"
+    },
+    {
+     "path": "src/domain/simulation/WaypointNavigator.ts",
+     "lines": "213-214",
+     "quote": "  if (fromWaypointId === toWaypointId) {\n    return { status: 'already_there', path: EMPTY_PATH };"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r2.ts",
+     "lines": "S1",
+     "quote": "after 1s pos [ 1, 0, 0 ] waypointId a\nreplan to a from a -> already_there"
+    }
+   ],
+   "bites_when": "now: player clicks a waypoint button for the room they are leaving a metre into a hop. Also when 05d direct bodies hand back to waypoint mode mid-floor.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether the walker's waypointId advances before arrival (KinematicsEngine only updates it at arrival, lines 407-408). It does not. Whether the UI treats 'already_there' specially was not checked.",
+   "recommendation": "Plan from a nav-position (nearest node on the current hop, or an explicit 'between' source) and have move_entity_to_waypoint prepend a snap-back node when the entity is mid-hop. Decide this before 05d defines floor-to-waypoint handoff.",
+   "fix_cost": "M",
+   "ignore_cost": "Click-to-move feels broken at hop boundaries and 05d inherits the ambiguity of 'where is a walker mid-hop'."
+  },
+  {
+   "id": "S3A-03",
+   "topic": "sim",
+   "kind": "gap",
+   "claim": "Kinematics cannot host a BehaviorModule commit at dwell end: the transition event carries no behaviour id, blocked/complete reason or sub-frame time, and the pending dwell/cooldown/behaviour fields are never cleared, so a later unrelated move re-runs the old dwell.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "35-39",
+     "quote": "export interface CognitivePhaseTransitionEvent {\n  readonly entityId: string;\n  readonly fromPhase: CognitivePhase;"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "139",
+     "quote": "      const dwellDuration = current.pendingDwellSeconds * deliberationScale;"
+    },
+    {
+     "path": "src/domain/simulation/WorldEffectReducer.ts",
+     "lines": "109",
+     "quote": "        cognitivePhase: entity.cognitivePhase === 'deliberating' ? 'deliberating' : 'moving',"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r2.ts",
+     "lines": "S3",
+     "quote": "S3 after 100s idle pendingDwell 5"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r4.ts",
+     "lines": "dt sweep",
+     "quote": "0.0167 moving@0.500 performing_dwell@2.650 ...\n0.2500 moving@0.500 performing_dwell@2.750 cooldown@4.750 idle@5.750\nideal moving@0.500 dwell@2.643"
+    }
+   ],
+   "bites_when": "the first Act-emitting behaviour (accepted model step 4) and the first focus switch onto a character that has run a stimulus.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "The seam itself is good: transitions are emitted in sorted-entity order, so Act ids will be stable. grep shows activeBehaviorId is written once and read nowhere, and no code resets pendingDwellSeconds after cooldown. The stale-dwell consequence is real in the repro but nothing dispatches stimuli yet.",
+   "recommendation": "Add behaviourId + outcome ('completed'|'blocked'|'interrupted') + residual dt to the transition event, clear pending/active fields on cooldown->idle, and have the app layer, not the engine, turn performing_dwell->cooldown into commit effects.",
+   "fix_cost": "S",
+   "ignore_cost": "The commit step has to guess which behaviour finished, and a player-driven move silently inherits an NPC's old dwell."
+  },
+  {
+   "id": "S3A-04",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "Neither a direct-steer body nor the presence function fits stepKinematics as written: the signature has no input/collider/presence slot, every entity is assumed to follow activePath, spaceId changes only on waypoint arrival, and off-stage entities still integrate paths.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "556-559",
+     "quote": "export function stepKinematics(\n  state: WorldState,\n  dtSeconds: number,\n  spaceKinds?: ReadonlyMap<string, SpaceKind> | undefined,"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "407-408",
+     "quote": "      currentSpaceId = target.spaceId;\n      currentWaypointId = target.waypointId;"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "152-153",
+     "quote": "      spaceId: char.startingSpaceId,\n      waypointId: char.startingWaypointId,"
+    }
+   ],
+   "bites_when": "05d (direct steer) and the presence/materialize step. A walker crossing a door is physically in the next room for up to a hop while spaceId still names the old one, so 'materialize on room entry' fires late or early depending on hop length.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Positives: arrivals carry spaceId and terminalArrival, and off_stage_region is already excluded from the hash, so a materialize trigger can key off arrivals. Spawn at the start waypoint is hard-coded in buildInitialEntities, which contradicts 'entities start off-stage'.",
+   "recommendation": "Before 05d, split stepKinematics into a per-locomotion-mode step (path follower, direct steer) behind one context object (spaceKinds, steers, colliders, presence), and flip spaceId when the hop crosses the portal plane, not at the far node. Skip path integration for off-stage entities and resolve them in the presence function.",
+   "fix_cost": "M",
+   "ignore_cost": "05d grows the positional parameter list and duplicates the phase machine in a second function."
+  },
+  {
+   "id": "S3A-05",
+   "topic": "sim",
+   "kind": "risk",
+   "claim": "The sim steps with the raw rAF dt, so trajectories, separation slides and phase-change timestamps depend on the frame rate, and logged runs are not replayable.",
+   "evidence": [
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "184",
+     "quote": "    this.coordinator.stepFrame(dtSeconds);"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "595",
+     "quote": "    frameDtSeconds: dtSeconds,"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r3.ts",
+     "lines": "separation",
+     "quote": "60Hz [[4.9986,0,0.12223..],...]  30Hz [[4.99851..,0,0.12756..],...]  20Hz [[4.99851..,0,0.12738..]"
+    }
+   ],
+   "bites_when": "the first save/log replay or an eval that compares to a golden trace recorded on a different machine or refresh rate. The 0.25 s clamp also drops simulated time on stalls.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Lone-walker path and phase timers are dt-invariant (r4.ts: transitions land at 0.500 across dt, quantised only to the frame end). Differences appear only through separation (cap uses frame dt) and event timestamps. Math.hypot/atan2 cross-engine bit-equality was not testable here.",
+   "recommendation": "Accumulate real time in PlaySession and step the sim in fixed 1/60 s slices (render interpolates). Cheap, and it makes eval:ai and replay exact.",
+   "fix_cost": "S",
+   "ignore_cost": "Determinism claims hold only for evals that feed a constant dt."
+  },
+  {
+   "id": "S3A-06",
+   "topic": "sim",
+   "kind": "problem",
+   "claim": "Three movement edge cases misbehave: a zero-speed mover stays in 'moving' forever, a pure-vertical hop snaps yaw toward +Z, and the planner counts hops, not metres.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "119",
+     "quote": "  walkSpeedMetersPerSec: z.number().nonnegative().default(1.4),"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "389-391",
+     "quote": "    if (speed <= 0) {\n      if (yawSpeed > 0) {\n        yaw = stepYawTowards(yaw, Math.atan2(dx, dz), yawSpeed * remainingDt);"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r2.ts",
+     "lines": "S4/S5",
+     "quote": "S4 yaw after vertical hop step 1.4 (started 2.0, target atan2(0,0)=0)\nS5 moving"
+    }
+   ],
+   "bites_when": "a statue/zero-speed character given a move; a stair or ladder waypoint pair with equal XZ; a space with one long diagonal edge beside a chain of short ones.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Repro S5: speed 0, dt 1000 -> still 'moving'. S4: yaw drifts toward 0 on a straight-up hop. BFS minimality is by hop count (WaypointNavigator 221-243, no weights); existing test 'prefers the shorter route' only asserts fewer hops.",
+   "recommendation": "Reject or complete zero-speed moves at plan time, skip yaw when dx and dz are both ~0, and switch BFS to Dijkstra on edge length with the same id tie-break.",
+   "fix_cost": "S",
+   "ignore_cost": "Rare stuck NPCs and odd routes that read as AI bugs rather than level-data bugs."
+  },
+  {
+   "id": "S3A-07",
+   "topic": "perf",
+   "kind": "risk",
+   "claim": "Movement is fine today (0.6 ms/frame for 200 movers) but wastes allocation every frame: the grid and a sorted id list are rebuilt even when nobody moves, and the coordinator rebuilds portal gates and per-entity maps each frame.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "574",
+     "quote": "  const sortedEntityIds = Object.keys(state.entities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));"
+    },
+    {
+     "path": "src/domain/simulation/SpatialHashGrid.ts",
+     "lines": "33",
+     "quote": "  return `${String(ix)},${String(iz)}`;"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "305",
+     "quote": "    for (const edge of this.portalEdges) {"
+    },
+    {
+     "path": "cmd: node --import 'data:text/javascript,import{registerHooks}from\"node:module\";registerHooks({resolve(s,c,n){if(s.startsWith(\".\")&&s.endsWith(\".js\")){try{return n(s,c)}catch{return n(s.slice(0,-3)+\".ts\",c)}}return n(s,c)}})' /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3a/r3.ts",
+     "lines": "bench",
+     "quote": "200 entities moving= true ms/frame 0.608\n200 entities moving= false ms/frame 0.094\n500 entities moving= true ms/frame 1.817"
+    }
+   ],
+   "bites_when": "Roughly 500+ embodied bodies on the 2019 i7 (my numbers are from the dev machine, so scale 2-3x), or if presence materializes a crowd in one room.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "Benchmarked 50-500 entities; idle cost is small. Accepted model says Tier 3 holds nothing, so counts should stay small. The grid ignores spaceId, so overlapping local coordinates in two spaces inflate candidates (filtered later).",
+   "recommendation": "Skip the grid when no embodied mover exists, key cells by space, use integer cell keys, and build portal gates only when a portal prop changed. Do nothing else until a room holds 100+ bodies.",
+   "fix_cost": "S",
+   "ignore_cost": "Low; mostly GC pressure on a laptop."
+  },
+  {
+   "id": "S3A-08",
+   "topic": "test",
+   "kind": "gap",
+   "claim": "The movement tests assert behaviour well but never combine truncation with kinematics, never split a run across different dt, and miss the mid-hop states that hide S3A-01 and S3A-02.",
+   "evidence": [
+    {
+     "path": "tests/unit/domain/WaypointNavigator.test.ts",
+     "lines": "215-220",
+     "quote": "  it('clears a far-side hop when the entity is already on the near waypoint', () => {\n    for (const portalState of ['closed', 'barred'] as const) {\n      const path = truncatePathAtClosedPortals('wp_door', [farSide], [door(portalState)]);"
+    },
+    {
+     "path": "tests/unit/domain/KinematicsAndReducer.test.ts",
+     "lines": "436-443",
+     "quote": "describe('SpatialHashGrid', () => {\n  it('returns ids inside 0.75m from the 3\u00d73 neighborhood in ascending order', () => {\n    const grid = new SpatialHashGrid();"
+    }
+   ],
+   "bites_when": "now, for the next refactor of the step function (05d split).",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "The suite is behavioural, with tight numeric asserts (e.g. 4.2 m, 9.5 s leftover) and one test per separation rule. Missing: dt-split invariance property, entity truncated while mid-hop, retarget mid-hop, speed 0, vertical hop, NaN or negative-coordinate grid keys, weighted route choice, and a SpatialHashGrid file (it lives inside the 700-line kinematics file).",
+   "recommendation": "Add a small seeded property test (random path + random dt splits give the same final state for a lone walker), one coordinator-level 'close door mid-hop' test that asserts the blocked outcome, and move grid tests to their own file.",
+   "fix_cost": "S",
+   "ignore_cost": "The two real bugs above stay invisible to the suite."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "Entity ids are sorted before stepping and in the grid query; neighbour sums run in id order, so output does not depend on Object.keys or Map order. Separation reads start-of-step positions, so it is order-independent.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "574",
+     "quote": "  const sortedEntityIds = Object.keys(state.entities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));"
+    },
+    {
+     "path": "src/domain/simulation/SpatialHashGrid.ts",
+     "lines": "80",
+     "quote": "    found.sort(compareCodeUnits);"
+    }
+   ]
+  },
+  {
+   "claim": "Leftover-time carry across phases with epsilon handling and a bounded loop guard; zero-duration phases waterfall without creating or losing time (verified: lone walker timeline identical at 1/60 and 0.05 dt).",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "109-120",
+     "quote": "    const nextRemaining = current.phaseRemainingSeconds - remainingDt;\n    if (nextRemaining > TIME_EPSILON_SECONDS) {"
+    }
+   ]
+  },
+  {
+   "claim": "The navigator is pure, rebuilds the graph per call, and breaks ties by code-unit id order; portal truncation is a separate pass so kinematics never reads portal state.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/WaypointNavigator.ts",
+     "lines": "159",
+     "quote": "    neighbors.set(waypointId, [...neighborIds].sort(compareCodeUnits));"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Fixed-step accumulator with render interpolation",
+   "proposal": "Run the domain at a constant 1/60 s step driven by an accumulator in PlaySession, and let the renderer lerp between the last two states. Entities then produce identical traces for identical inputs regardless of display rate.",
+   "reference": "Glenn Fiedler 'Fix Your Timestep'; every deterministic lockstep game",
+   "replaces_or_changes": "Replaces the raw-dt call in PlaySession and the 0.25 s clamp; makes eval fast-forward a loop count."
+  },
+  {
+   "title": "Motion as a tiny state machine with explicit outcomes",
+   "proposal": "Give each mover a MoveIntent {target, mode, onComplete} and have the step return Arrived | Blocked | Interrupted per entity. Waypoint paths, direct steer and presence snaps are three producers of the same outcome; the behaviour commit consumes only outcomes.",
+   "reference": "Behavior-tree 'Success/Failure/Running' status (Halo 2 / Unreal BT)",
+   "replaces_or_changes": "Replaces the implicit 'path empty means arrived' rule in enterPerformingDwell and fixes S3A-01 structurally."
+  },
+  {
+   "title": "Navmesh-free steering with dwell-site slots",
+   "proposal": "Keep waypoints for room-to-room routing but give each prop/seat a tiny slot list and let direct steer handle the last metre. Avoids waypoint spam for 05d and removes the need for the 0.05 m snap hacks in separation.",
+   "reference": "The Sims / Dwarf Fortress 'use-site' slots; RimWorld interaction cells",
+   "replaces_or_changes": "Changes how arrival is defined; separation snap-radius logic can shrink."
+  }
+ ],
+ "could_not_verify": [
+  "Cross-engine bit-exactness of Math.hypot/atan2/sin/cos (Chrome vs Safari) for saved-state replay.",
+  "Timings are from this dev machine, not a 2019 Intel i7.",
+  "Whether the UI surfaces 'already_there' to the player, which changes how bad S3A-02 feels."
+ ]
+}

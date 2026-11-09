@@ -1,0 +1,52 @@
+[
+ {
+  "id": "RA1",
+  "title": "Fact/Claim/Belief shared store",
+  "proposal": "World owns Facts; anything said/written/posted is a Claim (true or false); each holder has Beliefs with confidence/source/learnedWatch/hops. Gossip is Belief copy with decay along Regard edges per watch. Notebook = player Beliefs; NPC lines generated from speaker Beliefs."
+ },
+ {
+  "id": "RA2",
+  "title": "Act records with observers (Narrative Lego passions)",
+  "proposal": "Every committed behavior writes an Act with motive tag and perceptibility; observers (player, witnesses by room/earshot, remote channels) each receive a rendering; passion tags are the same data as drives/pillars."
+ },
+ {
+  "id": "RA3",
+  "title": "Closed-form diffusion per watch; embodied reaction as the only cascade",
+  "proposal": "Rumor/news spread by a per-watch SIR-style pass over the Belief/Regard graph; only visible reactions go through the 2-hop cascade; storyteller sets an autonomy budget per watch."
+ },
+ {
+  "id": "RA4",
+  "title": "Evidence-coverage eval",
+  "proposal": "Headless eval rolls an epoch on fast pacing and asserts every Act above a weight threshold produces at least one Report or witnessed trace within N watches, and every notebook omission has a referent."
+ },
+ {
+  "id": "RB1",
+  "title": "Evidence-trail discovery instead of a global ladder",
+  "proposal": "Replace the global discoveryLayer with Traces {kind, subjectId, observerFactionId, strength, watchCreated}; layers become derived thresholds per observer; traces decay unless reinforced; rival strikes/trials read traces."
+ },
+ {
+  "id": "RB2",
+  "title": "Stock-flow economy with diegetic tells",
+  "proposal": "Per-district stocks with inflow/outflow per watch (Frostpunk, Dwarf Fortress price drift), shown only through ~3 authored diegetic tells per stock; insertions are flows with a half-life and a Delta price."
+ },
+ {
+  "id": "RB3",
+  "title": "Storyteller as a seeded card deck over a thread state machine",
+  "proposal": "Clock 3 draws authored beats gated by thread phase, tension envelope and recovery floor; threads advance only on a drawn beat or a player verb, never their own timer; F3 pacing lab previews deck order."
+ },
+ {
+  "id": "RC1",
+  "title": "Expansion grammars with SLM-curated terminals",
+  "proposal": "Per-character/per-register Tracery-like grammars whose terminals are model-drafted, human-curated phrase banks; runtime expansion is pure and seeded (Caves of Qud / Dwarf Fortress style)."
+ },
+ {
+  "id": "RC2",
+  "title": "Rerank-only runtime model",
+  "proposal": "At runtime the model never writes; it scores a pool of curated candidates against the LineBrief and picks one, so it cannot hallucinate; the one place a MiniLM-class embedder earns its keep."
+ },
+ {
+  "id": "RC3",
+  "title": "Fact-first generation",
+  "proposal": "Sim emits a proposition (speaker, act, fact ids, tone, tells); a deterministic realiser writes a plain sentence; a model, if used, only restyles it under a gate that all fact ids and names survive."
+ }
+]

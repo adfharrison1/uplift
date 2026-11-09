@@ -1,0 +1,25 @@
+[
+ {
+  "id": "S1-01",
+  "claim": "No document defines a player contract for Epoch 1: what the player is trying to achieve, what verbs act on a thread, how they know they are winning, what an epoch-end evaluation shows, or what failure looks like. 'Leverage Chain' is named but never defined.",
+  "paths": [
+   "DESIGN_NOTES.md",
+   "openspec/config.yaml"
+  ]
+ },
+ {
+  "id": "S1-02",
+  "claim": "The design has no player-facing feedback loop for covert actions: discovery layers, pressure stocks and persecution risk are simulation state, HUD readouts are explicitly banned, and no surface is specified that tells the player an action worked, was noticed, or backfired.",
+  "paths": [
+   "DESIGN_NOTES.md:207",
+   "DESIGN_NOTES.md:144"
+  ]
+ },
+ {
+  "id": "S1-03",
+  "claim": "Roadmap sequencing defers every test of the core fantasy: the first content pack (first office/behavior/thread) is change 11 of 27; the first decision-with-consequence is 07b/07c; utility AI (06), regard (06a), pacing (05b), audio (05a), ONNX (08), orbital (09) and epoch transition (10) are all specified and built against an empty world; writing quality is first tested by a banned-lemma fixture (07e), not a human read.",
+  "paths": [
+   "openspec/config.yaml:120-148"
+  ]
+ }
+]

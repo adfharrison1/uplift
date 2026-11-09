@@ -1,0 +1,87 @@
+[
+ {
+  "id": "S3-01",
+  "claim": "StateSliceStore deep-clones on every get, every withSlice and twice per updateSlice, and the set_state_slice reducer case clones twice more (define + withSlice); append cost is O(total rows), so a 5000-row Act ring already costs ~16 ms per appended row (one whole 60 FPS frame) and 20000 rows ~74 ms.",
+  "paths": [
+   "src/domain/core/StateSliceRegistry.ts:109-110",
+   "src/domain/core/StateSliceRegistry.ts:118",
+   "src/domain/simulation/WorldEffectReducer.ts:461-464"
+  ]
+ },
+ {
+  "id": "S3-02",
+  "claim": "State slices are untyped at the boundary: StateSliceKey carries only id and defaultValue (no schema, no version), the StateSliceRegistry is never consulted by the store or the reducer, set_state_slice accepts any id and any value, and Map/Set slice values survive in memory but are silently emptied by the JSON save; the Act ring and Observation table (evolving, large) cannot be migrated or validated on load.",
+  "paths": [
+   "src/domain/core/StateSliceRegistry.ts:8-11",
+   "src/domain/simulation/WorldState.ts:256-260",
+   "src/infrastructure/persistence/FileSaveSlotRepository.ts:119"
+  ]
+ },
+ {
+  "id": "S3-03",
+  "claim": "The save format has no migration path: SAVE_SLOT_SCHEMA_VERSION is a z.literal(1) on the envelope only, the inner world snapshot is unversioned and guarded by a hand-written type guard that skips discoveryLayer and activeEmergencyId, so the first added WorldState field (elapsedWatches, Act ring, Observation table) either hides every old save or loads it with undefined fields. | loadFromSlot trusts the save over the registry: it never checks epochId against the coordinator, nor that entity, prop and space ids exist in the loaded pack, so a save from pack A loaded into pack B yields a world whose entities are not in registry.getAllCharacters().",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:117-133",
+   "src/application/simulation/SimulationCoordinator.ts:811-815",
+   "src/application/simulation/SimulationCoordinator.ts:817-818",
+   "src/domain/persistence/SaveSlotRepositoryPort.ts:36-36",
+   "src/infrastructure/persistence/FileSaveSlotRepository.ts:160-161"
+  ]
+ },
+ {
+  "id": "S3-04",
+  "claim": "The reducer has no outcome channel: appliedEffects is just the parsed input list, spend_orbital_delta and unknown entity/prop ids throw and abort the whole batch while unknown pillar ids silently no-op, and dispatchEffects silently drops all effects while paused (so the set_paused effect can never unpause and nothing in src dispatches it), so 'reject instead of throw' cannot be added without changing the result type and every call site.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:506",
+   "src/domain/simulation/WorldEffectReducer.ts:325",
+   "src/domain/simulation/WorldEffectReducer.ts:397-399"
+  ]
+ },
+ {
+  "id": "S3-05",
+  "claim": "Any exception inside session.frame permanently kills the render loop, because onFrame schedules the next requestAnimationFrame as its last statement with no try/catch; coordinator code throws freely (RangeError on dt, reducer 'Unknown entityId', TypeError on a malformed loaded entity).",
+  "paths": [
+   "src/interfaces/composition/browserMain.ts:194-194",
+   "src/interfaces/composition/browserMain.ts:215-216"
+  ]
+ },
+ {
+  "id": "S3-06",
+  "claim": "Pause is implemented as 'reject all commands', not 'stop sim time': dispatchEffects returns an empty result with no telemetry while paused, and even the set_paused effect cannot be applied. That contradicts the core model, where advance_watches, Act logging and text freeze happen from menus that pause the room.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:450-452",
+   "src/application/simulation/SimulationCoordinator.ts:506-511"
+  ]
+ },
+ {
+  "id": "S3-07",
+  "claim": "There is no way to test whole-run determinism: no state hash or canonical serialiser exists, naive JSON.stringify of WorldState silently drops every state slice (a Map), the coordinator's SeededRandom is never consumed by any sim code, and the only save test saves at tick 1 before any frame is stepped. | The sim steps with the raw rAF dt, so trajectories, separation slides and phase-change timestamps depend on the frame rate, and logged runs are not replayable.",
+  "paths": [
+   "src/application/shell/PlaySession.ts:184",
+   "src/application/simulation/SimulationCoordinator.ts:324-326",
+   "src/domain/simulation/KinematicsEngine.ts:595",
+   "tests/unit/application/SimulationCoordinator.test.ts:384-384"
+  ]
+ },
+ {
+  "id": "S3-08",
+  "claim": "SeededRandom does not scramble its seed, so small seeds give strongly non-uniform first draws (the coordinator default seed 1 yields first nextFloat 6.3e-5; 16% of seeds 1..1000 have a first float < 0.01 vs ~1% expected), seeds 0, 2^32 and 0x6d2b79f5 alias to one stream, and the single mutable stream lives outside WorldState with no fork/derive API, so any added roll shifts every later roll.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:277",
+   "src/domain/core/SeededRandom.ts:10-16"
+  ]
+ },
+ {
+  "id": "S3-09",
+  "claim": "The frame order lives in the render shell (PlaySession.frame), not the coordinator: there is no coordinator.tick(dt) that runs commands, watch advance, kinematics, cognition and a commit phase, so headless evals and the golden test must re-implement the order, and nothing has a slot for advance_watches, materialize, behaviour commit or text freeze. | SimulationCoordinator mixes at least seven separable jobs, and the save codec lists WorldState fields four separate times by hand, so every new WorldState field must be added in four places and a missed save-side field fails silently.",
+  "paths": [
+   "src/application/shell/PlaySession.ts:184-186",
+   "src/application/simulation/SimulationCoordinator.ts:136-137",
+   "src/application/simulation/SimulationCoordinator.ts:566-568",
+   "src/application/simulation/SimulationCoordinator.ts:697-701",
+   "src/application/simulation/SimulationCoordinator.ts:71-71",
+   "src/application/simulation/SimulationCoordinator.ts:741-756",
+   "src/application/simulation/SimulationCoordinator.ts:95-110"
+  ]
+ }
+]

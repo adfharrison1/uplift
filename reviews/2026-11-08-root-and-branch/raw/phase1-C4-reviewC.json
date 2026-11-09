@@ -1,0 +1,657 @@
+{
+ "issues": [
+  {
+   "severity": "medium",
+   "defer_to": "now",
+   "what": "DESIGN_NOTES L269 (Sound, Neural Lace Bus): lists 'The Lamp's private ethical voice (right ear...)' as carried by a bus, then says 'This bus does not speak'. Contradicts section 9 (no voice acting, bus is non-speech) and config L47, which was already corrected.",
+   "fix": "Reword to 'carries non-speech cues for The Ending (left ear) and The Lamp (right ear, distorted by room smell 1-5)'. Drop the word 'voice'."
+  },
+  {
+   "severity": "low",
+   "defer_to": "now",
+   "what": "DESIGN_NOTES L183 (Generational Operatives) says the new operative arrives '~15-30 years after the previous operative's extraction'. Section 4 (L389) and config L22 define 15-30 years BETWEEN operatives (4-6 yrs work before extraction + 11-24 after).",
+   "fix": "Change to 'arriving 11-24 years after extraction (15-30 years between operatives)'."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "now",
+   "what": "Open-items labels collide with spine rule numbers: L81 'Text-only advisor / writing prototype (R5)' and L79 '(S1-R8)', L82 'route RC/R7', L79/80 '(R8)'. The Rules spine note (L93) says R1-R8 are the only rule numbers, but R5 here is a review route, not 'Emergency cardinality and fuse'. R8 does coincide with spine R8 (Epoch 1 definition of done), but R5 does not.",
+   "fix": "Relabel L81 as 'review route R5' (or drop it and rely on the traceability table). Say once in Open items that bare Rn there means the spine rule only where a rule of that number exists, or use S1-Rn throughout."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "now",
+   "what": "Status index is overbroad. 'Core Rule: epoch-agnostic abstractions' and 'Visual & UI Direction' are marked shipped but contain planned clauses (insertion spends Delta, lab-save caveat, readability rule, later notes). The Core Rule section says the engine accepts EpochProfileBlueprint[] in the present tense, while 'Where facts live' says no epoch-ladder blueprint exists in code (grep confirms: only docs name it). Section 0 is marked planned but Clock 1 (60 Hz stepKinematics) is shipped.",
+   "fix": "Index: set Core Rule and Visual & UI to 'partial' with the planned roadmap ids; set section 0 to 'partial'. In the Core Rule section add 'planned' to the EpochProfileBlueprint[] sentence. C5 then splits shipped from planned paragraphs per system."
+  },
+  {
+   "severity": "low",
+   "defer_to": "now",
+   "what": "Banners in sections 7 and 8 say 'Nothing here is shipped' but the same sections carry inline '(shipped)' tags (walkSpeedMetersPerSec, requestSetPortalState, update_prop_state, paused bit, hinge). L452 'This change clears an open or ajar threshold' is present tense next to '(shipped)' hinge text. The convention is not stated anywhere.",
+   "fix": "Reword banners: 'No behaviour described here is shipped. Names tagged (shipped) are existing code it builds on.' State the (shipped) tag convention once in the header. Rewrite L452 'This change' as 'The locomotion change'."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "now",
+   "what": "config.yaml L31 (F3 debug mode) says in the present tense that debug mode 'Pauses ... watch advancement' and 'morphs the audio bus into a frozen room-tone grain'. Watches and any AudioContext do not exist (L34 and section 6: the page opens no AudioContext). L46-49 (Sound Design: Two-Bus Split, 12 dB dropouts, 174 Hz carrier) has no planned mark on its heading or the bus bullet; only some sub-clauses are tagged.",
+   "fix": "Tag the watch-advancement and audio-morph clauses '(planned: 05b-1-watch-clock-and-time-spend, 05a-audio-engine)'. Add '(planned: 05a-audio-engine, audio-minimal)' to the Sound Design heading, same as DESIGN_NOTES."
+  },
+  {
+   "severity": "low",
+   "defer_to": "now",
+   "what": "config.yaml L102 says storytellerMinWatchScale: 0 was 'added in Change 05b'. 05b was split into 05b-1 and 05b-2, and DESIGN_NOTES L295 says it joins FAST_EVAL_PACING_CONFIG with 05b-2-envelopes-and-gates (planned, not added).",
+   "fix": "Change to 'added by 05b-2-envelopes-and-gates (planned)'."
+  },
+  {
+   "severity": "low",
+   "defer_to": "now",
+   "what": "DESIGN_NOTES L593: 'Pass criteria (the M6 go/no-go point)'. The slice is milestone M5 and gates M6 (roadmap L26, L343). Reads as if the slice is in M6.",
+   "fix": "Reword to 'the go/no-go gate before M6 (the slice is M5)'."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "L288 (Loop cycles, Talking costs time) says the talk cost 'replaces \"reading costs no watch\" in section 10'. Section 10 no longer contains that phrase (L546 says 'Reading one chunk costs no watch; the conversation as a whole is charged once').",
+   "fix": "Delete the stale clause when the talk-cost rule is merged into the clock section."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "C5",
+   "what": "Section 2 (L363-365, L368) triggers on the global discoveryLayer ('advances discoveryLayer to noticed/assayed', 'Triggered when discoveryLayer >= attributed', 'jumps discoveryLayer to theorized'). R4, core-model item 3 and the system graph (L168) say the global layer becomes a per-observer derived view and a rival strike needs an Observation held by that rival. The planned design contradicts itself.",
+   "fix": "In the rewrite, restate section 2 triggers as 'a rival holds an attributed-level Observation of the player'. Keep the layer names as the view vocabulary."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "C5",
+   "what": "The default 7-epoch ladder is stated in full three times (config L10-16, Core Rule L132, section 4 L390-396) while 'Where facts live' (L22) names section 4 the single owner and L18 says other files point at the owner. config L73 also says it 'points at them and does not copy them' while copying R5, the clock decision record, freeze extension, save policy and Leverage Chain. Related skin ladders are also repeated (drone disguises x3, cover-persecution skins x2).",
+   "fix": "One ladder table in the epoch-ladder section. Core Rule and config point at it. Reconcile config L73 by either trimming the copies or saying 'summarises'. Config is not restructured by C5, so list the config trims in the C5 follow-up."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "C5",
+   "what": "'Where facts live' L22 points at 'Section 4 of this file' and the header L3 says 'The sections below the frame are dated and keep their original order'. C5 renumbers and reorders, so both become false.",
+   "fix": "Update the owner row to the new section name (not a number) and rewrite the L3 sentence. Prefer section names over numbers in cross-references, since 41 cross-references use 'section N'."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Mixed legacy change labels inside DESIGN_NOTES: 'Change 04', 'Change 03', 'Change 06', 'Changes 03 & 06', 'Change 10's bindPredecessorTraces', 'Change 06c' versus roadmap ids. Change 06 and Change 10 were split into several ids (06-utility-ai / 06-rivals-remote-evidence..., 10-crew-handoff / 10-registry-swap-and-legacy), so the old labels are ambiguous (L224, L230, L238, L251, L293, L331, L431, L437).",
+   "fix": "Replace with roadmap ids and keep a legacy-label to roadmap-id row in the traceability table."
+  },
+  {
+   "severity": "high",
+   "defer_to": "C5",
+   "what": "Root AGENTS.md (not touched by C4) states as shipped: locomotionMode waypoint/direct and 'a direct body takes a steer', the 0.22 m disc and 0.03 m prop slop, arrival hold, Space proximity use and menu grammar, interactionHold, conversation paging and ambient lines, and npm run eval:ai. DESIGN_NOTES marks all of these planned, and src has no locomotionMode, set_direct_steer or eval/ (grep confirmed). AGENTS.md is the first file an implementer reads. Also its Telemetry bullet says every event and AI trace is logged.",
+   "fix": "Outside C5's file scope. Record it in the traceability table as owned by process-gates-and-ledger and the docs-truth test. If it cannot wait, add a 'planned' tag to those AGENTS.md bullets in a fix-now commit."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "L439 (section 6) says the shipped page click 'is replaced for the player by sections 7 and 8', which reads as done. Sections 7 and 8 are planned.",
+   "fix": "Write 'will be replaced (planned: 05d-input-and-control-frame)'."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Status index prose L73 says a 'Minimal audio' section 'is written by docs-spine-and-roadmap'. No such section exists; the content is a bullet inside Sound Design. The index also lists 'System graph' and 'Rules spine' as planned or partial although both are written in this file.",
+   "fix": "Fold minimal audio into the audio section and delete L73. Use 'written' versus 'implemented' columns or one clear status vocabulary."
+  },
+  {
+   "severity": "medium",
+   "defer_to": "C5",
+   "what": "Storyteller deck L331 says route RC/R7 'is settled by the authored/generated split. Only the storylet-card question is left to this change.' Route RC/R7 is the storylet-card question (authored versus generated cards), so it is both settled and open. Open items L82 repeats the same circularity.",
+   "fix": "Merge into one disposition: settled as authored+pool+generated; the remaining open point is the card grammar in 05b-2-storylets-and-lab."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Sections 1, 2, 3 and 5 have headings with bare change ids in backticks (06a-, 06b-, 09a-, 06c-) instead of '(planned: id)', and no status banner, although the file header says planned behaviour carries a (planned: id) mark. Section 4 and 0 use the mark but have no banner; present-tense prose (e.g. AnomalousSuspectState, isOrbitalSupportAvailable) reads as existing code.",
+   "fix": "Give every system section one status line (shipped / partial / planned plus ids) at the top of the C5 rewrite."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Section 8 puts a 'warm mark' on the proximity target (L468) while the readability rule (L223) reserves signal hues, says mood never carries signal, and the palette uses warm #c4a574 torch pools. Possible clash between target mark and warm environment lighting.",
+   "fix": "Add as an open item for 05d-arrival-hold-readability: choose the mark hue against the reserved-hue list."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Audibility ownership: L266 says the Observation-step change owns the tier rule and audio-engine drops the calculator; L268 says the Groundside Bus 'feeds into the same Audibility & Portal/Mask Occlusion Calculator'; config L48 has the formula. Three phrasings of one owner.",
+   "fix": "Single audibility paragraph in the audio section; others point at it."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Ledger vocabulary: ResourceLedger, Omen Ledger, orbitalContingencyLedger, Dual Legacy Ledgers (materialScars/veilScars), and 'ledger visible' in the end card (11-pass-1-ledger-end-card). L321 only reconciles Omen Ledger.",
+   "fix": "Add a short glossary line to the economy section naming which 'ledger' means what."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "Status index lists 'Local AI Evaluation Testing Framework' and '11. Local AI Eval Framework' as two rows for the same change (05f), and the content exists twice (L236-240 and L581-588). Row for section 4 lists only 10-registry-swap-and-legacy while its heading also names 10-crew-handoff.",
+   "fix": "Merge into one row and one section; fix the section 4 row."
+  },
+  {
+   "severity": "low",
+   "defer_to": "C5",
+   "what": "House style is verbose and repetitive. The banner sentence 'A direction with room to change (P5); read each verb as \"will\"' appears about 10 times (L189, 243, 310, 318, 326, 447, 464, 478, 486, 497, 509, 539, 583, 592); config repeats '[planned - revisable]' 10 times (L35-44); (planned: ...) marks nest two or three per paragraph; headings run past 150 characters; review ids (S1-R5, S2-12, S5-11, S2-05, S4-10, INV-x) sit inline in design prose.",
+   "fix": "State the P5 / 'will' convention once in the header. One status line per section. Move review ids and legacy labels to the traceability table. Cap headings at a short name plus a status mark."
+  }
+ ],
+ "duplication_map": [
+  {
+   "concept": "Epoch ladder (7 epochs) and per-epoch skins",
+   "locations": [
+    "config L10-16",
+    "DESIGN L22 (owner row)",
+    "L131-132 (Core Rule)",
+    "L390-396 (section 4)",
+    "L222 and config L29 (diegetic UI per epoch)",
+    "L141 (comms backbone per epoch)",
+    "L142 (detection tech per epoch)"
+   ]
+  },
+  {
+   "concept": "Drone disguise pool per epoch",
+   "locations": [
+    "config L19",
+    "DESIGN L185",
+    "L409"
+   ]
+  },
+  {
+   "concept": "Cover-persecution ladder skinned per epoch",
+   "locations": [
+    "config L89",
+    "DESIGN L367"
+   ]
+  },
+  {
+   "concept": "Advisor pair (integral / particular) definition",
+   "locations": [
+    "config L17-19",
+    "DESIGN L184-185",
+    "L334",
+    "L372",
+    "L571-574 (10d)"
+   ]
+  },
+  {
+   "concept": "Generational flow 15-30 years, 110-200 in-world years",
+   "locations": [
+    "config L22",
+    "DESIGN L183",
+    "L389",
+    "L397"
+   ]
+  },
+  {
+   "concept": "Seed-exemplar disclaimer",
+   "locations": [
+    "config L20",
+    "DESIGN L205"
+   ]
+  },
+  {
+   "concept": "Lab-save caveat (lab JSON is not loaded until the pack loader) and guarded bridge helper",
+   "locations": [
+    "DESIGN L232 (stage lab)",
+    "L276 (sound lab)",
+    "L307 (pacing lab)",
+    "L439 (play shell)",
+    "L601-606 (bridge lock)",
+    "L643",
+    "config L33, L34, L49, L98"
+   ]
+  },
+  {
+   "concept": "Pause / lab: one freeze bit, lab is a PlaySession flag, free-cam gated on lab mode",
+   "locations": [
+    "DESIGN L111 (R6)",
+    "L471 (section 8)",
+    "L439 (section 6, shipped F3 setPaused)",
+    "config L31",
+    "root AGENTS.md (Player pause)"
+   ]
+  },
+  {
+   "concept": "Leverage Chain / weaken_support / pillars bearsOnThreadId and supportedBy",
+   "locations": [
+    "DESIGN L108 (R3)",
+    "L121-124 (player loop)",
+    "L140 (pillars row)",
+    "L160 (section)",
+    "index L61",
+    "config L90"
+   ]
+  },
+  {
+   "concept": "Save policy (autosave at watch boundaries, any earlier save, notebook in save, keyed rolls, ironman parked)",
+   "locations": [
+    "DESIGN L83",
+    "L286",
+    "L493",
+    "L638",
+    "config L61"
+   ]
+  },
+  {
+   "concept": "P5 'direction with room to change' lines",
+   "locations": [
+    "DESIGN L3, L13, L93, L146, L285",
+    "status banners L189, 243, 310, 318, 326, 478, 486",
+    "L591",
+    "config L119 and 'planned - revisable' tags L35-44"
+   ]
+  },
+  {
+   "concept": "Clock decision record (elapsedWatches, advance_watches, worldTick is a serial, *Ticks to *Watches, 1/60 fixed step)",
+   "locations": [
+    "DESIGN L106 (R1)",
+    "L149 (core model 1)",
+    "L295",
+    "L299",
+    "L613 (fixed step)",
+    "config L96"
+   ]
+  },
+  {
+   "concept": "4-clock hierarchy and loop cycles",
+   "locations": [
+    "config L95-98",
+    "DESIGN L291-299",
+    "L285-288",
+    "L252 (cognition phases)"
+   ]
+  },
+  {
+   "concept": "Conversation costs time / charged once / chunk free / ambient line free",
+   "locations": [
+    "config L38",
+    "DESIGN L286",
+    "L288",
+    "L294",
+    "L546",
+    "L550"
+   ]
+  },
+  {
+   "concept": "Anti-thundering-herd and pacing config",
+   "locations": [
+    "config L99-102 and L95",
+    "DESIGN L254-262"
+   ]
+  },
+  {
+   "concept": "Act record, effect envelope, causeActId, keyed roll(worldSeed, streamKey, counter)",
+   "locations": [
+    "DESIGN L107 (R2)",
+    "L150 (core model 2)",
+    "L257 (item 3)",
+    "L259",
+    "L612",
+    "L638"
+   ]
+  },
+  {
+   "concept": "Observation table: merged Report/Trace/Belief, discoveryLayer as derived view, set_discovery_layer shim",
+   "locations": [
+    "DESIGN L109 (R4)",
+    "L151 (core model 3)",
+    "L168 (system graph)",
+    "L488-493 (notebook)",
+    "config L85"
+   ]
+  },
+  {
+   "concept": "Belief maths: noisy-OR, BeliefView, belief-conditioned utility, misbelief for P4, player style counters",
+   "locations": [
+    "DESIGN L245-249",
+    "L530-533 (INV-B, INV-C, INV-E)",
+    "L247 and L594 (slice not belief-conditioned)"
+   ]
+  },
+  {
+   "concept": "Ship Mind forecast banded closed form (INV-D)",
+   "locations": [
+    "DESIGN L385",
+    "L532",
+    "L85 (parked)"
+   ]
+  },
+  {
+   "concept": "Macro-lever owner sentence (every macro lever interacted with and aware of)",
+   "locations": [
+    "DESIGN L201 (rivals)",
+    "L315 (presence)",
+    "config none"
+   ]
+  },
+  {
+   "concept": "tellProfile post-pass and rival tells",
+   "locations": [
+    "DESIGN L197-201",
+    "L200",
+    "L513",
+    "L523",
+    "config L84"
+   ]
+  },
+  {
+   "concept": "Emergency scope and fuse (R5)",
+   "locations": [
+    "DESIGN L110 (R5)",
+    "L143 (table row)",
+    "L323 (ledger)",
+    "config L91"
+   ]
+  },
+  {
+   "concept": "Delta spend requires zenith / insertion rejected otherwise (R7)",
+   "locations": [
+    "DESIGN L112 (R7)",
+    "L138 (table row)",
+    "L142 (orbital pass row)",
+    "L173 (system graph)"
+   ]
+  },
+  {
+   "concept": "Freeze extension standing rule",
+   "locations": [
+    "DESIGN L115",
+    "L643",
+    "config L72"
+   ]
+  },
+  {
+   "concept": "Local AI eval runner and what it scores",
+   "locations": [
+    "DESIGN L236-240",
+    "L581-588",
+    "config L43",
+    "root AGENTS.md",
+    "index rows L41 and L56"
+   ]
+  },
+  {
+   "concept": "Voice-register evals and 'voice is a written register'",
+   "locations": [
+    "DESIGN L239",
+    "L502",
+    "L576-579 (10e)",
+    "config L37, L44"
+   ]
+  },
+  {
+   "concept": "Tone blips (not speech)",
+   "locations": [
+    "DESIGN L265",
+    "L481",
+    "L505",
+    "config L37"
+   ]
+  },
+  {
+   "concept": "Audibility formula and three tiers",
+   "locations": [
+    "DESIGN L266",
+    "L268",
+    "L550",
+    "L351",
+    "config L48"
+   ]
+  },
+  {
+   "concept": "Text pipeline / P2 / TextSourcePort / LineBrief / gate / no free-text input",
+   "locations": [
+    "DESIGN L11 (P2)",
+    "L55 config",
+    "L240",
+    "L330",
+    "L507-535",
+    "L81-82",
+    "config L55"
+   ]
+  },
+  {
+   "concept": "Impatient ambient line at ~6 s, slide at ~12 s",
+   "locations": [
+    "DESIGN L454",
+    "L541",
+    "L549",
+    "config L35"
+   ]
+  },
+  {
+   "concept": "Camera capture and return",
+   "locations": [
+    "DESIGN L455",
+    "L538",
+    "L680 (dispositions)",
+    "L681"
+   ]
+  },
+  {
+   "concept": "Telemetry policy (Act log versus telemetry, replay with tracing, logger rotation, wiring)",
+   "locations": [
+    "DESIGN L646-650",
+    "config L58-59",
+    "root AGENTS.md"
+   ]
+  },
+  {
+   "concept": "Review gates text",
+   "locations": [
+    "DESIGN L27 (owner row)",
+    "config L128-148, L191, L194, L198",
+    "root AGENTS.md"
+   ]
+  },
+  {
+   "concept": "Direct locomotion, proximity use, paging, interruption, pretext, fund, advisor omission, eval, voice register summaries",
+   "locations": [
+    "config L35-44",
+    "DESIGN L445-579"
+   ]
+  },
+  {
+   "concept": "Play shell description",
+   "locations": [
+    "config L34",
+    "DESIGN L435-443"
+   ]
+  },
+  {
+   "concept": "3-layer visual framework and DOM mirror",
+   "locations": [
+    "config L32-33",
+    "DESIGN L224-233"
+   ]
+  },
+  {
+   "concept": "Communications-backbone ownership (Glass River Gorge / Highglass Optics)",
+   "locations": [
+    "DESIGN L141",
+    "L273"
+   ]
+  },
+  {
+   "concept": "Past advisors in later epochs / crew handoff",
+   "locations": [
+    "DESIGN L89",
+    "L407"
+   ]
+  },
+  {
+   "concept": "Storylet cards: authored versus generated (route RC/R7)",
+   "locations": [
+    "DESIGN L82",
+    "L331"
+   ]
+  },
+  {
+   "concept": "Presence function and watch jumps",
+   "locations": [
+    "DESIGN L152 (core model 4)",
+    "L286",
+    "L309-315",
+    "L458"
+   ]
+  }
+ ],
+ "c5_outline": [
+  {
+   "section": "0. Front matter: conventions, Where facts live, Status index",
+   "moves_in": [
+    "L1-3 header (rewritten: state P5 and 'will' once, define (shipped)/(planned: id) tags)",
+    "L16-28 Where facts live (update section pointers)",
+    "L30-73 Status index (regenerate per new section; merge duplicate eval rows; drop L73)",
+    "new traceability table (S/A/INV ids, legacy Change labels to roadmap ids, review labels)"
+   ]
+  },
+  {
+   "section": "1. Frame and pillars",
+   "moves_in": [
+    "L5-14 Pillars (verbatim)",
+    "L117-124 Player loop (minimal)",
+    "L204-217 Seed exemplars and tone benchmarks (verbatim; tone section stays as a named subsection)",
+    "config-only concept paragraphs by reference, not copy"
+   ]
+  },
+  {
+   "section": "2. Rules spine and engineering rules",
+   "moves_in": [
+    "L91-115 Rules spine R1-R8 and standing freeze rule",
+    "L597-666 Engineering rules: bridge lock, determinism, interpolation, step phases, legacy clamp, state/saves/pack identity, launch validation, telemetry policy, tests and builders, layer-test blind spots, scripted command log, allocation note",
+    "L643 freeze-extension duplicate merged into L115"
+   ]
+  },
+  {
+   "section": "3. Core model",
+   "moves_in": [
+    "L127-144 Core Rule: epoch-agnostic abstractions table (shipped versus planned split)",
+    "L146-157 Seven primitives",
+    "L159-160 Leverage Chain",
+    "L162-180 System graph (kept as status appendix, 'written' not 'planned')",
+    "L309-315 Presence model",
+    "L317-323 Resource ledger"
+   ]
+  },
+  {
+   "section": "4.1 Systems: clock and time",
+   "moves_in": [
+    "L282-288 Loop cycles",
+    "L290-307 Section 0 (4-clock, decision record, envelopes, Pacing Lab)",
+    "L325-331 Storyteller deck and thread gates",
+    "L251-262 pacing config and fast-eval override"
+   ]
+  },
+  {
+   "section": "4.1b Systems: epoch ladder and operative rotation",
+   "moves_in": [
+    "L387-410 Section 4 (the single ladder table, compression, ceilings, stills, kin_claim/fresh_start, P3, legacy clamp)",
+    "L131-132 and config ladder as pointers",
+    "L182-186 Generational Operatives (operative part)"
+   ]
+  },
+  {
+   "section": "4.2 Systems: NPC minds and belief",
+   "moves_in": [
+    "L251-259 cognition phases, cascades, Act record, diffusion",
+    "L242-249 Belief and misbelief",
+    "L333-352 Section 1 Regard web and Romantasy",
+    "INV-B, INV-C, INV-E, INV-F from L530-534 merged here"
+   ]
+  },
+  {
+   "section": "4.3 Systems: economy and levers",
+   "moves_in": [
+    "L137-144 offices, instruments, stocks, pillars, emergencies, ledgers rows",
+    "L317-323 Resource ledger",
+    "L354-368 Section 2 assassination and cover persecution (restate triggers per observer)",
+    "L370-385 Section 3 contingencies and Ship Mind forecast (with INV-D)"
+   ]
+  },
+  {
+   "section": "4.4 Systems: text pipeline, conversation and AI eval",
+   "moves_in": [
+    "L495-505 Section 9 bubbles and tone blips",
+    "L507-535 Text pipeline P2 with INV-A",
+    "L537-579 Sections 10 and 10a-10e",
+    "L236-240 and L581-588 merged AI eval framework",
+    "L535 Writing Desk line"
+   ]
+  },
+  {
+   "section": "4.5 Systems: advisors and lace",
+   "moves_in": [
+    "L182-186 Advisory pair and duel",
+    "L188-193 Inference trails and signposting",
+    "L485-493 Lace-log notebook",
+    "L571-574 (10d) omission"
+   ]
+  },
+  {
+   "section": "4.6 Systems: rivals",
+   "moves_in": [
+    "L195-202 Competing Spacefaring Civilizations (verbatim tells)",
+    "tellProfile and macro-lever sentence (one copy of L201/L315)",
+    "L374 Rival Unveiling from section 3",
+    "L365 rival strike"
+   ]
+  },
+  {
+   "section": "4.7 Systems: presentation (camera, input, readability, accessibility)",
+   "moves_in": [
+    "L219-234 Visual and UI direction, labs, DOM mirror",
+    "L435-443 Section 6 Play shell (shipped)",
+    "L445-460 Section 7 Direct locomotion (planned) incl. camera capture",
+    "L462-475 Section 8 Proximity use and menus (planned)",
+    "L477-483 Accessibility and Settings",
+    "readability rule L223"
+   ]
+  },
+  {
+   "section": "4.8 Systems: audio",
+   "moves_in": [
+    "L264-276 Sound design and Sound Lab (single audibility paragraph)",
+    "audio-minimal text from L73 and L265",
+    "non-speech lace bus (fix L269)"
+   ]
+  },
+  {
+   "section": "5. Planned features by milestone",
+   "moves_in": [
+    "L412-433 Section 5 travel vignettes (M6)",
+    "L590-595 Vertical slice (M5)",
+    "roadmap-ordered stubs for 06a, 06b, 09a, 10, 07a-07e pointing at their systems",
+    "pointers only; no duplicated rules"
+   ]
+  },
+  {
+   "section": "6. Open, parked and dispositions",
+   "moves_in": [
+    "L75-89 Open, deferred and parked (fix R5/R8 labels, merge storylet-card item)",
+    "L87-89 Ideas not scheduled",
+    "L668-697 Dispositions appendix",
+    "L24 inbox pointer note"
+   ]
+  }
+ ],
+ "verbatim_exemplars": [
+  "Pillars P1-P5 wording (L9-14), including 'De-weighted' line",
+  "Important Note on seed exemplars (L205)",
+  "Highglass Hold location prose: Glass River Gorge, Calder Spines, Highglass obsidian and fulgurite, the five regional powers (L207)",
+  "Sorrel and Pell, Vane, Orin, Mara character exemplars (L209-212)",
+  "Threads A-D: The Third Moon Falls, The Open Martyr / The Eager Successor, Legion Debt / The Toll War, The Fen Cough / Scapegoat Geometry (L214-217)",
+  "Rival tells: The Tithe (earn/deserve/soft/cull, clean round numbers '100 dead'), The Quiet (agentless passive voice 'It was decided', missing paragraphs, deleted rumor slots), House Reciprocal (double-entry speech 'in consideration of', rumors faster than transit) (L197-199)",
+  "Advisor exemplars: GCU I Have Read Your Diary And The Ending Is Fine / The Ending, Hesje-Tuom Fohristi / The Lamp, 'expected bowls of soup', non-round probabilities like 0.73, room smell scored 1-5, Epoch 1 disguise pool (L184-185)",
+  "Illicit instrument and office exemplars: Pure Bullion, Counterfeit Coin, Impossible Cut Gem; Court Physician, Foundry Inspector, Prelate's Confessor, Master of Coin (L137-138)",
+  "Contingency pool prose: five events with their descriptive names (L376-380)",
+  "Extraction still four beats (L402) and travel surface cue seed exemplars (L433)",
+  "Palette and style benchmarks: #1a1f28, #c4a574, -30% desaturation, stage-paint chiaroscuro, FFVII / Disco Elysium / Inside camera, Obra Dinn cues, TF2 silhouette, Elder Scrolls dialogue, Pendragon torn flag, RimWorld waveform, Last Express (L220-222, L272, L342, L414)",
+  "Verbatim owner quotes: S1-R2 indirect feedback (L191), macro-lever sentence (L201/L315), notebook definition (L488), camera capture quote (L455), tone blip quote (L505), P3 crew quote (L407), onboarding and R8 open quotes (L79-80), Owner: cost of talking comes from the world (L283), INV verdict and JEV stipulation (L517, L528)",
+  "Raw-note dispositions table rows (L674-681) and rejected-options table (L687-697)"
+ ]
+}

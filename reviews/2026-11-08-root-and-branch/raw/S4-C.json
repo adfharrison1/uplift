@@ -1,0 +1,373 @@
+{
+ "findings": [
+  {
+   "id": "S4C-01",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "The disk logger truncates both log files whenever it is constructed or a session is started, and it stamps time on arrival, so wiring browser telemetry (S1-R11) as the logger stands will destroy the crash it exists to record: any dev-server restart or page reload wipes the previous session.",
+   "evidence": [
+    {
+     "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+     "lines": "245-247",
+     "quote": "    mkdirSync(this.logsDir, { recursive: true });\n    this.writeAtomic(this.activeLogPath, '');\n    this.writeAtomic(this.compactedLogPath, '');"
+    },
+    {
+     "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+     "lines": "207-207",
+     "quote": "    this.startNewSession(initialSessionId, clock);"
+    },
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "414-414",
+     "quote": "      telemetry ??= new NdjsonSessionTelemetry(logsDir);"
+    },
+    {
+     "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+     "lines": "278-279",
+     "quote": "        timestampIso: this.clock.nowIso(),\n        elapsedSessionMs: this.clock.elapsedSessionMs(),"
+    },
+    {
+     "path": "cmd: probe (scratch s4c/probe1.mjs) record one crash event, then construct a second NdjsonSessionTelemetry on the same dir (what configureServer does on the next `npm run dev`)",
+     "lines": "-",
+     "quote": "A before restart bytes 225\nA after restart bytes 0"
+    }
+   ],
+   "bites_when": "The first time a crash is investigated after R11 lands: restart `npm run dev` (or the browser POSTs /api/telemetry/session on load) and the evidence is gone. Also the day batching is added, since all events in a batch get the arrival time.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Looked for an archive/rotate step, a per-session file name, or a guard that skips truncation when the file is non-empty. None exists; the constructor always calls startNewSession. Reproduced the wipe with a throwaway probe.",
+   "recommendation": "Constructor must never truncate: append to, or rotate, the previous session into logs/prev/<timestamp>.jsonl (keep last N), and truncate only on an explicit new-session call. Let the client send occurredAt (elapsed sim ms plus worldTick) and keep the server stamp only as receivedAt, and add a client-side crash path (window.onerror, unhandledrejection, the rAF catch from S3-05) that posts level 'crash' via sendBeacon-style flush.",
+   "fix_cost": "S",
+   "ignore_cost": "The debugging channel the whole uplift-debug workflow depends on silently erases itself at the moment you need it."
+  },
+  {
+   "id": "S4C-02",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "The disk bridge has no Origin, Content-Type or token check, so any web page the developer has open can fire simple cross-origin POSTs at localhost:5173 and wipe or poison the logs; today PUT/DELETE and DNS rebinding are blocked only by browser preflight and Vite's own host check, not by the bridge.",
+   "evidence": [
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "417-424",
+     "quote": "      server.middlewares.use((req, res, next) => {\n        const url = req.url ?? '/';\n        if (!isBridgeApiUrl(url)) {\n          next();\n          return;\n        }\n\n        void readRequestBody(req, maxBodyBytes)"
+    },
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "166-174",
+     "quote": "    if (pathname === '/api/telemetry/session') {\n      if (method !== 'POST') {\n        return { statusCode: 405, body: { error: 'Method not allowed' } };\n      }\n      const parsed = safeParseJsonWithSchema(req.rawBody ?? '', StartSessionRequestSchema);\n      if (!parsed.success) {\n        return { statusCode: 400, body: { error: parsed.error.message } };\n      }\n      telemetry.startNewSession(parsed.data.sessionId);"
+    },
+    {
+     "path": "cmd: real Vite 8.3.5 on 127.0.0.1:5199 with the real plugin (scratch s4c/srv.mjs); curl -X POST /api/telemetry/session -H 'Origin: http://evil.example' -H 'Content-Type: text/plain' -d '{\"sessionId\":\"pwned\"}' after a prior batch had written 245 bytes",
+     "lines": "-",
+     "quote": "HTTP/1.1 200 OK\n{\"sessionId\":\"pwned\"}       0 logs/current-session.compacted.jsonl\n       0 logs/current-session.jsonl"
+    },
+    {
+     "path": "cmd: same server; curl -X OPTIONS /api/scene-blueprints/x -H 'Origin: http://evil.example' -H 'Access-Control-Request-Method: PUT'",
+     "lines": "-",
+     "quote": "HTTP/1.1 204 No Content\nVary: Origin, Access-Control-Request-Headers\nAccess-Control-Allow-Methods: GET,HEAD,PUT,PATCH,POST,DELETE"
+    },
+    {
+     "path": "cmd: same server; curl -X POST /api/telemetry/compact -H 'Host: evil.example:5199'",
+     "lines": "-",
+     "quote": "HTTP/1.1 403 Forbidden"
+    },
+    {
+     "path": "vite.config.ts",
+     "lines": "4-4",
+     "quote": "    host: '127.0.0.1',"
+    }
+   ],
+   "bites_when": "Now for log wipe/poison/disk-fill via text/plain POSTs (reproduced). Becomes a source-tree write the moment any POST write route is added (the S2-08 authoring-kit draft/accept flow is the obvious candidate), or anyone sets server.host/allowedHosts to true to test on a phone or a friend's machine.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Probed rather than assumed. Path traversal: every encoded/backslash/dotdot id rejected. Body cap: a chunked 300 KB body with no Content-Length got 413. Host: rebinding Host header got 403 because Vite 8 registers hostValidationMiddleware before configureServer hooks (node_modules/vite/dist/node/chunks/node.js:25058 vs 25064). Cross-origin PUT/DELETE: the OPTIONS reply carries no Access-Control-Allow-Origin for the evil origin, so a browser blocks the real request. Only simple POSTs (text/plain, no preflight) get through. Chrome's Private Network Access may block public-to-localhost fetches on some versions; not relied on.",
+   "recommendation": "In the middleware, before reading the body: reject any request whose Origin header is present and not exactly http://127.0.0.1:<port> or http://localhost:<port>; require Content-Type: application/json on POST/PUT; require a per-run random token (generated in configureServer, injected into index.html via transformIndexHtml, sent as a custom header, which also forces a preflight); assert Host equals the bound address instead of trusting Vite. Also destroy the request once the cap is exceeded (readRequestBody keeps consuming the whole stream), and have GET asset routes use lstat and refuse symlinks (probe: a stages/evil.json symlink to /etc/hosts echoed '##\\n# Host' in the parse error).",
+   "fix_cost": "S",
+   "ignore_cost": "A drive-by page can erase your session log today and can write into the repo through the first write route you add later."
+  },
+  {
+   "id": "S4C-03",
+   "topic": "ai",
+   "kind": "risk",
+   "claim": "The rule 'every AI input/output/reasoning trace logs' and the Act ring are the same event stream recorded twice, and the compactor keeps every AI trace and every high-signal category verbatim, so telemetry volume scales with NPC count times evaluations times Observation fan-out, not with anything the developer reads.",
+   "evidence": [
+    {
+     "path": "AGENTS.md",
+     "lines": "65-65",
+     "quote": "- **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` (50 MiB active cap / 500 MiB compacted cap) with rolling compaction and `.agents/skills/uplift-debug/SKILL.md`."
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/02-systems.md",
+     "lines": "23-23",
+     "quote": "2. **Act**: a single ground-truth event `{id, actorId, verb, objectRef, motiveTag, spaceId, watch, perceptibility}` kept in a bounded ring slice."
+    },
+    {
+     "path": "src/domain/telemetry/SessionTelemetryPort.ts",
+     "lines": "143-146",
+     "quote": "  if (entry.aiReasoning !== undefined) {\n    return true;\n  }\n  return PRESERVED_TELEMETRY_CATEGORIES.has(entry.category);"
+    },
+    {
+     "path": "cmd: probe (scratch s4c/probe2.mjs) 200-event batches, half carrying an 8-candidate aiReasoning, until the active file hit 50 MiB",
+     "lines": "-",
+     "quote": "events 65600 active MiB 50.1"
+    }
+   ],
+   "bites_when": "The Act ring and Observation table exist and the utility AI (06) emits a trace per evaluation. At about 800 bytes per traced event (probe: 50.1 MiB / 65.6k events), 40 NPCs evaluating once a second is roughly 115 MB per hour, all non-collapsible; a macro watch that fans each Act into several Observations multiplies that. Past 500 MiB the oldest AI traces are evicted first, which is the start of the run you are trying to debug.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Checked whether telemetry is already sampled or derived: the port records raw inputs only, there is no sampling, and no producer exists yet, so the volume figure is an extrapolation from measured per-event size and assumed rates, not a measured session.",
+   "recommendation": "Make the Act log the single source of truth for what happened (persist it, spill evicted ring entries to disk, key every row by actId). Reserve telemetry for out-of-band facts: warn/error/crash, frame-time spikes, state-hash checkpoints every N frames. Make decision traces opt-in per actor or per watch and by default recorded only for Tier-1 actors, and reproduce the rest by replaying the deterministic command log with tracing on (see routes).",
+   "fix_cost": "M",
+   "ignore_cost": "Either the log silently becomes the largest file in the repo and the first casualty of its own cap, or you stop logging AI traces to save disk and lose the feature."
+  },
+  {
+   "id": "S4C-04",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "Compaction is a synchronous read-parse-rewrite of both whole files inside the Vite request handler, repeats on every batch while the window cannot shrink the file, and the failure paths (disk full, torn append) are untested and lossy; the '100% Preserved Verbatim' claim in the skill is false at the cap.",
+   "evidence": [
+    {
+     "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+     "lines": "286-291",
+     "quote": "    appendFileSync(this.activeLogPath, payload, 'utf8');\n    this.activeLogBytes += Buffer.byteLength(payload, 'utf8');\n\n    if (this.activeLogBytes > this.budget.maxActiveLogBytes) {\n      this.compact(this.budget.defaultRetentionWindowMs);"
+    },
+    {
+     "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+     "lines": "297-300",
+     "quote": "    const activeRecords = this.readFileRecords(this.activeLogPath).filter(\n      (r): r is TelemetryEntry => r.recordType === 'event',\n    );\n    const existingCompacted = this.readFileRecords(this.compactedLogPath);"
+    },
+    {
+     "path": "src/infrastructure/telemetry/RollingLogCompactor.ts",
+     "lines": "329-329",
+     "quote": "  const cutoffElapsedMs = maxElapsedMs - retentionWindowMs;"
+    },
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "356-358",
+     "quote": "  } catch (error) {\n    const message = error instanceof Error ? error.message : 'Bad request';\n    return { statusCode: 400, body: { error: message } };"
+    },
+    {
+     "path": ".agents/skills/uplift-debug/SKILL.md",
+     "lines": "17-17",
+     "quote": "  - **100% Preserved Verbatim**: All `warn`, `error`, and `crash` records, all records with `aiReasoning`, and all records in high-signal categories"
+    },
+    {
+     "path": "cmd: probe (scratch s4c/probe2.mjs) compact() on a real 50.1 MiB active log, twice",
+     "lines": "-",
+     "quote": "compact ms 1191 compacted MiB 0.0 rss MiB 555\n2nd compact ms 1129 rss MiB 600"
+    },
+    {
+     "path": "cmd: probe (scratch s4c/probe1.mjs C) 6000 warn events past a 300 KB compacted cap, after one early error event",
+     "lines": "-",
+     "quote": "C early error survives warn flood? 0 compacted bytes 299758"
+    }
+   ],
+   "bites_when": "When browser telemetry is wired and a session reaches the 50 MiB trigger: every pass freezes the dev server (HMR and all bridge routes) for about a second per 50 MiB, rising with the compacted file, which is re-parsed and re-stringified whole each time; if 50 MiB lands inside the 60 s window it repeats on every batch. Disk full: appendFileSync throws after sequence was already advanced, the handler reports it as HTTP 400 'Bad request' and nothing retries or surfaces it. A killed process mid-append leaves a line with no newline, and the next append is concatenated onto it, destroying one valid record (code reading, not probed).",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "The compacted file is written before the active file, so a crash between them duplicates events rather than losing them, and the rename-based writeAtomic prevents half-written files; both are good. I did not run a 500 MiB case (a read-parse-join of that size is near V8's string limit and several GB of heap); treat the 500 MiB cap as unvalidated.",
+   "recommendation": "Switch to size-rotated segments (log.0001.jsonl ...) with a tiny in-memory index, so compaction becomes 'summarise the oldest segment, delete it' and never rewrites the world; prefix every append with a newline guard; map ENOSPC to a visible warning and a dropped-count record rather than a 400. Lower the caps to what a session really needs (a few tens of MiB) and fix the skill sentence to say eviction can drop old warn/error records.",
+   "fix_cost": "M",
+   "ignore_cost": "Telemetry becomes a periodic multi-second stall of the dev server exactly when sessions get long enough to matter."
+  },
+  {
+   "id": "S4C-05",
+   "topic": "process",
+   "kind": "risk",
+   "claim": "The 133 tests are mostly real behaviour tests, but they are packed into a few monolithic 'it' blocks (EpochModuleRegistry has 5 cases in 780 lines, 46 expects) built from hand-pasted full-structure fixtures, so the core model and hardening batch will break whole files at once instead of one assertion, and a failure will not say which behaviour regressed.",
+   "evidence": [
+    {
+     "path": "tests/unit/domain/EpochModuleRegistry.test.ts",
+     "lines": "6-6",
+     "quote": "  it('registers a valid epoch module pack across all blueprint families and sorts behaviors topologically', () => {"
+    },
+    {
+     "path": "tests/unit/application/SimulationCoordinator.test.ts",
+     "lines": "384-384",
+     "quote": "  it('saves and loads complete WorldState, RNG state, custom slices, and Dual-Ledger CivilizationLegacyState atomically', () => {"
+    },
+    {
+     "path": "tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts",
+     "lines": "20-20",
+     "quote": "  it('builds a Three.js stage scene graph with all 6 canonical motifs, god-rays, props/portals, and character kitbash parts tagged with userData.semanticId', () => {"
+    },
+    {
+     "path": "cmd: wc/grep over tests/ (24 files, 133 tests)",
+     "lines": "-",
+     "quote": "tests/unit/domain/EpochModuleRegistry.test.ts 780 lines, 5 it()\ntests/unit/application/SimulationCoordinator.test.ts 781 lines, 9 it()\ntests/unit/application/SceneVisualBlueprints.test.ts 533 lines, 3 it()"
+    }
+   ],
+   "bites_when": "When the hardening batch lands: StateSliceStore typing/versioning (S3-02), the outcome channel (S3-04), the fixed-step accumulator (S3-07) and the effect envelope with actor/cause (S2-02) all change the WorldState shape and the effect literals pasted through SimulationCoordinator.test.ts (save/load, pacing cap, cascade tests), KinematicsAndReducer.test.ts and PlaySession.test.ts. Expect those three files to need near-total rewrites. The pure-schema files (SceneVisualBlueprints, EpochModuleRegistry) will break only when blueprints change, which P1 says is often.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Sampled instead of assuming: PlaySession, PlayInput, StarterHoldStage and WaypointNavigator tests are small and assert outcomes (door bars the crossing, ambient hold), i.e. good behaviour tests; the layer-boundary and Highglass-id grep tests are cheap, valuable guards; there are zero snapshot tests. So the volume is not padding. The risk is shape, not count.",
+   "recommendation": "Before the hardening batch, add three shared builders (makeRegistry, makeWorldState, makeStageBlueprint) under tests/support and split each mega-case into one behaviour per 'it' with the builder doing the setup. Treat the new golden-run hash as the broad regression net so unit tests can assert narrow facts. Do the split as part of each hardening step's own test change, not as a separate refactor.",
+   "fix_cost": "M",
+   "ignore_cost": "Each hardening step spends its time re-pasting fixtures, and the temptation is to delete red tests rather than repair them."
+  },
+  {
+   "id": "S4C-06",
+   "topic": "process",
+   "kind": "gap",
+   "claim": "Several load-bearing behaviours have no test at all, and a few existing assertions test nothing: the bridge middleware that actually runs, the browser frame loop, torn/disk-full logging, and the committed telemetry caps are only checked by restating the constant.",
+   "evidence": [
+    {
+     "path": "tests/unit/interfaces/LocalDiskBridge.test.ts",
+     "lines": "39-40",
+     "quote": "    const plugin = localDiskBridgePlugin({ logsDir: tempLogsDir, savesDir: tempSavesDir });\n    expect(plugin.name).toBe('uplift-local-disk-bridge');"
+    },
+    {
+     "path": "tests/unit/infrastructure/NdjsonSessionTelemetry.test.ts",
+     "lines": "237-237",
+     "quote": "    expect(DEFAULT_MAX_ACTIVE_LOG_BYTES).toBe(50 * 1024 * 1024);"
+    },
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "425-431",
+     "quote": "    expect(skillContent).toContain('composer-2.5-fast');\n    expect(skillContent).toContain('grok-4.7-high-fast');\n    expect(skillContent).toContain('## 3. Integration');\n    expect(skillContent).toContain('DESIGN_NOTES.md');\n    expect(skillContent).toContain('openspec/config.yaml');\n    expect(skillContent).toContain('## 4. Final assessment');\n    expect(skillContent).toContain('Wait for approval before editing any living doc.');"
+    }
+   ],
+   "bites_when": "Now for the untested list: (1) the Vite middleware path (readRequestBody, the 413 branch, the .catch to 500, the next() passthrough) is never executed by any test, only the pure handler is; (2) no test for Origin/Content-Type rejection because none exists; (3) browserMain's rAF loop and error path (S3-05 reproduces the throw but nothing guards the fix); (4) NdjsonSessionTelemetry with a torn final line followed by an append, ENOSPC, or a second construction on a non-empty dir (S4C-01); (5) compaction idempotence and 'compact twice equals compact once'; (6) CLI entrypoint output on an empty or missing logs dir (today prints nothing and exits 0); (7) save-then-resume through the real browser composition, not only SimulationCoordinator. Tautologies: the constant-restating cap assertion and the SKILL.md/DESIGN_NOTES string-contains tests, which fail on a reworded heading and never on a wrong behaviour; the 'DESIGN_NOTES.md' and agent-model-name strings are churn bait.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Searched tests/ for readRequestBody, configureServer, middlewares and found only plugin.name. Slice 3's sim-core test gaps (S3-17) were excluded.",
+   "recommendation": "Add one middleware-level test using a real node http server on 127.0.0.1:0 with the plugin's handler wired (covers 413, 500, passthrough, and later Origin checks). Delete the constant-restating assertions and reduce the SKILL/doc string tests to existence plus frontmatter name.",
+   "fix_cost": "S",
+   "ignore_cost": "The security fix in S4C-02 ships with no regression test, and the doc-string tests keep failing on harmless edits."
+  },
+  {
+   "id": "S4C-07",
+   "topic": "docs",
+   "kind": "gap",
+   "claim": "The uplift-debug skill and logs:query only work as a dump-everything tool over a log nothing feeds: output is unbounded, there is no tail, limit, summary or per-category count, and an empty logs dir silently prints nothing.",
+   "evidence": [
+    {
+     "path": "src/interfaces/cli/queryLogs.ts",
+     "lines": "186-190",
+     "quote": "  const { logsDir, filter } = parseQueryCliArgs(process.argv.slice(2));\n  const results = executeLogQuery(logsDir, filter);\n  for (const record of results) {\n    process.stdout.write(`${JSON.stringify(record)}\\n`);\n  }"
+    },
+    {
+     "path": ".agents/skills/uplift-debug/SKILL.md",
+     "lines": "3-3",
+     "quote": "description: Query per-session NDJSON telemetry logs, AI reasoning traces, omitted AdvisoryDuel clauses, and multi-session save files to trace and fix simulation, AI, or rendering bugs in Uplift."
+    },
+    {
+     "path": "cmd: ls -la logs/ (repo, 2026-11-08)",
+     "lines": "-",
+     "quote": "-rw-r--r--@  1 alanharrison  staff    0  8 Nov 14:48 current-session.compacted.jsonl\n-rw-r--r--@  1 alanharrison  staff    0  8 Nov 14:48 current-session.jsonl"
+    }
+   ],
+   "bites_when": "The first time an agent runs the skill's step 2 (`--has-ai-reasoning true`) on a real session: it gets every trace as JSON lines, possibly hundreds of MB, into its context. Until R11 is wired the skill's workflow produces nothing, and the skill still describes it as working.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Ran the CLI against a synthetic valid log: filters and ordering work correctly, parse errors are skipped safely. The CLI is correct; it is the missing bounding and summary mode that is the gap. The skill also says multi-session save files while the logger keeps only the latest session.",
+   "recommendation": "Add --limit/--tail, --count-by category|actor|action, and --around-tick N --window M, make the default output compact one-liners, print a stderr note when the log is missing or empty, and mark the skill as 'inert until /api/telemetry is wired'.",
+   "fix_cost": "S",
+   "ignore_cost": "The debugging skill floods agent context or reports an empty log as success."
+  },
+  {
+   "id": "S4C-08",
+   "topic": "process",
+   "kind": "gap",
+   "claim": "05f is specified as 'one runner for every AI subject' but the accepted core model adds three other test-like artifacts (golden run, evidence-coverage eval, text gates) with no rule for which lives where, so they will overlap on fixtures, harness and thresholds unless the split is fixed before eval/ is created.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "133-133",
+     "quote": "  5f. 05f-local-ai-eval-framework         \u2014 One local runner (`eval/`, `npm run eval:ai`) for every AI subject: a seeded case, a fast-eval rollout, and a pass/fail report."
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md",
+     "lines": "43-43",
+     "quote": "Add `hashWorldState`, and a **golden-run test**: seeded fixture plus scripted commands, hashes at N frames, and save mid-run, load, continue equals an uninterrupted run."
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md",
+     "lines": "105-105",
+     "quote": "Use learning offline only: fit tuning keys and tables from deterministic self-play and commit them as data tied to the rules hash, so a rule change invalidates them."
+    }
+   ],
+   "bites_when": "When 05f is proposed: its first case is 'rolls the shipped headless simulation', which is the golden run again; text gates (07e) and evidence-coverage (RA4) would each bring their own fixture loader.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "No eval/ directory or eval:ai script exists yet, so this is a forward-looking design finding, not a defect in shipped code.",
+   "recommendation": "Adopt the minimal shape in the first unconsidered route below: one headless harness in src/application, tests/ for exact and fast, golden/ for hashes, eval/ only for distributions and content corpora.",
+   "fix_cost": "S",
+   "ignore_cost": "Three runners, three fixture formats, and a golden hash that must be updated in two places."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "Path handling in the bridge is genuinely tight: ids are whitelist-matched, percent signs, slashes and backslashes rejected before any join, and the resolved target is checked for containment. Every traversal probe (%2f, %5c, %2e%2e, a/../b, uppercase, dotfile, save-slot variants) was rejected, and writes go through temp file plus rename so a symlink at the target is replaced, not followed.",
+   "evidence": [
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "84-93",
+     "quote": "function extractSafeAssetIdFromPath(pathname: string, routePrefix: string): string {\n  const rawSegment = pathname.slice(routePrefix.length);\n  if (rawSegment.includes('%') || rawSegment.includes('/') || rawSegment.includes('\\\\')) {"
+    }
+   ]
+  },
+  {
+   "claim": "The server binds to loopback only and relies on Vite 8's allowedHosts check, which rejected a spoofed Host header with 403 in a real probe. Keep host: '127.0.0.1' and do not set allowedHosts: true.",
+   "evidence": [
+    {
+     "path": "vite.config.ts",
+     "lines": "4-4",
+     "quote": "    host: '127.0.0.1',"
+    }
+   ]
+  },
+  {
+   "claim": "The compactor's design is sound on durability ordering (compacted file written before active, atomic rename) and its eviction-tier rule is explicit, tested, and deterministic; a crash between the two writes duplicates rather than loses events.",
+   "evidence": [
+    {
+     "path": "src/infrastructure/telemetry/RollingLogCompactor.ts",
+     "lines": "216-227",
+     "quote": "function getEvictionPriorityTier(record: TelemetryStreamRecord): number {\n  if (record.recordType === 'compacted_digest') {\n    return 0;\n  }"
+    }
+   ]
+  },
+  {
+   "claim": "The suite is fast (133 tests in about 1.9 s, 2.7 s wall) with no snapshot tests; grep-based architecture tests (layer boundaries, no exemplar ids in domain/application) are cheap and catch the exact drift P1 worries about.",
+   "evidence": [
+    {
+     "path": "tests/unit/content/StarterHoldStage.test.ts",
+     "lines": "152-152",
+     "quote": "  it('keeps the Highglass ids out of domain and application source', () => {"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Log nothing, replay: deterministic reproduction instead of always-on AI tracing",
+   "proposal": "Because the sim is meant to be seeded and fixed-step, the scripted command log plus seed is a complete record of a run (this is already accepted as the golden-test artifact, R3C1). Keep production telemetry to crash/warn, frame-time spikes and a state hash every N frames. When a bug appears, replay the command log with a trace sink enabled, and have the replay stop at the first hash divergence or at a chosen tick. Decision traces then cost zero disk in normal play and can be as verbose as wanted on replay.",
+   "reference": "Factorio and Starcraft-style deterministic replays with desync hash checkpoints; Dwarf Fortress-style reproduce-from-seed debugging; the rr record-and-replay debugger idea.",
+   "replaces_or_changes": "Replaces the 'every AI trace logs' rule in AGENTS.md and most of the 50/500 MiB machinery; telemetry stops being a second copy of the Act log."
+  },
+  {
+   "title": "Minimal eval/ shape with a one-way ownership rule",
+   "proposal": "One harness, src/application/headless/runScenario(fixture, script, seed, pacing) returns {worldStateHashes, actLog, observations}. tests/golden/ calls it for 2-3 short scripts and compares committed hash files (verify, under 1 s). eval/ holds eval/cases/*.case.json (fixture id, seed list, script, assertions as data), eval/assertions/ (a registry of evidence_coverage, diffusion_bounds, text_gate_pool, and so on), eval/run.ts, and eval/out/ (gitignored). Exact-answer, one-seed, millisecond checks stay in tests/. Anything over many seeds, over the real content pack, or reporting a distribution goes in eval/. Fitted tables live in data/fitted/*.json with the rules hash inside; one fast test in tests/ asserts every fitted table's hash equals the current rulesHash, and `npm run eval:ai -- --refit` regenerates them. Text gates: the pure gateLine(brief, text) function and about ten adversarial cases live in tests/; eval/ only runs it over the whole pool for coverage and duplication metrics.",
+   "reference": "Golden master tests plus separate benchmark suites (the Rust compiletest versus perf-suite split); Factorio's replay-based CI.",
+   "replaces_or_changes": "Defines 05f scope so its first smoke case reuses the golden harness instead of re-implementing a headless rollout, and gives the S2-08 authoring kit an obvious home for pool-corpus metrics."
+  },
+  {
+   "title": "Per-run token and Origin lock for every dev-server write route",
+   "proposal": "Generate a random token in configureServer, inject it into the served page via transformIndexHtml, and have the bridge require it as a custom header plus an exact Origin match. All future write routes (authoring-kit accept, stage-lab saves) register through one guarded helper, so a new route cannot be added unauthenticated.",
+   "reference": "Vite's own server.fs.strict and Host validation response to CVE-2025-24010; Next.js dev-server origin allowlist.",
+   "replaces_or_changes": "Replaces the per-route ad hoc checks; a registerBridgeRoute(method, path, handler) wrapper becomes the only way to add a route."
+  },
+  {
+   "title": "Single-purpose crash box instead of a general session log",
+   "proposal": "Split the debug channel in two: a small ring buffer of the last N seconds of structured events kept in memory in the browser and flushed to logs/crash-<timestamp>.json on any error or on demand via a key, and a separate opt-in trace file for deliberate investigation. Normal play writes nothing to disk.",
+   "reference": "Flight-recorder buffers in Chromium tracing and Unreal's crash reporter context log.",
+   "replaces_or_changes": "Replaces continuous NDJSON streaming and rolling compaction with something that cannot grow without bound or stall the dev server."
+  }
+ ],
+ "could_not_verify": [
+  "Behaviour at the real 500 MiB compacted cap (memory and V8 string limit) was not run; only reasoned about from a 50 MiB probe.",
+  "Whether Chrome's Private Network Access preflight would additionally block public-origin fetches to 127.0.0.1 on the developer's browser version.",
+  "Real AI-trace rates and sizes: no producer exists, so the 115 MB/hour figure assumes 40 NPCs at one evaluation per second and 800 bytes per traced event.",
+  "Torn-append concatenation (S4C-04) is from reading appendFileSync usage, not reproduced with a killed process."
+ ]
+}

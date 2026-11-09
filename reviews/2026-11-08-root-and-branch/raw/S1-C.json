@@ -1,0 +1,122 @@
+{
+"findings":[
+{"id":"S1C-01","topic":"loop","kind":"gap",
+ "claim":"The design never states what the player is trying to achieve, how they lose, or what verbs they use on a thread. Every system is a noun with a blueprint name, and the only positive goal is a last-epoch comet deflection.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"20","quote":"Prevents optimizing a single score."},
+  {"path":"DESIGN_NOTES.md","lines":"16","quote":"lets a clever player topple both with one Leverage Chain."},
+  {"path":"DESIGN_NOTES.md","lines":"173","quote":"culminating in First Contact readiness"},
+  {"path":"cmd: grep -n -i -E 'win|lose|difficulty|objective|game over' DESIGN_NOTES.md | grep -i -E 'condition|difficulty|objective|game over'","lines":"-","quote":"(no output: no win, loss, or difficulty section exists)"}],
+ "bites_when":"The first thread (change 06) or the first office is built. There is no rule for what a player does to move Thread B, and no way to tell whether an epoch went well or badly.",
+ "severity":"critical","confidence":"high",
+ "disconfirm":"Searched DESIGN_NOTES.md and config.yaml for win/fail/difficulty/objective/score/replay. 'Leverage Chain' appears once as a phrase (line 16) and is never defined as a mechanism. The legacy ledgers do carry consequences, but they are inputs to the next epoch, not a goal or a grade.",
+ "recommendation":"Write one page, before change 06, that lists the player verbs per thread, the epoch-end evaluation (what gets graded and shown), and what a bad epoch looks like. Make the grade the ledger diff between epochs so it is not a single score.",
+ "fix_cost":"M","ignore_cost":"Utility AI, regard and threads get built to a shape nobody has played, and the first playable beat reveals there is no decision to make."},
+
+{"id":"S1C-02","topic":"design","kind":"gap",
+ "claim":"Several systems have no documented player input or no documented consumer. Pressure stocks are defined but nothing reads them except a travel-cabin cue and a transition bonus. Fund acquisition is explicitly deferred to a registry that has no acquisition rule. Thread progress has no stated player lever.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"15","quote":"Flows continuously as the three macroeconomic gauges of any age"},
+  {"path":"DESIGN_NOTES.md","lines":"177","quote":"lower `subsistence_pressure`, softer `Ignorance` pillars"},
+  {"path":"DESIGN_NOTES.md","lines":"285","quote":"How the fund was acquired. That stays on the instrument registry."},
+  {"path":"DESIGN_NOTES.md","lines":"151","quote":"all orbital capabilities (`zenith` drops, weather control"}],
+ "bites_when":"Changes 06 and 09 are specced. The three pressure stocks need a writer (funds) and a reader (crises, drives, office cases) or they are three dead gauges. Funds need a cost (Delta? zenith window? discovery layer?) or `07c` has nothing to spend.",
+ "severity":"major","confidence":"med",
+ "disconfirm":"Grepped 'pressure' in DESIGN_NOTES.md: only lines 15, 105 (tension envelope, unrelated), 177 and 207 (travel cue predicate). Pressure may be intended to drive crises via the Storyteller, but no line says so. Connected systems for contrast: discovery layer -> rival strike -> persecution -> ideological_trial -> extracted_overt -> veilScars is a complete chain. Regard -> office coalition -> pretext -> escape valve is complete.",
+ "recommendation":"Draw the system graph on one page with arrows labelled by who writes and who reads. Delete or defer any node with a missing arrow (for example, pressure stocks until a crisis reads them). Define the fund cost and delivery path before 07c.",
+ "fix_cost":"S","ignore_cost":"Dead gauges ship in the HUD and the registry grows entries nobody can feel."},
+
+{"id":"S1C-03","topic":"loop","kind":"problem",
+ "claim":"There is no bridge between the watch clock and the room. Macro time advances only on player-committed actions and NPC chains stop at two hops until the player acts, but nothing says where NPCs are when the player enters a room after watches pass. Detection channel 1 (waypoint vs. promise mismatch) needs live NPC pathing that the clock design suppresses.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"99","quote":"Never advances macro calendar watches."},
+  {"path":"DESIGN_NOTES.md","lines":"74","quote":"further propagation pauses in `awaiting_trigger` until a player or macro-world beat occurs"},
+  {"path":"DESIGN_NOTES.md","lines":"130","quote":"**60Hz Waypoint vs. Conversation-Promise Mismatch**"},
+  {"path":"DESIGN_NOTES.md","lines":"262","quote":"Reading costs no watch."},
+  {"path":"cmd: grep -n -i 'schedule' DESIGN_NOTES.md | cut -c1-80","lines":"-","quote":"(only hits: CampaignContingencyScheduler and a travel cue's 'scheduled seat'; no NPC daily-schedule or presence model)"}],
+ "bites_when":"Change 06 or 11. Someone has to decide who is in the chambers at watch 40 and why an NPC walks to the nail-guild at the moment the player is watching. Today the player can talk to anyone for free and nothing moves unless they commit time.",
+ "severity":"major","confidence":"med",
+ "disconfirm":"Looked for a schedule, routine or presence model in DESIGN_NOTES.md and config.yaml. Only `off_stage_region` LOD is mentioned (line 193) for far nodes. `role_routine` Tier 2 implies routines, but the doc says nothing about how they map to watch-of-day.",
+ "recommendation":"Specify a per-character watch-of-day presence table (Shadows of Doubt style) that the room resolves on entry, so Clock 2 drives where bodies are and Clock 1 only animates them. Then decide explicitly what a free conversation costs, or the player will exhaust every NPC before committing a watch.",
+ "fix_cost":"M","ignore_cost":"The flagship embodied detection channels cannot fire, and the game becomes a menu strategy game wearing a 3D skin."},
+
+{"id":"S1C-04","topic":"design","kind":"gap",
+ "claim":"The design is built on hidden information (romantic motives, rival tells, deleted rumor slots) but has no player knowledge system and no save-scum policy. Detecting a deleted slot requires the game to remember what the overview used to show.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"31","quote":"**deleted rumor slots** on the Wider World Overview"},
+  {"path":"DESIGN_NOTES.md","lines":"130","quote":"Players uncover an NPC's hidden motive via 6 gameplay channels"},
+  {"path":"cmd: grep -n -i -E 'notebook|journal|dossier|save-scum|reload|case board' DESIGN_NOTES.md","lines":"-","quote":"(no matches for notebook, journal, save-scum, reload; 'dossiers' appears only as a Cold-War UI skin)"}],
+ "bites_when":"Change 06 ships the Wider World Overview or 06a ships hidden motives. A player 8 hours in cannot recall that rumor slot 3 existed in watch 12. Meanwhile load/save lets them probe a hidden motive and reload.",
+ "severity":"major","confidence":"high",
+ "disconfirm":"Checked for mitigations. Determinism (line 203: 'Arrival is a pure function of seed + state') means a reload replays the same outcomes for the same action, which blunts re-rolling, but does not stop probing a hidden motive with a free conversation and reloading. Saves exist (config line 64) with no restriction.",
+ "recommendation":"Make the lace log the player's notebook: the Ship Mind records every overview state and conversation chunk, with timestamps, and the player can diff them. Decide save policy now (autosave-only per epoch, or save anywhere with the knowledge log persisting through a reload).",
+ "fix_cost":"M","ignore_cost":"The rival-tell puzzle is unwinnable by memory and trivially defeated by save-reload."},
+
+{"id":"S1C-05","topic":"design","kind":"risk",
+ "claim":"The emotional spine contradicts itself. The Drone's Regard decides whether the player survives an assassination attempt, and the notes lean on the Culture minds as characters, yet the player is replaced every epoch and the advisors' personalities and the Drone's identity are re-rolled at each handoff.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"24","quote":"hull name/callsign (e.g., seed exemplar: GCU *I Have Read Your Diary And The Ending Is Fine* / \"The Ending\") and personality traits"},
+  {"path":"DESIGN_NOTES.md","lines":"140","quote":"Resolution depends on `droneInterceptQuality` derived from `Regard(advisor_particular -> player)`:"},
+  {"path":"DESIGN_NOTES.md","lines":"26","quote":"both cite your predecessor operatives' past sacrifices from `CivilizationLegacyState`"}],
+ "bites_when":"Change 10 is specced, or earlier, when 07d builds the sulk. The Drone-player relationship is built over roughly 8-14 hours and then thrown away at extraction, so the strongest tone mechanic never accumulates attachment.",
+ "severity":"major","confidence":"med",
+ "disconfirm":"The notes say the ethical poles are fixed and that advisors cite predecessors, which gives continuity of philosophy. It is unclear whether the Drone/Ship identity persists (line 25 says disguise and identity are 'randomly selected from curated per-Epoch pools') while the Regard resets. Not verifiable in code since none exists.",
+ "recommendation":"Keep the Ship Mind and the Drone as one persistent pair for the whole campaign, with the Drone's disguise as the only per-epoch roll. Let each epoch's advisor Regard toward 'the operative' carry forward as a lineage-level trust the new operative inherits or squanders (kin_claim).",
+ "fix_cost":"S","ignore_cost":"The advisors read as generated variants, and the Pentiment-style generational payoff, where you carry the cost of what the last one did, is borne only by NPC lineages."},
+
+{"id":"S1C-06","topic":"content","kind":"problem",
+ "claim":"The writing pipeline is unresolved and internally inconsistent. The config describes a runtime 'Period-Voice Composer' for free-text replies, the notes say every line is authored in chunks of at most about 120 characters and validated at pack load, and storylets use a slot grammar. All three cannot meet the 'Sorrel steals wax' specificity bar across 500+ characters.",
+ "evidence":[
+  {"path":"openspec/config.yaml","lines":"58","quote":"3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas"},
+  {"path":"DESIGN_NOTES.md","lines":"265","quote":"The words are authored. The engine does not invent them."},
+  {"path":"DESIGN_NOTES.md","lines":"101","quote":"**Compositional Storylets** (`StoryletTemplate` slot grammar"},
+  {"path":"DESIGN_NOTES.md","lines":"36","quote":"Actual Epoch content packs scale across **500+ interactable on-stage and off-stage characters**"}],
+ "bites_when":"Change 07 (authored chunks) meets change 08 (free text). The classifier outputs an intent, and something has to write the NPC reply. If it is pre-authored, free text is a verbose menu. If it is composed, it is the LLM-voice problem the 'banned lemmas' are meant to prevent, and no local 23MB MiniLM model composes prose.",
+ "severity":"major","confidence":"med",
+ "disconfirm":"Line 265 only says 'authored' for ambient lines, so the contradiction is strongest for free-text replies. MiniLM (config line 57) is an embedding model, so the 'Composer' may be template selection, which is not stated.",
+ "recommendation":"Decide that free text selects among authored reply nodes (intent -> node) and delete 'Composer' from the pipeline, or cut free text. Cap named, fully authored characters per epoch at a number one author can reach (about 40-60) and let the rest be Tier 3 with ambient lines only.",
+ "fix_cost":"S","ignore_cost":"Change 08 gets built on a model that cannot do what the config says, and the cast either stays unwritten or fills with templated slop."},
+
+{"id":"S1C-07","topic":"design","kind":"risk",
+ "claim":"The Culture/Inversions tone mostly lives as flavor on top of exposure mechanics. Nearly every cost to the player is self-protective (cover, discovery layer, persecution), not ethical. The one ethical cost is an advisor Regard drop.",
+ "evidence":[
+  {"path":"DESIGN_NOTES.md","lines":"135","quote":"severe *Lamp* moral revulsion (`affection`/`trust` drop, `dread` spike)"},
+  {"path":"DESIGN_NOTES.md","lines":"146","quote":"Epoch-agnostic state machine (`clear -> rumored -> examined -> charged -> condemned`)"},
+  {"path":"DESIGN_NOTES.md","lines":"24","quote":"rates human happiness in \"expected bowls of soup\""}],
+ "bites_when":"Change 07d or 06b. If the Integral's soup arithmetic is never shown or scored and harming a person only costs you the Drone's affection, the optimal play is a stealth puzzle and the Culture's guilt never enters a decision.",
+ "severity":"minor","confidence":"med",
+ "disconfirm":"Credited counter-evidence: the sulk/omission mechanic (line 26) turns the ethics into withheld information, which is a real tone-to-choice link. Dual scar ledgers and the Brother Assassin martyr backfire are also good. Missing is a visible Integral tally (the numbers the Ship Mind computes) set against Particular's single-body cost, so the player sees both ledgers and chooses.",
+ "recommendation":"Expose the Integral's expected-lives number and the Particular's named-person cost on every major choice row, and let them diverge. That is the Culture's argument made into a decision, and it reuses the advisors you already have.",
+ "fix_cost":"S","ignore_cost":"The distinctive voice of the project becomes cosmetic and the game reads as a stealth-management sim with Culture names."},
+
+{"id":"S1C-08","topic":"sequencing","kind":"gap",
+ "claim":"The roadmap puts the first content pack after every system, and no document defines a playable beat that tests whether the loop is fun. Systems 06, 06a, 06b, 06c, 09, 09a, 10 are all specified against an empty world.",
+ "evidence":[
+  {"path":"openspec/config.yaml","lines":"148","quote":"11. 11-epoch-1-world-population-and-content-pack — Populate Epoch 1 (Feudal) with its full cast"},
+  {"path":"openspec/config.yaml","lines":"134","quote":"6. 06-utility-ai-rivals-and-wider-world  — Hysteresis Utility AI, Inertia Pillars & Leverage Chains"}],
+ "bites_when":"Change 06 begins. The first time two NPCs, one office and one thread meet in play will be after the AI, regard, and orbital systems already exist, so the cost of a wrong core loop is a rewrite of seven changes.",
+ "severity":"major","confidence":"med",
+ "disconfirm":"S0 confirms the proving slice has 2 rooms and 2 characters. Did not find a 'vertical slice' or 'playtest' milestone in config.yaml or DESIGN_NOTES.md. A slice could exist in an unwritten plan.",
+ "recommendation":"Insert a slice change before 06: one thread, one office, three authored NPCs, one rival tell, one Writing Desk letter, playable end to end in 20 minutes with the epoch-end ledger shown. Hand it to a friend and revise the loop doc from what they do.",
+ "fix_cost":"M","ignore_cost":"The design stays unfalsifiable until change 11, and every failed assumption is discovered at the most expensive moment."}
+],
+"keep":[
+ {"claim":"The Integral/Particular advisor pair with omission as a withheld-information mechanic is the strongest tone-to-gameplay link in the design.","evidence":[{"path":"DESIGN_NOTES.md","lines":"26","quote":"Repeatedly freezing one advisor out causes them to sulk and drop an `omissible` clause from their next briefing"}]},
+ {"claim":"The Clock 1 / Clock 2 separation correctly recognises that room-scale time and campaign time cannot share a tick.","evidence":[{"path":"DESIGN_NOTES.md","lines":"97","quote":"would burn out in 15 minutes"}]},
+ {"claim":"Dual legacy ledgers plus extracted_overt give a real fail-forward: failure writes scars that the next epoch inherits instead of ending the run.","evidence":[{"path":"DESIGN_NOTES.md","lines":"20","quote":"Prevents optimizing a single score."}]},
+ {"claim":"Rival tells as stylometric puzzles (round numbers, agentless passive, double-entry speech) are novel and testable.","evidence":[{"path":"DESIGN_NOTES.md","lines":"31","quote":"**Agentless passive voice**"}]},
+ {"claim":"Restraint in travel: quiet trips are the default, and the skip still resolves rolls so it cannot dodge consequences.","evidence":[{"path":"DESIGN_NOTES.md","lines":"195","quote":"Quiet trips are the default"}]}
+],
+"unconsidered_routes":[
+ {"title":"Make the lace log the player's notebook","proposal":"Every overview state, conversation chunk and advisor briefing is auto-recorded by the Ship Mind. The player diffs entries. An omitted clause shows as a visible gap in the log, and a Particular smell score is a log entry. Rival tells become something you search in the log, not memory work.","reference":"Return of the Obra Dinn book + Shadows of Doubt case board; Disco Elysium Thought Cabinet","replaces_or_changes":"Adds the missing knowledge system (S1C-04) and makes the 12 dB omission dropout a literal gap the player can see."},
+ {"title":"Drive the macro layer as a seasonal council, with rooms as event scenes","proposal":"Make the watch clock the primary loop: each season the player gets a few verb slots (hold court, write, study, travel), advisors give per-option advice with stated confidence, and a storylet fires. Rooms are entered for the scene when a storylet or office case needs embodiment, not as free-roam.","reference":"King of Dragon Pass (seasonal council, advisor votes, tagged event pool); Cultist Simulator (verbs with timers)","replaces_or_changes":"Resolves the 60 FPS vs watch tension (S1C-03) by letting Clock 2 decide who is in the scene. It reduces the need for NPC schedules in all rooms."},
+ {"title":"Quality-based storylet decks instead of slot grammar","proposal":"Write storylets as authored cards gated by qualities (pressure stocks, regard to an NPC, discovery layer, held office). Use slots only for names and places. It keeps the specificity bar because every card has a human author.","reference":"Fallen London / Sunless Sea (QBN)","replaces_or_changes":"Replaces StoryletTemplate slot grammar (S1C-06) and gives pressure stocks a reader (S1C-02)."},
+ {"title":"Ship Epoch 1 as a self-contained Inversions-length scenario","proposal":"Treat each epoch as a cartridge with its own ending screen (ledger diff, who was remembered). Epoch 1 is a complete 3-5 hour game for friends. Later epochs are sequels that import the ledger, as Cultist Simulator legacies do.","reference":"Cultist Simulator legacies; Pentiment's act structure","replaces_or_changes":"Gives replayability and a testable slice (S1C-08); it does not change the data model, only what ships first."},
+ {"title":"Show scheme odds and Regard modifiers CK3-style","proposal":"Every assassination vector, pretext spend and letter shows a success percentage, a secrecy figure, and a tooltip listing the Regard modifiers that produced it.","reference":"Crusader Kings 3 schemes and opinion tooltips","replaces_or_changes":"Makes the 6-axis Regard graph legible and keeps the hardcoded vector odds from feeling arbitrary."}
+],
+"could_not_verify":[
+ "Whether the Ship Mind and Drone identities persist across epochs: lines 24-25 say traits are rolled per epoch but are silent on the persistence of the identity itself.",
+ "Whether the pressure stocks are meant to feed Storyteller crisis selection: the documents never say so.",
+ "Whether the openspec changes folder has unwritten slice plans: reviewed only the three in-scope files."
+]
+}

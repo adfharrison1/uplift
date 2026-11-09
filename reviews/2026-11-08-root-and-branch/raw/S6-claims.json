@@ -1,0 +1,126 @@
+[
+ {
+  "id": "S6A-01",
+  "claim": "The design-notes skill's step 3 orders agents to write every new decision into root AGENTS.md as a registry bullet; this procedure is the generator of the present-tense-for-unbuilt drift S0 found, and nothing in it distinguishes planned from shipped.",
+  "paths": [
+   ".agents/skills/uplift-design-notes/SKILL.md:60-61",
+   "AGENTS.md:56-56"
+  ]
+ },
+ {
+  "id": "S6A-02",
+  "claim": "Pinned-version truth is stated in 4 places (README table, config.yaml, AGENTS.md, package.json) and has already diverged: config pins @huggingface/transformers 4.3.2 but it is in neither package.json nor the lockfile; README calls the bridge TS 6.0.3 while every other source says 6.0.2; the pinned Node 24.22.2 and npm 12.2.1 are claims nothing checks (this machine runs v24.13.1, engines says >=24).",
+  "paths": [
+   "README.md:62-62",
+   "openspec/config.yaml:117-117"
+  ]
+ },
+ {
+  "id": "S6A-03",
+  "claim": "The CVE IDs and 'verified 2026-10-29' stamp are unverifiable by any agent offline, are copied into README and config, and are injected into every OpenSpec operation and design.md as a required deliverable, so they are noise that reads as authority.",
+  "paths": [
+   "openspec/config.yaml:106-106",
+   "openspec/config.yaml:200-200"
+  ]
+ },
+ {
+  "id": "S6A-04",
+  "claim": "The owner's 8 Nov raw dump is half-integrated and the skill forbids removing it, so there is no inbox: WASD/Space/menu/pause items already live in DESIGN_NOTES section 8 and AGENTS.md, while the camera-capture and 'further out zoom' items appear nowhere else and have no roadmap line.",
+  "paths": [
+   ".agents/skills/uplift-design-notes/SKILL.md:31-31",
+   "DESIGN_NOTES.md:314-314"
+  ]
+ },
+ {
+  "id": "S6A-05",
+  "claim": "The same engine facts are written in 3 places in different prose, creating 8+ multi-copy facts with no designated owner; the 7-epoch ladder alone appears in 6 files (AGENTS, README, DESIGN_NOTES x4 sites, config x3 sites), and the 4-6-task and verify-budget rules are in 4 and 3 files; the duplicates already differ in numbers and wording.",
+  "paths": [
+   "README.md:33-33",
+   "openspec/config.yaml:22-22"
+  ]
+ },
+ {
+  "id": "S6A-06",
+  "claim": "openspec/config.yaml 'context:' is about 5.9k words injected into every OpenSpec operation, and most of it duplicates DESIGN_NOTES mechanics lists plus a hand-maintained roadmap whose status tags are already stale (05c delivered but untagged), so agents pay tokens for a stale second copy.",
+  "paths": [
+   "openspec/config.yaml:128-128",
+   "openspec/config.yaml:34-34"
+  ]
+ },
+ {
+  "id": "S6A-07",
+  "claim": "The only enforced doc check is existence plus length (>50 chars) of section README/AGENTS; nothing checks built-vs-planned, dead identifiers, or version tables, so drift can only be caught by review like this one.",
+  "paths": [
+   "tests/architecture/layer_boundaries.test.ts:323-323",
+   "tests/architecture/layer_boundaries.test.ts:354-354"
+  ]
+ },
+ {
+  "id": "S6A-08",
+  "claim": "Review outputs (core model, rules spine, hardening batch, prerequisites) have no designated home; the existing layout already shows how they will become another layer: decisions live in review slices, register, DESIGN_NOTES, config and AGENTS at once.",
+  "paths": [
+   "AGENTS.md:69-69",
+   "reviews/2026-11-08-root-and-branch/register.md:1-3"
+  ]
+ },
+ {
+  "id": "S6B-01",
+  "claim": "Archived spec scenarios assert that a call is made or a payload round-trips, not that the feature's stated Purpose happens, so features that do nothing end to end (lab Save, telemetry pipeline, file saves) are fully spec-compliant and fully gated.",
+  "paths": [
+   "openspec/specs/play-shell/spec.md:110-112",
+   "openspec/specs/session-telemetry-and-compaction/spec.md:9",
+   "openspec/specs/stage-inspector-lab-and-dom-mirror/spec.md:3",
+   "reviews/2026-11-08-root-and-branch/slices/00-baseline.md:18-19"
+  ]
+ },
+ {
+  "id": "S6B-02",
+  "claim": "At least six archived spec requirements assert behaviour that the accepted register says is wrong or untrue, so the hardening steps will either violate the spec or silently diverge from it unless the specs are amended in the same commits.",
+  "paths": [
+   "openspec/specs/clean-architecture-and-quality-gate/spec.md:35",
+   "openspec/specs/deterministic-simulation-primitives/spec.md:20",
+   "openspec/specs/deterministic-simulation-primitives/spec.md:28",
+   "openspec/specs/encoded-visual-framework-and-render-frame/spec.md:24",
+   "openspec/specs/multi-session-saves-and-debug-skill/spec.md:13",
+   "openspec/specs/play-shell/spec.md:96-97",
+   "openspec/specs/session-telemetry-and-compaction/spec.md:31"
+  ]
+ },
+ {
+  "id": "S6B-03",
+  "claim": "The gates catch what a diff review can see (layering, naming, edge cases in new functions) and miss four classes the review later found: feature does nothing end to end, threat model of a new route, cost of a call on a hot path, and failure containment of a loop; about 30 of the later register findings trace to archived changes that passed all gates.",
+  "paths": [
+   "openspec/config.yaml:106",
+   "openspec/config.yaml:170-171"
+  ]
+ },
+ {
+  "id": "S6B-04",
+  "claim": "The roadmap is a 27-entry prose list inside a YAML context string with one repeated status tag, no machine-readable dependencies (9 of 20 planned entries state none, including the keystone 05b), and a non-monotonic order, so an agent cannot reliably answer 'what is next' or 'what does X depend on', and the accepted reorder (about 12 insertions, 2 splits, 1 rescope) will make it worse.",
+  "paths": [
+   "openspec/config.yaml:127-133",
+   "openspec/config.yaml:132",
+   "openspec/config.yaml:136-137",
+   "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:12-14"
+  ]
+ },
+ {
+  "id": "S6B-05",
+  "claim": "The 4-6 task rule counts two fixed overhead tasks (docs and review) inside the cap, leaving 2-4 feature tasks, forces docs into trailing commits that lag the code, and is already broken by the amended roadmap (hardening steps 6 and 7, 05d with 11 prerequisites) so the cap measures the wrong thing; the properties that matter (green commit, reviewable diff) are not what it checks.",
+  "paths": [
+   "openspec/changes/archive/2026-11-08-05c-play-shell/tasks.md:19",
+   "openspec/config.yaml:154",
+   "openspec/config.yaml:209",
+   "reviews/2026-11-08-root-and-branch/slices/05-runtime-feel.md:33-53"
+  ]
+ },
+ {
+  "id": "S6B-06",
+  "claim": "The accepted register implies roughly 30 new changes and amendments, but none is yet an OpenSpec proposal, and several accepted slots (pre-05b-1 launch validation, telemetry wiring, minimal audio, the spec amendments in S6B-02) have no owner in the roadmap; unless they are listed as changes with dependencies, they will be absorbed into whichever neighbouring change is proposed next and break the size rule.",
+  "paths": [
+   "reviews/2026-11-08-root-and-branch/register.md:32",
+   "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:29-30",
+   "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:31"
+  ]
+ }
+]

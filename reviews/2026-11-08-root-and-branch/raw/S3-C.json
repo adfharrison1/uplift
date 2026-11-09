@@ -1,0 +1,140 @@
+{
+ "findings": [
+  {
+   "id": "S3C-01", "topic": "arch", "kind": "gap",
+   "claim": "The save format has no migration path: SAVE_SLOT_SCHEMA_VERSION is a z.literal(1) on the envelope only, the inner world snapshot is unversioned and guarded by a hand-written type guard that skips discoveryLayer and activeEmergencyId, so the first added WorldState field (elapsedWatches, Act ring, Observation table) either hides every old save or loads it with undefined fields.",
+   "evidence": [
+    {"path": "src/domain/persistence/SaveSlotRepositoryPort.ts", "lines": "36-36", "quote": "  schemaVersion: z.literal(SAVE_SLOT_SCHEMA_VERSION),"},
+    {"path": "src/infrastructure/persistence/FileSaveSlotRepository.ts", "lines": "160-161", "quote": "      } catch {\n        // Isolate corrupted files during directory listing so valid sessions remain accessible"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "117-133", "quote": "    typeof record['epochId'] === 'string' &&\n    typeof record['worldTick'] === 'number' &&"},
+    {"path": "cmd: repro.ts case 5 and 6 (scratchpad/s3c)", "lines": "-", "quote": "5 list: [ 's2' ]  /  5 load: Error: Corrupted save slot 's1': ... schemaVersion ... /  6 loaded; discoveryLayer = undefined activeEmergencyId = undefined"}
+   ],
+   "bites_when": "The first commit that bumps SAVE_SLOT_SCHEMA_VERSION or adds a WorldState field (roadmap step 1: elapsedWatches).",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "Looked for a migrate/upgrade function, a version field inside __upliftWorldStateSnapshot, and Zod validation of the snapshot: none exist. The file repo test for corruption does not cover a version bump.",
+   "recommendation": "Before adding watch fields, put a snapshotVersion inside the world snapshot, load through a Zod schema, and add a migrations[] chain (v1 -> v2 fills elapsedWatches from worldTick). listSlots should return unreadable slots with a reason instead of swallowing them.",
+   "fix_cost": "M", "ignore_cost": "Every playtester save from before the core model silently vanishes from the list, or loads with NaN/undefined watch fields."
+  },
+  {
+   "id": "S3C-02", "topic": "arch", "kind": "risk",
+   "claim": "loadFromSlot trusts the save over the registry: it never checks epochId against the coordinator, nor that entity, prop and space ids exist in the loaded pack, so a save from pack A loaded into pack B yields a world whose entities are not in registry.getAllCharacters().",
+   "evidence": [
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "817-818", "quote": "    const nextState: WorldState = {\n      epochId: rawWorldSnapshot.epochId,"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "811-815", "quote": "    const baseCharacters = this.registry.getAllCharacters();\n    const nextResolvedCharacters =\n      nextLegacy !== undefined"},
+    {"path": "cmd: repro.ts case 1", "lines": "-", "quote": "1 entities after load into pack e2: [ 'c_a', 'c_b' ] epochId e1 resolved [ 'c_z' ]"}
+   ],
+   "bites_when": "Any content edit between save and load (rename a character, drop a waypoint, retune a space), which is every working day of this project, or loading an epoch-1 save inside an epoch-2 build.",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "Checked the existing save test: it loads into the same registry only. No pack fingerprint is stored in the envelope.",
+   "recommendation": "Store a content fingerprint (pack epochId plus sorted id lists, or a hash) in the snapshot. On load, reject on epoch mismatch and reconcile by policy on id drift: drop unknown entities, add new ones from blueprints, re-home entities whose waypoint vanished.",
+   "fix_cost": "M", "ignore_cost": "Entities with a stale waypointId reach stepKinematics or path planning and throw, and the resolved characters disagree with the world."
+  },
+  {
+   "id": "S3C-03", "topic": "arch", "kind": "problem",
+   "claim": "Any exception inside session.frame permanently kills the render loop, because onFrame schedules the next requestAnimationFrame as its last statement with no try/catch; coordinator code throws freely (RangeError on dt, reducer 'Unknown entityId', TypeError on a malformed loaded entity).",
+   "evidence": [
+    {"path": "src/interfaces/composition/browserMain.ts", "lines": "194-194", "quote": "    const result = session.frame(dtSeconds, {"},
+    {"path": "src/interfaces/composition/browserMain.ts", "lines": "215-216", "quote": "    input.sync();\n    ownerWindow.requestAnimationFrame(onFrame);"},
+    {"path": "cmd: repro.ts case 6", "lines": "-", "quote": "6 step threw: TypeError: Cannot read properties of null (reading '0')"}
+   ],
+   "bites_when": "Now for a hand-edited or partially migrated save (S3C-01/02); later for any behaviour-commit effect that names an entity that was just removed (the reducer throws on unknown entity at WorldEffectReducer.ts:61).",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "Checked whether PlaySession.frame or the page wraps calls in try/catch: no. Pure-sim code paths are atomic (this.state is assigned only after applyWorldEffects returns), so state is not corrupted, only the loop dies.",
+   "recommendation": "Wrap the frame body in try/catch that logs to telemetry, pauses the sim and still reschedules rAF. Make dispatchEffects return rejected effects with a reason (S2-17 'reject instead of throw') rather than propagating.",
+   "fix_cost": "S", "ignore_cost": "A single bad effect or save leaves a frozen canvas with no error shown and the dev must read the console."
+  },
+  {
+   "id": "S3C-04", "topic": "arch", "kind": "problem",
+   "claim": "Pause is implemented as 'reject all commands', not 'stop sim time': dispatchEffects returns an empty result with no telemetry while paused, and even the set_paused effect cannot be applied. That contradicts the core model, where advance_watches, Act logging and text freeze happen from menus that pause the room.",
+   "evidence": [
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "506-511", "quote": "    if (this.state.paused || effects.length === 0) {\n      return {\n        state: this.state,\n        appliedEffects: [],"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "450-452", "quote": "    if (this.state.paused) {\n      return 'paused';\n    }"},
+    {"path": "cmd: repro.ts case 4", "lines": "-", "quote": "4 paused dispatch applied: 0 stock 0  /  4 set_paused false effect while paused applied: 0 paused true"}
+   ],
+   "bites_when": "The first menu-driven mechanic: spending a watch from the advisor menu, a conversation response that adds an Act, or freezing shown text while the player pause freezes the room (AGENTS.md: 'Player pause freezes the room').",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "Debug free-cam relies on this gate (browserMain isPaused). A paused world rejecting walk commands is intended today; the issue is the conflation, not the current behaviour. No test asserts the silent-drop for non-movement effects.",
+   "recommendation": "Split two flags: simulationFrozen (gates stepFrame and pulse) and commandsAccepted. Make dispatchEffects return an explicit status/rejected list. Let watch and Act effects through while the room is frozen.",
+   "fix_cost": "M", "ignore_cost": "advance_watches ships behind a pause check and the player cannot spend time from the menu that is the only place they would."
+  },
+  {
+   "id": "S3C-05", "topic": "arch", "kind": "gap",
+   "claim": "There is no way to test whole-run determinism: no state hash or canonical serialiser exists, naive JSON.stringify of WorldState silently drops every state slice (a Map), the coordinator's SeededRandom is never consumed by any sim code, and the only save test saves at tick 1 before any frame is stepped.",
+   "evidence": [
+    {"path": "cmd: repro.ts case 3 and 7", "lines": "-", "quote": "3 JSON.stringify(state).stateSlices = {\"entries\":{}}  /  7 rng state after 600 frames: true"},
+    {"path": "tests/unit/application/SimulationCoordinator.test.ts", "lines": "384-384", "quote": "  it('saves and loads complete WorldState, RNG state, custom slices, and Dual-Ledger CivilizationLegacyState atomically', () => {"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "324-326", "quote": "  public getRng(): SeededRandom {\n    return this.rng;\n  }"},
+    {"path": "cmd: repro rt4.ts (mid-run FileSaveSlotRepository round trip)", "lines": "-", "quote": "equal at load: true  /  equal after 600 more frames: true"}
+   ],
+   "bites_when": "The first stochastic mechanic (Act perceptibility rolls, diffusion, presence function with seed). Until then determinism holds only because nothing is random.",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "I ran my own golden test: two 200-frame runs are identical, and a save at frame 90 with a pending stimulus and an active path loaded into a fresh coordinator stays identical for 600 more frames. So the property holds today, it just is not pinned by a test. grep found no src caller of getRng().",
+   "recommendation": "Add domain hashWorldState (sorted keys, slices via toSnapshot, float quantised) and a tests/golden/run.test.ts: seeded fixture, scripted input list (move, dispatch, pause), assert hash at frames 60/600, and that save at N then load then continue equals an uninterrupted run. Store the expected hash in the repo and update it deliberately.",
+   "fix_cost": "S", "ignore_cost": "A reordered Object.keys loop or a Math.random-free but order-dependent reducer changes outcomes with no failing test."
+  },
+  {
+   "id": "S3C-06", "topic": "arch", "kind": "overbuilt",
+   "claim": "SimulationCoordinator mixes at least seven separable jobs, and the save codec lists WorldState fields four separate times by hand, so every new WorldState field must be added in four places and a missed save-side field fails silently.",
+   "evidence": [
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "95-110", "quote": "interface SerializedWorldStateSnapshot {\n  readonly epochId: string;\n  readonly worldTick: number;"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "741-756", "quote": "    const worldSnapshot: SerializedWorldStateSnapshot = {\n      epochId: this.state.epochId,\n      worldTick: this.state.worldTick,"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "566-568", "quote": "  public pulseCognitiveScheduler(\n    optionsOrMaxEvaluations?: number | CognitivePulseOptions,\n  ): CognitivePulseResult {"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "136-137", "quote": "function buildInitialEntities(\n  registry: EpochModuleRegistry,"}
+   ],
+   "bites_when": "Before watch advance, Act logging, materialize and text freeze land; each wants a slot in the same file and a snapshot field.",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "The class is still readable and the split is mostly mechanical. The cognition body (lines 566-702) reads only this.state and returns a new state plus telemetry data, so it is a pure function today. Not a god object by dependency count; it is by change-magnet count.",
+   "recommendation": "Extract: (1) WorldStateCodec with a version and Zod schema (serialise/deserialise, one field list); (2) pulseCognition(state, opts) into domain with the coordinator doing only telemetry; (3) buildInitialEntities/Props into a WorldBuilder that materialize will reuse; (4) a CoordinatorTelemetry helper replacing the nine repeated record({epochId, worldTick, ...}) blocks. Leave the frame loop and command intake in the coordinator.",
+   "fix_cost": "M", "ignore_cost": "Core-model work lands as ~400 more lines in an 853-line file with two hand-synchronised field lists."
+  },
+  {
+   "id": "S3C-07", "topic": "arch", "kind": "gap",
+   "claim": "The frame order lives in the render shell (PlaySession.frame), not the coordinator: there is no coordinator.tick(dt) that runs commands, watch advance, kinematics, cognition and a commit phase, so headless evals and the golden test must re-implement the order, and nothing has a slot for advance_watches, materialize, behaviour commit or text freeze.",
+   "evidence": [
+    {"path": "src/application/shell/PlaySession.ts", "lines": "184-186", "quote": "    this.coordinator.stepFrame(dtSeconds);\n    this.coordinator.pulseCognitiveScheduler();\n    const releasedStageId = this.resolveResident();"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "697-701", "quote": "    return {\n      state: this.state,\n      promotedEntityIds,\n      consumedStimuli,"},
+    {"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "71-71", "quote": "  readonly advanceTick?: boolean | undefined;"},
+    {"path": "cmd: grep -rn \"advanceTick: true\" src", "lines": "-", "quote": "(no output: no production caller passes advanceTick, so worldTick never moves in play)"}
+   ],
+   "bites_when": "Roadmap step 1 and 4 (advance_watches, behaviour commit). consumedStimuli is returned and thrown away by PlaySession, which is exactly where a commit hook must run.",
+   "severity": "major", "confidence": "high",
+   "disconfirm": "Checked whether stepFrame already runs cognition: it does the phase timers only; promotion is a second call. PlaySession tests spy on the two calls (PlaySession.test.ts:192) so the order is tested, but only as a shell concern.",
+   "recommendation": "Add coordinator.tick(dt, commands) with a fixed documented order: (1) accept commands and effects, (2) advance_watches if a watch was spent, (3) materialize if the space or watch changed, (4) truncate paths and stepKinematics, (5) pulse cognition and consume stimuli, (6) behaviour commit emits Acts plus effects through the envelope, (7) flush telemetry once with the final state, with text freeze happening at the point a line is shown (a command, not a frame step). PlaySession calls only tick.",
+   "fix_cost": "M", "ignore_cost": "Each core-model primitive is wired into PlaySession separately, and the headless runner that eval:ai needs drifts from what the game does."
+  },
+  {
+   "id": "S3C-08", "topic": "arch", "kind": "problem",
+   "claim": "PlaySession.status is sticky: a 'blocked', 'paused' or 'unknown_prop' result from any request stays in every later PlayFrameResult until another request overwrites it, because resolveResident only clears 'missing_stage'.",
+   "evidence": [
+    {"path": "src/application/shell/PlaySession.ts", "lines": "279-281", "quote": "    if (this.status === 'missing_stage') {\n      this.status = 'ready';\n    }"},
+    {"path": "src/application/shell/PlaySession.ts", "lines": "211-215", "quote": "    return {\n      renderFrame,\n      status: this.status,"}
+   ],
+   "bites_when": "Any HUD or advisor line that reads frame status to say 'path blocked' will keep saying it after the door opens or the pause ends.",
+   "severity": "minor", "confidence": "med",
+   "disconfirm": "browserMain reads only releasedStageId and renderFrame from the result today, so nothing is visibly wrong yet. I did not write a repro; this is from code reading, and no test covers status after a second frame.",
+   "recommendation": "Make status a per-call result, or clear non-stage statuses at the top of frame(). Also fix the doc comment on lines 102-105 that sits above focusSharesDrawnSpace instead of getSpaceOrigin.",
+   "fix_cost": "S", "ignore_cost": "A stale 'blocked' label appears the first time the HUD uses it."
+  }
+ ],
+ "keep": [
+  {"claim": "Pure-state discipline in the coordinator: every mutation assigns this.state only after the pure reducer or kinematics returns, so a throw leaves the world unchanged and load is all-or-nothing (the rng, legacy and state are replaced together only after parsing).",
+   "evidence": [{"path": "src/application/simulation/SimulationCoordinator.ts", "lines": "835-838", "quote": "    this.rng = nextRng;\n    this.inheritedLegacyState = nextLegacy;\n    this.resolvedCharacters = nextResolvedCharacters;\n    this.state = nextState;"}]},
+  {"claim": "A mid-run save round trip is exact today (entities on a path, pending stimuli, the cognitive cursor, a custom slice, through the real file repository, then 600 more frames), so the serialisation is a sound base to version rather than rewrite.",
+   "evidence": [{"path": "cmd: rt4.ts", "lines": "-", "quote": "equal at load: true  /  equal after 600 more frames: true"}]},
+  {"claim": "FileSaveSlotRepository's path safety and tmp+rename write are correct for crash safety of the previous file: slot id regex, realpath containment, symlink refusal, and a failed write leaves the old .json intact.",
+   "evidence": [{"path": "src/infrastructure/persistence/FileSaveSlotRepository.ts", "lines": "120-121", "quote": "    writeFileSync(tmpPath, serialized, 'utf8');\n    renameSync(tmpPath, targetPath);"}]},
+  {"claim": "Telemetry is emitted after the state it describes is assigned, so no stale-state bug was found in stepFrame, dispatch or pulse; dt clamping is tested at the coordinator and at the PlaySession boundary.",
+   "evidence": [{"path": "tests/unit/application/PlaySession.test.ts", "lines": "216-216", "quote": "  it('passes a 2 second delta through one step and does not open a second step', () => {"}]}
+ ],
+ "unconsidered_routes": [
+  {"title": "Input log plus checkpoint saves", "proposal": "Treat a save as seed + scripted command log + a periodic snapshot (every watch). Replaying the log from the last checkpoint must reproduce the state hash. The golden-run test and the bug-repro format become the same artifact, and a corrupt snapshot can be rebuilt from the log.", "reference": "Factorio / Starcraft replay files; deterministic lockstep", "replaces_or_changes": "Adds a command log beside the snapshot in SaveSlotEnvelope; makes S3C-05 the main safety net rather than an extra test."},
+  {"title": "Declared tick schedule instead of a hard-coded frame body", "proposal": "Define the frame as an ordered list of named phases (commands, watch, materialize, kinematics, cognition, commit, flush), each registered by the engine or by a pack, with the order asserted in one test. Adding advance_watches or materialize becomes inserting a phase, not editing PlaySession and the coordinator.", "reference": "Bevy / ECS system schedules; Unity Player Loop", "replaces_or_changes": "Replaces the sequence in PlaySession.frame and the ad-hoc stepFrame + pulse calls (S3C-07)."},
+  {"title": "Per-slice versioned save chunks with fixers", "proposal": "Store each slice (world core, entities, props, acts, observations, legacy) as a named chunk with its own version and a registered upgrade function. A pack that adds a slice adds its chunk and fixer, and old saves load with defaults instead of failing.", "reference": "Minecraft DataFixerUpper; Dwarf Fortress save versioning", "replaces_or_changes": "Replaces the single z.literal(1) envelope and the two magic keys __upliftWorldStateSnapshot / __upliftCustomSlicesSnapshot."}
+ ],
+ "could_not_verify": [
+  "Real browser behaviour of a throw inside requestAnimationFrame was read from the code, not run.",
+  "Whether the OS flushes the tmp file before rename on APFS (no fsync is called); a crash-timing test was not attempted.",
+  "PlaySession status stickiness (S3C-08) was not reproduced with a script.",
+  "Memory and time cost of structuredClone in StateSliceStore for large Act slices was left to the slice-3 performance scout."
+ ]
+}

@@ -1,0 +1,62 @@
+[
+ {
+  "id": "S4-01",
+  "verdict": "holds",
+  "evidence": "Dirs: ls src/content/scene -> defaultStageContent.ts, starterHoldCharacterVisuals.ts, starterHoldStages.ts only. localDiskBridgePlugin.ts:51 defaults to src/content/scene/stages. browserMain.ts:465-467 boots from STARTER_HOLD_* constants. Only callers of /api/scene-blueprints and /api/character-visuals in src are stageLabPanel.ts:88,105 and both are method:'PUT'.",
+  "note": "A GET handler exists server-side (localDiskBridgePlugin.ts:263-280) but no client or loader calls it, so no read path reaches runtime. Claim holds."
+ },
+ {
+  "id": "S4-04",
+  "verdict": "overstated",
+  "evidence": "Probe via eslint --stdin-filename src/domain/probe.ts and the test regex run on 11 forms. ESLint flagged Math.random() (1), Math?.random?.() (8), and 'new Date' with no parens (10). Regex flagged Math.random() (1), Math['random']() (9), globalThis.Date.now() (11). Both missed alias, destructure, .call, crypto.getRandomValues, crypto.randomUUID, Date(). application is not in the test (layer_boundaries.test.ts:~255 domain+content only) or the eslint files glob.",
+  "note": "Mostly right. Overstated on Math?.random?.(), which ESLint catches (selector matches the optional CallExpression). The regex also covers bracket access, which the claim omits."
+ },
+ {
+  "id": "S4-05",
+  "verdict": "holds",
+  "evidence": "extractImports patterns at layer_boundaries.test.ts:47-49 are three regexes: import/export...from, side-effect import, import('literal'). No require/import=require/template dynamic import. Forbidden packages for domain/application are only three and @huggingface/transformers; no node: check. content/scene forbids only application, infrastructure, transformers (lines ~215-221), so interfaces/* beyond three is allowed. No cycle detection. ESLint config has no no-restricted-imports.",
+  "note": "Not probed with files, read directly."
+ },
+ {
+  "id": "S4-06",
+  "verdict": "holds",
+  "evidence": "StarterHoldStage.test.ts:23-26 HIGHGLASS_IDS has 5 ids, applied to src/domain+src/application at :155-157; PlaySession.test.ts:124-131 checks one file for 4 ids plus 'src/content'. No other check in tests/architecture.",
+  "note": "Only one pack exists, so 'second pack unguarded' is prospective but accurate."
+ },
+ {
+  "id": "S4-07",
+  "verdict": "holds",
+  "evidence": "Sorted: KinematicsEngine.ts:574, WorldEffectReducer.ts:349, SimulationCoordinator.ts:590, RenderFrameBuilder.ts:678. Unsorted: SimulationCoordinator.ts:207 iterates Object.entries(state.entities). StateSliceRegistry.ts:21-26 cloneValue uses structuredClone with no Map/Set rejection; grep for instanceof Map/Set in src and tests finds nothing. tests/architecture has only layer_boundaries.test.ts.",
+  "note": "The unsorted site at :207 builds a Record, so order may be benign; the point is the absence of a guard."
+ },
+ {
+  "id": "S4-08",
+  "verdict": "holds",
+  "evidence": "starterHoldStages.ts:87 prop 'prop_chambers_door' vs starterHoldPack.ts:56 id; RenderFrameBuilder.ts:710 does worldState.props[stageProp.propId] with ?. so a missing sim prop is silently tolerated. StarterHoldStage.test.ts:93-134 checks character-visual and stage-space joins; :147-149 only checks isPortal on the door, not existence in the pack.",
+  "note": "PlaySession.assertStageFloors (PlaySession.ts:261-268) is a load-time validator, but only for stage vs space waypoint extents, not the id joins claimed. Holds."
+ },
+ {
+  "id": "S4-09",
+  "verdict": "overstated",
+  "evidence": "11 kinds confirmed: spaces, props, characters, offices, quietClaims, rivals, threads, channels, emergencies, orbitalPass, behaviors (EpochModulePackInput EpochBlueprints.ts:242-255; snapshots/restores EpochModuleRegistry.ts:63-75,109-123). assertSeparationWeight (:704-717) duplicates z.number().min(0).max(1) at EpochBlueprints.ts:126. institutionalLineageId (EpochBlueprints.ts:142) is only schema-checked; registerThreads checks lineage against character lineageIds (:329). Non-test callers: getWaypoint (SimulationCoordinator.ts:142) and getOrbitalPass (:288) only; getSpace/Prop/Character/Office/QuietClaim/Rival/Thread/Channel/Emergency have 0 src callers.",
+  "note": "Count '7 of 8' is off: 9 id-getters beyond getWaypoint all lack src callers. 'Same kind of reference' is arguable: institutionalLineageId is an institution lineage, thread ids are character lineages, so there is no obvious registry to check against. The god-registry forecast is opinion."
+ },
+ {
+  "id": "S4-15",
+  "verdict": "holds",
+  "evidence": "Re-timed npm run verify 3x: 6.18s, 5.35s, 5.48s. Parallel five steps: 2.95s, 2.75s (3.1s on first). Separate test:arch 0.76s + test:unit 2.19s vs merged 'vitest run tests/' 2.48s: saves ~0.47s.",
+  "note": "Parallel measured 2.75-3.1s here vs claimed 2.4s; same ballpark. Five steps run as chained npm run processes confirmed in package.json:24."
+ },
+ {
+  "id": "S4-16",
+  "verdict": "holds",
+  "evidence": "layer_boundaries.test.ts:385-392 pins exact array ['eslint --fix','prettier --write']; :401-430 assert literal strings and model names ('composer-2.5-fast','grok-4.7-high-fast','Wait for approval before editing any living doc.') in two SKILL.md files. .husky/pre-commit content: 'npx lint-staged' only.",
+  "note": "Holds. The cursor-skills-dir ban is a real structural rule, but the rest is prose pinning."
+ },
+ {
+  "id": "S4-17",
+  "verdict": "holds",
+  "evidence": "eslint.config.mjs:10 spreads tseslint.configs.strict and stylistic with no parserOptions.projectService. Probe src/application/p2.ts with an un-awaited async call f() and a non-exhaustive switch on a union: npx eslint --stdin exit 0, no output.",
+  "note": "Verified by running the real config."
+ }
+]

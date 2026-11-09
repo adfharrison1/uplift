@@ -1,0 +1,210 @@
+{
+ "findings": [
+  {
+   "id": "S1-01",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [],
+   "note": "Cheapest fix for the largest gap. Keep it to the one page; the ledger-diff end evaluation fits the no-HUD pillar. Fold R8's standalone-ending idea in as the 'end trigger' line."
+  },
+  {
+   "id": "S1-02",
+   "verdict": "amend",
+   "amended": "Give every WorldEffect a player-readable cause surfaced after its delay through advisor speech and in-room signs (a changed NPC line, a guard posted). Prototype on the 2-room slice with one fake delayed effect, and do not make the Ship Mind's debrief a statistics readout.",
+   "conflicts": [
+    "R9"
+   ],
+   "note": "Right pillar fit (diegetic, no voice acting, lace page). Risk: a 'statistical debrief' drifts into a HUD dump. Prefer prose and in-world evidence (Disco Elysium skill voices, Pentiment's consequence-by-NPC-behaviour). Conflicts with R9 percentage odds."
+  },
+  {
+   "id": "S1-03",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "S1-09"
+   ],
+   "note": "Highest-value item. Add the 'validated by' column. Slice must come before 06/06a, not only 05a/05b. S1-09's 'no new consumers' complements it."
+  },
+  {
+   "id": "S1-04",
+   "verdict": "amend",
+   "amended": "Write the three cycles (minute/session/epoch). Make the cost of talking come from the world: NPCs move on by watch and a conversation held open displaces another appointment, rather than a new attention-budget meter.",
+   "conflicts": [
+    "S1-05",
+    "R6"
+   ],
+   "note": "An explicit budget number reads as HUD and adds a system. Presence schedules (S1-05) already create the competition. Reference: Persona calendar slots, Majora's Mask schedules."
+  },
+  {
+   "id": "S1-05",
+   "verdict": "amend",
+   "amended": "Specify a per-character presence table by watch resolved on room entry, and require every macro lever to be exercised through a reachable person or place. Do it for the vertical slice's 3 NPCs first, and let it serve the 'old-timey NPC schedule' without simulating off-screen travel.",
+   "conflicts": [
+    "R6"
+   ],
+   "note": "Sound and cheap. It is what makes the embodied room matter; R6 would undercut it by making rooms optional scenes."
+  },
+  {
+   "id": "S1-06",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [],
+   "note": "Lace log as notebook is diegetic and extends the existing lace page. Decide save policy now (autosave at watch boundaries, no manual reload) because it shapes consequence design. Same as R3."
+  },
+  {
+   "id": "S1-07",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "R7",
+    "R5"
+   ],
+   "note": "Resolve toward authored nodes and drop 'Composer'. Consistent with R7. Cutting free text is the cheaper branch; intent->node mapping needs ONNX and should wait until the authored slice proves the writing."
+  },
+  {
+   "id": "S1-08",
+   "verdict": "amend",
+   "amended": "Keep the new-operative-per-epoch pillar. Persist the advisor pair's identity and trust across epochs as the campaign's through-line (they are the Culture presence), but let their traits drift and show the cost of the previous operative's choices in how they speak.",
+   "conflicts": [
+    "R8"
+   ],
+   "note": "The finding itself (re-rolled advisors vs emotional spine) is real, but 'one persistent pair, only the disguise varies' is a mild form of the fix, . Nothing in the owner's pillars forbids persistent advisors; it strengthens the new-operative pillar by giving the player a witness to continuity. Regard carry-over as lineage trust is good. Only the 're-rolled' part must go."
+  },
+  {
+   "id": "S1-09",
+   "verdict": "amend",
+   "amended": "Mark unused kinds provisional in the registry docs and stop adding consumers until the slice uses them; settle the Watches clock model before any further time-bearing schema. Do not move shipped code into a draft area, just stop extending it.",
+   "conflicts": [
+    "R4"
+   ],
+   "note": "The clock-first part is the actionable bit. Relocating code is churn with no player benefit; the epoch-agnostic registry is a pillar and should stay intact."
+  },
+  {
+   "id": "S1-10",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [],
+   "note": "A one-page system graph is cheap and decisive. Apply it first to the slice's content, then to the rest of the schema."
+  },
+  {
+   "id": "S1-11",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [],
+   "note": "Pairs well with S1-01. The 5-line best-case play story per thread doubles as slice acceptance test. Scripting the first 10 minutes should be part of the vertical slice."
+  },
+  {
+   "id": "S1-12",
+   "verdict": "amend",
+   "amended": "Surface the ethical cost in the advisors' disagreement and in a named person's later fate rather than a displayed expected-lives number. Let the Integral/Particular divergence show up in what the Ship Mind and Drone each say.",
+   "conflicts": [
+    "R9",
+    "R2"
+   ],
+   "note": "A printed expected-lives figure is a HUD readout and clashes with the diegetic pillar. The Culture's tone is the Mind arguing aggregate vs the Drone arguing the person; keep it in dialogue."
+  },
+  {
+   "id": "S1-13",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "R8"
+   ],
+   "note": "Strongest payoff for the new-operative pillar. Opening the next epoch with named Epoch 1 people (Crusader Kings heir hand-off, Pentiment's time skip) costs only authored content. Needs the slice's ledger to exist."
+  },
+  {
+   "id": "S1-14",
+   "verdict": "amend",
+   "amended": "Label click-to-waypoint as dev tooling. For telemetry, wire the browser to the existing Vite plugin endpoint so the logging rule becomes true; amend the rule only if that proves impractical.",
+   "conflicts": [],
+   "note": "Making the rule true is the cheaper long-term fix and the debug skill depends on logs. Legacy/save wiring should wait for the slice."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R1",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "S1-03"
+   ],
+   "note": "Same as S1-03 and the right first move. Lock the slice to few rooms and enough NPCs to test schedules (S1-05). Play with others before generalizing."
+  },
+  {
+   "id": "R2",
+   "verdict": "amend",
+   "amended": "Advisors carry the feedback and the ethics, but as prose and conflicting accounts in the lace page and the room, with no numeric debrief. Their disagreement is the readout.",
+   "conflicts": [
+    "R9"
+   ],
+   "note": "Best fit to the Culture and to the diegetic pillar. Same caveat as S1-02 and S1-12. Reference: Disco Elysium internal voices, Her Story style interpretation."
+  },
+  {
+   "id": "R3",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [],
+   "note": "Lace log as notebook is the smallest diegetic memory aid. The string board is optional and should wait. Omitted clauses appearing as gaps is a nice use of the existing omissible design. Reference: Return of the Obra Dinn, Disco Elysium thought cabinet."
+  },
+  {
+   "id": "R4",
+   "verdict": "amend",
+   "amended": "Author Epoch 1 as plain typed data through the slice and promote to general registry kinds only on second use, but keep the epoch-agnostic registry and keep lineageId. Do not quarantine existing code.",
+   "conflicts": [
+    "S1-09"
+   ],
+   "note": "Pairs with S1-09. The pillar of epoch-agnostic data is preserved by the existing registry, so only the rule 'no new kinds without content' is needed."
+  },
+  {
+   "id": "R5",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "R1"
+   ],
+   "note": "A cheap text prototype tests the advisory-duel core before any room work. Run it alongside or just before R1, not instead of it, since the owner's pillar is embodied play."
+  },
+  {
+   "id": "R6",
+   "verdict": "reject",
+   "amended": "Keep the embodied room as the primary loop and use a seasonal council only as the epoch-scale summary layer between rooms. Take King of Dragon Pass's framing, not its menu flow.",
+   "conflicts": [
+    "S1-05",
+    "S1-04",
+    "R1"
+   ],
+   "note": "Making rooms optional scenes inverts the 60 FPS embodied 3rd-person pillar and the proximity-use/WASD design already planned. Break it only if the slice shows the room is dead air."
+  },
+  {
+   "id": "R7",
+   "verdict": "endorse",
+   "amended": "",
+   "conflicts": [
+    "S1-07"
+   ],
+   "note": "Fits S1-07 and the no-voice, authored-text pillar. Quality-gated cards (Fallen London/Sunless Sea) are proven for solo writers. Keep slots for names and places only. Epoch-agnostic data fits cleanly."
+  },
+  {
+   "id": "R8",
+   "verdict": "amend",
+   "amended": "Make each epoch end on its own ledger screen and make Epoch 1 playable alone, but keep the hand-off payoff (S1-13) and the persistent advisors (S1-08) so later epochs read as continuation, not sequels.",
+   "conflicts": [
+    "S1-08",
+    "S1-13"
+   ],
+   "note": "Standalone endings help testing and match S1-01. A full sequel cartridge split risks undoing the cross-epoch consequence that is the game's hook."
+  },
+  {
+   "id": "R9",
+   "verdict": "reject",
+   "amended": "Show qualitative odds in advisor speech (the Drone's unease, the Ship Mind's hedge) and keep numbers hidden. If a number is needed, give it only on the lace page and only for the Mind's estimate, with the Drone able to dispute it.",
+   "conflicts": [
+    "S1-02",
+    "S1-12",
+    "R2"
+   ],
+   "note": "Percentage and modifier breakdowns are exactly the HUD dump the owner bans. CK3 works because it is a menu game. Better: XCOM-style odds only if diegetic, else Disco Elysium's spoken odds."
+  }
+ ],
+ "overall": "Do the player-contract page and the one-thread vertical slice first, before 05a/05b/06 (S1-01, S1-03, R1), with the first-10-minutes script and 5-line play stories as its acceptance test (S1-11). Inside the slice, test the feedback loop through advisor prose and room evidence (S1-02, R2) and per-watch NPC presence (S1-05), and settle the clock model and save policy before more schema (S1-09). Resolve the writing contradiction toward authored cards (S1-07, R7) and keep the advisor pair persistent (S1-08). Reject numeric odds and an embodied-optional macro loop (R9, R6), because both break the diegetic and embodied pillars."
+}

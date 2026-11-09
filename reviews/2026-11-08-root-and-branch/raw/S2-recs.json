@@ -1,0 +1,99 @@
+{
+ "findings": [
+  {
+   "id": "S2-01",
+   "claim": "Time is three incompatible units: blueprint fields are *Ticks, behaviors are seconds, worldTick is an effect-batch serial that is also stamped onto legacy scars as if it were time, and the designed elapsedWatches clock does not exist in WorldState.",
+   "rec": "Write a short clock decision record now (Watch is the macro unit; *Ticks renamed *Watches while they have zero users; one advance_watches effect; worldTick stays a serial and scars stamp the watch) before any further time-bearing schema."
+  },
+  {
+   "id": "S2-02",
+   "claim": "There is no Act/provenance primitive: WorldEffects carry no actor or cause, BehaviorModule has no commit (a finished dwell emits no WorldEffect, nothing selects a behavior), and NPC stimuli carry only a free topic string, so inference trails (P4), attribution for discovery, and the six motive-discovery channels have nothing to be built from.",
+   "rec": "Add an actor/cause to every WorldEffect, and an Act record {actorId, verb, objectRef, motiveTag, spaceId, watch, perceptibility} written by every behavior commit; give BehaviorModule preconditions, considerations and a commit WorldEffect[]. Everything perceivable is a rendering of an Act to an observer."
+  },
+  {
+   "id": "S2-03",
+   "claim": "No model of what anyone knows exists in design or code (the only stand-in is the scalar Regard.exposure), so the config's 'grounded strictly in NPC epistemic memory' generation, the player notebook, gossip and rival spoofing all lack ground truth and provenance.",
+   "rec": "Adopt a minimal shared epistemic model: Fact (world truth), Claim (proposition, may be false/forged), Belief {holder, claimId, confidence, source kind, sourceId, learnedWatch, hops}. Player notebook = player's Beliefs; NPC text reads only the speaker's Beliefs."
+  },
+  {
+   "id": "S2-04",
+   "claim": "Generated text has no place in the pipeline after P2: the only surfaced-text rule is 'The words are authored. The engine does not invent them', the one generation design (the Composer) is bolted onto the free-text parser P2 removes, change 08 / setup-models / MiniLM / intent evals are obsolete as written, and ~15 doc passages still assert free-text input or ONNX.",
+   "rec": "Fix one rule: surfaced text is a view of structured facts, produced behind a TextSourcePort (authored | pool | generated) and frozen into the save/ConversationHistory when shown; generated text never feeds back into WorldState. Retire 08 as written and replace with a local text-generation runtime + authoring kit change; edit the listed passages."
+  },
+  {
+   "id": "S2-05",
+   "claim": "Pure runtime generation is the wrong default here: replay/eval determinism cannot be guaranteed across WASM/WebGPU backends, and a 2019 Intel MBP sharing 16 GB with Three.js can realistically run only small (~0.5-1.5B quantized) models interactively.",
+   "rec": "Choose a hybrid weighted to authoring time: larger local model + agent draft variants in Node from character bibles, owner curates, results baked into content pools; runtime selects by seeded RNG with deterministic slot templating; optional later runtime SLM only for non-spine filler, cached into the save, after a timing spike on the real Mac."
+  },
+  {
+   "id": "S2-06",
+   "claim": "The generator's grounding inputs and quality gates do not exist: no VoiceProfile, no ConversationHistory, CharacterBlueprint holds only numeric drives and an emergencyVice id, and the planned 07e evals assume deterministic authored lines with no contradiction check, runtime fail path or review queue.",
+   "rec": "Define a pure LineBrief (bible fields, VoiceProfile, speaker's known fact ids, regard to listener, recent events, speech act) and a pure gate(line, brief) with lexical, grounding and tell-compliance tiers, run over every pool entry at authoring time and on any live generation (retry once, then fall back to a pool line, log to a review queue)."
+  },
+  {
+   "id": "S2-07",
+   "claim": "Rival linguistic tells are a reading puzzle and must be reliable, but the schema only models non-lexical spoof modes (round_numbers, deletion, early_surplus) with no field for the lexical tells the notes describe, and a small model may normalise surface tells away.",
+   "rec": "Add a data-driven tellProfile to RivalCivBlueprint and a spoofSignature on rival Claims/Reports; produce rival text via template/pool plus a deterministic tell post-pass; eval asserts tells present in all rival text and absent in non-rival text."
+  },
+  {
+   "id": "S2-08",
+   "claim": "No document says which text is hand-authored versus generated, and there is no authoring kit, so the first content written risks an incompatible shape.",
+   "rec": "Fix the split (hand-authored: spine beats, opening, Tier-1 bibles + signature lines, advisor keystones, rival exemplars; pool-generated then curated: Tier-2 lines, letters, gazette, ambient, rumours; runtime-templated: Tier-3 barks) and build an authoring kit (CharacterBible schema, RegisterCard, few-shot builder, draft/accept CLI)."
+  },
+  {
+   "id": "S2-09",
+   "claim": "Remote actors reach the player through three disjoint channels (overview, correspondence, one global discoveryLayer scalar) with no common Report primitive, and rivals have no agenda or actions in the schema, so the owner's rule 'aware of the interaction at some point' cannot be checked or tested.",
+   "rec": "Define Report {actId, channelId, latencyWatches, reliability, spoofSignature?} as the only way a remote Act reaches the player; give each rival a small hidden agenda emitting Acts on the storyteller clock; add an invariant eval that every remote Act above a weight threshold yields a Report within N watches."
+  },
+  {
+   "id": "S2-10",
+   "claim": "The world is player-gated by construction: NPC chains stop at 2 hops until a player or macro beat, macro beats come only from watches the player spends, and reading/talking spends none, so gossip and NPC-to-NPC consequence cannot propagate while the player explores.",
+   "rec": "Split embodied reactive cascades (keep the hop cap) from information diffusion (closed-form per watch over the Regard/Belief graph); let the storyteller release off-screen beats on wall-clock time too."
+  },
+  {
+   "id": "S2-11",
+   "claim": "A per-watch presence table has a clean seam via the existing off_stage_region space kind, but three shipped details fight it: every character spawns at its start waypoint at construction, cognition timers run on room seconds while presence changes on watches, and pending stimuli have no defined fate across a watch jump.",
+   "rec": "Make presence a pure function (entity, watch, seed) -> {spaceId, waypointId, activity} applied by a materialize step on room entry or watch spend; on a watch jump resolve in-flight phases, drop non-persistent stimuli, run closed-form catch-up emitting Acts; start entities off-stage."
+  },
+  {
+   "id": "S2-12",
+   "claim": "The notebook categories as stated (known, suspected, partial, omitted) mix player certainty with world state, and 'complete omissions' cannot be shown without leaking that the unknown exists.",
+   "rec": "Show an omission only when a referent exists (deleted slot, sealed letter, name used once, time gap). Add per-entry source + reliability, learned-on watch, staleness, contradiction pairs, 'who else knows' (as player belief), player-made hypotheses graded only on independent corroboration (Obra Dinn), and spoof-suspicion flags."
+  },
+  {
+   "id": "S2-13",
+   "claim": "The economy graph has no hub nodes in code: no watch clock, no funds/hooks/pretext state, no office or thread runtime state, no Regard graph, no actor on effects; every built reducer case is a leaf and the only real consumer is a cosmetic camera/fog response.",
+   "rec": "Adopt the drafted system graph as the dependency spine; add the hubs (watch clock, actor-tagged effects, thread runtime slice, player resource ledger, Regard) before any further leaf reducer cases."
+  },
+  {
+   "id": "S2-14",
+   "claim": "The only economic coupling (instrument -> stock -> discovery, with a 0.25 factor and fixed layers per mode) is hardcoded in the domain reducer rather than data, contradicting the data-driven, content-skinnable intent.",
+   "rec": "Make the reducer generic: each instrument mode resolves to a data profile {stockDeltas, discoveryFloor, scar?} registered per pack; the three modes become default profile keys."
+  },
+  {
+   "id": "S2-15",
+   "claim": "The pressure/discovery loops have no balancing side: stocks change only on dispatch and never decay, discovery only ratchets up via max(), and forged fiat jumps straight to 'attributed', which the design says triggers rival strikes \u2014 so the first forged coin is a one-way trip.",
+   "rec": "Write the 4-6 loops as one table (reinforcing/balancing, stock, writer, tuning key) and give each balancing loop a data key (decay per watch, cooling, evidence half-life); make discovery a decaying evidence score with thresholds."
+  },
+  {
+   "id": "S2-16",
+   "claim": "Leverage Chain cannot be defined on the current schema: pillars have no 'bears on thread' or 'supported by' relation, thread inertia is one opaque float, and the reducer can only delete a pillar.",
+   "rec": "Pillars gain bearsOnThreadId and supportedBy {entityId | institutionalLineageId}; thread inertia is derived from live pillar weights; a Leverage Chain is a derived query (live pillars on a thread sharing a support node plus the levers that move that node); player verb weaken_support(node, axis, amount)."
+  },
+  {
+   "id": "S2-17",
+   "claim": "Eight rules that constrain engine architecture are unwritten: clock unit; actor/provenance on effects; thread structure; discovery referent and escalation; emergency cardinality and fuse state; validation by rejection instead of throwing (spend_orbital_delta throws); a player resource ledger; what epoch-end export reads.",
+   "rec": "Adopt these eight as the S1-R1 rules spine, each mapped to the code it constrains, and write them into DESIGN_NOTES/config before 05b/06."
+  },
+  {
+   "id": "S2-18",
+   "claim": "Orbital Delta is the only real decision among the economic concepts but is uncoupled from illicit insertion and pretexts; pressure stocks are bookkeeping gauges and discovery is a single unlabelled global rank, so none yet gives the player something to weigh or feel.",
+   "rec": "Make insertion spend Delta and require zenith (rejecting otherwise); give each stock diegetic tells; re-key discovery by observer."
+  },
+  {
+   "id": "S2-19",
+   "claim": "The emergency model is a single id with no fuse countdown, and compound_emergency_vices adds the same delta to every entity regardless of the emergency or relevance.",
+   "rec": "Decide cardinality; add EmergencyRuntime {id, startedAtWatch, fuseRemainingWatches, scope}; make compounding scope-aware with the rate from the blueprint."
+  }
+ ]
+}

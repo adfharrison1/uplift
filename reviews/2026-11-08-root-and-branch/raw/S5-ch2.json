@@ -1,0 +1,72 @@
+[
+ {
+  "id": "S5-11",
+  "verdict": "holds",
+  "kind": "rule",
+  "evidence": "DESIGN_NOTES.md:312,314 are raw owner notes ('we should research'); RenderFrameBuilder.ts:125-128,525-530 one selectActiveCameraVolume target with spring; only focusPositionOverride; no capture/return/zoom anywhere in notes/config/specs. DESIGN_NOTES.md:224 says 'settled yaw'; starter content has yaw 0 and -18 (defaultStageContent.ts:196,208).",
+  "note": "'Settled' yaw only covers mid-blend, not the boundary remap. The first half is a flagged research item, so low severity."
+ },
+ {
+  "id": "S5-12",
+  "verdict": "overstated",
+  "kind": "rule",
+  "evidence": "reduceMotionAndFlashing from matchMedia (browserMain.ts:195) and PlaySession.setReduceMotionAndFlashing exists. But RenderFrameBuilder.ts:536-546,814 also scales fog and suppresses god rays, not only tilts. No grep hits in DESIGN_NOTES/config/specs for text scale, contrast, colour-blind, captions, hold/toggle; ambient lines 'expire on their own' with no reading time (DESIGN_NOTES.md:264).",
+  "note": "Gaps are real; 'only softens tilts' is slightly wrong (also fog, god rays)."
+ },
+ {
+  "id": "S5-13",
+  "verdict": "holds",
+  "kind": "rule",
+  "evidence": "DESIGN_NOTES.md:207 'subtle and diegetic... never billboards'; no accessibility/redundant channel text found in notes or config. Cues are authored for travel cabin only.",
+  "note": "Low-vision claim is inference from absence; cues are not built yet."
+ },
+ {
+  "id": "S5-14",
+  "verdict": "wrong",
+  "kind": "code",
+  "evidence": "playInput.ts:151-157 makes two separate calls: session.setPaused(paused) and session.setCameraDeAnchored(paused). RenderFrameBuilder.ts:501,632-635,665-667 keys free-cam and +0.40 desaturation on cameraDeAnchored, not on paused. DESIGN_NOTES.md:240 says the pause menu uses the existing paused bit without desaturating or freeing the camera.",
+  "note": "Pause and de-anchor are already separate flags, so no contradiction. Only nit: browserMain.ts:171 labels pick mode 'debug_free_cam' when paused, which a menu pause would mislabel."
+ },
+ {
+  "id": "S5-15",
+  "verdict": "overstated",
+  "kind": "placeholder",
+  "evidence": "No mood-versus-signal rule found (grep silhouette/contrast/readab). Computed WCAG contrast vs shadow bg #1a1f28: player primary #2c3138 1.26, iron 1.26, stone 2.09, mud 1.32, wood 1.62, accent #c4a574 7.07. Player primary equals iron (1.00 ratio), but iron is metal, not walls; stone walls are 1.66 vs the player. Player has accent #c4a574 (starterHoldCharacterVisuals.ts:34).",
+  "note": "Low-contrast palette is true and no signal-channel rule exists, but 'indistinguishable from walls' is overstated and the colours are placeholder hexes."
+ },
+ {
+  "id": "S5-16",
+  "verdict": "overstated",
+  "kind": "placeholder",
+  "evidence": "CharacterVisualBlueprintSchema (SceneVisualBlueprints.ts:375-391) has ~13 fields, not eight. Builder: box torso, icosahedron head, cloak/headgear/prop geometries (StageKitbashBuilders.ts:168-215,333-391); no limbs or gait animation found. Both shipped characters use cloak waxed_mantle (starterHoldCharacterVisuals.ts:30,48).",
+  "note": "Core description true; knob count wrong and the 40-60 silhouette collapse is a prediction about a starter art set."
+ },
+ {
+  "id": "S5-17",
+  "verdict": "overstated",
+  "kind": "code",
+  "evidence": "Rebind is opt-in: SceneVisualBlueprints.ts:436-441 only when rebindPaletteToTheme===true; only caller is a test (SceneVisualBlueprints.test.ts:512) which uses a distinct era2 theme. Default keeps per-character colours. Theme schema (135-156) has 4 materials plus shadow/torch/fog/light/desaturation/grime.",
+  "note": "'Erases identity' is wrong by default; 7-era untested is fair (one extra theme)."
+ },
+ {
+  "id": "S5-18",
+  "verdict": "overstated",
+  "kind": "vocabulary",
+  "evidence": "DESIGN_NOTES.md:53 'cyan-white vector arcs' true. #4fd2ff appears once, ChiaroscuroStageRenderer.ts:330, as lab selection emissive. No lace UI exists in src/interfaces (grep).",
+  "note": "Collision would only be with a debug highlight, not a play-facing colour; lace styling is not built yet."
+ },
+ {
+  "id": "S5-19",
+  "verdict": "overstated",
+  "kind": "rule",
+  "evidence": "localMask appears only in the formula (DESIGN_NOTES.md:82, config.yaml:48), never defined: holds. But DESIGN_NOTES.md:266 makes ambient lines show only when audible under the earshot rule, which is a player-facing readout of audibility. No threshold or learning rule stated.",
+  "note": "Undefined localMask and no threshold are real; 'no readout' is contradicted by the ambient-line visibility rule."
+ },
+ {
+  "id": "S5-20",
+  "verdict": "holds",
+  "kind": "vocabulary",
+  "evidence": "DESIGN_NOTES.md:82,249,253 and config.yaml:47-49: audio is non-speech; groundside bus lists settlement beds, footsteps, Mara's strike, chain clink, quill/wax; no per-NPC babble/blip/motif text found by grep. Eavesdropping is listed as an inference channel (DESIGN_NOTES.md:207 area, six channels).",
+  "note": "Ordering claim ('should not sit late') not verified here."
+ }
+]

@@ -1,0 +1,757 @@
+{
+ "facts": [
+  {
+   "id": "S0A-01",
+   "topic": "wiring",
+   "claim": "index.html loads browserMain.ts as the only browser module entry.",
+   "evidence": [
+    {
+     "path": "index.html",
+     "lines": "47",
+     "quote": "<script type=\"module\" src=\"/src/interfaces/composition/browserMain.ts\"></script>"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-02",
+   "topic": "wiring",
+   "claim": "browserMain boots one SimulationCoordinator with the epoch registry, an in-browser telemetry class and an in-memory save repository defined inside browserMain.ts (not the infrastructure NDJSON/file classes).",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "90",
+     "quote": "const coordinator = new SimulationCoordinator({"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "93",
+     "quote": "telemetry: new BrowserSessionTelemetry(clock),"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "418",
+     "quote": "class BrowserSaveRepository implements SaveSlotRepositoryPort {"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-03",
+   "topic": "wiring",
+   "claim": "BrowserSessionTelemetry keeps a capped in-memory array; its compact() is a no-op (void retentionWindowMs).",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "61",
+     "quote": "const TELEMETRY_ENTRY_CAP = 2048;"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "376",
+     "quote": "void retentionWindowMs;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-04",
+   "topic": "wiring",
+   "claim": "Per frame, one requestAnimationFrame loop calls session.frame, applies the render frame to the Three scene, and renders once.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "194",
+     "quote": "const result = session.frame(dtSeconds, {"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "213",
+     "quote": "renderer.render(built.scene, built.camera);"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "216",
+     "quote": "ownerWindow.requestAnimationFrame(onFrame);"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-05",
+   "topic": "wiring",
+   "claim": "PlaySession.frame steps kinematics then runs the round-robin cognitive scheduler pulse every frame, then builds a render frame for the resident stage.",
+   "evidence": [
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "184",
+     "quote": "this.coordinator.stepFrame(dtSeconds);"
+    },
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "185",
+     "quote": "this.coordinator.pulseCognitiveScheduler();"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-06",
+   "topic": "wiring",
+   "claim": "The shipped pack launches with two spaces, one prop and two characters; the cast is a Yard Walker (role_routine) and the Player Operative (utility_schemer).",
+   "evidence": [
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "20",
+     "quote": "epochId: 'epoch_1_highglass',"
+    },
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "66",
+     "quote": "id: 'char_yard_walker',"
+    },
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "80",
+     "quote": "id: 'char_player_operative',"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-07",
+   "topic": "wiring",
+   "claim": "Nothing at runtime enqueues NPC stimuli: enqueue_npc_stimulus is defined in the effect schema and reducer but no src caller dispatches it, so the cognitive scheduler has nothing to promote in the browser build.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "180",
+     "quote": "type: z.literal('enqueue_npc_stimulus'),"
+    },
+    {
+     "path": "cmd: grep -rn enqueue_npc_stimulus src | grep -v 'z.literal|README'",
+     "quote": "src/domain/simulation/WorldEffectReducer.ts:151:    case 'enqueue_npc_stimulus': {"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-08",
+   "topic": "wiring",
+   "claim": "The only src dispatchEffects call sites are inside SimulationCoordinator for move_entity_to_waypoint and update_prop_state; all other effect types (pressure, illicit instrument, discovery, emergency, orbital, legacy scar, audio cue, state slice) are dispatched by nothing in src.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "468",
+     "quote": "type: 'move_entity_to_waypoint',"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "489",
+     "quote": "type: 'update_prop_state',"
+    },
+    {
+     "path": "cmd: grep -rnE 'adjust_pressure_stock|insert_illicit|set_discovery_layer|collapse_inertia' src | grep -v WorldState.ts|WorldEffectReducer.ts|README",
+     "quote": "(no output)"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-09",
+   "topic": "wiring",
+   "claim": "Browser build never calls saveToSlot, loadFromSlot or exportLegacyState; they exist on SimulationCoordinator but have no caller in src outside the coordinator.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "740",
+     "quote": "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+    },
+    {
+     "path": "cmd: grep -rn 'saveToSlot|loadFromSlot|exportLegacyState' src (non-README, non-definition)",
+     "quote": "only SimulationCoordinator.ts:768 internal exportLegacyState use"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-10",
+   "topic": "wiring",
+   "claim": "The infrastructure layer is imported only by the CLI log query and the Vite dev-server bridge plugin, never by the browser entry.",
+   "evidence": [
+    {
+     "path": "src/interfaces/cli/queryLogs.ts",
+     "lines": "15",
+     "quote": "} from '../../infrastructure/index.js';"
+    },
+    {
+     "path": "src/interfaces/vite/localDiskBridgePlugin.ts",
+     "lines": "27",
+     "quote": "} from '../../infrastructure/index.js';"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-11",
+   "topic": "wiring",
+   "claim": "localDiskBridgePlugin.ts is reachable only from vite.config.ts (dev tooling), not from browserMain or the CLI; src/interfaces/index.ts barrel is also not imported by either entry.",
+   "evidence": [
+    {
+     "path": "vite.config.ts",
+     "lines": "10",
+     "quote": "plugins: [localDiskBridgePlugin()],"
+    },
+    {
+     "path": "cmd: node reach.mjs (file-level import graph from browserMain.ts + queryLogs.ts)",
+     "quote": "UNREACHABLE file-level: [ 'src/interfaces/index.ts', 'src/interfaces/vite/localDiskBridgePlugin.ts' ]"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-12",
+   "topic": "wiring",
+   "claim": "At file level every other src module is reachable from the two entries, but largely through barrels; many exports (all Zod schemas of telemetry, SaveSlot, EpochBlueprints sub-schemas, InMemorySaveSlotRepository, InMemorySessionTelemetry, systemTelemetryClock, fixedTelemetryClock, enforceCompactedStorageCap, createCivilizationLegacyState, recordScarInLegacyState, DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT, DEFAULT_HIGHGLASS_CHARACTER_VISUALS) are not referenced by name in any other non-barrel src file.",
+   "evidence": [
+    {
+     "path": "cmd: node scan: exported names not matched by word in other non-barrel src files",
+     "quote": "src/infrastructure/persistence/FileSaveSlotRepository.ts:InMemorySaveSlotRepository; src/domain/legacy/CivilizationLegacyState.ts:createCivilizationLegacyState; src/content/scene/defaultStageContent.ts:DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-13",
+   "topic": "wiring",
+   "claim": "getters for offices, quiet claims, rivals, threads, channels, emergencies and behaviors on EpochModuleRegistry have no callers in src outside the registry; only getOrbitalPass is called (SimulationCoordinator constructor).",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochModuleRegistry.ts",
+     "lines": "566",
+     "quote": "public getBehaviorsInTopologicalOrder(): ReadonlyArray<BehaviorModule> {"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "288",
+     "quote": "const orbitalBlueprint = this.registry.getOrbitalPass();"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-14",
+   "topic": "verbs",
+   "claim": "Click a button in the on-screen command list to request a move to a waypoint id of the focused entity space (one button per waypoint).",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "205",
+     "quote": "replaceButtons(commandList, waypoints, (waypointId) => {"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "122",
+     "quote": "const status = options.session.requestMove(waypointId);"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-15",
+   "topic": "verbs",
+   "claim": "Click a button in the focus list to switch the controlled/camera-focused entity to any entity (including the NPC), via setFocus.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "208",
+     "quote": "replaceButtons(focusList, entities, (entityId) => {"
+    },
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "141",
+     "quote": "public setFocusEntity(entityId: string): string | null {"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-16",
+   "topic": "verbs",
+   "claim": "While unpaused, a pointer click on a portal prop cycles its state open -> ajar -> closed -> barred -> open.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "10",
+     "quote": "const PORTAL_STATES = ['open', 'ajar', 'closed', 'barred'] as const;"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "75",
+     "quote": "id: 'portal',"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "84",
+     "quote": "nextPortalState(options.readPortalState(portal.propId)),"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-17",
+   "topic": "verbs",
+   "claim": "While unpaused, a click on the floor moves the focused entity to the nearest authored waypoint within 1.5 m of the click on XZ, else misses silently.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "90",
+     "quote": "id: 'floor',"
+    },
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "23",
+     "quote": "export const FLOOR_WAYPOINT_RADIUS_METERS = 1.5;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-18",
+   "topic": "verbs",
+   "claim": "F3 or backquote toggles pause and a de-anchored debug free-cam; while paused, arrow keys move the free-cam by 0.5 m and clicks pick a semantic id for the stage lab inspector.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "147",
+     "quote": "if (repeat && (normalized === 'F3' || normalized === '`')) {"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "11",
+     "quote": "const FREE_CAM_STEP_METERS = 0.5;"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "133",
+     "quote": "const pick = options.raycastPick();"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-19",
+   "topic": "verbs",
+   "claim": "Keyboard input in the browser is a single keydown listener forwarding to input.keyDown, which handles only F3, backquote and the four arrow keys; there is no WASD, Space, Escape, conversation, menu, interaction, role-pretext or fund verb in src.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "186",
+     "quote": "ownerWindow.addEventListener('keydown', (event) => {"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "227",
+     "quote": "if (key === 'ArrowLeft') {"
+    },
+    {
+     "path": "cmd: grep -rniE 'conversation|interactionHold|locomotionMode|ambient line' src (excluding README/AGENTS)",
+     "quote": "(no matches; only 'advisor' hit is a comment in SessionTelemetryPort.ts)"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-20",
+   "topic": "verbs",
+   "claim": "A dev-only stage lab panel lets the user edit scene blueprint and character visual JSON and POST it to /api/scene-blueprints/... and /api/character-visuals/... (served by the Vite bridge plugin).",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/stageLabPanel.ts",
+     "lines": "89",
+     "quote": "url: `/api/scene-blueprints/${parsed.stageId}`,"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-21",
+   "topic": "verbs",
+   "claim": "The player Operative is a regular waypoint-mover like any other character: no distinct player-only code path in the domain; focusEntityId is the string char_player_operative passed from browserMain.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "469",
+     "quote": "focusEntityId: 'char_player_operative',"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-22",
+   "topic": "registry",
+   "claim": "EpochModulePackInput supports 11 content kinds: spaces (required), props, characters, offices, quietClaims, rivals, threads, channels, emergencies, a single orbitalPass, and behaviors.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "242",
+     "quote": "export interface EpochModulePackInput {"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "253",
+     "quote": "readonly orbitalPass?: OrbitalPassBlueprint;"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "254",
+     "quote": "readonly behaviors?: ReadonlyArray<BehaviorModule>;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-23",
+   "topic": "registry",
+   "claim": "Registry private stores: spaces, props, characters, offices, quietClaims, rivals, threads, channels, emergencies, behaviors maps plus a single orbitalPass.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochModuleRegistry.ts",
+     "lines": "48",
+     "quote": "private readonly offices = new Map<string, OfficeBlueprint>();"
+    },
+    {
+     "path": "src/domain/registries/EpochModuleRegistry.ts",
+     "lines": "55",
+     "quote": "private orbitalPass: OrbitalPassBlueprint | undefined;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-24",
+   "topic": "registry",
+   "claim": "Content registers exactly: 2 spaces, 1 prop, 2 characters; 0 offices, 0 quiet claims, 0 rivals, 0 threads, 0 channels, 0 emergencies, 0 behaviors, and no orbitalPass. The pack has only spaces, props and characters keys.",
+   "evidence": [
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "21",
+     "quote": "spaces: ["
+    },
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "51",
+     "quote": "props: ["
+    },
+    {
+     "path": "src/content/worlds/starterHoldPack.ts",
+     "lines": "64",
+     "quote": "characters: ["
+    },
+    {
+     "path": "cmd: grep -nE '^  (offices|quietClaims|rivals|threads|channels|emergencies|orbitalPass|behaviors)' src/content/worlds/starterHoldPack.ts",
+     "quote": "(no output)"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-25",
+   "topic": "registry",
+   "claim": "Content also ships 2 stage scene blueprints (yard, chambers) and character visuals outside the registry, via STARTER_HOLD_STAGE_DIRECTORY.",
+   "evidence": [
+    {
+     "path": "src/content/scene/starterHoldStages.ts",
+     "lines": "97",
+     "quote": "export const STARTER_HOLD_STAGE_DIRECTORY: Readonly<Record<string, StageSceneBlueprint>> ="
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-26",
+   "topic": "registry",
+   "claim": "With no orbitalPass registered, the coordinator constructor finds undefined from getOrbitalPass, so orbital runtime state is never driven by content in the shipped build.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "288",
+     "quote": "const orbitalBlueprint = this.registry.getOrbitalPass();"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-27",
+   "topic": "concepts",
+   "claim": "Offices have a Zod blueprint schema and registry store but no runtime logic or content (fields institutionalLineageId, pretextFamilies, stipendPerTick).",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "139",
+     "quote": "export const OfficeBlueprintSchema = z.object({"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "145",
+     "quote": "stipendPerTick: z.number().nonnegative(),"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-28",
+   "topic": "concepts",
+   "claim": "Quiet claims have a blueprint schema and registry store only.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "150",
+     "quote": "export const QuietClaimBlueprintSchema = z.object({"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-29",
+   "topic": "concepts",
+   "claim": "Illicit instruments exist as a 3-value enum and an insert_illicit_instrument effect case in the reducer; pressure stocks exist as a 3-value enum and a PressureStocksState in WorldState; no code outside tests triggers them.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "161",
+     "quote": "'forged_fiat_instrument',"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "169",
+     "quote": "'elite_prestige_pressure',"
+    },
+    {
+     "path": "src/domain/simulation/WorldEffectReducer.ts",
+     "lines": "261",
+     "quote": "case 'insert_illicit_instrument': {"
+    },
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "149",
+     "quote": "readonly pressureStocks: PressureStocksState;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-30",
+   "topic": "concepts",
+   "claim": "Discovery layers (noticed/assayed/attributed/theorized) are a field on WorldState with a set_discovery_layer effect.",
+   "evidence": [
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "150",
+     "quote": "readonly discoveryLayer: 'noticed' | 'assayed' | 'attributed' | 'theorized' | null;"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-31",
+   "topic": "concepts",
+   "claim": "Channels (baseTransitTicks etc.), threads (dualUseCeiling) and rivals (spoof mode enum) have blueprint schemas and registry stores only; no simulation code consumes them.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "199",
+     "quote": "export const ChannelMediumBlueprintSchema = z.object({"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "193",
+     "quote": "dualUseCeiling: z.number().int().positive(),"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "176",
+     "quote": "export const RivalSpoofModeSchema = z.enum(['round_numbers', 'deletion', 'early_surplus']);"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-32",
+   "topic": "concepts",
+   "claim": "Emergency states have a blueprint schema, WorldState.activeEmergencyId and three reducer effects (trigger/compound/resolve), with telemetry category mapping, but no content and no trigger caller.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "208",
+     "quote": "export const EmergencyStateBlueprintSchema = z.object({"
+    },
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "151",
+     "quote": "readonly activeEmergencyId: string | null;"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "231",
+     "quote": "case 'trigger_emergency':"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-33",
+   "topic": "concepts",
+   "claim": "Orbital pass has blueprint, WorldState.orbitalPass runtime state (phase/availableDelta/maxDelta/activeBurn) and advance_orbital_pass/spend_orbital_delta reducer cases.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "220",
+     "quote": "export const OrbitalPassBlueprintSchema = z.object({"
+    },
+    {
+     "path": "src/domain/simulation/WorldState.ts",
+     "lines": "152",
+     "quote": "readonly orbitalPass: OrbitalPassRuntimeState;"
+    },
+    {
+     "path": "src/domain/simulation/WorldEffectReducer.ts",
+     "lines": "378",
+     "quote": "case 'advance_orbital_pass': {"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-34",
+   "topic": "concepts",
+   "claim": "CivilizationLegacyState (dual material/veil scar ledgers) is implemented as a Zod schema with create/record helpers and wired to the coordinator export/save path.",
+   "evidence": [
+    {
+     "path": "src/domain/legacy/CivilizationLegacyState.ts",
+     "lines": "75",
+     "quote": "export const CivilizationLegacyStateSchema = z"
+    },
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "768",
+     "quote": "legacyState: legacyStateToRecord(this.exportLegacyState()),"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-35",
+   "topic": "concepts",
+   "claim": "Conversations, advisors/lace pages, ambient lines, interactionHold, locomotionMode (direct vs waypoint), proximity use, pretext spending, funds, and the eval runner have no type or code in src; the only advisor trace is a telemetry kind string.",
+   "evidence": [
+    {
+     "path": "src/domain/telemetry/SessionTelemetryPort.ts",
+     "lines": "16",
+     "quote": "'advisory_duel',"
+    },
+    {
+     "path": "cmd: ls eval; grep eval package.json",
+     "quote": "ls: eval: No such file or directory; (no eval script)"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-36",
+   "topic": "concepts",
+   "claim": "BehaviorModule has a schema and topological-order getter but there is no behavior content and no caller that runs behaviors.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "231",
+     "quote": "export const BehaviorModuleSchema = z.object({"
+    },
+    {
+     "path": "src/domain/registries/EpochModuleRegistry.ts",
+     "lines": "566",
+     "quote": "public getBehaviorsInTopologicalOrder(): ReadonlyArray<BehaviorModule> {"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-37",
+   "topic": "hotspots",
+   "claim": "The 10 largest src files by LOC are SimulationCoordinator.ts 853, RenderFrameBuilder.ts 821, EpochModuleRegistry.ts 796, KinematicsEngine.ts 622, WorldEffectReducer.ts 494, browserMain.ts 471, localDiskBridgePlugin.ts 463, StageKitbashBuilders.ts 448, SceneVisualBlueprints.ts 444, StageInspectorDomMirror.ts 434.",
+   "evidence": [
+    {
+     "path": "cmd: find src -name '*.ts' | xargs wc -l | sort -rn | head -12",
+     "quote": "853 src/application/simulation/SimulationCoordinator.ts / 821 RenderFrameBuilder.ts / 796 EpochModuleRegistry.ts"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-38",
+   "topic": "hotspots",
+   "claim": "src totals 11024 lines of .ts (domain 3864, application 2573, interfaces 3063, infrastructure 939, content 585).",
+   "evidence": [
+    {
+     "path": "cmd: find src -name '*.ts' | xargs wc -l | tail -1",
+     "quote": "11024 total"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-39",
+   "topic": "hotspots",
+   "claim": "There are 0 TODO/FIXME/HACK markers in src.",
+   "evidence": [
+    {
+     "path": "cmd: grep -rnE 'TODO|FIXME|HACK' src | wc -l",
+     "quote": "0"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-40",
+   "topic": "tests",
+   "claim": "tests/ has 24 test files: 1 architecture file (8 cases) and 23 unit files (125 cases) across application(5 files/29 cases), content(1/6), domain(7/54), infrastructure(2/7), interfaces(8/29).",
+   "evidence": [
+    {
+     "path": "cmd: grep -rhE '^\\s*(it|test)(.each...)?\\(' per dir | wc -l",
+     "quote": "architecture files=1 cases=8; application files=5 cases=29; content files=1 cases=6; domain files=7 cases=54; infrastructure files=2 cases=7; interfaces files=8 cases=29"
+    }
+   ],
+   "confidence": "med"
+  },
+  {
+   "id": "S0A-41",
+   "topic": "tests",
+   "claim": "Test LOC to src LOC by layer: domain 2410/3864 (0.62), application 2297/2573 (0.89), infrastructure 444/939 (0.47), interfaces 1954/3063 (0.64), content 196/585 (0.34); total tests 7734 incl 433 architecture.",
+   "evidence": [
+    {
+     "path": "cmd: wc -l per tests/unit/<layer> vs src/<layer>",
+     "quote": "application testloc=2297 srcloc=2573; content testloc=196 srcloc=585; domain testloc=2410 srcloc=3864"
+    }
+   ],
+   "confidence": "high"
+  },
+  {
+   "id": "S0A-42",
+   "topic": "tests",
+   "claim": "No eval/ directory or eval:ai npm script exists, although AGENTS.md describes npm run eval:ai.",
+   "evidence": [
+    {
+     "path": "cmd: ls eval",
+     "quote": "ls: eval: No such file or directory"
+    }
+   ],
+   "confidence": "high"
+  }
+ ],
+ "could_not_verify": [
+  "Case counts are regex counts of it/test calls at line start; it.each expansions not counted.",
+  "Unused-export list is name-based word matching, noisy (same-file usage and barrels not distinguished).",
+  "Runtime behaviour in a real browser was not executed; verbs derived from code reading only.",
+  "Whether the Yard Walker ever moves autonomously: no code path found that enqueues stimuli or issues moves for it."
+ ]
+}

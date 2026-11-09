@@ -1,0 +1,50 @@
+[
+ {
+  "id": "S4-02",
+  "verdict": "holds",
+  "evidence": "Middleware (localDiskBridgePlugin.ts:417-424) routes on URL prefix only; grep finds no Origin/Host/token/Content-Type check. vite.config.ts binds 127.0.0.1:5173, no cors/allowedHosts overrides. Live probe on 127.0.0.1:5199 with scratch logs dir (Vite 8.3.5): POST /api/telemetry/session with Origin https://evil.example and Content-Type text/plain returned 200 and the session was started (which truncates the logs). Same POST with Host: evil.example returned 403 from Vite's host validation (in Vite 8 it is installed before plugin configureServer hooks, node.js ~25057-25064). OPTIONS preflight with Origin evil and Request-Method PUT returned 204 with no Access-Control-Allow-Origin, so browsers would block PUT/DELETE. Server stopped.",
+  "note": "Browser rules, from memory only (no web check): Chrome's Private Network Access preflight idea was replaced by a Local Network Access permission prompt (about Chrome 142, late 2025). That is a user prompt, not a hard block, and does not apply from non-Chrome browsers or if the user clicks allow, so it is a mitigation rather than a refutation. Vite's own cors default only adds headers; it does not reject simple requests."
+ },
+ {
+  "id": "S4-03",
+  "verdict": "holds",
+  "evidence": "NdjsonSessionTelemetry constructor calls startNewSession (line ~207), which does writeAtomic(active,'') and writeAtomic(compacted,'') (278-279). Plugin constructs the logger in configureServer (line 414), so each dev-server start wipes both files. /api/telemetry/session calls startNewSession again. recordBatch stamps timestampIso/elapsedSessionMs from this.clock at arrival.",
+  "note": "Claim about page reload is conditional on the future browser wiring starting a session on load; nothing does so today (the claim says 'as the logger stands', which is fair)."
+ },
+ {
+  "id": "S4-10",
+  "verdict": "holds",
+  "evidence": "EpochModuleRegistry.registerPack (574-578 region, line 58 in the grep) trims pack.epochId and only checks non-empty; trimmedEpochId is never used again. No packId/version field exists. Ids go into one allIds map; stageGlobalId throws on a duplicate id across kinds.",
+  "note": "'Silently merges' is accurate for packs with disjoint ids; colliding ids throw rather than merge, so 'no override semantics' means override is impossible, not silent."
+ },
+ {
+  "id": "S4-11",
+  "verdict": "holds",
+  "evidence": "VehicleKindBlueprint, TransitRouteBlueprint, TravelVignetteBlueprint, EnRouteEncounterTable appear only in src/content/AGENTS.md (and TravelSurfaceCueBlueprint only in md files); EpochProfileBlueprint only in md files. package.json has no @huggingface/transformers, yet infrastructure/AGENTS.md:5 allows it and tests/AGENTS.md mentions the 23MB ONNX model. interfaces/AGENTS.md:15 says stage-lab uses fetch PUT; stageLabPanel.ts only PUTs, and nothing in src GETs the saved blueprints back. DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT and DEFAULT_HIGHGLASS_CHARACTER_VISUALS are exported from content/index.ts but used in src only by their own file; only tests consume them. All three scene files import StageKitbashBuilders from interfaces/three.",
+  "note": "Minor looseness: CharacterVisualBlueprint does carry a lineageId field, so 'keyed by characterId and lineageId' is imprecise rather than false (matching is by characterId). The 06c travel blueprints are planned in the roadmap, so the recipe describes future work, but it is still presented as an instruction. I did not separately verify the application/AGENTS.md half of the stage-lab sentence."
+ },
+ {
+  "id": "S4-12",
+  "verdict": "overstated",
+  "evidence": "isHighSignalTelemetryEntry (SessionTelemetryPort.ts:140-146) keeps verbatim: level != info, entries with aiReasoning, and the 9 preserved categories. AGENTS.md:65 does say every AI input/output/reasoning trace is logged. RollingLogCompactor keeps these in eviction tier 2/3 and digests only routine info entries.",
+  "note": "'Keeps every AI trace' is true only for traces carrying aiReasoning; an AI event with no aiReasoning and a non-preserved category is digested. The Act ring is a proposed primitive that does not exist yet, so 'recorded twice' is a prediction. Scaling by NPC count is plausible from the design but not demonstrated in code."
+ },
+ {
+  "id": "S4-13",
+  "verdict": "holds",
+  "evidence": "vitest run: 24 files, 133 tests. EpochModuleRegistry.test.ts is 780 lines with 5 it() and 46 expect(). LocalDiskBridge.test.ts:39-40 constructs the plugin and asserts only plugin.name; the configureServer middleware and readRequestBody are never exercised. NdjsonSessionTelemetry.test.ts:237-240 restates the constants (50*1024*1024) against themselves. grep for ENOSPC/torn in tests finds nothing. layer_boundaries.test.ts:425-431 asserts toContain on skill-doc strings.",
+  "note": "Not checked: whether any test covers the browser frame loop (none found under tests/unit/interfaces by name, not exhaustively searched)."
+ },
+ {
+  "id": "S4-14",
+  "verdict": "holds",
+  "evidence": "compact() uses readFileSync/writeFileSync/renameSync on both whole files (NdjsonSessionTelemetry.ts 297-320), called from recordBatch inside the Vite middleware handler. After compaction activeLogBytes is set to the retained bytes, so if verbatim high-signal entries within the window exceed the cap it recompacts every batch. writeAtomic swaps via .tmp. enforceCompactedStorageCap evicts by tier including tier 3 (warn/error), so SKILL.md:17 '100% Preserved Verbatim' is false at the cap. queryLogs.ts:186-190 prints every record, no limit/tail/summary, and a missing logs dir yields no output and no message. No tests for ENOSPC or torn lines.",
+  "note": "A torn trailing line is skipped by parseNdjsonLines rather than crashing, which I did not confirm in depth, so 'lossy' on that path is plausible but not proven. 'A log nothing feeds' is true today because browser telemetry is not wired."
+ },
+ {
+  "id": "S4-18",
+  "verdict": "overstated",
+  "evidence": "openspec/config.yaml:133 does describe 05f as one runner for every AI subject. 03-sim-core.md:43 proposes a golden-run test (seeded fixture, scripted commands, hashes). Its R3C1 ruling says the scripted command log is the artifact for golden tests and 05f fixtures, so they share fixtures by design. 02b-roadmap-reorder.md:24 and 02-systems.md:47,76 put the evidence-coverage eval inside 05f, and 02-systems.md:95 names the 05f runner as host for text gates.",
+  "note": "The overlap risk for golden test versus 05f smoke case (Vitest versus eval/) is real, but the claim that nothing says where the other two live is wrong: evidence-coverage and text gates are already assigned to the 05f runner. Only the golden-run versus eval split is undecided."
+ }
+]

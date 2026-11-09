@@ -1,0 +1,122 @@
+{
+ "apply_conflicts": [
+  "STALE LINE NUMBERS (systemic): about 60 amendments address DESIGN_NOTES.md and config.yaml by baseline line number. B0 shifts both files before most of them run: A-76 inserts the frame above line 3, A-77 removes lines 304-end, A-79 collapses config 120-148 to one line (every later config line, e.g. 154/157-177/182/200/203/206/230, moves by about -28), A-01 adds a config line after 20, A-80 removes AGENTS 82-118 and config 157-177. Fix: re-anchor every amendment on a quoted passage or heading, not a line number.",
+  "A-76 and A-69 both add status markers to the same DESIGN_NOTES section headings (A-76 in B0 for every section; A-69 in B2 for sections 6-11). Second marker is duplicate or contradicts the first. Fix: A-76 writes the status index only; A-69 alone writes heading markers (or A-76 owns all and A-69 drops its marker clause).",
+  "A-69 (B2) edits DESIGN_NOTES line 299 (eval:ai loop tense) while A-30 (B4) claims to 'own every edit' in lines 297-301. Two owners for one line. Fix: A-30 follows A-69 explicitly or A-69 drops 299.",
+  "A-70 (B2) says 'Nothing is deleted here; A-72 later moves the surviving text to DESIGN_NOTES', but A-72 (B9) says the planned bullets are 'already there' in DESIGN_NOTES. Each defers to the other, so the config planned text (visual/camera about 900 words, core model about 630, clocks about 350) can be cut with no verified home. Fix: add a no-loss step to A-72 (diff each cut config paragraph against DESIGN_NOTES) and assign the move to A-70.",
+  "A-81 edits config lines 161 and AGENTS 91 (audit Subagent B '4-6 tasks' wording) but A-80 (same batch, listed earlier) has already turned the config Review Gates block (157-177) into a pointer and moved the AGENTS gate section into the skill. A-81 edits text that no longer exists there. Fix: retarget A-81 to the skill file.",
+  "A-78 (lines 30-32) and A-81 (line 32 and 78) both edit uplift-design-notes SKILL.md line 32 (step 3.2 roadmap entry vs the 4-6 wording). Same line, two amendments in B1. Fix: merge or state a strict order.",
+  "A-52 rewrites config lines 60-64, which include line 64 (Multi-session Save/Load); A-32 (B6) then edits line 64 for the save-policy-open note. A-55 (B5) and A-20 (B3) both edit config line 74 (typed StateSliceKey line vs the freeze-extension directive). Overlapping spans with different intent. Fix: name the clause each owns.",
+  "Sound/audio span overlap: A-43 (B6) edits DESIGN_NOTES 82 and 266 and config 48; A-42 (B6) edits 85; A-46 (B7) edits 83; A-71 (B2) edits 89; then A-44 (B7) rewrites the whole 80-89 Sound Design block and config 46-49. A-44 overwrites or must re-incorporate four earlier edits. A-13 also lists line 266 ('Ambient lines still spend no watch') in the same batch as A-43's edit of that line.",
+  "Section 7/8 overlap on DESIGN_NOTES 224 (A-69 B2, A-38 B7, A-39 B7), 237 (A-69, A-37), 240/244 (A-29 B4, A-49 B7, A-40) and config lines 35/36/38 (A-70 B2 appends '[planned - revisable]'; A-37, A-38, A-40, A-49 rewrite the same lines in B7). Orderable, but each B7 rewrite must keep the earlier tense change and tag; no amendment says so except A-49 (after A-29) and A-37 (with A-69).",
+  "A-83 (B1) adds a ledger check in tests/architecture, and A-75 (B2) item 7 adds the same ledger check in docs_truth.test.ts. Two homes for one test; A-83's test has no file to live in until A-75 creates docs_truth.test.ts.",
+  "A-83 (B1) seeds the ledger with 'fixing change' ids (hx-*, 05d-* etc. from the plan) but roadmap.yaml is a faithful legacy copy until A-58 (B9). A-75 (B2) item 7 fails ('names a change that does not exist in roadmap.yaml'), contradicting 'starts green'. Also A-75 item 5 (config under 1.5k words) is red until A-72 (B9) although the batch rationale says the config assertion arrives with A-72, and item 1 (every *Blueprint in any AGENTS.md exists) is red for section AGENTS files that S4-11 says name non-existent blueprints (fixed later by the section-docs-truth change). Fix: phase the test (root AGENTS only at B2; ledger and config budget at B9; section AGENTS at the section-docs change).",
+  "Status markers (A-76/A-69, checked by A-75 item 4 from B2) cite legacy roadmap ids (05b, 07, 09 ...); A-59 (split 05b), A-58 (reorder) and A-61/A-62 in B9 rename or split those ids, turning the docs-truth test red at B9 unless markers are rewritten in the same batch. No amendment rewrites them.",
+  "A-58 (B9) writes depends_on for entries named 05b-1, 05b-2, text-source-port, eval runner, Act/envelope etc. before A-59 (next amendment) creates 05b-1/05b-2 and before any amendment defines the new entries; A-61 instead merges text-source-port into 07. A-58 says it only reorders, yet its sequence needs about 12 new entries. Meanwhile the plan's roadmap-yaml change says roadmap.yaml is 'seeded with this v2 plan' (83 ids). Fix: A-58 takes the 83 plan ids as its entry list.",
+  "A-03 (B8) uses 'R9' for 're-rolled advisors weaken the through-line' (that is S1-R9); elsewhere R9 is the CK3 numeric-odds route (A-41 'R9 note', A-94). Label collision; A-03 also duplicates A-94's rejected row."
+ ],
+ "missing_targets": [
+  "A-04 (B8): target 'Ideas, not scheduled' heading does not exist in DESIGN_NOTES.md and no earlier amendment creates it (A-63's 'Open, deferred and parked' list is a different block). Fix: A-69 or A-76 creates the heading, or A-04 targets the open list.",
+  "A-42 (B6): target 'Accessibility section' does not exist in DESIGN_NOTES.md; A-41 creates 'Accessibility and Settings' one batch later (B7). Move A-42 after A-41 or have it create the section.",
+  "A-83 (B1): 'tests/architecture (ledger check)' has no file; docs_truth.test.ts is created by A-75 in B2.",
+  "A-82 (B1): 'hardening change specs (MODIFIED deltas)' - the hx-0a2, hx-0b and hx-3b changes and their delta files do not exist in the docs-amendment phase. The amendment can only add the rule and a list; the deltas are written inside those changes.",
+  "A-68 (B2): keeps a pointer to the rules spine, but the spine paragraphs (A-05) land in B3 and A-66's pointers 'go last so they point at text that exists'. B2 AGENTS.md points at empty R1..R8 headings from A-76.",
+  "A-83 (B1) and A-75 item 7 (B2): fixing-change ids from the plan (hx-*, pre-05d-*, 05d-*, cm-*) are absent from roadmap.yaml until B9, and even then A-58 only reorders legacy entries.",
+  "A-71/A-52/A-59 reference the 'guarded bridge write-route helper' and 'PUT route using the guarded helper (A-53)'; the helper is built by hx-0a-bridge-lock, so the wording must be marked planned (A-71 does, A-59 does not)."
+ ],
+ "budget_estimates": {
+  "agents_md_words": 1000,
+  "config_context_words": 1250,
+  "design_notes_words": 16000,
+  "notes": "AGENTS.md now 1933 words: kept sections (title, citation rule, Quick Verify, layer table, zero-any, section map) are about 640; shipped registry bullets (characters, offices, channels, threads, emergency, orbital pass) about 300; pointers about 60. Achievable at roughly 950-1050, so 'about 900' needs a test ceiling near 1050 or a trimmed section-map table (open item 12 leaves the threshold undecided). Config context now 5070 words (lines 3-187); after removing roadmap (1035), gates (468), versions (108), planned bullets and the visual/core/clock blocks (about 1900 moved to DESIGN_NOTES) the retained invariants, standing directives, doc hierarchy and four pointer lines are about 1200-1300, so under 1.5k is achievable but only if A-72 cuts the whole camera/play-shell and core-model blocks. DESIGN_NOTES now 10282 words; minus 194 (raw dump) plus about 4800 new sections/frame/appendix, about 600 relocated from AGENTS and about 500 system graph gives about 16000; no budget is set for it and it is already roughly 18 words per line on average."
+ },
+ "plan_without_doc_home": [
+  "cm-resource-ledger: only R7 (one rule line) and the system-graph hub mention it; no amendment covers ResourceLedger design or the 'reconciles Omen Ledger naming' item.",
+  "06a-regard: no amendment describes planned Regard (only A-10's note that Regard.exposure is no longer the only knowledge record); plan scope 'shares data with presence' has no doc.",
+  "05b-2-envelopes-and-gates / 05b-2-storylets: storyteller as seeded card deck (RB3), 5-stage gates and Tracery-style storylet grammar for cards have no DESIGN_NOTES amendment; A-59 only edits the roadmap line.",
+  "07a (dialogue interruption, existing DESIGN_NOTES 10a): the plan has no change that cuts a conversation short; plan id 07a-ambient-and-overheard renames it. Interruption and the 'unread tail does not fire' rule are homeless.",
+  "06-overview-writing-desk-report: Writing Desk on the text port has no amendment (Report-as-Observation is covered by A-22).",
+  "11-pass-1-pack-skeleton / thread-wiring / ledger-end-card: only A-60 (roadmap field) and A-16 (minimal loop fields) touch them; no doc states the slice's pass criteria (one thread, few NPCs, one office, stub end card) beyond the plan."
+ ],
+ "docs_without_plan": [
+  "No amendment carries a roadmap id; all 89 name changes by legacy numbers (05b, 07, 08, 09) or 'the shipping change'. Plan ids differ from the config ids they replace: 07a-ambient-and-overheard vs 07a-dialogue-interruption, 07b-role-pretexts vs 07b-role-pretext-choices, 07c-funds-and-cuts vs 07c-fund-spending-choices, 06c-world-overview-news vs 06c-epoch-travel-vignettes (and 06c is travel vignettes, not world overview), 06b-assassination-drone vs 06b-assassination-and-cover-persecution, 06a-regard vs 06a-interpersonal-regard-and-romantasy, 09a-contingency-scheduler vs 09a-doomsday-clocks-and-rival-unveiling, 05a-sound-lab-and-audio-engine vs 05a-acoustics-and-procedural-web-audio. Plan marks these 'untouched' yet the ids do not exist, so DAG and status-marker checks fail.",
+  "A-04 (advisor cameo): inventory says unscheduled, no roadmap entry; plan 10-crew-handoff-and-cameo schedules it.",
+  "A-60: 06 gets no depends_on on the vertical slice; plan has 06-utility-ai-rivals depends_on 11-pass-1-ledger-end-card.",
+  "A-59 places the fractional-watch talk cost in 05b-1 and A-61 in the 07 pager; plan 05b-1 scope omits it and 07-dialogue-paging carries it.",
+  "A-61 gives the 07 pager 'ambient lines'; plan lists ambient lines in both 07-dialogue-paging and 07a-ambient-and-overheard.",
+  "A-42/A-43/A-45 place passive noticing and audibility integration at 'the Observation core step'; plan puts them in cm-instrument-profiles-audibility-tells, not cm-observation-belief or cm-notebook-model.",
+  "A-38 says the camera directive stack 'has no schedule of its own'; plan schedules 07-camera-directive-stack.",
+  "A-41 puts adaptive DPR 'with Settings' and an optional qualitative-odds setting; plan parks DPR (roadmap-yaml) and has no owner for the odds setting. A-41 puts readingSpeed with the 07 pager while plan 05e-settings-model lists 'reading speed placeholders'.",
+  "A-21 stock-flow economy and diegetic stock tells (RB2) and 'forged fiat no longer jumps to attributed': plan cm-diffusion-and-balancing covers the ratchet only; stock tells have no change.",
+  "A-58 order puts telemetry wiring before validateLaunch/kind table; plan puts it after 05b-1. A-58 omits review-gates, defect-ledger and skill-fix as roadmap entries that the plan lists.",
+  "A-72 (config context cut, B9, last) vs plan design-notes-skill-fix-and-agents-truth, which includes the config shrink as an early change. A-80/A-83 (B1) run before A-68/A-75 (B2) but plan orders review-gates-skill and defect-ledger after the AGENTS-truth change. Plan has docs-rules-spine first; inventory runs roadmap migration (A-79) and AGENTS truth before the spine paragraphs."
+ ],
+ "cross_slice_contradictions": [
+  {
+   "a": "Audibility tiers: S5 owner decision (provisional rule in audio-minimal; Observation integration 'core step 5') and slice 2b step 5 (Observation + notebook + instrument profiles together) vs plan (cm-instrument-profiles-audibility-tells, a later core step) vs plan 05a ('calculator lives in observation and audio-minimal') vs old config 05a scope ('Shared Audibility ... Calculator') vs A-42/A-43 ('Observation / notebook core step').",
+   "b": "Three or four homes for one rule.",
+   "resolution": "One owner: cm-instrument-profiles-audibility-tells owns the tier rule's Observation integration; audio-minimal ships a provisional table it replaces; 05a only consumes and loses the calculator from its scope. Reword A-42, A-43, A-45 and the 05a roadmap entry to that id."
+  },
+  {
+   "a": "Slice 3 hardening step 5: split simulationFrozen from 'accepting commands' (pause drops dispatched effects); S3-18 status per call.",
+   "b": "Slice 5 prerequisite 1: domain keeps ONE simulationFrozen bit; lab mode is a PlaySession flag; free-cam gated on it; reword 05e to 'no second domain pause flag'.",
+   "resolution": "Write one definition in the spine (R6 note) and in A-49: player pause sets the single domain bit, which freezes time only and still reduces effects with outcomes; lab mode is a PlaySession flag that also holds the bit; hx-5b owns the bit and acceptance, hx-5c owns lab flag and free-cam."
+  },
+  {
+   "a": "Slice 2b and S1-R3: the watch budget and time-spend verbs MUST stay in 05b-1; 07 is rescoped because reading costs no watch (talk cost lives in 07).",
+   "b": "A-59 puts the fractional-watch talk cost in 05b-1; A-61/A-14 put it in the 07 pager; plan 05b-1 omits it and 07-dialogue-paging charges it.",
+   "resolution": "05b-1 owns the fractional time-spend verb and budget; 07-dialogue-paging owns charging it per conversation. State both halves in A-14, A-59 and A-61 and add the verb to the plan's 05b-1 scope."
+  },
+  {
+   "a": "Register S2-05 slot 'before-06' for the timing spike (and generation-quality prototype).",
+   "b": "Slice 2b corrected order (owner-accepted) and plan place 08-timing-spike after 05b-2, after 06.",
+   "resolution": "Keep the accepted order; correct the register tag to 'after 05b-2' and state that the stubbed adapter plus authored pool carries 06. Close open item 2 accordingly and have A-24 stop calling the slot open."
+  },
+  {
+   "a": "Slice 5 Opus ruling and owner row 5 of A-77: camera capture/return stack lands with dialogue and events (07).",
+   "b": "A-38 says it 'has no schedule of its own'; plan has its own change 07-camera-directive-stack.",
+   "resolution": "Use the plan: the stack is the change 07-camera-directive-stack after the pager. Remove 'no schedule of its own' from A-38."
+  },
+  {
+   "a": "Slice 5 05e task 3: Settings = reduceMotion, hold/toggle movement, textScale; readingSpeed, ambient persistence, captions follow with 07 and 05a.",
+   "b": "Plan 05e-settings-model: 'reduce motion, reading speed placeholders'; plan 07-bubble also adds readingSpeed/captions.",
+   "resolution": "Plan 05e-settings-model scope becomes reduceMotion, hold-or-toggle movement, textScale; readingSpeed and captions live only in 07-bubble-lace-skins-and-tone-blips."
+  },
+  {
+   "a": "Register S1-R5 and A-32/A-63: save policy undecided (candidate autosave at watch boundaries).",
+   "b": "Plan docs-rules-spine lists 'the save-policy decision for the notebook'; cm-notebook-model and 07-notebook-presenter say they follow or honour the decision.",
+   "resolution": "Record 'undecided' in the plan too and add an owner-decision gate as a depends_on or open item before cm-notebook-model; or have the owner pick before the spine batch."
+  },
+  {
+   "a": "Register S1-R9 (rejected-by-owner) with cameo recorded as a design-note candidate; A-04 and open item 6: unscheduled, no roadmap entry.",
+   "b": "Plan 10-crew-handoff-and-cameo scope includes the past-advisor cameo network.",
+   "resolution": "Cameo is a note only: strip it from the 10-crew-handoff scope (rename it 10-crew-handoff) unless the owner schedules it."
+  },
+  {
+   "a": "Config 07a = dialogue interruption, DESIGN_NOTES 10a; slice 2b step 13 keeps '07a-07c' as originally defined.",
+   "b": "Plan 07a-ambient-and-overheard ('untouched', depends on 07 and freeze-on-show) and 07-dialogue-paging also lists ambient lines (S5-18 R5B4 puts them in 07).",
+   "resolution": "Restore the id 07a-dialogue-interruption (cut short, unread tail does not fire); ambient lines stay only in 07-dialogue-paging. Likewise restore the 07b/07c/06a/06b/06c/09a/05a existing ids."
+  },
+  {
+   "a": "Slice 1 R1 / slice 2b: vertical slice tests the engine and does not gate 06; A-60: 06 gets no depends_on on it.",
+   "b": "Plan 06-utility-ai-rivals depends_on 11-pass-1-ledger-end-card; A-58 lists the slice before 06.",
+   "resolution": "Keep the plan's depends_on as an ordering edge (not an acceptance gate), set validated_by on the slice, and drop 'unless the owner adds one' from A-60 and open item 7."
+  },
+  {
+   "a": "Slice 6 owner decision: the archive step deletes ledger entries, guaranteed by a test; A-83: the gates skill's archive step deletes them (prose).",
+   "b": "Plan defect-ledger: an opsx-archive wrapper script deletes them.",
+   "resolution": "Use the wrapper script plus the docs-truth test as the guarantee; the skill only points at the script. Move A-83's ledger check into A-75 and delete its duplicate."
+  },
+  {
+   "a": "Slice 4: *Blueprint-exists doc check belongs to the docs-truth pass before 05b-1 (plan pre-05b-1d).",
+   "b": "A-75/A-56: the check lands in the root docs-truth test at B2 for every AGENTS.md.",
+   "resolution": "At B2 check root AGENTS.md only; the section AGENTS extension lands with pre-05b-1d after those files are rewritten."
+  },
+  {
+   "a": "Slice 4 R4C4 / S4-14: telemetry fixes 'with the S1-R11 telemetry wiring'; S4-12 telemetry policy at the Act step.",
+   "b": "A-58 sequence puts telemetry wiring before validateLaunch; plan puts it after 05b-1 (before the Act ring).",
+   "resolution": "Adopt the plan slot (after 05b-1, before cm-act-envelope-ring-commit) and fix A-58."
+  }
+ ],
+ "verdict": "ready_with_fixes"
+}

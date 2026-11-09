@@ -1,0 +1,56 @@
+[
+ {
+  "id": "S3-10",
+  "verdict": "holds",
+  "evidence": "repro: after move on performing_dwell entity -> 'moving 10 b' (phase, phaseRemainingSeconds, activeBehaviorId kept); KinematicsEngine.ts:35-39 events have only entityId/from/to; cooldown->idle branch (lines ~174-190) spreads current, never clears pendingDwell/activeBehaviorId; idle entity with pendingDwellSeconds=10 given a move re-enters dwell via enterPerformingDwell (line ~202).",
+  "note": "Design-gap framing (no 'commit' hook) is opinion, but each concrete stale-field assertion verified. Spec permits off_stage paths, so that sub-point is documented intent."
+ },
+ {
+  "id": "S3-11",
+  "verdict": "holds",
+  "evidence": "repro: moving entity at [0.7,0,0] with empty (truncated) activePath -> 'performing_dwell' at [0.7,0,0], 0 arrivals. KinematicsEngine.ts:~340 'if activePath.length===0 return enterPerformingDwell'. Spec waypoint-navigation 'truncate ... clear far-side entry' says nothing about reporting blocked.",
+  "note": "Truncation itself is specified; the dwell-at-stop and silence are real gaps."
+ },
+ {
+  "id": "S3-12",
+  "verdict": "holds",
+  "evidence": "SimulationCoordinator.ts:~457 planWaypointPath(..., entity.waypointId, dest); WaypointNavigator.ts:~213 'if (fromWaypointId === toWaypointId) return already_there'. waypointId only updated on arrival (KinematicsEngine ~line 400).",
+  "note": "Spec says truncation hop starts at current waypointId, so start-from-last-waypoint is consistent with documented model, but the ignored click-back consequence is real."
+ },
+ {
+  "id": "S3-13",
+  "verdict": "holds",
+  "evidence": "repro: enqueue same stimulusId twice -> 2 stored; 'alarm' then 40 distinct stimuli -> alarm evicted, length 32. WorldEffectReducer.ts:176-180 slice(length-MAX).",
+  "note": "Spec only mentions cascade backoff/cap; no importance or dedupe requirement, so this is a gap not a violation."
+ },
+ {
+  "id": "S3-14",
+  "verdict": "overstated",
+  "evidence": "SimulationCoordinator.ts:718-719 concatenates inherited + new lineageMutations (accumulation real); superRefine (CivilizationLegacyState.ts:~85-115) checks only scar-id duplicates, not sourceScarId. But openspec dual-ledger spec: 'rejecting ... final drive values outside [0,1]' / 'SHALL throw a descriptive error'.",
+  "note": "Throw is the specified behaviour for a single application; the real defect is cumulative mutations making later epoch start throw, and no sourceScarId linkage. Not re-run as a repro."
+ },
+ {
+  "id": "S3-15",
+  "verdict": "overstated",
+  "evidence": "repro: zero-speed mover after 600 frames -> 'moving'; pure-vertical hop with yaw=1 -> yaw 0.9 (rotates at yawSpeed*dt toward atan2(0,0)=0, not a snap); BFS in planWaypointPath is hop-count.",
+  "note": "Zero-speed and hops-not-metres hold. 'Snaps yaw' is wrong: it turns at yaw speed toward +Z. Schema allows walkSpeed 0 (EpochBlueprints.ts:119 nonnegative)."
+ },
+ {
+  "id": "S3-16",
+  "verdict": "holds",
+  "evidence": "KinematicsEngine.ts:574-595 builds sorted ids + hashedBodies + insertEmbodiedBodies before any check whether any entity is moving; SimulationCoordinator.ts:~300 portalGates() builds a new array per call.",
+  "note": "Perf claim of '0.6 ms for 200 movers' not re-measured. Allocation waste is real but small."
+ },
+ {
+  "id": "S3-17",
+  "verdict": "holds",
+  "evidence": "grep: no Object.freeze/deepFreeze in tests/unit/domain/KinematicsAndReducer.test.ts; SeededRandom.test.ts:8-15 compares two same-seed instances only, no literal golden values; no test for the 32 stimulus cap.",
+  "note": "Did not verify the dt-split and truncation-plus-kinematics sub-claims line by line."
+ },
+ {
+  "id": "S3-18",
+  "verdict": "holds",
+  "evidence": "PlaySession.ts:153,159 assign this.status = requestResult; frame() returns status: this.status (lines 191,213); resolveResident only resets 'missing_stage' (279-281). clickFloor 'miss' does not touch status.",
+  "note": "Spec says status is shown as text after a request; stickiness is not specified either way, so it is a latent staleness not a spec violation."
+ }
+]

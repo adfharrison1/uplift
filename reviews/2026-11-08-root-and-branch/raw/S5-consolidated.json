@@ -1,0 +1,351 @@
+{
+ "findings": [
+  {
+   "id": "S5-01",
+   "sev": "major",
+   "from": [
+    "S5A-01"
+   ],
+   "claim": "The renderer can only draw entities that have a CharacterVisualBlueprint whose characterId equals the entity id, built once per stage mount; the builder's lineage fallback visual is carried on each pose but never read, so Tier-3 crowd NPCs materialized at runtime get no mesh and the scene graph has no add/remove path.",
+   "rec": "Add syncEntities(built, frame) that creates a kitbash group from pose.visual when an entity first appears in the active space and releases it (pooled) when it leaves; build per-stage groups from the poses present, not from the whole cast list.",
+   "paths": [
+    "src/application/rendering/RenderFrameBuilder.ts:687-688",
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:193-196",
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:290-291"
+   ]
+  },
+  {
+   "id": "S5-02",
+   "sev": "major",
+   "from": [
+    "S5A-02"
+   ],
+   "claim": "Per-frame and per-stage-swap cost scales with the whole world cast, not the room: the builder poses and sorts every entity in every space, the renderer traverses hidden groups, and stage mount builds every character's meshes (measured 266 us/frame builder and 650 us/frame apply at 400 entities, 72 ms synchronous scene build).",
+   "rec": "Filter entities by spaceId before posing (index entities per space in the sim), drop the per-frame sort (iterate in a stable cached order), build only the poses present in the resident space, and do the mount in a frame where the renderer.compile/compileAsync warm-up can run before first draw.",
+   "paths": [
+    "src/application/rendering/RenderFrameBuilder.ts:678-680",
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:310-311"
+   ]
+  },
+  {
+   "id": "S5-03",
+   "sev": "major",
+   "from": [
+    "S5A-03"
+   ],
+   "claim": "An entity id outside /^[a-z0-9][a-z0-9_-]{0,63}$/ makes buildFrame throw (zod parse inside the per-entity loop), and onFrame has no try/catch and schedules requestAnimationFrame last, so one such id freezes the whole page permanently.",
+   "rec": "Validate ids once at registration (and at materialize) against the same pattern, derive semanticId by cheap string concat in the hot loop, and wrap the frame body so an exception logs once and still re-arms requestAnimationFrame.",
+   "paths": [
+    "src/application/rendering/RenderFrameBuilder.ts:699",
+    "src/application/rendering/SceneVisualBlueprints.ts:14-18",
+    "src/interfaces/composition/browserMain.ts:215-217"
+   ]
+  },
+  {
+   "id": "S5-04",
+   "sev": "major",
+   "from": [
+    "S5A-04"
+   ],
+   "claim": "There is no interpolation seam: PlaySession steps the sim with the raw rAF dt and buildFrame reads only the current WorldState, so once the hardening batch moves the sim to a fixed 1/60 step the renderer will stutter (0 or 2 steps per frame) unless buildFrame also receives the previous state and an alpha.",
+   "rec": "Define the contract now: PlaySession owns the accumulator and keeps {prev, curr} entity-position snapshots; buildFrame takes alpha, lerps position and shortest-arc yaw, and a teleport flag (portal hop, stage change, spawn) that snaps instead of lerping. Feed the camera focus the interpolated position.",
+   "paths": [
+    "src/application/rendering/RenderFrameBuilder.ts:2-2",
+    "src/application/rendering/RenderFrameBuilder.ts:519-520",
+    "src/application/shell/PlaySession.ts:184-185"
+   ]
+  },
+  {
+   "id": "S5-05",
+   "sev": "major",
+   "from": [
+    "S5A-05",
+    "S5C-02",
+    "S5C-03"
+   ],
+   "claim": "Mesh shape data is hardcoded in interfaces/three: prop size is two literal boxes (kitbashId is ignored) and character slot geometry is switch statements on feudal ids with generic fallbacks, so 05d's 'footprint of the drawn mesh' rule forces application/domain to read renderer literals, and a new epoch cannot add a headgear or prop shape without editing renderer code. | Props cannot show state or identity: every non-portal prop renders as the same 0.9 m cube regardless of kitbashId, and only door hinge angle varies, so 'a changed prop' (P4) has no renderable vocabulary. | The kitbash vocabulary is a closed, feudal-named switch in interfaces code, so each new motif, garment or prop shape needs a TypeScript edit and rebuild, and unknown ids silently fall back to a generic shape; the F3 lab and the JSON bridge cannot extend it, which undercuts the 'owner and agent enrich collaboratively' loop.",
+   "rec": "Add a shape descriptor (primitive, dims, offset) to StagePropVisualBlueprint and a part-shape table registered per epoch in content/scene; the renderer interprets it and the sim reads the same dims for footprints. Fallback shapes should log a warning, not render silently. | Add a prop shape table (and a 'state variant' field, e.g. open/disturbed/absent) before 05d footprints are specced; make prop variants data-declared parts so a state change swaps a part rather than needing a code branch. | Move parts to a data-declared recipe (primitive + dims + slot anchor, JSON in content) registered on the epoch pack, with a contract test that every referenced id resolves. Write a one-page shape-language rule: one dominant silhouette cue per class (hat or tool or cloak profile), faction accent hue, max N cues per body.",
+   "paths": [
+    "DESIGN_NOTES.md:225",
+    "src/application/rendering/SceneVisualBlueprints.ts:204-204",
+    "src/application/rendering/SceneVisualBlueprints.ts:37-44",
+    "src/interfaces/three/StageKitbashBuilders.ts:168-172",
+    "src/interfaces/three/StageKitbashBuilders.ts:169-171",
+    "src/interfaces/three/StageKitbashBuilders.ts:290-292",
+    "src/interfaces/three/StageKitbashBuilders.ts:292-292"
+   ]
+  },
+  {
+   "id": "S5-06",
+   "sev": "minor",
+   "from": [
+    "S5A-06"
+   ],
+   "claim": "CameraVolume pitchDegrees and yawDegrees are sprung every frame but never reach the Three camera, which is driven only by position, lookAt, roll and fov (orientation really comes from the volume offset), so authors tuning those two fields change nothing.",
+   "rec": "Either derive offset from yaw/pitch/distance (so the fields drive the view and camera-relative WASD has a yaw to use) or delete the two fields and their springs.",
+   "paths": [
+    "src/application/rendering/SceneVisualBlueprints.ts:235-236",
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:263-264"
+   ]
+  },
+  {
+   "id": "S5-07",
+   "sev": "minor",
+   "from": [
+    "S5A-07"
+   ],
+   "claim": "Every kitbash part gets its own geometry and its own material (100 characters plus 60 props = 596 meshes, 596 geometries, 596 materials, roughly 4.5 draw calls per character), and shared materials cannot be used as-is because selection highlight writes emissive on the material.",
+   "rec": "Cache geometry by (slot, shape id) and toon materials by (hex, grime); give Tier 3 crowd one merged geometry with vertex colours and a shared material, keep full per-part kitbash for Tier 1/2, and move highlight to a clone-on-select or outline pass.",
+   "paths": [
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:330-332",
+    "src/interfaces/three/StageKitbashBuilders.ts:330-337"
+   ]
+  },
+  {
+   "id": "S5-08",
+   "sev": "minor",
+   "from": [
+    "S5A-08"
+   ],
+   "claim": "The renderer is hard-capped at devicePixelRatio 1 with antialias off, so on the Retina MacBook the toon silhouettes render at half resolution with jagged edges, and the cap is not adaptive to measured frame time.",
+   "rec": "Make the cap a setting with an adaptive step (1 -> 1.5 -> 2 from a rolling frame-time average, FXAA or 1.5x supersample for edges), and keep text in DOM so it is crisp regardless.",
+   "paths": [
+    "src/interfaces/composition/browserMain.ts:79-79",
+    "src/interfaces/composition/shellDocument.ts:24-26"
+   ]
+  },
+  {
+   "id": "S5-09",
+   "sev": "major",
+   "from": [
+    "S5B-01",
+    "S5B-02"
+   ],
+   "claim": "playInput is a pointer-click adapter with a single stateless keyDown(key, repeat) entry; it has no keyup, no held-key set, no blur/visibility reset, no edge-vs-level distinction and no action layer, so none of the section-8 key rules (held key after menu closes, opener does not confirm, repeat ignored) can be expressed without a rewrite. | Keyboard layout and focus are unhandled: the handler reads event.key (WASD breaks on AZERTY/Dvorak, and a hand-rolled 'Backquote' alias shows code and key are already mixed), is on window with no preventDefault, and the dev HUD fills the page with focusable buttons, so Space (the 'use' key) will re-click whichever dev button was last pressed.",
+   "rec": "Build an InputState layer first (keydown/keyup/blur/visibilitychange clear, event.code not event.key, per-frame pressed/released/held sets with 'consumed' flags), mapped through a rebindable action table (move_fwd, ui_prev, ui_next, confirm, back). Domain only sees actions and a steer vector; keep the steer a vector so analog sticks can feed it later. | Use event.code for movement/menu actions (event.key only for display labels), preventDefault on bound keys, ignore events whose target is a dev-HUD button/input, and blur dev buttons on click. Make the canvas the default focus target.",
+   "paths": [
+    "DESIGN_NOTES.md:238-238",
+    "src/interfaces/composition/browserMain.ts:186-187",
+    "src/interfaces/composition/playInput.ts:146-146",
+    "src/interfaces/composition/playInput.ts:249-251",
+    "src/interfaces/composition/playInput.ts:41-41"
+   ]
+  },
+  {
+   "id": "S5-10",
+   "sev": "major",
+   "from": [
+    "S5B-03"
+   ],
+   "claim": "The menu grammar overloads keys in ways that need a single press-consumption model: Space is use, confirm, advance and pause-resume with four 'does not also' exceptions; W/A=previous and S/D=next map horizontal keys onto vertical lists; and Escape has a per-context rule (leave without opening pause on that press).",
+   "rec": "Make the rule global: every Space/Escape press is consumed by the topmost UI layer in the frame it is pressed and cannot reach a lower layer (modal input stack with a 'consumed this frame' flag). Keep W/S as the vertical axis; use A/D only as aliases in vertical lists, and reserve A/D for left/right in any horizontal row (tabs, yes/no). Add arrow keys as a second binding set.",
+   "paths": [
+    "DESIGN_NOTES.md:238-238",
+    "DESIGN_NOTES.md:259-259"
+   ]
+  },
+  {
+   "id": "S5-11",
+   "sev": "major",
+   "from": [
+    "S5B-04",
+    "S5B-05"
+   ],
+   "claim": "The camera is one volume-selected spring target; there is no capture layer, return blend, player skip, or zoom, so the owner's 'world events capture the camera then return' and 'one further-out zoom' have no seam beyond a raw focusPositionOverride. | WASD is specified relative to the 'active camera volume's settled yaw', so walking across a volume boundary with a different yaw, or a capture/zoom changing the rig, can remap the controls under the player's fingers (the classic fixed-camera cut problem).",
+   "rec": "Add a CameraDirective stack in application (Cinemachine-style): base = player volume rig; layers = {target position, optional offset/fov, priority, blend in/out seconds, max hold, skippable}. Highest priority wins, blend by smoothstep over a duration, return blend is the same blend reversed, Space/Escape skips, and captures are blocked while the player is mid-menu. Zoom is a single scalar on the volume offset (e.g. 1.0 / 1.6) clamped to the volume's bounds and applied before the spring. Captures must never rotate yaw (fixed orientation, WASD frame). | Adopt the RE/FF7 rule: on a volume change the control frame is latched from the old yaw while any move key stays held, and updates only on release or after a short pause; also keep volume yaw changes small or authored at doorways. Cover with a unit test.",
+   "paths": [
+    "DESIGN_NOTES.md:224-224",
+    "DESIGN_NOTES.md:312-312",
+    "src/application/rendering/RenderFrameBuilder.ts:125-125",
+    "src/application/rendering/RenderFrameBuilder.ts:528-528",
+    "src/application/rendering/RenderFrameBuilder.ts:551-551",
+    "src/content/scene/starterHoldStages.ts:70-72"
+   ]
+  },
+  {
+   "id": "S5-12",
+   "sev": "major",
+   "from": [
+    "S5B-06"
+   ],
+   "claim": "Accessibility is one clamp: reduceMotionAndFlashing is read from the OS media query each frame, only softens the emergency and zenith tilts, is not a user setting, and nothing in the design notes covers text scale, contrast, caption cues for planned audio, hold/toggle, or reading time for expiring ambient lines.",
+   "rec": "Put a Settings model in application now (reduceMotion, textScale, readingSpeed multiplier for ambient lifetime, ambientLines: timed|persist-until-dismissed, holdToMove|toggle, captions on) and persist it. Diegetic layer: a real DOM with aria-live=polite for ambient lines and the lace page, rem-based text, WCAG AA contrast checked against the chiaroscuro palette, and every sound-only cue also has a lace caption line (the 'bus does not speak' rule makes captions trivial since all of it is already text). Ambient lifetime should scale with text length (about 60 wpm floor plus a base) and be extendable via the notebook log.",
+   "paths": [
+    "DESIGN_NOTES.md:264-264",
+    "src/interfaces/composition/browserMain.ts:195-195",
+    "src/interfaces/composition/shellDocument.ts:119-119"
+   ]
+  },
+  {
+   "id": "S5-13",
+   "sev": "major",
+   "from": [
+    "S5B-07"
+   ],
+   "claim": "The inference-trail design (P4) relies on subtle visual tells (mud on a wheel-well, an extra broadsheet, bunting) and sets 'never billboards' as a rule, which excludes players with low vision, colour-vision deficiency, or just a small laptop at 60 FPS and dark chiaroscuro; with no redundant channel the trail can be silently missed.",
+   "rec": "Make it a content-contract rule: every visual tell registers a paired non-visual 'noticing' that the lace log can surface (advisor remark or a notebook 'noticed' entry, gated by an attention roll or proximity, not by sight). Tells must differ in shape or motion, not only colour. Add an optional 'highlight what I could notice' mode that rims-lights tell props. Test: a content check that each TravelSurfaceCueBlueprint has a notebook binding.",
+   "paths": [
+    "DESIGN_NOTES.md:207-207",
+    "index.html:13-13"
+   ]
+  },
+  {
+   "id": "S5-14",
+   "sev": "major",
+   "from": [
+    "S5B-08"
+   ],
+   "claim": "05e's pause menu contradicts the shell's single paused bit: today paused means desaturated plus de-anchored free-cam plus lab, set together in keyDown, and browserMain treats paused as 'debug_free_cam'; 05e needs a pause that freezes without desaturating or freeing the camera while explicitly leaving out 'a second pause flag'.",
+   "rec": "Split now in the plan: paused (freeze sim) stays the domain bit; lab mode (desaturate, de-anchor, free-cam, picking) becomes a session/interface flag. This is not a second domain pause flag, so the 'leaves out' clause should be reworded.",
+   "paths": [
+    "DESIGN_NOTES.md:240-240",
+    "src/interfaces/composition/browserMain.ts:171-171",
+    "src/interfaces/composition/playInput.ts:151-153"
+   ]
+  },
+  {
+   "id": "S5-15",
+   "sev": "major",
+   "from": [
+    "S5C-01"
+   ],
+   "claim": "There is no mood-versus-signal rule: the palette is built so everything converges on near-black, and the player operative's own colour is indistinguishable from the iron walls and the shadow background, so P4 cues (who, what carried, what changed) have no reserved visual channel.",
+   "rec": "Write a 3-line readability rule now: actors and gameplay-relevant props get a value band no wall/floor may enter (e.g. actor min luminance above stone, plus a thin fixed inverted-hull outline or warm rim), and 'signal' hues (torch warm, one accent per faction) are reserved from environment use. Add a unit test that fails when any CharacterVisualBlueprint colour is within N contrast of its stage's materials.",
+   "paths": [
+    "DESIGN_NOTES.md:51-51",
+    "src/content/scene/defaultStageContent.ts:38-38",
+    "src/content/scene/starterHoldCharacterVisuals.ts:34-34",
+    "src/interfaces/three/StageKitbashBuilders.ts:53-53"
+   ]
+  },
+  {
+   "id": "S5-16",
+   "sev": "major",
+   "from": [
+    "S5C-04"
+   ],
+   "claim": "The kitbash figure has only eight tuning knobs and one body mesh (box torso, icosahedron head, no limbs, no gait animation), and the two shipped NPCs already share the same cloak; at the ~11-14 m gameplay camera 40-60 characters will collapse to the same three or four silhouettes.",
+   "rec": "Define a silhouette budget (3-4 discriminating cues from: hat profile, cloak length, held tool, height class, stance) and add a throwaway lab view that renders the whole cast as black silhouettes at the gameplay camera distance. Wire gaitStyle to a bob/lean pose so movement carries identity.",
+   "paths": [
+    "src/content/scene/defaultStageContent.ts:194-194",
+    "src/content/scene/starterHoldCharacterVisuals.ts:42-42",
+    "src/interfaces/three/StageKitbashBuilders.ts:333-340"
+   ]
+  },
+  {
+   "id": "S5-17",
+   "sev": "minor",
+   "from": [
+    "S5C-05"
+   ],
+   "claim": "The epoch theme schema is a four-material, one-palette struct and resolveCharacterVisualForTheme's palette rebind overwrites every character's colours with the same stone and iron hexes, so applying a new epoch theme erases per-character identity and the 7-era claim is untested.",
+   "rec": "Make materials an open map (id to hex) with palette roles (ground, wall, accent, signal) instead of four named fields, and have rebinding shift hue/value of a character's own colours toward the theme instead of replacing them. Author a throwaway Epoch 4 theme as a schema test.",
+   "paths": [
+    "DESIGN_NOTES.md:56-56",
+    "src/application/rendering/SceneVisualBlueprints.ts:436-441"
+   ]
+  },
+  {
+   "id": "S5-18",
+   "sev": "minor",
+   "from": [
+    "S5C-06"
+   ],
+   "claim": "The diegetic UI split reuses cyan for two jobs: the lace is 'razor-thin cyan-white vector arcs', which read poorly as text, while the debug selection highlight already uses the same cyan (#4fd2ff) on world meshes, so lace-equals-cyan is already spent in the scene.",
+   "rec": "Spec the lace as two parts: arcs/rings are decoration, but text sits on a solid-ish panel with a heavier weight and a fixed type size; move the debug highlight to a colour the game never uses.",
+   "paths": [
+    "DESIGN_NOTES.md:248-248",
+    "DESIGN_NOTES.md:53-53",
+    "src/interfaces/three/ChiaroscuroStageRenderer.ts:330-330"
+   ]
+  },
+  {
+   "id": "S5-19",
+   "sev": "major",
+   "from": [
+    "S5C-07"
+   ],
+   "claim": "The shared audibility formula is not yet a predictable gameplay rule: localMask is undefined, there is no player-facing earshot readout, and a purely multiplicative scalar gives the player no threshold to learn, so eavesdropping and stealth will feel arbitrary.",
+   "rec": "Pick 3 discrete audibility tiers (silent, murmur, clear) with fixed thresholds, expose them as a diegetic cue (NPC head turn, a visible ripple under your feet, dust at the ajar door), and define localMask as named things (rain, forge, crowd). Use the same tiers for 'overheard line' text in the ambient-line system.",
+   "paths": [
+    "DESIGN_NOTES.md:130-130",
+    "openspec/config.yaml:48-48"
+   ]
+  },
+  {
+   "id": "S5-20",
+   "sev": "minor",
+   "from": [
+    "S5C-08"
+   ],
+   "claim": "Procedural-only audio with no voice acting leaves character carried by nothing in sound, and the plan specs settlement ambience and footsteps richly while NPC identity in audio (babble, blips, instrument motifs) is absent; because audio is also an inference channel, it should not sit late.",
+   "rec": "Allow a small curated sample set (CC0, tens of KB) for textures and door/cloth foley alongside synthesis, behind the same patch schema. Give each NPC a tiny procedural 'tone signature' (pitch, timbre, rhythm from lineage) for text-blips. Move a minimal footstep/door/murmur slice ahead of 05d/05f.",
+   "paths": [
+    "DESIGN_NOTES.md:82-82",
+    "openspec/config.yaml:49-49"
+   ]
+  }
+ ],
+ "routes": [
+  {
+   "id": "R5A1",
+   "title": "Diegetic text as DOM anchored by the existing projection, not WebGL sprites",
+   "proposal": "Render NPC bubbles, lace pages and ambient lines as absolutely positioned DOM nodes updated once per rAF from RenderFrame.entityPoses[i].headAnchorWorldPosition run through projectWorldToNdc (compute only for the <=N speakers, not all entities, and not just in debugMode). Use transform: translate3d on pooled elements and CSS for the parchment skin; run it in the same rAF after buildFrame so there is no one-frame lag."
+  },
+  {
+   "id": "R5A2",
+   "title": "Authored-hero plus merged-crowd character tiers",
+   "proposal": "Keep the 7-part kitbash for Tier 1/2, but build Tier 3 ambient_crowd as one merged BufferGeometry per costume archetype with vertex colours, shared across all crowd members through InstancedMesh with instanceColor and per-instance matrices. Pool instances in the resident space and drive them from the same entityPoses."
+  },
+  {
+   "id": "R5A3",
+   "title": "Interpolation via a tiny render-state buffer owned by PlaySession",
+   "proposal": "Have the fixed-step loop write a flat Float32Array of {x,y,z,yaw,teleportEpoch} per resident entity at each tick (prev and curr swapped), and let buildFrame lerp from that buffer with alpha. The buffer also gives the renderer a stable entity ordering without sorting object keys per frame."
+  },
+  {
+   "id": "R5B1",
+   "title": "Camera directive stack with authored shot volumes",
+   "proposal": "Treat camera events as virtual-camera layers (priority, blend in/out, max hold, skip) over the player rig; authors place 'shot' volumes keyed to world events. Return is the same blend reversed, skippable with Space. Cap blends at around 0.6-1.0 s and forbid roll or yaw rotation during blend."
+  },
+  {
+   "id": "R5B2",
+   "title": "Wall occlusion by dither-fade of near-camera props and walls",
+   "proposal": "Keep fixed orientation and fade or screen-door (dithered) only the wall/prop meshes between camera and player within a cylinder around the focus, using a per-material uniform. No raycast per frame is needed since the camera orientation is fixed per volume: precompute which semanticIds hide for each volume."
+  },
+  {
+   "id": "R5B3",
+   "title": "Action-map input with an InputFrame snapshot",
+   "proposal": "Collect raw keys, gamepad and (later) rebinding into one per-frame InputFrame of actions {steer vector, pressed, released, held}; the play session consumes only that. Menus consume pressed actions top-down."
+  },
+  {
+   "id": "R5B4",
+   "title": "Notebook as the accessibility fallback for ambient lines",
+   "proposal": "Every ambient line is also appended (timestamped, speaker, room) to a lace log feed, so timed text is never lost; ambient lifetime scales with text length and the settings 'persist' option."
+  },
+  {
+   "id": "R5C1",
+   "title": "Value-first readability rule with an outline pass",
+   "proposal": "Author the game in three value tiers: environment low, actors mid-high, signal props brightest, and enforce with a test. Add an inverted-hull outline or a thin warm rim to actors and interactables only (cheap on a toon pipeline)."
+  },
+  {
+   "id": "R5C2",
+   "title": "Signal-by-exception attention cue",
+   "proposal": "Keep the world dark, but let a single warm accent (candle, lantern, seal colour) mark things that currently matter, and let the Drone's tell (the lamp) brighten near a cue. A Hitman-instinct style optional toggle can outline people on demand with the lace rather than a permanent HUD."
+  },
+  {
+   "id": "R5C3",
+   "title": "Recipe-based kitbash data",
+   "proposal": "Each garment/prop is a JSON list of primitives with anchors and tints that lives in the epoch pack; the builder interprets recipes, and the F3 lab edits them. Agents can then add a hat in one JSON file."
+  },
+  {
+   "id": "R5C4",
+   "title": "Per-NPC audio signature plus text blips",
+   "proposal": "Derive a 3-note tone and timbre per lineage and play a soft blip per chunk of bubble text; use the same signature for footstep cadence or a tool sound."
+  },
+  {
+   "id": "R5C5",
+   "title": "Minimal audio slice early",
+   "proposal": "Ship a 100-line AudioContext with footstep (surface table), door state, murmur-through-door driven by the audibility tiers, and nothing else, before 05d/05f."
+  }
+ ]
+}

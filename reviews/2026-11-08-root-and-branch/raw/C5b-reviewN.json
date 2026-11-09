@@ -1,0 +1,140 @@
+{
+ "lost": [
+  {
+   "old_location": "old L316 Operative rotation, first bullet",
+   "quote": "(drawn from or authored in the Epoch's operative pool;",
+   "fix": "Restore 'drawn from or authored in the Epoch's operative pool' in the P3 bullet of DESIGN_NOTES Operative rotation (not present in DESIGN_NOTES or any design/ file).",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L308 The configurable ladder, before the three skin chains",
+   "quote": "Three skin chains advance with the ladder but do not map one to one onto rungs:",
+   "fix": "Add one lead-in sentence before the Communications backbone / Detection Tech Level / Diegetic news prop bullets (they have 6, 6 and 5 steps against 7 rungs).",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L187 Core model status and L377 Economy and levers status",
+   "quote": "Blueprints and reducer cases for offices, instruments, pressure stocks, pillars, channels, the orbital pass, emergencies and the legacy ledgers are shipped as schema (see System graph for what each node lacks). The runtime ledger, assassination, cover persecution, orbital blackout and contingencies are planned.",
+   "fix": "The C5b traceability says shipped facts from dropped status blockquotes moved to the nearest heading, but this one (Core model and Economy and levers) was not moved. Add one sentence under 'Economy and levers (partial)' or 'Core model (partial)'. Only the per-row System graph statuses remain.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L431 Text pipeline status and L604 Audio status",
+   "quote": "No `TextSourcePort`, `LineBrief`, gate or `ConversationHistory` exists in code, no model runs, and the eval runner does not exist yet. / No audio graph or `AudioContext` exists.",
+   "fix": "Low risk (the 'planned' heading marks imply it). Optionally fold 'no model runs' and 'no audio graph or AudioContext exists' into the first bullet of each section.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L199 Observation primitive",
+   "quote": "a trigger that reads \"attributed\" means an Observation held by the relevant observer.",
+   "fix": "Merged sentence keeps only 'a trigger threshold applies to the observing faction's derived discovery level'. Low risk; optionally keep the 'attributed' example.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L476 and L478 Local AI eval framework",
+   "quote": "that change already owns the brains, rivals, threads, desk and overview ... any later subject adds a suite the same way ... The runner scores no subject until that change registers its cases.",
+   "fix": "Low risk. 'Registers its cases' remains. Restore 'any later subject adds a suite the same way', which matches root AGENTS.md ('New AI work adds a suite to that runner').",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L456 Conversation paging, A conversation, bullet 1",
+   "quote": "A held Space stays on the chunk showing; a new press moves on.",
+   "fix": "New text keeps 'a held Space stays on the chunk showing' but drops 'a new press moves on'. Restore it (a behavioural clause).",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L252 Loop cycles, Talking costs time",
+   "quote": "while the player talks, the world moves on.",
+   "fix": "Dropped. Core of 'the cost of talking comes from the world'. Restore in the Talking costs time bullet.",
+   "severity": "minor"
+  }
+ ],
+ "altered": [
+  {
+   "old_location": "old L579 Direct floor locomotion, Contracts (shape descriptor)",
+   "quote": "Its vocabulary starts as `box`, `cylinder`, `cone` and `icosahedron`",
+   "fix": "New text says 'Its vocabulary is `box`, ...', which closes an extensible list. Restore 'starts as'.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L579 Direct floor locomotion, Contracts (renderer residency)",
+   "quote": "(this residency work belongs to that change, not \"later\")",
+   "fix": "New text drops the 'not \"later\"' exception: '(this residency work belongs to that change)'. Restore.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L575 Floor and footprints",
+   "quote": "plus `0.03` m so the body does not sit in the pixels",
+   "fix": "The rationale for the slop is dropped; the number stays. Restore the phrase.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L577 Arrival hold",
+   "quote": "The NPC holds short of a target point the disc covers and the arrival does not commit; ... The timer runs while the disc covers the point",
+   "fix": "Now 'holds short of a point the disc covers while a timer runs'. The explicit 'the arrival does not commit' is gone. Restore the clause.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L574 Input and walk",
+   "quote": "held and pressed sets feed a data action table",
+   "fix": "New text: 'Keys are read by `event.code` into a data action table'. 'held and pressed sets' is dropped. Low risk.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L447 AI notes",
+   "quote": "also investigate a \"JEV\"-style decision network or decision web for runtime use, if it has a place (a JEV-style or LAYA-style model, not JEPA)",
+   "fix": "Owner stipulation reworded to 'check whether a JEV- or LAYA-style decision network has a runtime place (not JEPA)'. 'decision web' and 'for runtime use, if it has a place' are lost. Restore the owner wording.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L316 Operative rotation, first bullet",
+   "quote": "A past-advisor cameo over the galactic network is a design note only (see Ideas, not scheduled), and is not built in the crew handoff.",
+   "fix": "'and is not built in the crew handoff' is dropped. Restore it; it limits the scope of the crew-handoff change.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L256 Four clocks",
+   "quote": "~8\u201314h per Epoch on the 7-Epoch default ladder",
+   "fix": "The 7-Epoch default ladder qualifier is dropped. The '8\u201314 hour budget' is kept in Loop cycles. Low risk.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "old L427 Ship Mind forecast",
+   "quote": "Owned by `09-delta-coupling-and-forecast`.",
+   "fix": "Traceability says the forecast was 'kept whole', but this sentence was dropped. The id still appears in '(planned: ...)', so low risk. Update the traceability wording or restore.",
+   "severity": "minor"
+  }
+ ],
+ "merged_wrongly": [
+  {
+   "old_location": "old L419 contingency 1 (solar_flare_interdiction) detectionTechLevel chain, merged into the ladder chain",
+   "quote": "`detectionTechLevel` (`0..1`: Feudal aurora omens -> Renaissance/Colonial optical telescopes -> Industrial telegraph geomagnetic storms -> Cold-War/Computer/Space-Age radar, radio & satellite telemetry; ...)",
+   "fix": "The two chains were not identical. The contingency version has solar-flare-specific steps (aurora omens, geomagnetic storms, radio & satellite telemetry). design/orbital-blackout-and-contingencies.md now only points to the ladder chain, so 'aurora omens' and 'geomagnetic storms' no longer appear. Keep the contingency-1 chain in the design file, or add those two terms to the canonical Detection Tech Level chain.",
+   "severity": "minor"
+  }
+ ],
+ "broken_pointers": [
+  {
+   "old_location": "outside the file: openspec/config.yaml line 61",
+   "quote": "Planned policy (owner decision; DESIGN_NOTES, Open items): autosave at watch boundaries plus named manual saves ...",
+   "fix": "The Save policy bullet was removed from 'Open, deferred and parked'. The only home is now 'State, saves and pack identity' under Engineering rules. Change the pointer to 'DESIGN_NOTES, State, saves and pack identity'.",
+   "severity": "minor"
+  },
+  {
+   "old_location": "DESIGN_NOTES The configurable ladder, 'Default rungs' bullet",
+   "quote": "(no Detail line)",
+   "fix": "The skins table moved, but the only Detail pointer to design/epoch-ladder-skins-and-rotation.md sits at the end of Operative rotation. It does name 'the skins table'. Low risk; optionally add a 'Detail:' pointer under The configurable ladder.",
+   "severity": "minor"
+  }
+ ],
+ "status_mismatch": [],
+ "verdict": "minor_loss",
+ "checks_run": [
+  "sentence-level diff of 362 non-verbatim old sentences, all read against new",
+  "every backticked identifier, quoted string, number and bold/italic name of OLD found in NEW plus design/ (mechanical)",
+  "six design files compared to old blocks sentence by sentence: verbatim apart from the intended pointer rewrites and LaTeX removal",
+  "design file Status lines vs Status index rows: all match",
+  "back-pointers (Canonical summary lives in ...) and Detail lines: all name existing files and headings",
+  "roadmap.yaml carries the milestone data from the dropped Roadmap-ordered pointers table"
+ ]
+}

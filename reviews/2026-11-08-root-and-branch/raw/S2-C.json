@@ -1,0 +1,307 @@
+{
+ "findings": [
+  {
+   "id": "S2C-01",
+   "topic": "ai",
+   "kind": "problem",
+   "claim": "Generated text has no place in the current pipeline: the only design for surfaced words is 'authored, engine does not invent', and the one generation design (stage 3 Composer) is bolted onto a free-text parser that P2 deletes, so there is no spec for where an SLM sits, what it may touch, or how its output is frozen for replay.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "265-265",
+     "quote": "The words are authored. The engine does not invent them."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "58-58",
+     "quote": "3. Intent Combiner + Anti-LLM-Speak Period-Voice Composer (grounded strictly in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas \u2014 never generic chatbot prose)."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "144-144",
+     "quote": "8. 08-local-onnx-hybrid-intent           \u2014 Local MiniLM-L6-v2 setup script, 3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry."
+    }
+   ],
+   "bites_when": "Change 07 (paging and ambient lines) is proposed: it will hard-code authored strings, and the generation change will then have to retrofit a text-source seam and a freeze-on-first-show rule into ConversationPage/AmbientLine/ConversationHistory.",
+   "severity": "critical",
+   "confidence": "high",
+   "disconfirm": "Searched src, DESIGN_NOTES and config for any text-provider port, VoiceProfile, ConversationHistory or generation hook: none exist (VoiceProfile is markdown only, per S0). Nothing refutes the gap.",
+   "recommendation": "Before 07 is proposed, fix one rule in docs: surfaced text is a VIEW of structured facts. Every ConversationPage chunk and AmbientLine is produced behind a TextSourcePort (authored | pool | generated) and the shown string is persisted in the save/ConversationHistory the moment it is shown; generated text never feeds back into WorldState, only the structured facts that produced it do.",
+   "fix_cost": "S",
+   "ignore_cost": "07 ships with authored-only strings and a generation seam is retrofitted after saves and evals already assume text equals content."
+  },
+  {
+   "id": "S2C-02",
+   "topic": "ai",
+   "kind": "risk",
+   "claim": "Pure runtime generation (option a) is the wrong default for this project: SeededRandom replay and eval determinism cannot hold across WASM/WebGPU float differences, and a 2019 Intel MBP (integrated Intel graphics, 16 GB shared with Three.js) can only run roughly sub-1B to ~1.5B quantized models at interactive speed. Recommend a hybrid weighted heavily to authoring time.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "203-203",
+     "quote": "- \"Detail verification commands and headless testing strategy (no WebGL or 23MB ONNX load required in fast unit tests)\""
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "44-44",
+     "quote": "The command stays outside `npm run verify`."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "36-36",
+     "quote": "concrete physical habits, private contradictions, and anti-LLM-slop specificity"
+    }
+   ],
+   "bites_when": "The first generation prototype runs live in the browser on the target Mac next to the 60 FPS Three.js render loop, or the first eval asserts exact text from a fixed seed.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "I cannot benchmark here and will not invent numbers. UNCERTAIN: current Transformers.js WebGPU support on Intel Macs, tokens/s for 0.5B-1.5B q4 models on a 2019 i7 CPU via WASM, and whether the pinned 4.3.2 behaves as I assume (I cannot verify that version). Checked: package.json has no @huggingface dependency and there is no public/ dir, so nothing measured exists in-repo.",
+   "recommendation": "Choose option (c): (1) authoring time in Node, bigger local model (3B-8B class via HF/llama.cpp, plus the agent) drafts variants from character bibles, owner curates, results baked as pools in content packs; (2) runtime selects from pools by seeded rng and does deterministic slot templating only; (3) optional runtime SLM (about 0.5B-1.5B, behind a worker) is a later, flagged 'paraphrase within constraints' layer for non-spine ambient and gazette filler, output cached into the save. Build a 1-day timing spike on the real Mac before committing to (3).",
+   "fix_cost": "M",
+   "ignore_cost": "Either live generation tanks the frame budget and breaks replay, or the project quietly reverts to all-hand-authored text and P2 is not met."
+  },
+  {
+   "id": "S2C-03",
+   "topic": "design",
+   "kind": "gap",
+   "claim": "Grounding inputs the generator needs mostly do not exist: there is no VoiceProfile, no NPC epistemic memory, no ConversationHistory, and CharacterBlueprint carries only numeric drives and an emergencyVice id, so any generator today would be ungrounded and could contradict world state.",
+   "evidence": [
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "123-123",
+     "quote": "drives: z.record(z.string(), z.number().min(0).max(1)),"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "84-84",
+     "quote": "Characters (`CharacterBlueprint` & `VoiceProfile`): 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3)"
+    }
+   ],
+   "bites_when": "Change 06a/07 gives an NPC a line: nothing structured says what the NPC knows, believes about the player, or may not say.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "grep for VoiceProfile|epistemic|knownFacts in src returns only a comment in CivilizationLegacyState.ts; the CharacterBlueprint schema (lines 111-127) has no bible, voice or knowledge field.",
+   "recommendation": "Define the generator's input as one pure 'LineBrief' built by application code: speaker bible fields (habit, contradiction, want), VoiceProfile (register id, banned lemmas, cadence, tic list), known-fact ids (from scout A's epistemic model, needed only as a set of fact ids the speaker may assert), regard toward listener, top 2-3 recent event ids, and the speech act. Add bible and voice fields to CharacterBlueprint as optional until content uses them (S1-R6 freeze: land them with the first authored character).",
+   "fix_cost": "M",
+   "ignore_cost": "NPCs state things they cannot know or contradict the Sorrel/Pell facts, and the only detector is a human reading logs."
+  },
+  {
+   "id": "S2C-04",
+   "topic": "ai",
+   "kind": "gap",
+   "claim": "The planned eval design (07e golden fixtures for banned lemmas, cadence, clause omission) assumes deterministic authored lines and has no gate for generated text: no contradiction check, no runtime fail path, no human review queue.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "68-68",
+     "quote": "Golden dialogue and `AdvisoryDuel` fixtures verifying banned-lemma compliance, cadence rules, and clause-omission behavior."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "299-299",
+     "quote": "`npm run eval:ai` loads every registered case, rolls it with a fixed seed under `FAST_EVAL_PACING_CONFIG`, and reports pass or fail."
+    }
+   ],
+   "bites_when": "The first SLM-produced or SLM-drafted line is shown to the player, or a pool is baked from model output.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Read 10e and 11 fully: fixtures are golden-text; nothing mentions failure handling for a line, a fallback, or reviewer queue.",
+   "recommendation": "Reshape the gate as one pure function gate(line, brief) with three deterministic tiers: (1) lexical (banned lemmas, length cap of the 2 lines/120 chars chunk, cadence tics), (2) grounding (every named person/place/object resolves to a fact id in the brief; no id outside known-fact set; polarity checks on negations) and (3) tell compliance for rivals. Run it at authoring time over every pool entry (CI fail), and at runtime on any live generation; on fail retry once with next seed then fall back to a pool line, never to blank. Log failed generations to the telemetry log and a review queue file; eval:ai runs the gate over fixed briefs and reports pass-rate, not exact text.",
+   "fix_cost": "M",
+   "ignore_cost": "Slop and contradictions reach the player and are found only by playtest, with no regression suite."
+  },
+  {
+   "id": "S2C-05",
+   "topic": "design",
+   "kind": "risk",
+   "claim": "Rival linguistic tells are a reading puzzle for the player, so they must be produced by deterministic code, not left to model sampling; the schema currently models only non-lexical spoof modes, with no field for the lexical tells the notes describe.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "30-30",
+     "quote": "*Tells*: Vocabulary cluster `earn / deserve / soft / cull`; spoofed news items always use **clean round numbers** (`100 dead`)."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "31-31",
+     "quote": "*Tells*: **Agentless passive voice** (*\"It was decided\"*)"
+    },
+    {
+     "path": "src/domain/registries/EpochBlueprints.ts",
+     "lines": "176-176",
+     "quote": "export const RivalSpoofModeSchema = z.enum(['round_numbers', 'deletion', 'early_surplus']);"
+    }
+   ],
+   "bites_when": "Any rival-authored letter or gazette item is generated: an SLM will drift out of 'agentless passive' or leak the cluster onto non-rival text, which makes the puzzle unfair (false positives) or unsolvable.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "RivalCivBlueprintSchema (lines 179-187) has doctrineSummary, orbitalOffsetTicks, spoofMode, coverEntityId only. The Tithe/Quiet/Reciprocal lexical tells exist only as prose.",
+   "recommendation": "Add a data-driven tellProfile to RivalCivBlueprint (lexical clusters, a transform id such as agent-deletion or consideration-clause, forbidden-on-others lists). Rival-sourced text is template/pool first, then a deterministic post-pass applies the tell, and the eval asserts tell present in 100% of rival text and absent in 100% of non-rival text. The SLM may only fill unconstrained slots.",
+   "fix_cost": "M",
+   "ignore_cost": "The core P4 inference puzzle for rivals either leaks or fails silently, and cannot be tested."
+  },
+  {
+   "id": "S2C-06",
+   "topic": "docs",
+   "kind": "problem",
+   "claim": "Change 08, the setup-models script, MiniLM, the Web Worker intent parser and the intent eval suite are all specified around free-text input and are now obsolete as written; the @huggingface/transformers dependency itself is not yet installed, so this is a doc fix, not a code removal.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "144-144",
+     "quote": "8. 08-local-onnx-hybrid-intent           \u2014 Local MiniLM-L6-v2 setup script, 3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "56-57",
+     "quote": "1. Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act, and rival linguistic tell detection)."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "69-69",
+     "quote": "**Hybrid NLP & ONNX Intent Evals (Change 08)**: Golden dataset of free-text player inputs (testing negation polarity like *\"Do NOT tell the Prelate\"*"
+    }
+   ],
+   "bites_when": "Now: the roadmap tells the agent to propose 08 as free-text parsing after 07e; /opsx-propose will faithfully build the thing P2 deleted.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "package.json has no huggingface/onnx entry and no setup-models script (grep returned nothing), so nothing is built to unwind.",
+   "recommendation": "Retire 08 as written. Replace with '08 local text-generation runtime and authoring kit': HF dependency and setup-models stay (re-aimed at SLM weights, stored outside git), MiniLM is dropped unless later used for embedding retrieval of few-shot exemplars. Intent parsing becomes menu rows (already WASD choices); negation polarity becomes a gate check on generated/pool lines; rival tell detection becomes a tell-compliance gate (S2C-05), not a player-input parser. Re-point the 05f suite from 'intent' to 'text gate'.",
+   "fix_cost": "S",
+   "ignore_cost": "Weeks of work on a parser nobody can reach, and the owner's actual P2 pipeline stays unscoped."
+  },
+  {
+   "id": "S2C-07",
+   "topic": "content",
+   "kind": "gap",
+   "claim": "No document says which text is hand-authored versus generated; with 500+ characters promised and the 'Sorrel steals wax' bar, the author/generate split and an authoring kit need to be fixed before content packs are written, or the first 50 characters will be written in an incompatible shape.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "36-36",
+     "quote": "Actual Epoch content packs scale across **500+ interactable on-stage and off-stage characters**"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "40-40",
+     "quote": "**Sorrel** (candle-clerk & keeper of the dead; steals wax to read sealed letters; open-minded martyr candidate)"
+    }
+   ],
+   "bites_when": "The first non-exemplar character is written (change 06a/07 content) and each author invents a different shape for habit, contradiction and voice.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Checked DESIGN_NOTES 35-45 and 10/10e for any bible template or exemplar-pack concept: only prose exemplars exist.",
+   "recommendation": "Split. Hand-authored (owner, agent drafting): spine beats and thread omens/crisis lines, the opening, every Tier-1 character bible plus 3-6 signature lines each, advisor duel keystones, rival tell exemplars. Pool-generated then curated: Tier-2 role lines, letter variants, gazette filler, ambient exchanges, rumours. Fully runtime-templated or lightly generated: Tier-3 crowd barks. Authoring kit: a CharacterBible schema (habit, secret, contradiction, want, forbidden-knowledge, three signature lines), a RegisterCard per voice (diction notes, cadence pattern, banned lemmas, 6-10 exemplars, 3 anti-exemplars), a few-shot pack builder that assembles LineBrief + exemplars, a 'draft N variants' Node script writing to a review file, and an accept/reject CLI that bakes accepted lines into pool JSON.",
+   "fix_cost": "M",
+   "ignore_cost": "Generic filler dominates 90% of surfaced text and the Sorrel specificity bar becomes the exception rather than the standard."
+  },
+  {
+   "id": "S2C-08",
+   "topic": "docs",
+   "kind": "problem",
+   "claim": "Beyond change 08, free-text input and ONNX are asserted as live in several guide docs that contradict P2 and invite the agent to build to them.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "270-270",
+     "quote": "Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "235-235",
+     "quote": "Dialogue wording, interruption, pretexts, and free-text intent stay in their own changes."
+    },
+    {
+     "path": "src/infrastructure/AGENTS.md",
+     "lines": "7-7",
+     "quote": "All model weights must load from the local `./public/models/` cache after running `npm run setup-models`."
+    },
+    {
+     "path": "README.md",
+     "lines": "85-85",
+     "quote": "Session NDJSON logger & compactor, save/load repository, local ONNX Web Worker"
+    },
+    {
+     "path": "tests/AGENTS.md",
+     "lines": "6-6",
+     "quote": "loading the 23MB ONNX model"
+    }
+   ],
+   "bites_when": "Now: any agent session reads root AGENTS.md line 77 and these files and treats the ONNX worker as an intended infrastructure component.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Searched all AGENTS/README files for onnx|minilm|hugging|free-text: full list below in recommendation; root AGENTS.md line 77 mirrors README line 85.",
+   "recommendation": "Edit these passages: openspec/config.yaml 43 ('free-text intent cases on `08`'), 53-58 (NLP pipeline; 'Local NLP uses a 3-stage hybrid pipeline'), 84 (VoiceProfile stays, add bible), 117 (HF pin 4.3.2: reverify or drop until installed), 144 (change 08), 203 ('23MB ONNX'); DESIGN_NOTES 69, 235, 244 ('Free-text intent is the change after that family'), 265 ('The words are authored. The engine does not invent them.' narrow to spine and Tier-1), 270, 295 ('The free-text intent suite'), 300 ('free-text intent (change 08)'); root AGENTS.md line 77 and README line 85 ('local ONNX Web Worker'); src/infrastructure/AGENTS.md 5 and 7; tests/AGENTS.md 6. Reword to 'local text-generation worker (optional)' and 'SLM weights', and note the P2 decision once in DESIGN_NOTES.",
+   "fix_cost": "S",
+   "ignore_cost": "The docs keep instructing agents to build the retired parser, and the Composer stage in config 58 is read as mandatory runtime."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "The 05f eval runner design (fixed seed, FAST_EVAL pacing, offline, outside verify, open subject ids, no ONNX or Date.now import) is the right host for text-gate suites and needs reshaping only in what it asserts.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "300-300",
+     "quote": "A subject id is an open string. The runner does not import `three`, the ONNX runtime, or era content, and it does not read `Date.now()`."
+    }
+   ]
+  },
+  {
+   "claim": "Written-register framing ('Voice is a written register', diction and cadence, no voice acting) maps directly onto a RegisterCard and exemplar-driven generation.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "251-251",
+     "quote": "\"Voice\" there is a written register."
+    }
+   ]
+  },
+  {
+   "claim": "Short, bounded chunks (two lines, about 120 characters) and expiring ambient lines are exactly the shape a small model or a pool can hit reliably and a gate can check.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "38-38",
+     "quote": "one chunk at a time (at most two lines, about `120` characters)"
+    }
+   ]
+  },
+  {
+   "claim": "Infrastructure rule forbidding external LLM APIs and keeping HF out of domain/application already supports a generation worker behind a port.",
+   "evidence": [
+    {
+     "path": "src/infrastructure/AGENTS.md",
+     "lines": "7-7",
+     "quote": "Never add HTTP clients calling external LLM APIs (OpenAI, Anthropic, OpenRouter, etc.)."
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Expansion grammar with SLM-curated vocabulary (Tracery / Dwarf Fortress / Caves of Qud style)",
+   "proposal": "Author per-character and per-register grammars (Tracery-like) whose terminals are drawn from model-drafted, human-curated word and phrase banks. Runtime expansion is pure and seeded, so output is deterministic and every sentence is derivable. The SLM works at authoring time to propose terminals and rules, the gate checks them.",
+   "reference": "Tracery; Caves of Qud's sultan histories and gospel grammars; Dwarf Fortress artifact descriptions",
+   "replaces_or_changes": "Replaces the notion that variety needs live inference; sits between pools and runtime generation and fits the existing StoryletTemplate slot grammar."
+  },
+  {
+   "title": "Constrained selection instead of free generation (rerank-only runtime model)",
+   "proposal": "At runtime the model does not write; it scores a pool of N authored/curated candidates against the LineBrief (embedding similarity or log-likelihood) and picks one. This is the only place a MiniLM-class embedder earns its keep, is cacheable and gives deterministic output for a fixed model and seed. It cannot hallucinate facts because it cannot emit new words.",
+   "reference": "Retrieval-based dialogue systems; Versu / Prom Week style authored-content selection",
+   "replaces_or_changes": "Gives the already-pinned @huggingface/transformers and MiniLM a P2-compatible job instead of intent parsing."
+  },
+  {
+   "title": "Fact-first generation: the model only paraphrases a structured proposition",
+   "proposal": "The sim emits a proposition (speaker, act, fact ids, tone, tells). A deterministic realiser produces a plain sentence from it; the model, if used at all, only restyles it under the gate that all fact ids and names survive. Contradiction becomes checkable by string/id match rather than judgement.",
+   "reference": "NLG pipeline (content determination, then surface realisation); Versu's social-practice generation; Fa\u00e7ade's discourse acts",
+   "replaces_or_changes": "Changes what is passed to the generator from 'a prompt' to a typed LineBrief, and makes the 05f gate cheap."
+  }
+ ],
+ "could_not_verify": [
+  "Actual interactive speed, memory and WebGPU availability of sub-1.5B quantized models on a 2019 Intel i7 MacBook Pro with integrated graphics; no benchmark was run and none is claimed.",
+  "Whether @huggingface/transformers 4.3.2 (config.yaml line 117) exists in the form assumed; the dependency is not installed in this repo.",
+  "Whether current 3B-8B local models reach the Sorrel specificity bar at authoring time without heavy curation; expected to need few-shot packs and human cull, but untested.",
+  "Cross-backend determinism of SLM sampling (WASM vs WebGPU, different CPUs); assumed non-bit-exact, so the recommendation persists generated text rather than relying on seed replay."
+ ]
+}

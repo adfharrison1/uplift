@@ -1,0 +1,219 @@
+{
+ "fidelity_issues": [
+  {
+   "id": "A-18",
+   "issue": "Drops the owner's reframing. Summary says 'interacts with and is aware of, at some point'; the accepted wording is 'interact with in some way, and be aware of that interaction in some way, at some point', explicitly covering remote adversaries and correspondents. Dropping 'in some way' tightens it toward physical contact. A-22 ('aware at some point') and A-05 rule 8 share the paraphrase.",
+   "fix": "Use the owner's wording verbatim in A-18 and make A-22's invariant eval and A-09/A-19 refer to it. Add that remote adversaries and correspondents count."
+  },
+  {
+   "id": "A-04",
+   "issue": "Overstates the owner idea and contradicts itself. Owner only said past advisors occasionally appear with help or notes over the galactic network (design-note candidate). Summary adds a rate limit, pack registration, Observation channel latency and a cross-pack import list, and targets config.yaml roadmap items 10 and 7d, which schedules it, while also saying 'not scheduled'. The import list in S4-10 is a pack-identity decision, not a cameo spec.",
+   "fix": "Record only the owner's idea as a design candidate in DESIGN_NOTES, noting it could ride the Correspondence/Observation path. Drop the rate-limit and registration detail and the config.yaml roadmap targets. Cross-reference S4-10 only for the explicit-import-list decision."
+  },
+  {
+   "id": "A-03",
+   "issue": "Rewrites DESIGN_NOTES 22-26 and section 4, but P3 is partly about the loss of the previous crew being fun. The summary says that, but the target (section 4 line 184-185, config roadmap 10) is not stated to keep the existing legacy/sacrifice citation. 'cameo channel, not a replacement crew' is the editor's gloss.",
+   "fix": "State P3 as a pillar (new operative and crew per epoch, loss is part of the fun), record R9 as rejected-by-owner with the cameo addition, and keep line 26's 'cite predecessors' sacrifices'."
+  },
+  {
+   "id": "A-16",
+   "issue": "Conflicts with the register. S1-R1 was accepted-partial ('don't write everything up front') and R8 (Epoch 1 as definition of done, own ending) is open and unaddressed by the owner, yet A-16 writes a full 'Epoch 1 player contract' including 'what a bad epoch looks like' while A-63 lists the same as an open item.",
+   "fix": "Re-scope A-16 to the minimal rules-spine fields the owner named: mission, verbs per thread, win/fail shape, epoch-end evaluation, Leverage Chain. Leave Epoch-1-specific definition of done in A-63 as open."
+  },
+  {
+   "id": "A-01",
+   "issue": "P5 says everything the review settles is revisable. The summary limits P5 to 'core model, rules spine and roadmap order'. P2 and P3 are also pillars the register lists, and A-01 does not name them (they are in A-02/A-03 only). A-01 also omits P2 and P3 although titled as the pillar record. De-weighted topics are included, which is right.",
+   "fix": "List all five pillars in the one block, and word P5 as 'every decision settled in this review stays open to later change', adding that core model, rules spine and roadmap order are the examples."
+  },
+  {
+   "id": "A-45",
+   "issue": "Omits that per-NPC tone blips are added when text pages exist (07), after the audio change; the owner decision lists blips as approved but the audio slice itself covers footsteps, doors, menu sounds and murmur only. The reader of A-45 alone would not know blips are not in it. Also does not say 'its own change'; the roadmap list is the only trace.",
+   "fix": "Add 'tone blips ship with 07 text pages, not in this change' and name it as a separate new change directly after 05e and before 05b-1."
+  },
+  {
+   "id": "A-46",
+   "issue": "Correct on the approval. Slightly understates: the owner's condition is that DESIGN_NOTES section 9 be amended so blips are not counted as a synthesised voice. 'do not read a line aloud' should be kept, but also state that blips carry no phonemes/words (tone only).",
+   "fix": "Add 'no phonemes or words; pitch/timbre signature only'."
+  },
+  {
+   "id": "A-44",
+   "issue": "Treats S5-20 as settled hybrid audio in the 05a rewrite, but the owner only decided the minimal audio change and that full 05a stays later. Relaxing the 'zero .wav' claim is accepted (S5-20) but is not an owner approval of CC0 samples in the minimal change.",
+   "fix": "Mark as accepted (P5, revisable) and say samples enter at the audio change or 05a, without implying the minimal change ships samples."
+  },
+  {
+   "id": "A-41",
+   "issue": "Adds the 'optional qualitative-odds setting' under Settings. It originated in the digest's R9 note ('optional accessibility setting') but S5-12 does not list it and the register says only 'Qualitative odds in advisor speech instead'. Also targets AGENTS.md with 'follow with 07 and 05a', which breaks the rule against change ids in AGENTS.md.",
+   "fix": "Mark qualitative-odds setting as an optional idea; in AGENTS.md describe the Settings model without change ids."
+  },
+  {
+   "id": "A-30",
+   "issue": "Targets AGENTS.md line 57 and the summary says '05f runner', which cites a change id in AGENTS.md against the repo rule. Also the target AGENTS.md line is simultaneously on the deletion list (deletion 3).",
+   "fix": "In AGENTS.md say 'the eval runner (planned)'; keep 05f only in DESIGN_NOTES and config.yaml. Reconcile with deletion 3."
+  },
+  {
+   "id": "A-60",
+   "issue": "Says the slice is 'the acceptance gate for 06'. Register says the vertical slice tests the engine and the roadmap should validate it before the big systems; the plan (S6-B) does not make 06 depend on the slice, and no owner decision named a gate for 06. Also says 'first pass of change 11' in DESIGN_NOTES, fine, but 'does not replace engine work' is correct.",
+   "fix": "Say 'validated by' column, slice is the first pass of 11 and runs before 06; avoid 'acceptance gate' unless the plan adds a depends_on for 06."
+  },
+  {
+   "id": "A-58",
+   "issue": "Order text is internally inconsistent with the hardening batch: it lists hardening 0a,0b,1-7 and then 'StateSlice fix then 05b-1' (S3-01/hx-3 is already inside step 3 of the batch which lands before 05d). It also omits the pre-05d renderer residency step, telemetry wiring and the lab-launch / JSON-source changes the plan places before 05b-1, and puts 08' ordering as after 05b-2 while the plan makes 08 depend only on 07 and 05f.",
+   "fix": "Rewrite to match 02b plus the owner amendment and the S6-B change_plan; drop the duplicate StateSlice fix; add the pre-05d and pre-05b-1a/b steps."
+  },
+  {
+   "id": "A-59",
+   "issue": "05b-1 contents omit the fractional-watch talk cost that A-13 and the plan (05b-1) put there. 05b-2 stated as 'tuned against the slice' but not storyteller as a seeded card deck over the thread state machine (RB3, recommended with changes).",
+   "fix": "Add fractional-watch talk cost to 05b-1 and the card-deck framing to 05b-2."
+  },
+  {
+   "id": "A-12",
+   "issue": "Bundles hardening 6 content into config/AGENTS but 'ESLint determinism block covering ... application' also changes the AGENTS.md layer table (which currently lists Math.random bans for domain/content only); target lists Quick Verify step 4 but not the layer table cell for application. Minor completeness. Also 'capped catch-up' omits the interpolation seam (S5-04, uncovered).",
+   "fix": "List the layer-table row and add the interpolation seam clause."
+  },
+  {
+   "id": "A-13",
+   "issue": "The register's S2-10 stipulation (no wall-clock beats; fractional-watch talk cost) is stated correctly, but 'reading a chunk does not [cost time]' contradicts the finding text, which listed 'reading costs nothing' as part of the problem (world waits on player). The owner amendment replaces wall-clock beats with a talk cost, not a ruling that reading is free.",
+   "fix": "Phrase as: the cost attaches to talking (the conversation as a time-spend), not to each page turn; no wall-clock beats."
+  },
+  {
+   "id": "A-62",
+   "issue": "Puts 'Delta spent on insertion' into change 09, as the 02b digest says is not in 09's text. Correct, but A-21 also states insertion spends Delta and requires zenith; duplicate ownership between a data-profile amendment and a 09 scope amendment.",
+   "fix": "Single owner: A-21 states the rule; A-62 only extends 09's scope."
+  },
+  {
+   "id": "A-52",
+   "issue": "'log nothing, replay with tracing' is the accepted telemetry policy for decision traces, but the summary also changes AGENTS.md line 65 and SKILL.md while deletions 5 and 15 delete the same sentences. Conflict between rewrite and delete.",
+   "fix": "Treat deletions 5 and 15 as rewrites performed by A-52."
+  },
+  {
+   "id": "A-49",
+   "issue": "Duplicates A-50 (both reword the 'second pause flag' line and target config line 130). Not a fidelity drift but double-edit risk.",
+   "fix": "Merge A-49/A-50 or state A-50 applies after A-49."
+  },
+  {
+   "id": "A-63",
+   "issue": "Action 'mark-planned' for S1-R8 and R8 fits, but R7 (generated vs authored storylet cards under P2) and R5's 'generation-quality prototype' are also open and are not listed.",
+   "fix": "Add R7 and R5 to the deferred/open list."
+  }
+ ],
+ "missing": [
+  "S5-04 interpolation seam (prev/curr, alpha, teleport marker in RenderFrameBuilder): no amendment; plan hx-6a builds it, so application AGENTS/README and DESIGN_NOTES section 7 need a home.",
+  "S3-14 legacy mutation clamp to [0,1] with telemetry note, throw kept as authoring-time contract test, sourceScarId check: no amendment (domain AGENTS and legacy section).",
+  "S3-13 stimulus dedupe and priority-vs-age eviction: only the roll() half is in A-09.",
+  "S3-16 per-frame allocation 'do nothing until a room holds 100+ bodies' (decision worth a one-line note in application AGENTS).",
+  "S3-17 rule that each test ships with the fix that needs it; S4-13 test builders in tests/support (makeRegistry, makeWorldState, makeStageBlueprint), splitting monolithic tests, bridge http tests: no tests/AGENTS.md/README amendment.",
+  "S4-05 layer-test blind spots beyond what A-12 lists (import = , export *, barrels, content/scene rule enforcement, type-only imports) and S4-07 invariants (a guarded test per new invariant): no amendment to tests/AGENTS.md or AGENTS.md architecture section.",
+  "S4-17 typed ESLint (later) and R4A1 compiler-API import scanning (parked): not recorded even as parked notes (the gaps list mentions R4A1 only generically).",
+  "S5-04, S5-07 (geometry/material cache, shared-resource-safe dispose, compileAsync warm-up) have no doc home; A-48 lists S5-07 as 'later' while the plan builds it pre-05d.",
+  "INV-C: belief-conditioned utility terms for NPCs and expected-utility planning for rivals only; low confidence maps to investigate or wait: A-33 omits it; INV-E player style tracked with counters; INV-F softening only partly in A-34.",
+  "R5 generation-quality prototype (text-only advisor prototype under P2) and R7 generated vs authored storylet cards: no roadmap or open-item amendment.",
+  "R3C1 ruling: scripted command log is the artifact for golden tests, 05f fixtures and bug repro, not the player save format: absent (A-52 covers replay only).",
+  "R3A3 dwell-site slots (later, data on prop blueprint, final metre steered) and R3B2 'chunk Act ring only if the benchmark at cap fails': not recorded.",
+  "RB3 storyteller as seeded card deck over the thread state machine and RB2 stock-flow economy: RB2 only via A-21; RB3 absent from A-59.",
+  "Rejected-option records (R6 seasonal council, R9 CK3 numeric odds, S1-13/S1-12 as rejected-by-review, R5C2 global accent only partly in A-37) are not logged anywhere so they will be re-proposed; a short 'considered and rejected' list is missing.",
+  "Owner decision (4) after slice 2 and slice 4: lab ruling consequence for src/interfaces AGENTS/README and stage inspector docs is in A-51 only for stageLabPanel; DESIGN_NOTES 'Save Patch to Disk' (deletion 33) is not covered.",
+  "P1 consequence: 'some rules set early enough to guide architecture' is only in A-01; no amendment to src/domain/AGENTS.md or src/application/AGENTS.md pointing at the spine (A-66 covers root only).",
+  "Section README/AGENTS update rule from root AGENTS.md: no amendment lists src/content/README.md, src/domain/README.md, src/application/README.md and tests/README.md for the new primitives (Act, Observation, presence, TextSourcePort), only AGENTS pointers.",
+  "Plan items with no doc home: roadmap.yaml migration (S6B-04), gate/process rules G1-G6, spec rule for Purpose-bearing requirements, size rule replacing the 4-6 task cap (A-65 only says 'stated with exceptions or relaxed'), optional npm run smoke, pre-05d renderer residency change, telemetry wiring change as its own item. Caveat: S6-B findings are not yet in the register, so owner acceptance is unrecorded.",
+  "Gaps list says R8 and save policy have 'no accepted text' but A-16 and A-32 write text for them anyway (see fidelity items)."
+ ],
+ "deletion_issues": [
+  {
+   "index_or_quote": "0-4 (AGENTS.md 54-58: locomotionMode/direct, prop footprint, proximity use, eval:ai, conversation paging)",
+   "issue": "These are accepted planned designs written in present tense. Deleting them loses design content that A-37/A-40/A-47/A-30/A-46 rewrite on the same lines. Correct action: mark '(planned)' and reword to future tense. Note AGENTS.md line 54 'direct' also hosts the locomotionMode definition used by the plan (hx-7 splits stepping by mode)."
+  },
+  {
+   "index_or_quote": "6,7,8,9 (config.yaml 35,36,38,43)",
+   "issue": "Same: planned changes 05d, 05e, 07, 05f written as shipped. Rewrite as planned, do not delete; A-37, A-40, A-49 target lines 35-38 and 130 so deletion and rewrite collide."
+  },
+  {
+   "index_or_quote": "30,31 (DESIGN_NOTES 224, 237)",
+   "issue": "Reason says add '(planned)' status, which is right; list entry is under 'deletions' so it should be marked as a status edit not deletion."
+  },
+  {
+   "index_or_quote": "32 (DESIGN_NOTES 299 npm run eval:ai loop)",
+   "issue": "Valid design for the planned eval runner (plan item 05f amendment, A-30). Mark planned, do not delete."
+  },
+  {
+   "index_or_quote": "5 and 15 (AGENTS 65, config 61 'logged to current-session.jsonl')",
+   "issue": "Policy replaced, not removed: A-52 rewrites it to Act log + telemetry (crash/warn/spikes/hashes) + replay with tracing. Treat as rewrite; leaving a hole would drop the 50 MiB / 500 MiB caps still true of the logger."
+  },
+  {
+   "index_or_quote": "10 (config 53 setup-models) and 37 (infrastructure/AGENTS.md 7)",
+   "issue": "setup-models script indeed does not exist (verified in package.json), but A-25 keeps an HF/ONNX adapter in infrastructure for the gated runtime SLM tier. Mark '(planned, gated on the timing spike)' rather than delete the local-cache rule; the Zero API Keys rule is valid content."
+  },
+  {
+   "index_or_quote": "11,13 (config 55, 58)",
+   "issue": "Deleting the 3-stage pipeline is correct (free-text intent/Composer), but line 56 (stage 1 'Lexical & Pragmatic Extractor... rival linguistic tell detection') is not in the deletion list, leaving an orphaned stage 1. Rival tell detection is replaced by tellProfile post-pass (A-22)."
+  },
+  {
+   "index_or_quote": "12 (config 57), 36 (README 85 'local ONNX Web Worker'), 38 (tests/AGENTS.md 23MB ONNX), 39 (SKILL.md 8)",
+   "issue": "Reason 'obsolete under P2' is overstated: the MiniLM embedding intent worker is obsolete, but a local ONNX/HF worker remains planned for the generated TextSourcePort adapter (S2-05, A-24/A-25). README line 85 describes infrastructure scope; reword to 'planned local text-generation worker', not delete. 38/39 can be reworded to 'no model load' and 'decision traces via replay'."
+  },
+  {
+   "index_or_quote": "19 (config 117 @huggingface/transformers 4.3.2)",
+   "issue": "Deletion proposed in the list but the reason says 'mark as reserved'; it is a version pin still true in package.json and needed for the generated adapter. Keep and annotate, do not delete."
+  },
+  {
+   "index_or_quote": "14 (config 84 VoiceProfile)",
+   "issue": "Mark (planned), correct; VoiceProfile is planned for 07."
+  },
+  {
+   "index_or_quote": "16 (config 33 Sound Lab and Pacing Lab routes), 33 and 34 (DESIGN_NOTES 89, 110)",
+   "issue": "Routes do not exist, but they are the designed lab tooling for 05a and 05b-2; the S6-B plan says 05b-2's PUT route uses the guarded helper, so deleting the pacing-profiles design loses spec the plan builds. Mark planned and note 'guarded bridge route'."
+  },
+  {
+   "index_or_quote": "35 (DESIGN_NOTES 62 'Save to Disk')",
+   "issue": "Right to add caveat (S4-01), but A-51 is the carrier and the ruling is that JSON becomes source of truth; do not delete the Save feature description."
+  },
+  {
+   "index_or_quote": "21 (DESIGN_NOTES 26 sulk/omissible clause)",
+   "issue": "Mark planned (07d), correct. It is valid design that A-17 depends on ('advisors may omit'); deletion would lose it."
+  },
+  {
+   "index_or_quote": "22 (DESIGN_NOTES 65 heading 'Lightweight AI & NLP Evaluation Testing Framework (05f)')",
+   "issue": "Retitle/rewrite not delete: the section is the home of A-30's runner design. The heading is the only change cite allowed in DESIGN_NOTES, so keep the id and drop 'NLP'."
+  },
+  {
+   "index_or_quote": "17,18 (config 43 free-text intent cases, 144 item 8)",
+   "issue": "17 is a clause cut and correct. 18 collides with A-28 (rewrite roadmap item 8) and A-58; item 8 is replaced, not deleted."
+  },
+  {
+   "index_or_quote": "20 (config 203 ONNX load)",
+   "issue": "Fine to delete or reword; harmless."
+  },
+  {
+   "index_or_quote": "23,24,25,26,27,28,29 (free-text intent passages in DESIGN_NOTES)",
+   "issue": "Correct: free-text is banned by P2. 24, 25, 27, 28, 29 are clause or phrase cuts, and surrounding sentences must be rewritten (e.g. 244 also holds 'A second pause flag.' addressed by A-50; 270 contains 'A back-page and a transcript on screen...' that must survive)."
+  },
+  {
+   "index_or_quote": "Not in list but needed",
+   "issue": "AGENTS.md line 59-58 area: the Conversation bullet in AGENTS mentions 'impatient beat'; and DESIGN_NOTES 295 'free-text intent suite' is deleted but 299's 'Hybrid NLP' bullet 69 refers to Change 08; ok. Also DESIGN_NOTES section 11 line 300 mentions 'the ONNX runtime' in the epoch-agnostic contract (fine to keep)."
+  }
+ ],
+ "plan_conflicts": [
+  "A-58 lists StateSlice fix after 05e; plan and register put it in hardening step 3 before 05d (hx-3). Roadmap text would build the clone fix twice or in the wrong place.",
+  "Plan has pre-05d renderer residency/shape-table, telemetry wiring, lab-launch-validation and lab-json changes as separate roadmap items; A-58 and A-59 describe none as items, and A-47 covers only the shape descriptor.",
+  "Plan puts the minimal audio change before lab-launch-validation and also depends on docs-rules-spine; A-45 says 'before 05b-1', consistent. But the plan makes audio depend on the rules spine docs change, which A-05 does not state.",
+  "Plan item docs-rules-spine includes migrating the roadmap to openspec/roadmap.yaml; A-58/A-59/A-60/A-61/A-62 all edit the roadmap inside openspec/config.yaml. Target file of the roadmap amendments must be decided first.",
+  "Plan gate-brief-amendments (G1-G6, size rule replacing the 4-6 cap, Purpose-bearing requirement rule, npm run smoke) has no amendment; A-65 handles the 4-6 rule only vaguely. AGENTS.md 'Atomic Delivery' section must change if the cap is replaced.",
+  "Plan 08 depends on 07 and 05f; A-58 says 08' after 05b-2. A-28 says 'after 07e'. Three different orders.",
+  "Plan 05f (runScenario reuse, golden/eval split) comes after core step 7 and hx-6b: consistent with A-30, but A-30 says the 05f runner hosts text-gate suites, which the plan assigns to the pre-07 change.",
+  "Plan hx-5 delta 'lab mode is a PlaySession flag' vs A-49: consistent, but A-49 puts AGENTS.md line 56 edit; plan also edits spec play-shell scenarios (OpenSpec specs, outside this inventory).",
+  "A-47 says crowd/materialized NPC meshes arrive at core step 6 with pooled add/remove; plan scopes core step 6 to a renderer subset after residency work. No amendment describes residency (resident-space-only build, geometry cache), which the plan builds first.",
+  "Amendments describing behaviour the plan does not build: A-35 (Ship Mind forecast, item 9 not in plan), A-38 capture/return directive stack (explicitly arrives with dialogue; no plan item), A-48 merged Tier-3 crowd and silhouette budget (later), A-41 readingSpeed/captions (plan places in 07). Acceptable as later, but should be tagged '(planned, later)'.",
+  "A-42 non-visual noticing: plan puts it in cm-observation, no amendment sets that slot; A-63's open items and A-43 audibility integration match the plan.",
+  "Plan telemetry-wiring includes 'newline guard; ENOSPC warning; query limit/tail/count-by' not reflected in A-52 or infrastructure AGENTS."
+ ],
+ "apply_order": [
+  "Batch 0 (record-keeping, no behaviour claims): A-01 (pillars, all five), A-63 (deferred and open list), the missing 'considered and rejected' list. Decide the roadmap file location (config.yaml vs roadmap.yaml) before any roadmap edit.",
+  "Batch 1 (spine): A-05, A-08, A-11, A-06, A-07, A-15, A-16 (reduced), A-19, A-20, A-66. Rules spine, core model, clock record, Leverage Chain, system graph, freeze directive, then root pointers last so they point at existing text.",
+  "Batch 2 (truth pass, present-tense to planned): deletions 0-9, 14, 21, 30-35 as '(planned)' marks and tense fixes; A-65 (version contradiction, 05c [archived]); A-64; A-51's interim caveat. Do this before adding new content so readers never see shipped-versus-planned confusion.",
+  "Batch 3 (P2 text pipeline, one atomic batch): A-02, A-23, A-24, A-25, A-26, A-27, A-34, A-35 then drift removal A-29 plus deletions 11-13, 17, 18, 20, 22-29, 36-39 (after reconciling with ONNX worker wording) and A-28/A-30/A-61. Edit config.yaml lines 55-58 once only.",
+  "Batch 4 (hardening and engineering): A-12, A-54, A-53, A-52, A-55, A-56, A-57 and the missing items (S5-04, S3-14, S4-13). Includes AGENTS.md Quick Verify and layer notes; keep the no-change-id rule.",
+  "Batch 5 (core-model leaves): A-09, A-10, A-13, A-14, A-18, A-21, A-22, A-33, A-17, A-31, A-32, A-42, A-43. Presence, Observation and notebook text, using the owner's 'in some way' wording.",
+  "Batch 6 (runtime feel and audio): A-36, A-37, A-38, A-39, A-40, A-41, A-47, A-48, A-49 plus A-50 merged, then A-44, A-45, A-46 (section 9 amendment last so blips are anchored to the audio change).",
+  "Batch 7 (P3 cameo): A-03 then A-04 reduced to a design candidate.",
+  "Batch 8 (roadmap, last): A-58, A-59, A-60, A-61, A-62 together, then gate/process amendments from S6-B if accepted. Reordered roadmap is applied only after every referenced system has a doc home. Finish with a link and citation check (no change ids in README/AGENTS/source) and a section README/AGENTS pass."
+ ]
+}

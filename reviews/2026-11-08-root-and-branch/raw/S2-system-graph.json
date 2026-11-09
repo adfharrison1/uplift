@@ -1,0 +1,20 @@
+{
+ "legend": "W=writers, R=readers, status: schema | reducer | consumed | nothing. 'dispatch' = something in src actually emits the effect (S0: none do).",
+ "rows": [
+  "pressureStocks (3 scalars) | W: adjust_pressure_stock, insert_illicit_instrument (reducer only, 0 dispatchers) | R: snapshot/save serialisation only; design wants storylets, travel cues, absorption friction, epoch export | status: reducer | FLAG: no real writer, no real reader, no decay",
+  "discoveryLayer (1 global ordinal) | W: insert_illicit_instrument (ratchet via maxDiscoveryLayer), set_discovery_layer (raw setter) | R: nothing; design wants rival strike (>=attributed), extracted_overt, trial | status: reducer | FLAG: no reader, no referent (discovered by whom?)",
+  "illicit instruments (3 modes) | W: nobody (no player action, no Office, no Delta cost) | R: reducer case that fans out to stock+layer+scar | status: reducer | FLAG: no writer; no cost; not tied to orbital pass",
+  "activeEmergencyId (1 slot) | W: trigger_emergency, resolve_emergency (0 dispatchers) | R: RenderFrameBuilder camera fog/roll/pitch (only real consumer in the whole economy graph); compound_emergency_vices | status: consumed (cosmetically) | FLAG: no writer; fuseTicks has no state to count in; no behavior reads it",
+  "drives / emergencyVice | W: compound_emergency_vices (all entities, same delta) | R: nothing (utility AI unbuilt) | status: reducer | FLAG: no reader",
+  "inertiaPillars (per entity) | W: collapse_inertia_pillar (delete only) | R: registry validation only | status: schema+reducer | FLAG: no adder, no hardening writer, no reader, not linked to any thread",
+  "orbitalPass (phase, delta, burn) | W: advance_orbital_pass (caller supplies phase; nothing owns the durations), spend_orbital_delta (throws on illegal) | R: RenderFrameBuilder burn camera effect only | status: consumed (cosmetically) | FLAG: no clock driver, no gate on any gameplay verb",
+  "recordedLegacyScars | W: record_legacy_scar, insert_illicit_instrument(marvel) | R: SimulationCoordinator.exportLegacyState -> CivilizationLegacyState -> applyLegacyToCharacterBlueprints | status: consumed in code (but exportLegacyState never called by app, S0) | only node with a complete write->read->world-change arc",
+  "offices / quiet claims / pretexts | W: nobody | R: nobody; no WorldState field for 'office held', 'pretext available', funds or hooks | status: schema (blueprint only) | FLAG: no runtime state exists at all",
+  "threads / martyrdom / crises | W: nobody | R: nobody; no ThreadRuntimeState; blueprint has one float | status: schema | FLAG: no runtime state",
+  "correspondence channels | W: nobody | R: nobody; no queue state | status: schema | FLAG: no runtime state",
+  "rivals | W: nobody | R: nobody (design: reads discoveryLayer, orbital phase, thread lead) | status: schema | FLAG: no runtime state",
+  "Regard graph | W: design says player/NPC/letters/storylets | R: design says offices, pillars (Temper, Debt), correspondence, counter-assassination | status: nothing | FLAG: the hub of the graph does not exist",
+  "elapsedWatches / storyteller | W: design says Committed Time-Spend actions | R: design says stipends, fuses, transit, orbital pass, point-releases, drift | status: nothing | FLAG: the hub of the clock graph does not exist"
+ ],
+ "reading": "Everything the economy touches funnels through five hubs that do not exist yet (watch clock, Regard graph, thread runtime state, office/pretext/funds runtime state, actor/provenance on effects). The built reducer cases are leaves hanging off hubs that are not there."
+}

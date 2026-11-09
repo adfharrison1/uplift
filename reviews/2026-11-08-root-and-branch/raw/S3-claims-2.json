@@ -1,0 +1,81 @@
+[
+ {
+  "id": "S3-10",
+  "claim": "Kinematics cannot host a BehaviorModule commit at dwell end: the transition event carries no behaviour id, blocked/complete reason or sub-frame time, and the pending dwell/cooldown/behaviour fields are never cleared, so a later unrelated move re-runs the old dwell. | Neither a direct-steer body nor the presence function fits stepKinematics as written: the signature has no input/collider/presence slot, every entity is assumed to follow activePath, spaceId changes only on waypoint arrival, and off-stage entities still integrate paths. | set_cognitive_phase and move_entity_to_waypoint leave stale phase data: a move onto a performing_dwell entity forces 'moving' but keeps phaseRemainingSeconds=10 and activeBehaviorId, and an idle transition never clears activeBehaviorId or the pending dwell/cooldown fields, so 'what is this NPC doing' cannot be read from state.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:152-153",
+   "src/domain/simulation/KinematicsEngine.ts:139",
+   "src/domain/simulation/KinematicsEngine.ts:35-39",
+   "src/domain/simulation/KinematicsEngine.ts:407-408",
+   "src/domain/simulation/KinematicsEngine.ts:556-559",
+   "src/domain/simulation/WorldEffectReducer.ts:109",
+   "src/domain/simulation/WorldEffectReducer.ts:133"
+  ]
+ },
+ {
+  "id": "S3-11",
+  "claim": "When a portal closes mid-route, the truncated path is treated as a normal arrival: the entity runs its full destination dwell and cooldown at the stop point, including inside the doorway, and nothing reports that the move was blocked.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:214",
+   "src/domain/simulation/KinematicsEngine.ts:480-481"
+  ]
+ },
+ {
+  "id": "S3-12",
+  "claim": "Re-targeting a moving entity plans from its last reached waypoint, not its position, so a click back to the waypoint it just left returns 'already_there' and is ignored while the old path keeps running; other retargets cut a straight line from mid-hop to the new first node.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:457-458",
+   "src/domain/simulation/WaypointNavigator.ts:213-214"
+  ]
+ },
+ {
+  "id": "S3-13",
+  "claim": "The per-entity stimulus cap evicts the oldest stimulus regardless of importance and stimulusId is never deduplicated, so 32 ambient chatter stimuli silently delete an earlier player-caused alarm, and a replayed effect enqueues the same stimulus twice.",
+  "paths": [
+   "src/domain/simulation/WorldEffectReducer.ts:176-180"
+  ]
+ },
+ {
+  "id": "S3-14",
+  "claim": "Legacy lineage mutations accumulate across epochs but apply with a hard throw instead of saturation, and a mutation's sourceScarId is never checked against any recorded scar, so two legal add mutations (0.3 + 0.3 on a 0.6 drive) make applyLegacyToCharacterBlueprints throw, which breaks epoch start and loadFromSlot.",
+  "paths": [
+   "src/domain/legacy/CivilizationLegacyState.ts:328-331",
+   "src/domain/legacy/CivilizationLegacyState.ts:75-82"
+  ]
+ },
+ {
+  "id": "S3-15",
+  "claim": "Three movement edge cases misbehave: a zero-speed mover stays in 'moving' forever, a pure-vertical hop snaps yaw toward +Z, and the planner counts hops, not metres.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:119",
+   "src/domain/simulation/KinematicsEngine.ts:389-391"
+  ]
+ },
+ {
+  "id": "S3-16",
+  "claim": "Movement is fine today (0.6 ms/frame for 200 movers) but wastes allocation every frame: the grid and a sorted id list are rebuilt even when nobody moves, and the coordinator rebuilds portal gates and per-entity maps each frame.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:305",
+   "src/domain/simulation/KinematicsEngine.ts:574",
+   "src/domain/simulation/SpatialHashGrid.ts:33"
+  ]
+ },
+ {
+  "id": "S3-17",
+  "claim": "The movement tests assert behaviour well but never combine truncation with kinematics, never split a run across different dt, and miss the mid-hop states that hide S3A-01 and S3A-02. | Reducer tests prove single-path happy cases only: nothing asserts input non-mutation (no frozen inputs), the stimulus and audio caps, duplicate/unknown ids, effect-order dependence, schema-versus-type parity, or SeededRandom golden values, so the determinism the whole replay story depends on is checked only as 'two runs agree with each other'.",
+  "paths": [
+   "tests/unit/domain/KinematicsAndReducer.test.ts:398-402",
+   "tests/unit/domain/KinematicsAndReducer.test.ts:436-443",
+   "tests/unit/domain/SeededRandom.test.ts:8-15",
+   "tests/unit/domain/WaypointNavigator.test.ts:215-220"
+  ]
+ },
+ {
+  "id": "S3-18",
+  "claim": "PlaySession.status is sticky: a 'blocked', 'paused' or 'unknown_prop' result from any request stays in every later PlayFrameResult until another request overwrites it, because resolveResident only clears 'missing_stage'.",
+  "paths": [
+   "src/application/shell/PlaySession.ts:211-215",
+   "src/application/shell/PlaySession.ts:279-281"
+  ]
+ }
+]

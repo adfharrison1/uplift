@@ -1,0 +1,1507 @@
+{
+ "changes": [
+  {
+   "id": "docs-rules-spine",
+   "title": "Docs: rules spine, system graph, clock record, notes inbox",
+   "kind": "new",
+   "scope": "Doc-only. Top of DESIGN_NOTES.md gets pillars P1-P5, the Where-facts-live owner table, the section status index, the numbered 8-rule spine (each revisable), the minute/session/epoch cycle text, the clock decision record, the Leverage Chain definition (owner wording kept: interact with in some way, aware in some way, at some point), the 7-primitive system graph with economy hubs, the save-policy decision for the notebook, the INV-1 verdicts, a reserved tellProfile field note, the section 9 amendment (per-NPC tone blips are not a synthesised voice), the past-advisor cameo as a design-note candidate, and the S2-04 passage edits that retire free-text/ONNX wording. Adds notes/inbox.md and the dispositions appendix. Change ids stay out of AGENTS.md.",
+   "depends_on": [],
+   "specs_modified": [
+    "(none: doc-only)"
+   ],
+   "source_findings": [
+    "S1-R1",
+    "S1-R2",
+    "S1-R3",
+    "S1-R5(save-policy)",
+    "S1-R7",
+    "S1-R9",
+    "S1-R10",
+    "S2-04",
+    "S2-07(reserve)",
+    "S2-13",
+    "S2-17",
+    "S5-20(section9)",
+    "D-tone-blips",
+    "D-hybrid-text",
+    "D-JEV-investigation",
+    "INV-1a",
+    "INV-1b",
+    "S6A-04",
+    "S6A-05",
+    "S6A-08",
+    "P1",
+    "P2",
+    "P4",
+    "P5"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "roadmap-yaml",
+   "title": "openspec/roadmap.yaml, roadmap:next, parked records",
+   "kind": "new",
+   "scope": "Migrates the roadmap to openspec/roadmap.yaml (ordered array, depends_on, specs_modified, status planned/parked/proposed; archived/active derived from folders) seeded with this v2 plan, plus the npm roadmap:next script and the DAG validity check. Records every parked item with its trigger: onboarding, DPR/antialiasing, silhouette budget, theme roles, later notebook categories, offline self-play tuning, the small classifier spike, compiler-API import scan, Epoch 1 definition of done. Syncs config.yaml roadmap text and marks 05d/05e as having prerequisites.",
+   "depends_on": [
+    "docs-rules-spine"
+   ],
+   "specs_modified": [
+    "(new) roadmap-graph"
+   ],
+   "source_findings": [
+    "S6B-04",
+    "S6B-06",
+    "S1-R8",
+    "R8",
+    "S5-08",
+    "S5-16",
+    "S5-17",
+    "S2-12(later-categories)",
+    "INV-E",
+    "INV-classifier-spike",
+    "R4A1"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "design-notes-skill-fix-and-agents-truth",
+   "title": "Design-notes skill fix, AGENTS truth rewrite, docs-truth test",
+   "kind": "new",
+   "scope": "Fix .agents/skills/uplift-design-notes so it writes DESIGN_NOTES, notes/inbox.md and roadmap.yaml and never AGENTS.md (planned systems tagged (planned)); rewrite root AGENTS.md to shipped code only (~900 words, no change ids), single-source versions in package.json, drop CVE ids, shrink config.yaml context under 1.5k words. Adds the one docs-truth test in tests/architecture: identifiers and npm scripts resolve, versions match, change ids only in openspec/ and DESIGN_NOTES, status markers resolve to roadmap.yaml, word budgets, numeric facts against code constants.",
+   "depends_on": [
+    "docs-rules-spine",
+    "roadmap-yaml"
+   ],
+   "specs_modified": [
+    "clean-architecture-and-quality-gate"
+   ],
+   "source_findings": [
+    "S6A-01",
+    "S6A-02",
+    "S6A-03",
+    "S6A-06",
+    "S6A-07"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "review-gates-skill",
+   "title": "Gate skill G1-G6, spec rules, task-size rule",
+   "kind": "new",
+   "scope": "Create .agents/skills/uplift-review-gates/SKILL.md with the gate briefs moved out of AGENTS.md and config (G1 end-to-end trace, G2 trust boundary, G3 hot-path cost, G4 failure containment, G5 defect ledger, G6 scenario-to-test traceability), additions only. Adds the spec rules: consumer scenarios for persistence/logging/pipeline requirements with call sites in design.md, and a MODIFIED delta for any register finding that contradicts an archived requirement. Replaces the 4-6 task count with the task-size rule (<=3 source files per task, over 8 tasks or 3 layers must justify or split). Optional npm run smoke.",
+   "depends_on": [
+    "design-notes-skill-fix-and-agents-truth"
+   ],
+   "specs_modified": [
+    "(new) review-process"
+   ],
+   "source_findings": [
+    "S6B-01",
+    "S6B-02",
+    "S6B-03",
+    "S6B-05"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "defect-ledger",
+   "title": "Defect ledger with guaranteed removal",
+   "kind": "new",
+   "scope": "Tracked ledger file in the repo: each entry has id, source, severity, fixing change id. The archive step (opsx-archive wrapper script) deletes the entries naming the change being archived. Docs-truth test fails if an entry names an already-archived change or a change absent from roadmap.yaml. Seeded from the register findings not yet fixed.",
+   "depends_on": [
+    "roadmap-yaml",
+    "review-gates-skill"
+   ],
+   "specs_modified": [
+    "(new) defect-ledger"
+   ],
+   "source_findings": [
+    "D-defect-ledger"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-0a-bridge-lock",
+   "title": "Hardening 0a: guarded bridge write routes",
+   "kind": "new",
+   "scope": "One guarded write-route helper (Origin allow-list, Sec-Fetch-Site, Content-Type, per-run token, size cap that destroys the stream, realpath containment), explicit server.cors, real http middleware test on 127.0.0.1:0. Spec delta: multi-session-saves bridge scenarios, stage-inspector routes.",
+   "depends_on": [
+    "defect-ledger"
+   ],
+   "specs_modified": [
+    "multi-session-saves",
+    "stage-inspector"
+   ],
+   "source_findings": [
+    "S4-02"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-0a2-logger-rotate",
+   "title": "Hardening 0a (logger): never truncate on start",
+   "kind": "new",
+   "scope": "Logger rotates the previous session into logs/prev instead of truncating. Spec delta replaces the requirement that the prior session log SHALL be replaced.",
+   "depends_on": [
+    "hx-0a-bridge-lock"
+   ],
+   "specs_modified": [
+    "session-telemetry-and-compaction"
+   ],
+   "source_findings": [
+    "S4-03"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-0b-parallel-verify",
+   "title": "Hardening 0b: parallel, louder verify",
+   "kind": "new",
+   "scope": "Run format, lint, typecheck, vitest in parallel with buffered one-line PASS/FAIL; keep verify:serial; delete prose-pinning arch tests; pre-commit runs verify. Spec delta replaces the unmeasured under-5-seconds clause with a measured budget.",
+   "depends_on": [
+    "hx-0a2-logger-rotate"
+   ],
+   "specs_modified": [
+    "clean-architecture-and-quality-gate"
+   ],
+   "source_findings": [
+    "S4-15",
+    "S4-16"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-1-legacy-clamp-seed-scramble",
+   "title": "Hardening 1+2: legacy clamp, seed scramble",
+   "kind": "new",
+   "scope": "Clamp legacy mutations to [0,1] with a telemetry note (throw stays in an authoring-time contract test); splitmix32 seed scramble with a golden-vector test. Acceptance lines for the frozen-input and RNG golden-value test gaps.",
+   "depends_on": [
+    "hx-0b-parallel-verify"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-14(clamp)",
+    "S3-08"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-3a-test-builders",
+   "title": "Hardening 3a: tests/support builders",
+   "kind": "new",
+   "scope": "tests/support makeRegistry, makeWorldState, makeStageBlueprint; split monolithic tests onto them; bridge gets its first tests. Carries the S3-17 test-gap acceptance lines (caps, mid-hop states, dt splits) for the later hx changes.",
+   "depends_on": [
+    "hx-1-legacy-clamp-seed-scramble"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S4-13",
+    "S3-17"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-3b-slice-store-share-on-read",
+   "title": "Hardening 3b: freeze-on-write, share-on-read slice store",
+   "kind": "new",
+   "scope": "StateSliceStore freezes on write and shares on read; O(1) append. Spec delta: default-fallback scenario no longer demands a clone. Invariant tests for frozen outputs.",
+   "depends_on": [
+    "hx-3a-test-builders"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-01",
+    "S4-07"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-3c-slice-keys-versioned",
+   "title": "Hardening 3c: typed, versioned slice keys",
+   "kind": "new",
+   "scope": "Optional schema/version/migrate on StateSliceKey; plain-JSON guard so Map/Set cannot enter a slice.",
+   "depends_on": [
+    "hx-3b-slice-store-share-on-read"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-02"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-4a-world-state-codec",
+   "title": "Hardening 4a: WorldStateCodec and migrations",
+   "kind": "new",
+   "scope": "WorldStateCodec with snapshotVersion, Zod load, migrations chain, one field list replacing the four copies. Spec delta: save round-trip scenario.",
+   "depends_on": [
+    "hx-3c-slice-keys-versioned"
+   ],
+   "specs_modified": [
+    "multi-session-saves"
+   ],
+   "source_findings": [
+    "S3-03"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-4b-pack-identity",
+   "title": "Hardening 4b: pack identity on registry and save envelope",
+   "kind": "new",
+   "scope": "packId/version on the registry and save envelope, epoch/pack check on load. Records the decision: one registry per epoch, cameo content through an explicit import list.",
+   "depends_on": [
+    "hx-4a-world-state-codec"
+   ],
+   "specs_modified": [
+    "multi-session-saves"
+   ],
+   "source_findings": [
+    "S4-10"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-4c-id-pattern-listslots",
+   "title": "Hardening 4c: entity-id pattern check, listSlots reasons",
+   "kind": "new",
+   "scope": "One entity-id pattern check at load and at materialize so a bad id cannot throw inside the render loop; listSlots reports why a slot is unreadable.",
+   "depends_on": [
+    "hx-4b-pack-identity"
+   ],
+   "specs_modified": [
+    "multi-session-saves"
+   ],
+   "source_findings": [
+    "S5-03"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-5a-reducer-outcomes",
+   "title": "Hardening 5a: reducer applied/rejected outcomes",
+   "kind": "new",
+   "scope": "Reducers return applied/rejected with a reason; a throw no longer aborts the batch. Touches every reducer, so tasks are kept at <=3 files each.",
+   "depends_on": [
+    "hx-4c-id-pattern-listslots"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-04"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-5b-pause-split-and-status",
+   "title": "Hardening 5b: simulationFrozen split, status per call",
+   "kind": "new",
+   "scope": "Split simulationFrozen from command acceptance so pause no longer drops dispatched effects; PlaySession.status recomputed per call. Spec delta: pause scenarios.",
+   "depends_on": [
+    "hx-5a-reducer-outcomes"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S3-06",
+    "S3-18"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-5c-frame-guard-lab-flag",
+   "title": "Hardening 5c: frame try/catch, lab-mode flag",
+   "kind": "new",
+   "scope": "Frame try/catch re-arms rAF; lab mode becomes a PlaySession flag and free-cam keys gate on it, not isPaused. Reword 05e clause to no second domain pause flag.",
+   "depends_on": [
+    "hx-5b-pause-split-and-status"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S3-05",
+    "S5-14"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-6a-tick-phases-fixed-step",
+   "title": "Hardening 6a: coordinator.tick, fixed step",
+   "kind": "new",
+   "scope": "coordinator.tick(dt, commands) with a named phase order and the ~7 coordinator jobs separated; 1/60 s accumulator with capped catch-up; PlaySession frame order moves into tick. Test-gap lines for dt splits.",
+   "depends_on": [
+    "hx-5c-frame-guard-lab-flag"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S3-09"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-6a2-interpolation-seam",
+   "title": "Hardening 6a (seam): render interpolation",
+   "kind": "new",
+   "scope": "Accumulator keeps previous WorldState; expose alpha and a teleport marker; RenderFrameBuilder lerps positions, shortest-arc yaw, camera focus on the interpolated position.",
+   "depends_on": [
+    "hx-6a-tick-phases-fixed-step"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S5-04"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-6b-state-hash-golden-runscenario",
+   "title": "Hardening 6b: hashWorldState, runScenario, golden run",
+   "kind": "new",
+   "scope": "hashWorldState; src/application/headless/runScenario; golden run with shuffled insertion, throwing Math.random/Date stubs, slice JSON round trip, PHASES-order test. Spec delta: raw-dt stepping replaced by fixed step.",
+   "depends_on": [
+    "hx-6a2-interpolation-seam"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-07"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-6c-determinism-lint",
+   "title": "Hardening 6c: determinism lint, layer blind spots",
+   "kind": "new",
+   "scope": "One ESLint determinism block for domain, non-scene content and application; ban node:*, require, non-literal import(); close the layer-test blind spots. Spec delta: determinism ban scope.",
+   "depends_on": [
+    "hx-6b-state-hash-golden-runscenario"
+   ],
+   "specs_modified": [
+    "clean-architecture-and-quality-gate",
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S4-04",
+    "S4-05"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-7a-kinematics-mode-split",
+   "title": "Hardening 7a: split stepping by locomotion mode",
+   "kind": "new",
+   "scope": "Refactor only: step per locomotion mode behind a context object so commit, steer and presence can be hosted. Total phase-transition helper, stale phase fields removed. Under the golden run, no behaviour change.",
+   "depends_on": [
+    "hx-6c-determinism-lint"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S3-10"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "hx-7b-kinematics-outcomes-and-fixes",
+   "title": "Hardening 7b: transition outcomes and portal fixes",
+   "kind": "new",
+   "scope": "Transition events {behaviourId, outcome Arrived|Blocked|Interrupted, residualDt}; spaceId flips on portal-plane crossing; fix door-closes-mid-route dwell and retarget-from-last-waypoint; reject zero-speed moves; hop distance in metres. Spec delta: waypoint truncation phase scenario, blocked outcome.",
+   "depends_on": [
+    "hx-7a-kinematics-mode-split"
+   ],
+   "specs_modified": [
+    "kinematics"
+   ],
+   "source_findings": [
+    "S3-11",
+    "S3-12",
+    "S3-15"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05d-shape-descriptor",
+   "title": "Pre-05d: content shape descriptor",
+   "kind": "new",
+   "scope": "Content shape descriptor (primitive, dims, offset; box, cylinder, cone, icosahedron) read by renderer and the application footprint builder; unknown shape ids fail validation.",
+   "depends_on": [
+    "hx-7b-kinematics-outcomes-and-fixes"
+   ],
+   "specs_modified": [
+    "(new) shape-descriptor"
+   ],
+   "source_findings": [
+    "S5-05"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05d-renderer-residency",
+   "title": "Pre-05d: resident-space poses, geometry cache",
+   "kind": "new",
+   "scope": "Build only resident-space poses; geometry/material cache with shared-resource-safe dispose; compileAsync warm-up so room change stops hitching.",
+   "depends_on": [
+    "pre-05d-shape-descriptor"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S5-02",
+    "S5-07"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05d-input-and-control-frame",
+   "title": "05d (amended) part 1: InputFrame and control frame",
+   "kind": "amended",
+   "scope": "InputState/InputFrame on event.code with blur/visibility reset and edge-triggered Space; camera control frame derived from volume yaw/pitch with latch and single zoom-out, so the dead fields drive the view. Camera capture directive stack is deferred to 07.",
+   "depends_on": [
+    "pre-05d-renderer-residency"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S5-06",
+    "S5-09",
+    "S5-11"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05d-locomotion-footprint-arrival-hold",
+   "title": "05d (amended) part 2: locomotion, footprint, readability test",
+   "kind": "amended",
+   "scope": "Direct floor locomotion, mesh-footprint blocking with the 0.03 m slop, arrival hold and portal hops, plus the readability contract test (three value tiers, signal hues reserved). Original 05d tasks 2-5 keep their meaning.",
+   "depends_on": [
+    "05d-input-and-control-frame"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S5-15"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05e-modal-stack-use-and-menu",
+   "title": "05e (amended) part 1: modal stack, proximity use, warm mark",
+   "kind": "amended",
+   "scope": "Modal input stack consuming Space/Escape in the frame, proximity use, prop state variants in the shape table, warm mark on the selected Space target with debug highlight moved off cyan. Clause reworded to no second domain pause flag.",
+   "depends_on": [
+    "05d-locomotion-footprint-arrival-hold"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S5-10",
+    "S5-18(cyan)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05e-settings-model",
+   "title": "05e (amended) part 2: Settings model",
+   "kind": "amended",
+   "scope": "Minimal Settings model held outside the world hash (reduce motion, reading speed placeholders) that 07 and 05a extend.",
+   "depends_on": [
+    "05e-modal-stack-use-and-menu"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S5-12"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "audio-minimal",
+   "title": "Minimal audio: footsteps, doors, menu, murmur",
+   "kind": "new",
+   "scope": "Own change after 05e: footsteps by surface, doors, menu confirm/back, murmur through doors on a provisional audibility-tier rule. Per-NPC tone blips wait for text pages in 07. Full 05a stays later.",
+   "depends_on": [
+    "05e-settings-model",
+    "docs-rules-spine"
+   ],
+   "specs_modified": [
+    "(new) audio-minimal"
+   ],
+   "source_findings": [
+    "D-minimal-audio"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05b-1a-validate-launch",
+   "title": "Pre-05b-1a: validateLaunch",
+   "kind": "new",
+   "scope": "validateLaunch(pack, stages, visuals) collecting all errors with ids and file hints; unknown shape ids included.",
+   "depends_on": [
+    "audio-minimal",
+    "hx-4c-id-pattern-listslots"
+   ],
+   "specs_modified": [
+    "(new) launch-validation"
+   ],
+   "source_findings": [
+    "S4-08"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05b-1b-kind-table-and-refs",
+   "title": "Pre-05b-1b: kind table, ref table, freeze guard",
+   "kind": "new",
+   "scope": "defineModuleKind kind table replacing the closed 11-kind registry; registry ref table (institutionalLineageId ref added, duplicate check dropped); epoch-agnostic denylist derived from exported packs and moved to tests/architecture; arch test that no new kind or effect lands without content using it.",
+   "depends_on": [
+    "pre-05b-1a-validate-launch"
+   ],
+   "specs_modified": [
+    "clean-architecture-and-quality-gate"
+   ],
+   "source_findings": [
+    "S4-06",
+    "S4-09",
+    "S1-R6",
+    "R4"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05b-1c-lab-json-loader",
+   "title": "Pre-05b-1c: JSON packs and stages as source of truth",
+   "kind": "new",
+   "scope": "Runtime loader reads allowlisted, Zod-checked JSON packs and stages through validateLaunch; no TS emission. The stage-lab save gets an end-to-end scenario to the consumer.",
+   "depends_on": [
+    "pre-05b-1b-kind-table-and-refs",
+    "hx-0a-bridge-lock"
+   ],
+   "specs_modified": [
+    "stage-inspector",
+    "multi-session-saves"
+   ],
+   "source_findings": [
+    "S4-01",
+    "D-lab-ruling"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "pre-05b-1d-section-docs-truth",
+   "title": "Pre-05b-1d: section docs truth, fixtures out of barrel",
+   "kind": "new",
+   "scope": "Rewrite content and other section AGENTS recipes to working steps, fix stale HF/ONNX pointers (keep the planned local generation worker), caveat on lab Save, fixtures out of the content barrel, doc check that every named *Blueprint exists unless tagged (planned); remove the pre-P2 plan lines incl. config line 56.",
+   "depends_on": [
+    "pre-05b-1c-lab-json-loader",
+    "design-notes-skill-fix-and-agents-truth"
+   ],
+   "specs_modified": [
+    "clean-architecture-and-quality-gate"
+   ],
+   "source_findings": [
+    "S4-11"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05b-1-watch-clock-and-time-spend",
+   "title": "05b-1 (split of 05b): watch clock and Committed Time-Spend",
+   "kind": "amended",
+   "scope": "elapsedWatches, advance_watches, *Ticks to *Watches rebase, timeHorizonConfig, Committed Time-Spend verbs and watch budget; scars record the watch and sourceScarId is checked.",
+   "depends_on": [
+    "pre-05b-1d-section-docs-truth"
+   ],
+   "specs_modified": [
+    "(new) watch-clock"
+   ],
+   "source_findings": [
+    "S2-01",
+    "S3-14(sourceScarId)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "telemetry-browser-feed-crash-ring",
+   "title": "Telemetry wiring: browser feed and crash ring",
+   "kind": "new",
+   "scope": "Slot decided: directly after 05b-1, before the Act ring, so Act events can be traced. Browser posts telemetry through the guarded bridge; crash ring buffer flushed on throw; click-to-waypoint labelled dev tooling.",
+   "depends_on": [
+    "05b-1-watch-clock-and-time-spend",
+    "hx-5c-frame-guard-lab-flag"
+   ],
+   "specs_modified": [
+    "session-telemetry-and-compaction"
+   ],
+   "source_findings": [
+    "S1-R11"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "telemetry-cli-and-log-guards",
+   "title": "Telemetry CLI queries and log guards",
+   "kind": "new",
+   "scope": "Query limit/tail/count-by, honest skill text, newline guard, ENOSPC warning, compaction gaps.",
+   "depends_on": [
+    "telemetry-browser-feed-crash-ring"
+   ],
+   "specs_modified": [
+    "session-telemetry-and-compaction"
+   ],
+   "source_findings": [
+    "S4-14"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-act-envelope-ring-commit",
+   "title": "Core step 1: effect envelope, Act ring, BehaviorModule commit",
+   "kind": "new",
+   "scope": "Effect envelope {effect, actorId?, causeActId?}; bounded frozen Act ring slice; BehaviorModule commit. Records the policy: the Act log is the gameplay record, telemetry is separate (replay with tracing).",
+   "depends_on": [
+    "telemetry-cli-and-log-guards"
+   ],
+   "specs_modified": [
+    "(new) act-ring"
+   ],
+   "source_findings": [
+    "S2-02",
+    "S4-12"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-rolls-and-stimulus",
+   "title": "Core step 1b: counter-based rolls, stimulus eviction",
+   "kind": "new",
+   "scope": "Stateless roll(worldSeed, streamKey, counter) replacing RNG outside WorldState; stimulus dedupe and priority-aware eviction.",
+   "depends_on": [
+    "cm-act-envelope-ring-commit"
+   ],
+   "specs_modified": [
+    "deterministic-simulation-primitives"
+   ],
+   "source_findings": [
+    "S3-08(rolls)",
+    "S3-13"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-observation-belief",
+   "title": "Core step 2a: Observation table and integer belief",
+   "kind": "new",
+   "scope": "Sparse who-learned-what Observation table, discovery derived per observer, integer noisy-OR belief with reason tags (designed-in misbelief), branded BeliefView projector; invariants guarded.",
+   "depends_on": [
+    "cm-rolls-and-stimulus"
+   ],
+   "specs_modified": [
+    "(new) observation"
+   ],
+   "source_findings": [
+    "S2-03",
+    "S2-18"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-notebook-model",
+   "title": "Core step 2b: notebook data model",
+   "kind": "new",
+   "scope": "Lace-log data model: facts, suspicions, partial knowledge with open questions, omissions (gaps), omission-referent rule. Save policy follows the spine decision. Presenter is built in 07.",
+   "depends_on": [
+    "cm-observation-belief"
+   ],
+   "specs_modified": [
+    "(new) notebook"
+   ],
+   "source_findings": [
+    "S1-R5",
+    "S2-12",
+    "R3"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-instrument-profiles-audibility-tells",
+   "title": "Core step 2c: instrument profiles, audibility tiers, tell pairing",
+   "kind": "new",
+   "scope": "Instrument data profiles and decay keys replacing hard-coded reducer coupling; audibility-tier integration over the audio-minimal provisional rule; visual tells paired with a non-visual noticing path.",
+   "depends_on": [
+    "cm-observation-belief",
+    "audio-minimal"
+   ],
+   "specs_modified": [
+    "(new) instrument-profiles"
+   ],
+   "source_findings": [
+    "S2-14",
+    "S5-13",
+    "S5-19"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-presence-and-materialize",
+   "title": "Core step 3a: presence function and materialize-on-entry",
+   "kind": "new",
+   "scope": "Pure (entityId, watch, seed) to placement presence table per watch; materialize on room entry; WorldBuilder; per-frame allocation cleanup only when a room holds 100+ bodies. Every macro lever reaches the player somehow.",
+   "depends_on": [
+    "cm-instrument-profiles-audibility-tells",
+    "cm-notebook-model"
+   ],
+   "specs_modified": [
+    "(new) presence"
+   ],
+   "source_findings": [
+    "S1-R4",
+    "S2-11",
+    "S3-16"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-presence-render-crowd",
+   "title": "Core step 3b: meshes for crowd and materialized NPCs",
+   "kind": "new",
+   "scope": "Renderer subset giving crowd and materialized NPCs meshes via the shape descriptor and residency cache.",
+   "depends_on": [
+    "cm-presence-and-materialize"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S5-01"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-threads-and-pillars",
+   "title": "Core step 4a: ThreadRuntime and pillar relations",
+   "kind": "new",
+   "scope": "StateSlice-based ThreadRuntime and Leverage Chain pillar relations per the spine definition. Old 06 Leverage/Butterfly runtime scope is removed from 06.",
+   "depends_on": [
+    "cm-presence-render-crowd"
+   ],
+   "specs_modified": [
+    "(new) thread-runtime"
+   ],
+   "source_findings": [
+    "S2-16"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-resource-ledger",
+   "title": "Core step 4b: ResourceLedger",
+   "kind": "new",
+   "scope": "ResourceLedger economy hub (stipends, funds, pressure stocks as ledger entries); reconciles Omen Ledger naming.",
+   "depends_on": [
+    "cm-threads-and-pillars"
+   ],
+   "specs_modified": [
+    "(new) resource-ledger"
+   ],
+   "source_findings": [
+    "S2-13(ledger)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-emergency-runtime",
+   "title": "Core step 4c: EmergencyRuntime (no fuse)",
+   "kind": "new",
+   "scope": "EmergencyRuntime slice with trigger/compound/resolve. The fuse is NOT included; it stays in 09 per S2-19 priority later.",
+   "depends_on": [
+    "cm-resource-ledger"
+   ],
+   "specs_modified": [
+    "(new) emergency-runtime"
+   ],
+   "source_findings": [
+    "S2-19(runtime)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "cm-diffusion-and-balancing",
+   "title": "Core step 4d: closed-form diffusion, balancing loops",
+   "kind": "new",
+   "scope": "Closed-form diffusion with the player-gated world split, balancing loops against the discovery ratchet and decay.",
+   "depends_on": [
+    "cm-emergency-runtime"
+   ],
+   "specs_modified": [
+    "(new) diffusion"
+   ],
+   "source_findings": [
+    "S2-10",
+    "S2-15"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05f-local-ai-eval-framework",
+   "title": "05f (amended): runScenario reuse, golden/eval split",
+   "kind": "amended",
+   "scope": "Reuse hx-6b runScenario; tests/ exact, golden/ hashes, eval/ distributions and corpora; evidence-coverage and diffusion cases with real, Zod-checked fixtures.",
+   "depends_on": [
+    "cm-diffusion-and-balancing"
+   ],
+   "specs_modified": [
+    "(new) ai-eval-runner"
+   ],
+   "source_findings": [
+    "S4-18"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05f-command-log-replay",
+   "title": "05f (split): scripted command log and replay with tracing",
+   "kind": "new",
+   "scope": "Scripted command log as the artifact for golden tests, eval fixtures and bug repro; replay-with-tracing tool per the telemetry policy.",
+   "depends_on": [
+    "05f-local-ai-eval-framework"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "D-telemetry-policy",
+    "R3C1"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-text-source-port-and-line-gate",
+   "title": "07 text skeleton a: TextSourcePort, LineBrief, gate",
+   "kind": "new",
+   "scope": "TextSourcePort application port with authored and pool adapters (generated adapter stubbed); LineBrief and pure gate(line, brief) over Observations; 3-tier gate. Typed ESLint trigger recorded here as the first async port.",
+   "depends_on": [
+    "05f-command-log-replay",
+    "cm-observation-belief"
+   ],
+   "specs_modified": [
+    "(new) text-source"
+   ],
+   "source_findings": [
+    "S2-06",
+    "S4-17"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-conversation-history",
+   "title": "07 text skeleton b: ConversationHistory and freeze-on-show",
+   "kind": "new",
+   "scope": "ConversationHistory slice owned by 07; shown text frozen into it and the save.",
+   "depends_on": [
+    "07-text-source-port-and-line-gate"
+   ],
+   "specs_modified": [
+    "(new) conversation-history"
+   ],
+   "source_findings": [
+    "S2-04(freeze)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-authoring-kit",
+   "title": "07 text skeleton c: authoring kit",
+   "kind": "new",
+   "scope": "CharacterBible, RegisterCard, few-shot builder, draft/accept CLI for assisted authoring; authored/generated split recorded per line.",
+   "depends_on": [
+    "07-conversation-history"
+   ],
+   "specs_modified": [
+    "(new) authoring-kit"
+   ],
+   "source_findings": [
+    "S2-08"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-dialogue-paging",
+   "title": "07 (amended) a: paging, response menus, talk watch cost",
+   "kind": "amended",
+   "scope": "Space-paged conversation chunks, WASD response menus, ambient lines, and the fractional-watch talk cost charged to the 05b-1 budget so talking costs time from the world.",
+   "depends_on": [
+    "07-authoring-kit",
+    "05e-settings-model",
+    "05b-1-watch-clock-and-time-spend"
+   ],
+   "specs_modified": [
+    "(new) tactical-dialogue"
+   ],
+   "source_findings": [
+    "S2-10(talk-cost)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-camera-directive-stack",
+   "title": "07 (amended) b: camera capture directive stack",
+   "kind": "amended",
+   "scope": "Capture/return directive stack: Space never skips, no captures in conversation, reduce-motion cuts, max hold.",
+   "depends_on": [
+    "07-dialogue-paging"
+   ],
+   "specs_modified": [
+    "play-shell"
+   ],
+   "source_findings": [
+    "S5-11(directive)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-bubble-lace-skins-and-tone-blips",
+   "title": "07 (amended) c: bubble and lace skins, captions, tone blips",
+   "kind": "amended",
+   "scope": "Diegetic NPC bubble, advisor lace text panel, Settings readingSpeed/captions, per-NPC tone blips on page turns using audio-minimal.",
+   "depends_on": [
+    "07-camera-directive-stack",
+    "audio-minimal"
+   ],
+   "specs_modified": [
+    "(new) tactical-dialogue"
+   ],
+   "source_findings": [
+    "S5-18(lace)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07-notebook-presenter",
+   "title": "07 notebook presenter",
+   "kind": "new",
+   "scope": "Lace-log notebook UI over the notebook data model, honouring the save-policy decision.",
+   "depends_on": [
+    "07-bubble-lace-skins-and-tone-blips",
+    "cm-notebook-model"
+   ],
+   "specs_modified": [
+    "(new) notebook"
+   ],
+   "source_findings": [
+    "S1-R5(presenter)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "11-pass-1-pack-skeleton",
+   "title": "Vertical slice a: Epoch 1 pack skeleton",
+   "kind": "new",
+   "scope": "First pass of the Epoch 1 pack: few NPCs, one office/pretext, authored lines through the text port. Engine test, not a replacement for engine work.",
+   "depends_on": [
+    "07-notebook-presenter",
+    "cm-diffusion-and-balancing"
+   ],
+   "specs_modified": [
+    "(new) epoch-1-pack"
+   ],
+   "source_findings": [
+    "R1"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "11-pass-1-thread-wiring",
+   "title": "Vertical slice b: one thread end to end",
+   "kind": "new",
+   "scope": "Wire one thread through Act, Observation, presence and ledger with inference trails the player can find; run the real entry point (G1).",
+   "depends_on": [
+    "11-pass-1-pack-skeleton"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "11-pass-1-ledger-end-card",
+   "title": "Vertical slice c: ledger and stub end card",
+   "kind": "new",
+   "scope": "Ledger visible, win/fail shape and epoch-end evaluation stub card; feeds tuning of 05b-2.",
+   "depends_on": [
+    "11-pass-1-thread-wiring"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "06-utility-ai-rivals",
+   "title": "06 (rescoped) a: utility AI, rivals, remote evidence",
+   "kind": "amended",
+   "scope": "Utility AI with belief-conditioned utility, rivals with tellProfile and agenda, common remote-evidence path. Leverage Chains and thread runtime removed (owned by cm-threads-and-pillars).",
+   "depends_on": [
+    "11-pass-1-ledger-end-card"
+   ],
+   "specs_modified": [
+    "(new) utility-ai"
+   ],
+   "source_findings": [
+    "S2-07",
+    "S2-09",
+    "INV-C"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "06-overview-writing-desk-report",
+   "title": "06 (rescoped) b: overview, Writing Desk, Report-as-Observation",
+   "kind": "amended",
+   "scope": "Wider World Overview, Writing Desk on the text port, Report-as-Observation, and advisor nudges/notebook prompts as light signposting of inference trails.",
+   "depends_on": [
+    "06-utility-ai-rivals"
+   ],
+   "specs_modified": [
+    "(new) wider-world-overview"
+   ],
+   "source_findings": [
+    "S1-R2(delivery)",
+    "R2"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "06a-regard",
+   "title": "06a: Regard",
+   "kind": "untouched",
+   "scope": "Regard on top of 06; shares data with presence; depends on observation and the diffusion split.",
+   "depends_on": [
+    "06-overview-writing-desk-report",
+    "cm-diffusion-and-balancing"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "05b-2-envelopes-and-gates",
+   "title": "05b-2 (split of 05b) a: curve envelopes, 5-stage thread gates",
+   "kind": "amended",
+   "scope": "Curve envelopes and 5-stage thread gates tuned against the vertical slice.",
+   "depends_on": [
+    "06a-regard"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "05b-2-storylets",
+   "title": "05b-2 b: StoryletTemplate grammar",
+   "kind": "amended",
+   "scope": "Storylet grammar; authored vs generated cards under P2.",
+   "depends_on": [
+    "05b-2-envelopes-and-gates"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "R7"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "05b-2-pacing-lab",
+   "title": "05b-2 c: F3 Pacing Lab",
+   "kind": "amended",
+   "scope": "Pacing Lab UI and PUT route using the hx-0a guarded helper.",
+   "depends_on": [
+    "05b-2-storylets"
+   ],
+   "specs_modified": [
+    "stage-inspector"
+   ],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "08-timing-spike",
+   "title": "08 (rescoped) a: generation timing spike",
+   "kind": "amended",
+   "scope": "No-merge timing spike on the real 2019 Mac and generation-quality prototype. Slot follows the accepted order (after 05b-2), which postpones the register tag before-06; the stubbed adapter and authored pool carry 06 meanwhile.",
+   "depends_on": [
+    "05b-2-pacing-lab"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S2-05",
+    "R5"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "08-generated-text-adapter",
+   "title": "08 (rescoped) b: generated TextSourcePort adapter",
+   "kind": "amended",
+   "scope": "Generated adapter and local worker (replaces the obsolete ONNX intent parser); runtime SLM tier only if the spike passes; suite registered on the 05f runner.",
+   "depends_on": [
+    "08-timing-spike"
+   ],
+   "specs_modified": [
+    "(new) text-generation"
+   ],
+   "source_findings": [
+    "S2-04(adapter)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "07d-advisory-duel-omission",
+   "title": "07d: advisor duel and omission clauses",
+   "kind": "untouched",
+   "scope": "Advisor entities (06) and omissible clauses on top of generated text.",
+   "depends_on": [
+    "08-generated-text-adapter",
+    "06-overview-writing-desk-report"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "07e-line-gate-evals",
+   "title": "07e (reshaped): line gates",
+   "kind": "amended",
+   "scope": "Reshaped from voice-register evals to line gates: banned-lemma, cadence, clause-omission fixtures registered as gates and evals.",
+   "depends_on": [
+    "07d-advisory-duel-omission",
+    "05f-local-ai-eval-framework",
+    "07-text-source-port-and-line-gate"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "07a-ambient-and-overheard",
+   "title": "07a",
+   "kind": "untouched",
+   "scope": "Depends on 07 and freeze-on-show.",
+   "depends_on": [
+    "07e-line-gate-evals"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "07b-role-pretexts",
+   "title": "07b",
+   "kind": "untouched",
+   "scope": "Depends on 07 and role pretexts exposed by threads.",
+   "depends_on": [
+    "07a-ambient-and-overheard",
+    "cm-threads-and-pillars"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "07c-funds-and-cuts",
+   "title": "07c",
+   "kind": "untouched",
+   "scope": "Depends on 07 and the ResourceLedger.",
+   "depends_on": [
+    "07b-role-pretexts",
+    "cm-resource-ledger"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "05a-sound-lab-and-audio-engine",
+   "title": "05a full (rescoped)",
+   "kind": "amended",
+   "scope": "Sound Lab, AudioRenderFrame two-bus engine, hybrid samples, audio settings; audibility calculator lives in observation and audio-minimal.",
+   "depends_on": [
+    "07c-funds-and-cuts",
+    "audio-minimal",
+    "cm-instrument-profiles-audibility-tells"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S5-20"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "06c-world-overview-news",
+   "title": "06c",
+   "kind": "untouched",
+   "scope": "Depends on 06, 05b-1 Clock-2 spend and 05b-2 encounter tables.",
+   "depends_on": [
+    "05a-sound-lab-and-audio-engine",
+    "05b-2-pacing-lab"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "06b-assassination-drone",
+   "title": "06b",
+   "kind": "untouched",
+   "scope": "Depends on 06a Drone Regard, 06 rival timing.",
+   "depends_on": [
+    "06c-world-overview-news"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "09-delta-coupling-and-forecast",
+   "title": "09 (amended) part 1: Delta coupling, banded forecast",
+   "kind": "amended",
+   "scope": "Delta spent on insertion and instrument coupling; closed-form banded Ship Mind forecast.",
+   "depends_on": [
+    "06b-assassination-drone",
+    "cm-observation-belief",
+    "cm-threads-and-pillars"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S2-18(delta)",
+    "INV-D"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "09-emergency-fuse",
+   "title": "09 (amended) part 2: emergency fuse",
+   "kind": "amended",
+   "scope": "Fuse and non-uniform compounding on the EmergencyRuntime.",
+   "depends_on": [
+    "09-delta-coupling-and-forecast",
+    "cm-emergency-runtime"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "S2-19"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "09a-contingency-scheduler",
+   "title": "09a",
+   "kind": "untouched",
+   "scope": "Depends on 09 and 06 rival ship and 05b-2 pacing.",
+   "depends_on": [
+    "09-emergency-fuse"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  },
+  {
+   "id": "10-crew-handoff-and-cameo",
+   "title": "10 (amended) a: new crew per epoch, cameo network",
+   "kind": "amended",
+   "scope": "New operative with own Ship and Drone crew each epoch and loss of the previous crew; past-advisor cameo help over the galactic network.",
+   "depends_on": [
+    "09a-contingency-scheduler"
+   ],
+   "specs_modified": [],
+   "source_findings": [
+    "P3"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "10-registry-swap-and-legacy",
+   "title": "10 (amended) b: registry swap, legacy accumulation",
+   "kind": "amended",
+   "scope": "Per-epoch registry swap with codec migrations; legacy accumulation fix; fingerprint reconciliation.",
+   "depends_on": [
+    "10-crew-handoff-and-cameo",
+    "hx-4b-pack-identity"
+   ],
+   "specs_modified": [
+    "multi-session-saves"
+   ],
+   "source_findings": [
+    "S3-14(legacy-accum)",
+    "S3-03(fingerprint)"
+   ],
+   "deviation": null
+  },
+  {
+   "id": "11-rest",
+   "title": "11 rest",
+   "kind": "untouched",
+   "scope": "Remaining content passes on top of the slice, lab JSON source and 06/06a content.",
+   "depends_on": [
+    "10-registry-swap-and-legacy"
+   ],
+   "specs_modified": [],
+   "source_findings": [],
+   "deviation": null
+  }
+ ],
+ "ownership_index": {
+  "S1-R1": "docs-rules-spine",
+  "S1-R2": "docs-rules-spine",
+  "S1-R3": "docs-rules-spine",
+  "S1-R5(save-policy)": "docs-rules-spine",
+  "S1-R7": "docs-rules-spine",
+  "S1-R9": "docs-rules-spine",
+  "S1-R10": "docs-rules-spine",
+  "S2-04": "docs-rules-spine",
+  "S2-07(reserve)": "docs-rules-spine",
+  "S2-13": "docs-rules-spine",
+  "S2-17": "docs-rules-spine",
+  "S5-20(section9)": "docs-rules-spine",
+  "D-tone-blips": "docs-rules-spine",
+  "D-hybrid-text": "docs-rules-spine",
+  "D-JEV-investigation": "docs-rules-spine",
+  "INV-1a": "docs-rules-spine",
+  "INV-1b": "docs-rules-spine",
+  "S6A-04": "docs-rules-spine",
+  "S6A-05": "docs-rules-spine",
+  "S6A-08": "docs-rules-spine",
+  "P1": "docs-rules-spine",
+  "P2": "docs-rules-spine",
+  "P4": "docs-rules-spine",
+  "P5": "docs-rules-spine",
+  "S6B-04": "roadmap-yaml",
+  "S6B-06": "roadmap-yaml",
+  "S1-R8": "roadmap-yaml",
+  "R8": "roadmap-yaml",
+  "S5-08": "roadmap-yaml",
+  "S5-16": "roadmap-yaml",
+  "S5-17": "roadmap-yaml",
+  "S2-12(later-categories)": "roadmap-yaml",
+  "INV-E": "roadmap-yaml",
+  "INV-classifier-spike": "roadmap-yaml",
+  "R4A1": "roadmap-yaml",
+  "S6A-01": "design-notes-skill-fix-and-agents-truth",
+  "S6A-02": "design-notes-skill-fix-and-agents-truth",
+  "S6A-03": "design-notes-skill-fix-and-agents-truth",
+  "S6A-06": "design-notes-skill-fix-and-agents-truth",
+  "S6A-07": "design-notes-skill-fix-and-agents-truth",
+  "S6B-01": "review-gates-skill",
+  "S6B-02": "review-gates-skill",
+  "S6B-03": "review-gates-skill",
+  "S6B-05": "review-gates-skill",
+  "D-defect-ledger": "defect-ledger",
+  "S4-02": "hx-0a-bridge-lock",
+  "S4-03": "hx-0a2-logger-rotate",
+  "S4-15": "hx-0b-parallel-verify",
+  "S4-16": "hx-0b-parallel-verify",
+  "S3-14(clamp)": "hx-1-legacy-clamp-seed-scramble",
+  "S3-08": "hx-1-legacy-clamp-seed-scramble",
+  "S4-13": "hx-3a-test-builders",
+  "S3-17": "hx-3a-test-builders",
+  "S3-01": "hx-3b-slice-store-share-on-read",
+  "S4-07": "hx-3b-slice-store-share-on-read",
+  "S3-02": "hx-3c-slice-keys-versioned",
+  "S3-03": "hx-4a-world-state-codec",
+  "S4-10": "hx-4b-pack-identity",
+  "S5-03": "hx-4c-id-pattern-listslots",
+  "S3-04": "hx-5a-reducer-outcomes",
+  "S3-06": "hx-5b-pause-split-and-status",
+  "S3-18": "hx-5b-pause-split-and-status",
+  "S3-05": "hx-5c-frame-guard-lab-flag",
+  "S5-14": "hx-5c-frame-guard-lab-flag",
+  "S3-09": "hx-6a-tick-phases-fixed-step",
+  "S5-04": "hx-6a2-interpolation-seam",
+  "S3-07": "hx-6b-state-hash-golden-runscenario",
+  "S4-04": "hx-6c-determinism-lint",
+  "S4-05": "hx-6c-determinism-lint",
+  "S3-10": "hx-7a-kinematics-mode-split",
+  "S3-11": "hx-7b-kinematics-outcomes-and-fixes",
+  "S3-12": "hx-7b-kinematics-outcomes-and-fixes",
+  "S3-15": "hx-7b-kinematics-outcomes-and-fixes",
+  "S5-05": "pre-05d-shape-descriptor",
+  "S5-02": "pre-05d-renderer-residency",
+  "S5-07": "pre-05d-renderer-residency",
+  "S5-06": "05d-input-and-control-frame",
+  "S5-09": "05d-input-and-control-frame",
+  "S5-11": "05d-input-and-control-frame",
+  "S5-15": "05d-locomotion-footprint-arrival-hold",
+  "S5-10": "05e-modal-stack-use-and-menu",
+  "S5-18(cyan)": "05e-modal-stack-use-and-menu",
+  "S5-12": "05e-settings-model",
+  "D-minimal-audio": "audio-minimal",
+  "S4-08": "pre-05b-1a-validate-launch",
+  "S4-06": "pre-05b-1b-kind-table-and-refs",
+  "S4-09": "pre-05b-1b-kind-table-and-refs",
+  "S1-R6": "pre-05b-1b-kind-table-and-refs",
+  "R4": "pre-05b-1b-kind-table-and-refs",
+  "S4-01": "pre-05b-1c-lab-json-loader",
+  "D-lab-ruling": "pre-05b-1c-lab-json-loader",
+  "S4-11": "pre-05b-1d-section-docs-truth",
+  "S2-01": "05b-1-watch-clock-and-time-spend",
+  "S3-14(sourceScarId)": "05b-1-watch-clock-and-time-spend",
+  "S1-R11": "telemetry-browser-feed-crash-ring",
+  "S4-14": "telemetry-cli-and-log-guards",
+  "S2-02": "cm-act-envelope-ring-commit",
+  "S4-12": "cm-act-envelope-ring-commit",
+  "S3-08(rolls)": "cm-rolls-and-stimulus",
+  "S3-13": "cm-rolls-and-stimulus",
+  "S2-03": "cm-observation-belief",
+  "S2-18": "cm-observation-belief",
+  "S1-R5": "cm-notebook-model",
+  "S2-12": "cm-notebook-model",
+  "R3": "cm-notebook-model",
+  "S2-14": "cm-instrument-profiles-audibility-tells",
+  "S5-13": "cm-instrument-profiles-audibility-tells",
+  "S5-19": "cm-instrument-profiles-audibility-tells",
+  "S1-R4": "cm-presence-and-materialize",
+  "S2-11": "cm-presence-and-materialize",
+  "S3-16": "cm-presence-and-materialize",
+  "S5-01": "cm-presence-render-crowd",
+  "S2-16": "cm-threads-and-pillars",
+  "S2-13(ledger)": "cm-resource-ledger",
+  "S2-19(runtime)": "cm-emergency-runtime",
+  "S2-10": "cm-diffusion-and-balancing",
+  "S2-15": "cm-diffusion-and-balancing",
+  "S4-18": "05f-local-ai-eval-framework",
+  "D-telemetry-policy": "05f-command-log-replay",
+  "R3C1": "05f-command-log-replay",
+  "S2-06": "07-text-source-port-and-line-gate",
+  "S4-17": "07-text-source-port-and-line-gate",
+  "S2-04(freeze)": "07-conversation-history",
+  "S2-08": "07-authoring-kit",
+  "S2-10(talk-cost)": "07-dialogue-paging",
+  "S5-11(directive)": "07-camera-directive-stack",
+  "S5-18(lace)": "07-bubble-lace-skins-and-tone-blips",
+  "S1-R5(presenter)": "07-notebook-presenter",
+  "R1": "11-pass-1-pack-skeleton",
+  "S2-07": "06-utility-ai-rivals",
+  "S2-09": "06-utility-ai-rivals",
+  "INV-C": "06-utility-ai-rivals",
+  "S1-R2(delivery)": "06-overview-writing-desk-report",
+  "R2": "06-overview-writing-desk-report",
+  "R7": "05b-2-storylets",
+  "S2-05": "08-timing-spike",
+  "R5": "08-timing-spike",
+  "S2-04(adapter)": "08-generated-text-adapter",
+  "S5-20": "05a-sound-lab-and-audio-engine",
+  "S2-18(delta)": "09-delta-coupling-and-forecast",
+  "INV-D": "09-delta-coupling-and-forecast",
+  "S2-19": "09-emergency-fuse",
+  "P3": "10-crew-handoff-and-cameo",
+  "S3-14(legacy-accum)": "10-registry-swap-and-legacy",
+  "S3-03(fingerprint)": "10-registry-swap-and-legacy"
+ },
+ "unowned": []
+}

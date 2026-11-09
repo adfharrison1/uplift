@@ -1,0 +1,216 @@
+{
+ "structure": [
+  "Order (where facts live, status index, frame, rules spine + engineering rules, core model, clock, epoch ladder, NPC minds, economy, text pipeline, advisors, rivals, presentation, audio, planned-by-milestone, open/dispositions) is a sensible dependency order: rules first, then primitives, then systems, then surface. The Status index (36 rows) is the right navigation device and every row resolves to a heading; the roadmap-id column makes the doc-to-roadmap jump one hop.",
+  "Navigation works for 'what does system X say and what is shipped' but is weaker for 'which roadmap id owns this text': ids are scattered inline as (planned: id) 78 times and only the Status index aggregates them. The Roadmap-ordered pointers table (about 120 words) is a partial, second copy of the index and can be deleted.",
+  "The Where-facts-live table has only 7 rows, all about meta-facts (versions, verify, layer rules). It does not name owners for the facts this file itself duplicates most: communications-backbone ownership (stated 3x), Detection Tech Level (3x), save policy (4x), talk cost (4x), chunk cap (2x), voice register/tone blips (3x), the #1a1f28/#c4a574 palette (3x), pause bit (3x). Adding 8 owner rows would let the duplicates collapse to pointers.",
+  "Misplaced or overloaded sections: (1) 'Frame and pillars (shipped)' holds two planned subsections (Player loop, Seed exemplars) so its shipped mark is only true for Pillars. (2) 'Economy and levers' is an 8-row table of every abstraction (Communications Desk, Orbital Pass, Emergencies, Dual Legacy Ledgers) plus assassination and orbital blackout; assassination/cover persecution belongs with Rivals or its own M6 section, blackout/contingencies with an Orbital section, Dual Legacy Ledgers with Epoch ladder. (3) 'Epoch 2+ travel vignettes' (770 words of full design) sits under 'Planned features by milestone' rather than with the Epoch ladder or a design/ file. (4) 'Local AI eval framework' (502 words) sits inside the Text pipeline section though it scores utility AI and rivals too. (5) Audio sits after Presentation but owns the audibility rule that Text pipeline, Conversation paging and Accessibility all depend on; it is also where Glass River Gorge inheritance is restated. (6) Telemetry policy is inside Engineering rules, which is fine, but Engineering rules (1,435 words) is a doc in itself and is nested under 'Rules spine' via one ## heading, so a reader looking for R1-R8 skims 1.4k words of hx- detail.",
+  "Mark hygiene: heading marks and the Status index agree in all 36 rows except the items listed in issues. The 'planned unless tagged (shipped)' rule works but makes 'Cognition phases (shipped)' and 'Pacing config (shipped)' each contain planned bullets, which an agent must catch sentence by sentence."
+ ],
+ "issues": [
+  {
+   "severity": "high",
+   "what": "Advisors and lace status line says 'The advisor blueprint schema and the drone-disguise mesh are shipped'. Only the drone-disguise visual (droneDisguise in SceneVisualBlueprints, StageKitbashBuilders, defaultStageContent) exists. grep of src finds no advisor_integral, advisor_particular, droneDisguisePool, omissibility or advisor blueprint; AdvisoryDuel appears only in a telemetry comment and infrastructure README.",
+   "fix": "Reword to 'only the drone-disguise mesh is shipped; no advisor blueprint exists' and mark 'The Culture advisory pair' planned (index row stays partial only because of the mesh)."
+  },
+  {
+   "severity": "high",
+   "what": "Root AGENTS.md (which the doc says it must not contradict) states locomotionMode, interactionHold, set_direct_steer-style direct bodies, arrival hold and proximity use as current behaviour. src has none of locomotionMode, interactionHold or set_direct_steer (0 hits); DESIGN_NOTES correctly marks them planned. A fresh agent reading both gets opposite answers.",
+   "fix": "Out of this file's scope but record it as a cross-file contradiction owned by process-gates-and-ledger (root AGENTS.md rewritten to shipped code only); note in the DN 'Where facts live' table that DESIGN_NOTES wins for unshipped behaviour until then."
+  },
+  {
+   "severity": "medium",
+   "what": "'Frame and pillars' is marked shipped in heading and index but its Player loop and Seed exemplars subsections are planned; the index row also lists 11-epoch1-content under a shipped row.",
+   "fix": "Mark the section partial, or move Player loop under Rules spine and Seed exemplars under Epoch ladder/Content, leaving Pillars alone as shipped."
+  },
+  {
+   "severity": "medium",
+   "what": "Status index lists archived 05c-play-shell as the roadmap id for the shipped 'visual authoring framework, F3 labs, play shell' row (column is defined as ids that own the unshipped part). Rules spine and System graph rows list docs-spine-and-roadmap, the doc-writing change, rather than the changes that own the missing tests/hubs.",
+   "fix": "Use 'none' for the play shell row; point Rules spine/System graph at the owning changes already named in the R1-R8 lines."
+  },
+  {
+   "severity": "medium",
+   "what": "Review-register labels leak into the file with no definition: Dispositions rows 'R6', 'R9', 'R5C2', 'S1-R9', 'S1-13', 'S1-12' and 'INV-A', 'INV-F'. 'R6 seasonal council' collides with spine rule R6 (Reject instead of throw), and route R8 collides with rule R8.",
+   "fix": "Rename to 'Route R6 (review slice 1)' or drop the ids and cite reviews/2026-11-08-root-and-branch/register.md once at the top of the table."
+  },
+  {
+   "severity": "medium",
+   "what": "Stale RNG wording contradicts the Determinism bullet that replaces RNG held outside WorldState with the keyed roll(worldSeed, streamKey, counter): contingency draw 'via SeededRandom' (Orbital blackout section), crew traits 'rolled via SeededRandom' (advisory pair, twice), CampaignContingencyScheduler 'SeededRandom draws'.",
+   "fix": "Say 'keyed roll' (or 'seeded draw') in those four places, or add one sentence that campaign-start draws use the keyed roll."
+  },
+  {
+   "severity": "medium",
+   "what": "Dangling or loose pointers: 'see Economy and levers, Audio' (Epoch ladder; Audio is its own top-level section); Dispositions note 'Already specified in the epoch-transition section' (no such title); 'DESIGN_NOTES \u00a79' and 'The owner's \u00a79 is this section' (numbered reference, banned by the how-to-read paragraph, and the new order has no \u00a79); 'Owned by the orbital-mechanics change' and 'the utility-AI and advisor change' name no roadmap id (09-delta-coupling-and-forecast, 06-utility-ai).",
+   "fix": "Fix each to a section title or roadmap id; keep the \u00a79 quote but add '(the old numbering)'."
+  },
+  {
+   "severity": "medium",
+   "what": "orbitalContingencyLedger is described as 'the campaign contingency draw in CivilizationLegacyState' with no planned tag, but src has no such field (0 hits), and ContingencyEventBlueprint, OrbitalBlackoutState, detectionTechLevel, isTerminalEpoch, EpochProfileBlueprint and LandingZoneBlueprint are likewise absent. They sit under planned headings so the section rule covers them, but the Resource-ledger 'Which ledger means what' bullet reads as present tense.",
+   "fix": "Tag that sentence '(planned: 09a-doomsday-clocks-and-rival-unveiling)'."
+  },
+  {
+   "severity": "medium",
+   "what": "Open/parked list is incomplete relative to roadmap.yaml: 'Parked spikes' names 6 of 15 parked entries; dither-fade-occlusion, notebook-later-categories and offline-self-play-tuning are not mentioned, nor are roadmap entries 11-epoch-ending-and-handoff-hook and 11-playtest-and-tuning (the places R8 and the epoch handoff end up).",
+   "fix": "Replace the list with 'all parked entries live in openspec/roadmap.yaml' plus the three or four that carry design meaning; add 11-epoch-ending-and-handoff-hook to the R8 and Epoch ladder rows of the Status index."
+  },
+  {
+   "severity": "medium",
+   "what": "Where-facts-live table does not own the facts the file duplicates most (see structure notes), so the 'one owner per fact' promise is broken inside DESIGN_NOTES itself.",
+   "fix": "Add rows: save policy, talk cost, chunk cap, audibility tiers, pause bit, communications-backbone chain, Detection Tech chain, palette; collapse the other mentions to a 'see X' clause."
+  },
+  {
+   "severity": "low",
+   "what": "Every ## section opens with a '> Status:' blockquote that restates the Status index and the heading mark (about 14 x 40 = 560 words), and several disagree in detail with the index (Presentation block lists 'readability contract' as planned while the index row is the same). Two sources of status = drift risk.",
+   "fix": "Keep one-line pointers only where the quote carries new information (Rules spine, Core model); delete the rest."
+  },
+  {
+   "severity": "low",
+   "what": "The file names src/content/scene/stages/*.json and characters/*.json as bridge output locations; neither directory exists in src today, and Lab saves bullet says nothing reads them. Reads as shipped storage.",
+   "fix": "Add 'created on first save' or point at stage ids in TypeScript."
+  },
+  {
+   "severity": "low",
+   "what": "Epoch watch arithmetic: '50-100 hours / N epochs, about 8-14h per epoch on 7-epoch ladder' gives 7.1-14.3h, not 8-14h; Epoch cycle bullet repeats 'about 8-14 hours'.",
+   "fix": "Use 7-14 h or state the campaign range that yields 8-14 (56-98 h)."
+  },
+  {
+   "severity": "low",
+   "what": "Clock 1 text (Four clocks) says it 'never advances macro calendar time, with one exception: a conversation charges the talk cost once' while Loop cycles first says 'Nothing in the minute cycle advances a campaign watch by itself'. Consistent only after reading the fourth bullet; the pending owner decision (fractional watch unit) appears once, deep in a bullet.",
+   "fix": "Move the pending decision to Open, deferred and parked and reference it from Loop cycles."
+  },
+  {
+   "severity": "low",
+   "what": "Markdown tables in Status index and Rules spine are not column-padded (Prettier would pad them) and use inline <br> in the lever table; DESIGN_NOTES.md is in .prettierignore so no gate catches it. Cosmetic only.",
+   "fix": "Optional: run prettier on the file once, or leave."
+  }
+ ],
+ "words_by_section": [
+  {
+   "section": "Presentation (incl. visual direction 250, authoring framework 404, play shell 414, locomotion 949, proximity 556, accessibility ~200)",
+   "words": 2823
+  },
+  {
+   "section": "Text pipeline, conversation and AI eval (bubbles ~190, text pipeline 773, paging 675, interruption ~210, eval 502)",
+   "words": 2388
+  },
+  {
+   "section": "Rules spine and engineering rules (R1-R8 724, engineering rules 1435)",
+   "words": 2207
+  },
+  {
+   "section": "Economy and levers (levers table 736, ledger ~230, assassination 363, blackout/contingencies 507)",
+   "words": 1833
+  },
+  {
+   "section": "Core model (primitives 424, Leverage Chain ~110, System graph 663, Presence ~170)",
+   "words": 1450
+  },
+  {
+   "section": "Epoch ladder and operative rotation (ladder 624, rotation 373, ceilings ~190, stills ~80)",
+   "words": 1212
+  },
+  {
+   "section": "NPC minds and belief (cognition 326, belief ~340, Regard/Romantasy 552)",
+   "words": 1139
+  },
+  {
+   "section": "Clock and time",
+   "words": 1106
+  },
+  {
+   "section": "Planned features by milestone (pointers ~150, slice ~200, travel vignettes 770)",
+   "words": 1104
+  },
+  {
+   "section": "Frame and pillars (pillars ~330, loop ~210, seed exemplars 347)",
+   "words": 701
+  },
+  {
+   "section": "Advisors and lace",
+   "words": 698
+  },
+  {
+   "section": "Open, parked and dispositions",
+   "words": 671
+  },
+  {
+   "section": "Audio",
+   "words": 643
+  },
+  {
+   "section": "Rivals",
+   "words": 426
+  },
+  {
+   "section": "Status index",
+   "words": 435
+  },
+  {
+   "section": "Where facts live (+ intro)",
+   "words": 129
+  }
+ ],
+ "length_options": [
+  {
+   "option": "(a) Move fine-grained distant-M6 design into design/<feature>.md, leaving 60-100 word summary + pointer each: travel vignettes (770 -> 90), assassination vectors + counter-assassination + persecution (363 -> 70), orbital blackout and 5 contingencies + scheduler (507 -> 90, keep forecast), Regard/Romantasy detail (552 -> 120), rival archetypes + ambush (~430 -> 130), epoch ladder skins table + rotation + ceilings + stills (1,200 -> 450, keep 7-rung names and P3 rules). Seed exemplars could join.",
+   "saving_words": 2800,
+   "tradeoff": "Biggest cut with no concept loss and lowest frequency-of-use text leaves the always-loaded file, so an agent loads about 15% fewer tokens per task. Cost: the 'where do I find X' chain gains one hop, concepts can drift from roadmap.yaml scopes unless each design file is listed in the Status index with its owning ids, and the architecture-relevant parts (hubs, slice shapes, R-rules) must stay in DESIGN_NOTES or agents will design M3 without seeing M6 constraints. Needs a docs-truth check that every design/ file is indexed."
+  },
+  {
+   "option": "(b) Tighten prose without dropping concepts: delete LaTeX and O(n) asides, cut backticked parentheticals that restate field names, collapse paired 'X (Era 1: ...; evolving per rung as ...)' clauses, drop nested '(planned: id)' marks inside already-planned sections (78 marks; about 40 are redundant), shorten long bullets in Direct floor locomotion, Proximity use, Conversation paging.",
+   "saving_words": 1700,
+   "tradeoff": "Zero structural change and keeps single-file grep. Cost: effort spread across the whole file (high review burden for the owner), risk of dropping a number or invariant (0.22 m, 0.03 m, 0.4 m, 45 deg) if done carelessly; needs a concept checklist or the no-loss diff method used for config.yaml."
+  },
+  {
+   "option": "(c) Move Engineering rules (1,435 words: Bridge lock, Determinism, State/saves, Launch validation, Telemetry, Tests) to design/engineering-rules.md, leaving a 120-word summary and the R1-R8 table.",
+   "saving_words": 1300,
+   "tradeoff": "Clean split (these rules map 1:1 to hx-*/pre-* changes, change rarely, and only M1 agents need them). But M1 is the next thing to build, so the next several apply sessions will open that file constantly, and it is where the fix-first security record lives. Drift risk is low since the owners are roadmap ids. Best done after M1 ships."
+  },
+  {
+   "option": "(e) Deduplicate in place: remove per-section '> Status:' blockquotes that restate the index (about 14, 560 words), delete the Roadmap-ordered pointers table (120), collapse repeated facts to pointers once Where-facts-live owns them (comms backbone x3, Detection Tech x3, save policy x4, talk cost x4, chunk cap, voice register, palette, pause bit: about 600), trim the Dispositions table to ids and a one-line where (about 150).",
+   "saving_words": 1400,
+   "tradeoff": "Lowest risk and directly supports the one-owner-per-fact principle; agents see each fact once. Cost: sections read less standalone because cross-references must be followed, and the partial-section status quotes are the only place some 'shipped vs planned' nuance lives, so keep those for Core model, Rules spine, Economy."
+  },
+  {
+   "option": "(d) Keep as is (19.1k words).",
+   "saving_words": 0,
+   "tradeoff": "No drift risk from the edit, but about 25k tokens loaded per read, 4 of every 5 of which are unshipped M4-M6 detail irrelevant to the current work (M1 hardening). Agents will truncate the read (the Read tool already splits it at 25k tokens), which is the real failure mode: they skim and miss the engineering rules or shipped markers."
+  },
+  {
+   "option": "Recommended combination: (a) + (e) + a light (b) pass on the three densest sections (locomotion, proximity/menus, paging). Leave (c) until M1 ships.",
+   "saving_words": 4900,
+   "tradeoff": "Lands about 14.2k words, inside the 14-16k target, without moving anything that M1 work needs. Order matters: do (e) first (it needs no new files), then (a), so the pointers you leave are already deduplicated."
+  }
+ ],
+ "worst_paragraphs": [
+  "L569 Direct floor locomotion > Contracts (about 330 words in one bullet): mixes locomotionMode, set_direct_steer, stepKinematics, footprint rectangles, the dev HUD rule, shape descriptor vocabulary, loader checks, renderer residency, crowd meshes and the entity-id check. Six topics, no sub-bullets.",
+  "L564 Input and walk (about 230 words, one bullet): control frame, zoom scalar, diagonals, InputState folding, blur/visibility handling, event.code, Space edge trigger, HUD neutralisation, A/D turn-in-place, click ignored.",
+  "L565 Floor and footprints (about 200 words): body radius, disc, prop footprint, slop, example meshes, hinge behaviour, threshold clearing, closed/barred, X-then-Z stepping.",
+  "L556 Play shell > Session (about 210 words): page model, pack loading, dev click replacement, five waypoint and three portal status strings, stage swap, F3 behaviour, free-cam, pause cross-reference.",
+  "L437 Text pipeline > AI notes (about 200 words): owner stipulation, verdict, three numeric reasons, authoring-time gate, selection rule, classifier spike and two cross-refs in a single run-on bullet with nested parentheticals.",
+  "L432 Text pipeline > retired intent parser (about 190 words): history of what was retired, what survived, and four newly named data types (CharacterBible, RegisterCard, VoiceProfile, tellProfile) in a single paragraph.",
+  "L362 Manipulative Romantasy (about 190 words): six motive types and six discovery channels inline in one bullet, with nested numbered parentheticals and a 0.55 loudness detail.",
+  "L352 Regard Tier 2 sparse edges (about 150 words): LaTeX arithmetic, RAM budget, copy-on-write, GC rule inside a numbered item.",
+  "L307 Adjacent-epoch living NPC continuity (about 150 words): triple-nested bold/backtick/LaTeX with age bands and examples in one sentence (rewrite below).",
+  "L449 Conversation paging, 'NPC lines/advisor lines' bullet (about 190 words): bubble vs lace, stacking, hold, charge, history and empty presenter in one block."
+ ],
+ "sample_rewrites": [
+  {
+   "source": "L437 AI notes",
+   "before_words": 200,
+   "after": "**AI notes.** Owner stipulation: check whether a JEV- or LAYA-style decision network has a runtime place (not JEPA). Verdict, accepted: no decision model in the simulation path. Zero-shot, such a model scores below the majority baseline, its float output breaks bit-exact replay, and it needs about 520 MB of worker memory. Belief maths are integers and misbelief is designed in. An advisory authoring-time gate tier is allowed but is never the pass/fail authority. Runtime selection of pooled lines is by tag and seed over Observations (also a spec rule in `07-text-port-and-history`). A small fine-tuned classifier with its answer frozen into the save is a parked spike (`classifier-spike`). The maths are in Belief and deliberate misbelief; the Ship Mind forecast is in Economy and levers.",
+   "after_words": 125
+  },
+  {
+   "source": "L307 Adjacent-epoch living NPC continuity",
+   "before_words": 150,
+   "after": "**Adjacent-epoch NPC continuity** (`youth -> prime -> elder -> succeeded_by_heir`). With 15-30 years between operatives, Epoch k NPCs aged `youth` (15-29) or `prime` (30-49) are still alive in Epoch k+1 as `prime` or `elder` (50-75), alongside their children and prot\u00e9g\u00e9s. They remember your predecessor and the one-rung leap (horse couriers to printing charters; steam and telegraph to radio blocs). Elders pass their seats to `lineageId` heirs, and by Epoch k+2 earlier generations are gone.",
+   "after_words": 85
+  },
+  {
+   "source": "L246 Four clocks intro",
+   "before_words": 110,
+   "after": "Room time and watch time are separate clocks. A room runs `stepKinematics` at 60 Hz with `2-15s` deliberation, dwell and cooldown, which suits watching an NPC think, cross a room at `1.4 m/s` and act. If macro plotlines, couriers, stipends and NPC evolution also ticked every `10s`, an epoch (about 8-14 hours: the `50-100 hour` campaign divided by N epochs) would burn out in 15 minutes.",
+   "after_words": 65
+  }
+ ]
+}

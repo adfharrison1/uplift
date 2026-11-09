@@ -1,0 +1,151 @@
+{
+ "fidelity_issues": [
+  {
+   "id": "A-41",
+   "issue": "Adds an optional 'qualitative-odds setting'. Not in S5-12; the register only says qualitative odds appear in advisor speech (R9).",
+   "fix": "Delete the qualitative-odds clause. Settings model stays reduceMotion, movement hold/toggle, textScale, then readingSpeed/captions."
+  },
+  {
+   "id": "A-80",
+   "issue": "Leaves an optional 'npm run smoke' in the amendment. G1-G6 were accepted; a smoke script was not.",
+   "fix": "Remove the smoke mention and open item 8. G1 is the entry-point trace only."
+  },
+  {
+   "id": "A-04",
+   "issue": "Summary does not state the owner's cameo idea and adds an editor note ('might ride the correspondence / Observation path'). Owner wording (past advisors occasionally appear with help or notes over the galactic network) lives only in exact_owner_wording.",
+   "fix": "Quote the owner wording in the summary, mark it unscheduled, drop the correspondence/Observation routing note."
+  },
+  {
+   "id": "A-55",
+   "issue": "Ties the cameo idea to 'explicit import list' for pack content. S4-10 was accepted as pack identity only; linking cameo mechanics is an unaccepted design inference.",
+   "fix": "Keep only 'one registry per epoch' from S4-10. Drop the cameo clause."
+  },
+  {
+   "id": "A-83",
+   "issue": "Seed scope ('S3, S4, S5 majors') is an editor choice. Register says only id/source/severity/fixing change plus the removal mechanism. Also the delete step is placed 'in the gates skill' while the owner said 'the archive step'.",
+   "fix": "Seed scope goes to the owner (see open item 1). Say the archive step (opsx-archive instructions and the gates skill) deletes the entries."
+  },
+  {
+   "id": "A-37",
+   "issue": "'An opt-in assist mode is possible later' is not in S5-15 or any owner decision.",
+   "fix": "Drop the assist-mode sentence. Keep the warm mark and the rejection of a global important accent (P4)."
+  },
+  {
+   "id": "A-66",
+   "issue": "Adds a pointer line to every section AGENTS.md. Slice 6 doc shape only specifies root pointers and the 'Where facts live' table.",
+   "fix": "Limit to root AGENTS.md and README.md pointers; section pointers only where a section's rules change."
+  },
+  {
+   "id": "A-58",
+   "issue": "Slots '10 (new crew per epoch, P3)'. The register records P3 and no build slot for it.",
+   "fix": "Remove the P3 parenthetical, or mark it a note only. Schedule nothing for P3."
+  },
+  {
+   "id": "A-63",
+   "issue": "Calls R7 (authored vs generated cards) 'open'. S2-08 (authored/generated split) and the hybrid pipeline were accepted in slice 2.",
+   "fix": "Record R7 as resolved by S2-08, with the storylet-card question left to the storyteller change."
+  },
+  {
+   "id": "A-34",
+   "issue": "Drops INV-A's default: runtime selection of pooled lines is tag-and-seed over Observations.",
+   "fix": "Add that sentence."
+  },
+  {
+   "id": "A-73",
+   "issue": "Lists source 'A-65', which does not exist in the inventory (also A-50, A-84, A-85, A-92, A-93 are absent; A-49 notes the A-50 merge).",
+   "fix": "Remove the dangling source ref or restore the amendment."
+  },
+  {
+   "id": "A-18/A-22",
+   "issue": "Summaries paraphrase the reframed rule ('some interaction ... some awareness ... at some point'). The verbatim sentence lives only in exact_owner_wording.",
+   "fix": "Put the verbatim sentence into each summary: interact with in some way, and be aware of that interaction in some way, at some point."
+  }
+ ],
+ "coverage_gaps": [
+  "S0B-42 erratum (05c is tagged [archived] in config.yaml): no amendment says the stale roadmap tags are corrected during the roadmap.yaml migration (A-79).",
+  "S6B-06: the change-plan (about 30 implied changes, 17 orphans, 13 missing changes) has no amendment that creates roadmap entries for them. Open item 13 defers all of it, so A-58 reorders but leaves orphans (inference trails, notebook presenter, command-log replay tool, camera directive stack) with no roadmap owner. At least one amendment should list the orphan owners or state the defer explicitly.",
+  "INV-A runtime line selection default (tag-and-seed over Observations) has no doc home (see A-34).",
+  "A-45 minimal audio is added but the register's 'Full 05a stays later' and a roadmap entry for the timing spike are only in A-58/A-24 text; no amendment adds a spike roadmap entry.",
+  "Section README.md counterparts: repo rule says update README and AGENTS together; A-68 and A-66 only cover AGENTS pointers and the root README.",
+  "Owner decision 'Opus drafts the system graph during the amendment phase' (S1-R10): A-19 adopts a graph from raw/S2-system-graph.json but no amendment says who drafts the remaining who-writes/who-reads rows (fine if raw graph is complete; unverified).",
+  "Slice 6 carry-over: a 'roadmap sync' change and 'AGENTS.md truth rewrite' as missing changes are covered by A-68/A-79 only as doc edits, not as roadmap entries."
+ ],
+ "open_items": [
+  {
+   "n": 1,
+   "class": "owner",
+   "note": "Register does not place the defect ledger (slice 6 calls it an owner question); seed scope (all slotted findings vs majors) is also unstated."
+  },
+  {
+   "n": 2,
+   "class": "decided",
+   "note": "Owner accepted the corrected order in slices/02b-roadmap-reorder.md (register slice 2 decision 1). The before-06 label is a priority bucket. 08 depends_on follows the accepted order."
+  },
+  {
+   "n": 3,
+   "class": "decided",
+   "note": "Register: S1-R8 deferred; R8 open, owner did not address it. Recording 'open' is already the decision."
+  },
+  {
+   "n": 4,
+   "class": "owner",
+   "note": "S1-R5: 'Save policy still to be decided.' Not resolved in any later slice."
+  },
+  {
+   "n": 5,
+   "class": "decided",
+   "note": "Slice 5 owner decision 3 approves tone blips and the section 9 amendment. Slice 6 ch4 places them in 07. Wording can land in the docs batch. No owner question."
+  },
+  {
+   "n": 6,
+   "class": "decided",
+   "note": "S1-R9: 'Design-note candidate.' The owner gave no schedule."
+  },
+  {
+   "n": 7,
+   "class": "decided",
+   "note": "R1 accepted as an engine test; 02b order puts the slice before 06; A-60 already says no depends_on unless the owner adds one."
+  },
+  {
+   "n": 8,
+   "class": "drop",
+   "note": "npm run smoke is a scout option, not in S6B-03 as accepted. Remove."
+  },
+  {
+   "n": 9,
+   "class": "decided",
+   "note": "Slice 6 decision 1 accepted all proposals including the ch2 doc shape (notes/inbox.md emptied by the skill) and the design-notes skill fix. S6A-04 accepted."
+  },
+  {
+   "n": 10,
+   "class": "drop",
+   "note": "Editor idea, not in S5-12. Contradicts the R9 rejection of numeric odds only mildly but is unaccepted scope."
+  },
+  {
+   "n": 11,
+   "class": "decided",
+   "note": "Slice 6 ch2 doc shape: pillars at top of DESIGN_NOTES, AGENTS shipped-code only. Accepted in slice 6 decision 1."
+  },
+  {
+   "n": 12,
+   "class": "decided",
+   "note": "Slice 6 doc shape states the targets (AGENTS about 900, config under 1.5k). Exact thresholds are implementation detail, not an owner call."
+  },
+  {
+   "n": 13,
+   "class": "decided",
+   "note": "Slice 6 says the change plan and splits are slice 7 work from ch3. Not an inventory open question. Move to the plan, not the owner list."
+  },
+  {
+   "n": 14,
+   "class": "decided",
+   "note": "S6A-02 (HF pin not installed) accepted; A-73 plus keep the worker planned (P2). Pin chosen on install."
+  },
+  {
+   "n": 15,
+   "class": "decided",
+   "note": "Slice 5 digest records the GPU profile as a measurement to run with the owner when convenient. No doc decision needed. Does not belong in open items (not a register item)."
+  }
+ ],
+ "verdict": "ready_with_fixes"
+}

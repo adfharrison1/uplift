@@ -1,0 +1,138 @@
+{
+ "items": [
+  {
+   "id": "A-02",
+   "verdict": "faithful",
+   "note": "Config hardware block edited once. setup-models dropped, model cache kept as planned and gated on the timing spike, 3-stage pipeline replaced by a P2 bullet that quotes the owner's wording verbatim, Zero API Keys kept, planned HF worker kept. Secondary anchor src/infrastructure/AGENTS.md model-weights line is carried per punch list 15."
+  },
+  {
+   "id": "A-67",
+   "verdict": "faithful",
+   "note": "Stage 1 jobs re-homed in the same edit: tellProfile post-pass (06-rivals-remote-evidence), lexical check as gate tier 1, negation and speech-act recorded as retired. Present in both config and DESIGN_NOTES Text pipeline."
+  },
+  {
+   "id": "A-23",
+   "verdict": "faithful",
+   "note": "New 'Text pipeline (P2)' section sits before section 10 (after section 9), with a planned status banner and a status-index row. Rule text matches summary; the earlier quotation of the owner is exact."
+  },
+  {
+   "id": "A-24",
+   "verdict": "faithful",
+   "note": "Hybrid generation correct: authoring-time SLM counts as P2, runtime filler tier first-class but gated on the one-day timing spike, output cached into the save. Q1 recorded as decided split (08a before the 07 text skeleton, 08 adapter after 05b-2-storylets-and-lab), matching register and plan v3. JEV/Laya stipulation preserved verbatim, INV outcome linked. Minor: 'This supersedes the register's earlier tag' points at a review-folder file from a design doc (see fixes)."
+  },
+  {
+   "id": "A-25",
+   "verdict": "faithful",
+   "note": "TextSourcePort with authored/pool/generated adapters, infrastructure HF/ONNX adapter as planned, fact-first realiser and Tracery grammars as fallback, AGENTS changes only when the port ships. Typed-ESLint 'first async port' trigger is from plan v3 scope."
+  },
+  {
+   "id": "A-26",
+   "verdict": "faithful",
+   "note": "LineBrief fields and the three gate tiers as specified, retry then pool fallback then review queue, suites register after 05f-eval-and-replay, lands before the 07 pager."
+  },
+  {
+   "id": "A-27",
+   "verdict": "faithful",
+   "note": "Authored/generated split by tier, authoring kit (CharacterBible, RegisterCard, few-shot builder, draft/accept CLI), owner is happy to get help with authoring."
+  },
+  {
+   "id": "A-34",
+   "verdict": "faithful",
+   "note": "INV-A: no decision model in the sim path, advisory authoring-time gate allowed, runtime selection by tag and seed over Observations, also a spec rule in 07-text-port-and-history, classifier parked as classifier-spike. INV-B details all present (integer fixed-point noisy-OR, collapse shared origin/channel parents, spoof as separate negative term, order-independence test, parent cap, reason tags, decided before schema freeze, owned by cm-observation-notebook). INV-C to INV-F match slices/03-sim-core.md; parked ids exist in plan v3. Owner INV-1 verdict quoted exactly."
+  },
+  {
+   "id": "A-99",
+   "verdict": "faithful",
+   "note": "One line, 'The Writing Desk uses the text port.' No compose-by-choosing mechanic, no Report-as-Observation. One harmless extra sentence 'There is no free-text player input.' restates P2."
+  },
+  {
+   "id": "A-29",
+   "verdict": "faithful",
+   "note": "All four DESIGN_NOTES clauses cut and the sentences read whole; section 10 not-in-this-section list kept intact; section 11 'free-text intent' and 'intent dataset' replaced; config '23MB ONNX load' became 'model load'. README, tests/AGENTS.md and src/domain/README.md parts are carried to process-gates-and-ledger per punch list 15. 'A second pause flag.' left for A-49 as ordered. No free-text/ONNX intent wording remains apart from deliberate retired mentions and the planned HF/ONNX adapter."
+  },
+  {
+   "id": "A-30",
+   "verdict": "faithful",
+   "note": "Heading retitled and 'NLP' dropped, change id kept, Hybrid NLP & ONNX bullet replaced by a text-pipeline suites pointer, ownership split (tests exact, golden hashes, eval distributions and corpora, one runScenario harness) added, runner described as planned, text-gate suites only after the text port, command log pointer added. Status-index row renamed to match."
+  },
+  {
+   "id": "A-12",
+   "verdict": "faithful",
+   "note": "Determinism entry covers splitmix32, fixed 1/60 s step with capped catch-up, hashWorldState plus golden run with shuffled insertion and throwing Math.random/Date stubs, one ESLint determinism block over domain, non-scene content and application, node:*/require/non-literal import() bans, AGENTS application-row note. Config determinism line and the SimulationPacingConfig bullet get planned pointers. AGENTS.md untouched as ordered."
+  },
+  {
+   "id": "A-86",
+   "verdict": "faithful",
+   "note": "Interpolation seam entry with previous/current poses, alpha, teleport marker, no interpolation across teleports or room changes, own-commit note. Detail on shortest-arc yaw and camera focus comes from plan v3 hx-fixed-step-tick scope."
+  },
+  {
+   "id": "A-87",
+   "verdict": "faithful",
+   "note": "Legacy clamp to [0,1] with telemetry note, throw kept as authoring-time contract test, sourceScarId checked against the scar set, scars record the watch, pointer bullet at the end of section 4. Accumulation deferral to 10-registry-swap-and-legacy matches plan v3."
+  },
+  {
+   "id": "A-88",
+   "verdict": "faithful",
+   "note": "Stimulus cap item 3 under the anti-thundering-herd list: priority then age, dedupe, roll() half pointed at the Act envelope change."
+  },
+  {
+   "id": "A-52",
+   "verdict": "faithful",
+   "note": "Telemetry text describes reality (verified against code): infrastructure NDJSON logger and compactor exist with 50 MiB / 500 MiB caps; browserMain uses an in-memory BrowserSessionTelemetry, so the browser does not feed the logger; startNewSession empties both files today. Policy replaced as ruled (Act log, telemetry for crash/warn/frame spikes/hash checkpoints, replay with tracing, rotation to logs/prev planned, bridge feed, ring buffer, limit/tail/count-by, newline guard, ENOSPC). 'every AI input/output/reasoning trace logs' dropped from config. uplift-debug skill text and AGENTS.md telemetry bullet are carried (punch list 15). One sentence in the DESIGN_NOTES entry is stale against punch list 2 (see fixes)."
+  },
+  {
+   "id": "A-55",
+   "verdict": "faithful",
+   "note": "State, saves and pack identity entry: frozen on write/shared on read, StateSliceKey schema/version/migrate plus plain-JSON guard, WorldStateCodec, packId/version in saves, S4-10 one registry per epoch with explicit cameo import list, fingerprint reconciliation parked with 10-registry-swap-and-legacy. Save policy matches the owner's register wording (autosave at watch boundaries plus named manual saves, loading ANY earlier save allowed, rollback wanted, notebook part of the save, keyed rolls do not reroll, ironman parked). Config StateSliceKey sentence extended."
+  },
+  {
+   "id": "A-56",
+   "verdict": "faithful",
+   "note": "validateLaunch collecting every error, interim shape check folded in (ruling 12), denylist derived from packs and moved to tests/architecture, defineModuleKind with ref table, freeze-extension guard, docs-truth staging per ruling 11, fixtures out of the content barrel, content recipes to be rewritten."
+  },
+  {
+   "id": "A-57",
+   "verdict": "faithful",
+   "note": "Phase order commands, watch, materialize, kinematics, cognition, commit, flush; Arrived/Blocked/Interrupted with residualDt; door-closes-mid-route, retarget, zero-speed, metres hop; frame try/catch re-arms rAF; PlaySession.status per call (matches S3-18). Pointer sub-bullet added under the Human-Paced Cognitive Phases bullet. Minor wording interpretation of S3-11 and S3-12 but within the findings."
+  },
+  {
+   "id": "A-89",
+   "verdict": "faithful",
+   "note": "One-line allocation note, no work scheduled."
+  },
+  {
+   "id": "A-90",
+   "verdict": "faithful",
+   "note": "Tests-with-fix rule, tests/support builders, split monoliths, http-level bridge tests, acceptance lines added to hardening changes."
+  },
+  {
+   "id": "A-91",
+   "verdict": "faithful",
+   "note": "Blind spots listed (import =, export *, barrels, type-only imports, content/scene rule), invariants ship with guarded tests, typed ESLint later at first async-port change, compiler-API scan parked as compiler-api-import-scan (exists in plan v3 parked list)."
+  },
+  {
+   "id": "A-95",
+   "verdict": "faithful",
+   "note": "Command log as artifact for golden tests/fixtures/bug repro and not the save format, Act ring frozen/bounded and chunked only if benchmark fails, dwell-site slots later as prop data, replay-with-tracing owned by the eval-runner change."
+  }
+ ],
+ "other_issues": [
+  "Untargeted edits (minor over-reach, beneficial and consistent with R1, but the brief says untargeted text stays byte-identical): 'at each watch tick' to 'at each watch boundary' in section 5 (TravelSurfaceCue bullet); 'multi-tick rollouts' to 'multi-step'; '100-tick evals' to '100-step' in the pacing bullet; '100-tick rollout' to '100-step' in section 11; and the `fuseTicks` (renamed `fuseWatches` by R1) note in the system-graph row. No C3 amendment id targets them (A-01/A-11 and the R1 spine cover the rename in principle). Orchestrator decision: keep or revert; I recommend keep.",
+  "The C3 report says config line 69 'infrastructure (onnx worker, ...)' was left unchanged, but the diff changes it to '(telemetry logger/compactor, save repository; planned: local text-generation worker)'. No C3 id targets that line (A-72 may later cut it). The edit matches punch list item 3 in spirit and is harmless, but the report is inaccurate. Keep, and correct the report.",
+  "Residue deliberately carried per punch list 15, not a C3 defect: README.md, tests/AGENTS.md, src/domain/README.md free-text/ONNX wording (A-29); uplift-debug SKILL.md 'local ONNX NLP decisions' and the root AGENTS.md Session Telemetry bullet (A-52); src/infrastructure/AGENTS.md model-weights line (A-02). Root AGENTS.md still claims 'Every event and AI input/output/reasoning trace logs' until process-gates-and-ledger lands.",
+  "The save policy now appears twice in DESIGN_NOTES (Open items bullet, line 75, and the Engineering rules State entry, line 551) with the same content and consistent rollback wording; C5 may merge them.",
+  "Remaining ONNX/free-text mentions in DESIGN_NOTES and config are all deliberate: P2 pillar and rule (quoting 'no free-text player input'), 'retires the earlier three-stage intent parser' with MiniLM named as retired, the planned 'Hugging Face / ONNX adapter', 'no local ONNX decisions exist' in the telemetry entry, and the eval note 'there is no intent-accuracy suite'. No live intent wording survives.",
+  "No valid planned content deleted: every removed line (3-stage pipeline, telemetry bullets 1 and 2, Hybrid NLP eval bullet, free-text clauses) has a re-homed replacement; withheld-AdvisoryDuel-clause logging was dropped under A-52's 'replace the policy' ruling and is covered by Act log plus replay-with-tracing. Anti-LLM-Speak/Period-Voice composer wording is preserved as grounding/cadence/banned-lemma language in config line 55 and in section 10e.",
+  "Change ids appear only in DESIGN_NOTES.md and openspec/config.yaml; no other files modified. No `Change NN` citations were newly introduced."
+ ],
+ "fixes": [
+  {
+   "file": "DESIGN_NOTES.md",
+   "what": "Engineering rules > Telemetry policy > Wiring bullet: replace 'Root `AGENTS.md` keeps describing the logger as it is until the wiring ships.' with 'Root `AGENTS.md` states the logger as it is today (no AI trace claim; rewritten in process-gates-and-ledger) and is rewritten again when the wiring ships.' The current sentence conflicts with punch list items 2 and 15, because AGENTS.md currently overclaims."
+  },
+  {
+   "file": "DESIGN_NOTES.md",
+   "what": "Text pipeline > Hybrid generation > Slot bullet: change 'This supersedes the register's earlier tag \"before-06\".' to 'This supersedes the earlier tag \"before-06\".' so the design doc does not point at a review-folder file."
+  }
+ ]
+}

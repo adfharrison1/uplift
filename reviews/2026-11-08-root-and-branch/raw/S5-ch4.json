@@ -1,0 +1,231 @@
+{
+ "findings": [
+  {
+   "id": "S5-01",
+   "verdict": "endorse",
+   "amended": "",
+   "priority": "with-05d-05e",
+   "note": "Without it a Tier-3 crowd member is invisible, which breaks the stage the moment the world materializes someone. Pool by archetype so a room full of faces does not allocate per frame."
+  },
+  {
+   "id": "S5-02",
+   "verdict": "amend",
+   "amended": "Do the per-space filter and drop the per-frame sort now (cheap, no feel risk). Treat renderer.compileAsync before first draw as the real win: a 72 ms hitch on a door transition reads as a dropped frame at the exact moment of player agency.",
+   "priority": "now",
+   "note": "Fixed-camera room games (RE, FF7) hide loads behind the cut. Mask the mount with a short fade to black or a door beat rather than trying to hit 0 ms, which suits the stage-paint mood."
+  },
+  {
+   "id": "S5-03",
+   "verdict": "endorse",
+   "amended": "",
+   "priority": "now",
+   "note": "One bad id freezing the page is a trust-killer. Validate at registration; also keep rAF re-arm in a finally so a single bad frame skips rather than hangs."
+  },
+  {
+   "id": "S5-04",
+   "verdict": "amend",
+   "amended": "Endorse the contract (prev/curr snapshot, alpha, shortest-arc yaw, teleport snap). Add: camera focus uses the interpolated position, and a camera volume change or capture never reads raw sim position, or the centred player will micro-jitter against the world, the most visible flaw in a centred-camera game.",
+   "priority": "with-05d-05e",
+   "note": "Gaffer-on-Games fixed-step with render interpolation is the standard. Jitter on a centred camera is far more noticeable than on a free one."
+  },
+  {
+   "id": "S5-05",
+   "verdict": "amend",
+   "amended": "Endorse data-declared shape recipes and prop state variants, but start with the minimum vocabulary the placeholders need (box, cyl, cone, ico + dims + anchor). Warn-on-fallback yes. The one-page shape-language rule is the valuable part; the recipe system is the means.",
+   "priority": "with-05d-05e",
+   "note": "Needed before 05d footprints, or the sim reads renderer literals. This is also the P1 collaboration seam (agent adds a hat in JSON). Dwarf-Fortress-style raws and Tiny Glade style parts are the comparison: data parts, small vocabulary. Do not gold-plate placeholder art: do not add shapes nothing uses."
+  },
+  {
+   "id": "S5-06",
+   "verdict": "amend",
+   "amended": "Derive offset from yaw/pitch/distance, and make the volume yaw the single authoritative control frame for WASD. Deleting the fields would remove the only thing WASD can legally key off.",
+   "priority": "with-05d-05e",
+   "note": "Pairs with the S5-11 control-frame latch. Author-facing fields that do nothing are a silent trap for the owner tuning in the F3 lab."
+  },
+  {
+   "id": "S5-07",
+   "verdict": "amend",
+   "amended": "Cache geometry by (slot,shape) and materials by (hex,grime) now; this is a few lines. Move selection highlight to a rim or outline layer rather than emissive on the shared material. Defer merged crowd geometry until a crowd exists.",
+   "priority": "with-05d-05e",
+   "note": "Draw-call count matters on a 2019 MacBook, but the caching is the cheap 80 percent."
+  },
+  {
+   "id": "S5-08",
+   "verdict": "amend",
+   "amended": "Make DPR a setting with an adaptive step, default 1.5 on Retina, and cap adaptation to avoid visible resolution pumping (step down fast, step up slowly, never mid-conversation). Use FXAA or a cheap edge pass, not MSAA. Text stays in DOM.",
+   "priority": "with-05d-05e",
+   "note": "Jagged half-res silhouettes undercut the chiaroscuro look that the game sells on, and are a legibility issue for low-vision players. Return of Obra Dinn embraces 1-bit dither deliberately; accidental aliasing reads as a bug, not a style."
+  },
+  {
+   "id": "S5-09",
+   "verdict": "endorse",
+   "amended": "Use event.code for WASD, Space, Escape (physical position survives AZERTY/Dvorak); use navigator.keyboard.getLayoutMap only for the on-screen label. Ignore non-repeat edges for Space/Escape. Reset on blur. Do not auto-repeat Space: a held Space must not skip multiple dialogue chunks.",
+   "priority": "now",
+   "note": "Must precede 05e menus. Skipping chunks by accident is the exact Elder-Scrolls-style failure the owner is avoiding. Stateful input layer is also required for the held-key-after-menu-close rule."
+  },
+  {
+   "id": "S5-10",
+   "verdict": "amend",
+   "amended": "Keep the owner grammar: W/S vertical, Space confirm, Escape back. A/D act as aliases for prev/next in vertical lists but own left/right in horizontal rows. Add arrow keys as a second binding. Consumption rule: a press is consumed by the topmost layer on the frame it goes down and the same physical press cannot also act on a lower layer, so the Space that opens a conversation does not also advance its first chunk.",
+   "priority": "now",
+   "note": "This honours the owner's WASD/Space/Escape intent and costs nothing visible. Disco Elysium and Pentiment both use a single confirm that does not bleed across layers. Escape on the last chunk should be equivalent to leaving without unread-tail consequences, as the spec says."
+  },
+  {
+   "id": "S5-11",
+   "verdict": "amend",
+   "amended": "Endorse the stack and the control-frame latch. Changes: (1) do not use Space to skip a capture, because Space is already use/confirm/advance; end a capture on any movement key (hand control back immediately) or Escape, and let Escape stay unconsumed for pause when no capture is active. (2) Player input is never frozen during a short capture; keep it to roughly 0.6-1.0 s blend plus a capped hold. (3) Blocked while a conversation chunk is up. (4) Reduce-motion setting turns blends into cuts. (5) Zoom: one scalar toggle on one key, clamped to the volume, applied with its own short blend, and it must not change the yaw. (6) The control-frame latch is the RE/FF7 rule: keep the old frame while a key stays held across a volume cut, release on key-up.",
+   "priority": "with-05d-05e",
+   "note": "This honours the owner note (centred, capture for events, auto-return, single further-out zoom). Cinemachine priority + blend is right; Resident Evil and FF7 supply the control latch; Hitman and Dishonored hand back control quickly. Do not let a capture take over longer than the player expects a cutscene."
+  },
+  {
+   "id": "S5-12",
+   "verdict": "amend",
+   "amended": "Settings model now (reduceMotion, textScale, readingSpeed, ambient timed or persist, hold/toggle, captions). Ambient line lifetime scales with length and every ambient line lands in the notebook feed. WCAG AA checks should test the lace text panel and bubble text, not the world art. Do not add aria-live to every ambient line by default: expose it on a setting so a screen-reader user is not flooded.",
+   "priority": "with-05d-05e",
+   "note": "Ambient lines are a P4 channel and expire, so an expiring-only line silently locks players out. Disco Elysium text-scale and Pentiment readable-text options are the comparison."
+  },
+  {
+   "id": "S5-13",
+   "verdict": "amend",
+   "amended": "Endorse paired non-visual noticing: a tell registers a lace noticing, fired by proximity or attention roll, surfaced as a passive interjection (Disco Elysium passive skill check) not a billboard. Make 'highlight what I could notice' an off-by-default setting that only lights tells inside the proximity radius. Keep the visual tell but vary shape or motion, not only hue.",
+   "priority": "with-07",
+   "note": "This is how P4 stays subtle without becoming invisible. The contract test (every cue has a notebook binding) belongs in the spec now; the rendering can wait until trails exist. A passive interjection respects mood where a glowing highlight would break it."
+  },
+  {
+   "id": "S5-14",
+   "verdict": "endorse",
+   "amended": "Paused = domain freeze; lab = session/interface flag. Reword the 05e clause. Pause should leave the camera anchored and the scene undimmed except a gentle vignette.",
+   "priority": "now",
+   "note": "Directly blocks 05e and matches the owner's pause-menu note."
+  },
+  {
+   "id": "S5-15",
+   "verdict": "amend",
+   "amended": "Adopt the three value tiers (environment low, actors mid-high, signal brightest) and a contrast lint against stage materials. Prefer a warm rim and a value band over a hard black outline: black outlines flatten the chiaroscuro and fight dark stage-paint. Inside, Return of Obra Dinn and Hades show that value separation alone carries a dark scene.",
+   "priority": "now",
+   "note": "Cheap, protects P4 (who, what carried, what changed), and keeps the mood. The lint test can follow with 05d, the rule goes in now. The player operative being indistinguishable from the iron walls is a feel bug today."
+  },
+  {
+   "id": "S5-16",
+   "verdict": "amend",
+   "amended": "Silhouette budget plus the black-silhouette lab view is valuable; adopt the Team Fortress 2 silhouette principle. Gait: a bob and lean is enough, no limbs. Do not add new meshes to solve this; vary hat profile, cloak length and tool first.",
+   "priority": "with-05d-05e",
+   "note": "Pays for itself at the 11-14 m camera. The silhouette view is a developer tool and costs little. Skip any limb animation for placeholders."
+  },
+  {
+   "id": "S5-17",
+   "verdict": "amend",
+   "amended": "Make materials an open map with roles. For characters: theme grades the environment and applies at most a value or hue tint to a character's own colours; characters keep identity. An Epoch 4 throwaway theme as a schema test is good.",
+   "priority": "later",
+   "note": "Not needed until a second epoch pack exists. The principle of not erasing identity matters now, but it is a spec line, not a build item (P5: leave room)."
+  },
+  {
+   "id": "S5-18",
+   "verdict": "amend",
+   "amended": "Lace text on a solid-ish panel with fixed type size; arcs are decoration. Move the debug highlight off cyan to magenta or a colour the game never uses. Keep the lace cyan-white as the one cool hue against warm torch light so it stays the diegetic signature.",
+   "priority": "now",
+   "note": "Two-line fix that prevents debug colour from becoming accidental language. Panel contrast is also the first accessibility win for the text-heavy core."
+  },
+  {
+   "id": "S5-19",
+   "verdict": "amend",
+   "amended": "Three tiers (silent, murmur, clear) with fixed thresholds, shown diegetically (NPC head-turn, cloth or breath cue, a faint ripple), never a meter. Named localMasks (rain, forge, crowd). Use the same tiers for overheard ambient lines and the caption text.",
+   "priority": "with-07",
+   "note": "Thief's light gem and Dishonored's noise rings are the known solutions; Hitman's instinct shows the cost of a permanent readout. Keep it diegetic to avoid a HUD dump."
+  },
+  {
+   "id": "S5-20",
+   "verdict": "amend",
+   "amended": "Hybrid is right: synthesis for ambience and foley, a small CC0 sample set for cloth, door and wood where synthesis sounds thin. Per-NPC tone signature as a soft blip once per chunk, not per character, with an off setting; Pentiment shows that sparse paper-and-ink sounds beat Undertale-style per-letter blips in a grim tone. Footstep and door sound are the feedback that makes WASD feel responsive.",
+   "priority": "with-05d-05e",
+   "note": "Audio is feedback for every key in the owner grammar (step, confirm, back), not just atmosphere. A minimal slice early is endorsed; every cue also needs a caption."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R5A1",
+   "verdict": "amend",
+   "amended": "Endorse DOM bubbles projected from headAnchor. Add: round to integer px to avoid shimmer, clamp inside the viewport, cap simultaneous bubbles, and use the lace-page style for advisors rather than a head-attached bubble. Same node pool supplies the aria-live option.",
+   "priority": "with-05d-05e",
+   "note": "Crisp DOM text at any DPR is the right call for a text-heavy game. Pentiment and Disco Elysium both keep text out of the 3D pipeline."
+  },
+  {
+   "id": "R5A2",
+   "verdict": "amend",
+   "amended": "Only when a crowd above roughly a dozen exists. Start with shared geometry and material caches (S5-07).",
+   "priority": "with-07",
+   "note": "Right shape but premature as placeholders. InstancedMesh crowd tiers are standard (Assassin's Creed crowd tiering)."
+  },
+  {
+   "id": "R5A3",
+   "verdict": "amend",
+   "amended": "Plain prev/curr maps first; move to a Float32Array once profiling shows the allocation. The contract matters, the storage does not.",
+   "priority": "with-05d-05e",
+   "note": "Matches S5-04."
+  },
+  {
+   "id": "R5B1",
+   "verdict": "amend",
+   "amended": "As S5-11: no Space skip, movement hands control back, blocked during conversation, reduce-motion cuts, no yaw rotation, max hold capped.",
+   "priority": "with-05d-05e",
+   "note": "Cinemachine is the right model; the control rules come from RE/FF7 and Hitman."
+  },
+  {
+   "id": "R5B2",
+   "verdict": "amend",
+   "amended": "Dither-fade near-camera walls and props, precomputed per volume. Dither fits the stage-paint look (Return of Obra Dinn), and avoids transparency sorting. Needed only when a wall or prop actually hides the player at the authored camera.",
+   "priority": "later",
+   "note": "The fixed orientation means authors can place volumes to avoid most occlusion first, as RE did with painted backdrops."
+  },
+  {
+   "id": "R5B3",
+   "verdict": "endorse",
+   "amended": "",
+   "priority": "now",
+   "note": "Same as S5-09; this is the input contract. Gamepad can wait but the steer-as-vector shape should not be lost."
+  },
+  {
+   "id": "R5B4",
+   "verdict": "endorse",
+   "amended": "Add 'unread tail does not fire' semantics so the notebook copy of an ambient line is a record, not a replay.",
+   "priority": "with-05d-05e",
+   "note": "Primary accessibility fallback for expiring text and a core P4 channel."
+  },
+  {
+   "id": "R5C1",
+   "verdict": "amend",
+   "amended": "As S5-15: value tiers and a warm rim; outline only if the rim fails at the gameplay camera.",
+   "priority": "now",
+   "note": "Keeps the dark chiaroscuro and the legibility of the figure."
+  },
+  {
+   "id": "R5C2",
+   "verdict": "amend",
+   "amended": "Split in two. (1) Interactable cue: the currently selected Space target (within 0.4 m and the 45 degree cone) needs a visible mark, such as a warm ring or glint; without it the proximity-use rule is unreadable. RE item glints and Hades interact prompts are the model. (2) A Hitman-instinct style toggle for people stays optional and off; it must not highlight clues, which is the P4 channel.",
+   "priority": "with-05d-05e",
+   "note": "The selection cue is the biggest gap in the proximity-use design; the instinct toggle is not required."
+  },
+  {
+   "id": "R5C3",
+   "verdict": "endorse",
+   "amended": "Same as S5-05; keep the vocabulary small and add a contract test that all ids resolve.",
+   "priority": "with-05d-05e",
+   "note": "Fits P1 directly: owner and agent can add a hat in one JSON file and see it in the F3 lab."
+  },
+  {
+   "id": "R5C4",
+   "verdict": "amend",
+   "amended": "Soft blip per chunk, on a setting, with a caption-free default since text is the content. Keep signatures subtle so they read as identity, not as a UI chirp.",
+   "priority": "later",
+   "note": "Nice colour but depends on the audio slice landing first."
+  },
+  {
+   "id": "R5C5",
+   "verdict": "endorse",
+   "amended": "Add the confirm and back sounds of the menu grammar to the slice, plus the footstep surface table.",
+   "priority": "with-05d-05e",
+   "note": "Cheapest feel gain available and unlocks audio as an inference channel earlier."
+  }
+ ],
+ "top3": "1) Ship the input layer and the press-consumption rule (S5-09, S5-10, R5B3) before 05e: event.code, edge-triggered Space with no auto-repeat so a held key never skips chunks, and one press never acts on two layers, which keeps the owner's WASD/Space/Escape grammar intact. 2) Camera: build the directive stack with the RE/FF7 control-frame latch, but hand control back on movement or Escape rather than Space (Space is already use/confirm/advance), block captures during conversation, cut instead of blend under reduce-motion, and keep zoom a single yaw-neutral scalar (S5-11, R5B1, S5-06). 3) Make the world readable without breaking the mood: the three-tier value rule with a warm rim (not black outlines), a visible mark on the currently selected Space target (R5C2), and every visual tell paired with a passive 'noticing' in the lace log (S5-13, R5B4), with a Settings model for text scale, reading time and reduce motion (S5-12)."
+}

@@ -1,0 +1,318 @@
+{
+ "findings": [
+  {
+   "id": "S5A-01",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "The renderer can only draw entities that have a CharacterVisualBlueprint whose characterId equals the entity id, built once per stage mount; the builder's lineage fallback visual is carried on each pose but never read, so Tier-3 crowd NPCs materialized at runtime get no mesh and the scene graph has no add/remove path.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "290-291",
+     "quote": "for (const pose of frame.entityPoses) {\n    const group = built.entityGroups.get(pose.entityId);"
+    },
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "687-688",
+     "quote": "const visual =\n        visualsByCharId.get(entity.entityId) ?? visualsByLineageId.get(entity.lineageId);"
+    },
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "193-196",
+     "quote": "for (const charVis of options.characterVisuals ?? []) {\n    const charGroup = buildCharacterKitbashGroup(charVis, theme);\n    stageRoot.add(charGroup);\n    entityGroups.set(charVis.characterId, charGroup);"
+    }
+   ],
+   "bites_when": "First presence-materialized NPC (many-NPC rooms, 05e/06) or any ambient_crowd character without a hand-authored per-id visual: it walks, collides and talks while invisible.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether anything else adds entity groups after build (grep: only buildStageSceneGraph writes entityGroups) and whether pose.visual is consumed by the renderer (it is not). The test 'does not create a mesh for a pose with no matching visual' pins this as intended for today.",
+   "recommendation": "Add syncEntities(built, frame) that creates a kitbash group from pose.visual when an entity first appears in the active space and releases it (pooled) when it leaves; build per-stage groups from the poses present, not from the whole cast list.",
+   "fix_cost": "M",
+   "ignore_cost": "Presence materialize ships with invisible NPCs or a rewrite of the stage builder under deadline."
+  },
+  {
+   "id": "S5A-02",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "Per-frame and per-stage-swap cost scales with the whole world cast, not the room: the builder poses and sorts every entity in every space, the renderer traverses hidden groups, and stage mount builds every character's meshes (measured 266 us/frame builder and 650 us/frame apply at 400 entities, 72 ms synchronous scene build).",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "678-680",
+     "quote": "const sortedEntityIds = Object.keys(worldState.entities).sort((a, b) =>\n      a < b ? -1 : a > b ? 1 : 0,\n    );"
+    },
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "310-311",
+     "quote": "built.stageRoot.traverse((obj) => {\n    if (!(obj instanceof THREE.Mesh)) {"
+    },
+    {
+     "path": "cmd: node --expose-gc --import hook.mjs s5a/bench.ts",
+     "lines": "-",
+     "quote": "[builder today(2 chars)] 4.8 us/frame; [builder 100c/60p] 88.7 us/frame; [builder 100c in room + 300 other-space] 266.4 us/frame, poses=402; [three 100c in room + 300 other-space] build 71.8ms meshes=2176 apply 649.4 us; [three 100c/60p] build 28.2ms meshes=596 apply 165.3 us"
+    }
+   ],
+   "bites_when": "Hundreds of materialized or watch-resident NPCs exist in the world state while the player is in one room (presence table, 06+).",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Measured headless: the absolute JS numbers are small (under 1 ms) so this is not a 60 FPS killer by itself; what bites is the 28-72 ms single-frame hitch on every room change plus unwarmed shader compile, and that cost grows linearly with cast. Builder allocation measured 0.3-4 KB/frame, negligible.",
+   "recommendation": "Filter entities by spaceId before posing (index entities per space in the sim), drop the per-frame sort (iterate in a stable cached order), build only the poses present in the resident space, and do the mount in a frame where the renderer.compile/compileAsync warm-up can run before first draw.",
+   "fix_cost": "M",
+   "ignore_cost": "Every doorway turns into a visible hitch once rooms hold more than a handful of NPCs."
+  },
+  {
+   "id": "S5A-03",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "An entity id outside /^[a-z0-9][a-z0-9_-]{0,63}$/ makes buildFrame throw (zod parse inside the per-entity loop), and onFrame has no try/catch and schedules requestAnimationFrame last, so one such id freezes the whole page permanently.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "699",
+     "quote": "semanticId: formatCharacterRootSemanticId(entity.entityId),"
+    },
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "14-18",
+     "quote": "const IdentifierTokenSchema = z\n  .string()\n  .trim()\n  .regex(\n    /^[a-z0-9][a-z0-9_-]{0,63}$/,"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "215-217",
+     "quote": "input.sync();\n    ownerWindow.requestAnimationFrame(onFrame);\n  };"
+    },
+    {
+     "path": "cmd: node --import hook.mjs s5a/throw.ts",
+     "lines": "-",
+     "quote": "Char_Upper THROWS ... npc.a THROWS ... crowd:01 THROWS (70-char id also THROWS); char_ok -> npc.char_ok"
+    }
+   ],
+   "bites_when": "The first generated NPC id (crowd, presence materialize, SLM-named character) with uppercase, a dot or colon, or over 64 chars.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether the domain constrains entity ids to this pattern: not found in WorldState/registry, so authored or generated ids are unconstrained there. Today's two ids pass.",
+   "recommendation": "Validate ids once at registration (and at materialize) against the same pattern, derive semanticId by cheap string concat in the hot loop, and wrap the frame body so an exception logs once and still re-arms requestAnimationFrame.",
+   "fix_cost": "S",
+   "ignore_cost": "A single bad id turns into a silent black-screen freeze with no telemetry, because the browser telemetry is in-memory only (S0)."
+  },
+  {
+   "id": "S5A-04",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "There is no interpolation seam: PlaySession steps the sim with the raw rAF dt and buildFrame reads only the current WorldState, so once the hardening batch moves the sim to a fixed 1/60 step the renderer will stutter (0 or 2 steps per frame) unless buildFrame also receives the previous state and an alpha.",
+   "evidence": [
+    {
+     "path": "src/application/shell/PlaySession.ts",
+     "lines": "184-185",
+     "quote": "this.coordinator.stepFrame(dtSeconds);\n    this.coordinator.pulseCognitiveScheduler();"
+    },
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "519-520",
+     "quote": "if (entity !== undefined && entity.spaceId === stage.spaceId) {\n        focusPos = sanitizeFiniteTriple(toLocal(entity.position, origin));"
+    },
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "2-2",
+     "quote": " * Pure WebGL-Independent `RenderFrameBuilder` (`src/application/rendering/RenderFrameBuilder.ts`)."
+    }
+   ],
+   "bites_when": "Hardening batch lands the accumulator, or direct-steer WASD (05d) moves the player continuously on a 60 Hz display whose vsync does not phase-lock with the sim.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "The camera spring is closed-form and stable at any dt (clamped to 0.25 s) and already uses render dt, so camera stability is fine; the gap is the entity and focus positions, which are read raw. The builder is also not pure as documented (it owns nine spring states), which is fine for presentation but means it must be fed alpha per render frame, never per tick.",
+   "recommendation": "Define the contract now: PlaySession owns the accumulator and keeps {prev, curr} entity-position snapshots; buildFrame takes alpha, lerps position and shortest-arc yaw, and a teleport flag (portal hop, stage change, spawn) that snaps instead of lerping. Feed the camera focus the interpolated position.",
+   "fix_cost": "M",
+   "ignore_cost": "Walking looks juddery on exactly the feature 05d exists to deliver, and it will be misdiagnosed as a GPU problem."
+  },
+  {
+   "id": "S5A-05",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "Mesh shape data is hardcoded in interfaces/three: prop size is two literal boxes (kitbashId is ignored) and character slot geometry is switch statements on feudal ids with generic fallbacks, so 05d's 'footprint of the drawn mesh' rule forces application/domain to read renderer literals, and a new epoch cannot add a headgear or prop shape without editing renderer code.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "290-292",
+     "quote": "const geometry = prop.isPortal\n    ? new THREE.BoxGeometry(1.2, 2.2, 0.14)\n    : new THREE.BoxGeometry(0.9, 0.9, 0.9);"
+    },
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "168-172",
+     "quote": "function buildHeadgearGeometry(headgearId: string): THREE.BufferGeometry {\n  switch (headgearId) {\n    case 'synod_cowl':\n      return new THREE.ConeGeometry(0.22, 0.32, 6);"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "225",
+     "quote": "A prop blocks the oriented footprint of the mesh the kitbash builder draws for it, plus `0.03` m so the body does not sit in the pixels."
+    }
+   ],
+   "bites_when": "05d collision lands (footprint needed in application/domain) or the first non-feudal epoch pack (P1) wants its own props and costume pieces.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether the schema constrains kitbash ids to feudal enums: no, they are open IdentifierTokens, so the data side is generic; only the builder is closed. DESIGN_NOTES 225 calls the proving-slice meshes 'the exemplar, not the rule', so the intent is generalisable, but nothing carries the dimensions.",
+   "recommendation": "Add a shape descriptor (primitive, dims, offset) to StagePropVisualBlueprint and a part-shape table registered per epoch in content/scene; the renderer interprets it and the sim reads the same dims for footprints. Fallback shapes should log a warning, not render silently.",
+   "fix_cost": "M",
+   "ignore_cost": "05d either duplicates 0.9 and 1.2x0.14 in the domain (drift, silent invisible walls) or imports Three-layer constants inward."
+  },
+  {
+   "id": "S5A-06",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "CameraVolume pitchDegrees and yawDegrees are sprung every frame but never reach the Three camera, which is driven only by position, lookAt, roll and fov (orientation really comes from the volume offset), so authors tuning those two fields change nothing.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "263-264",
+     "quote": "camera.position.set(frame.camera.position[0], frame.camera.position[1], frame.camera.position[2]);\n  camera.lookAt(frame.camera.lookAt[0], frame.camera.lookAt[1], frame.camera.lookAt[2]);"
+    },
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "235-236",
+     "quote": "pitchDegrees: z.number().min(-85).max(85).default(-28),\n    yawDegrees: z.number().min(-180).max(180).default(0),"
+    }
+   ],
+   "bites_when": "Now for anyone using the stage lab/blueprints to author camera angles; also when the diegetic UI or direct-steer needs camera-relative WASD (needs a real yaw).",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "grep for yawDegrees/pitchDegrees outside RenderFrameBuilder and the schema returned nothing in src; they only appear as exposed camera state in the frame.",
+   "recommendation": "Either derive offset from yaw/pitch/distance (so the fields drive the view and camera-relative WASD has a yaw to use) or delete the two fields and their springs.",
+   "fix_cost": "S",
+   "ignore_cost": "05d camera-relative steering gets built on a yaw value that is decorative."
+  },
+  {
+   "id": "S5A-07",
+   "topic": "arch",
+   "kind": "risk",
+   "claim": "Every kitbash part gets its own geometry and its own material (100 characters plus 60 props = 596 meshes, 596 geometries, 596 materials, roughly 4.5 draw calls per character), and shared materials cannot be used as-is because selection highlight writes emissive on the material.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/StageKitbashBuilders.ts",
+     "lines": "330-337",
+     "quote": "const torsoMesh = new THREE.Mesh(\n    new THREE.BoxGeometry(0.48, 0.72, 0.28),\n    createChiaroscuroToonMaterial({\n      baseHex: visual.primaryColorHex,\n      theme,"
+    },
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "330-332",
+     "quote": "if (selectedId !== null && semId === selectedId) {\n      mat.emissive.set('#4fd2ff');\n      mat.emissiveIntensity = 0.35;"
+    },
+    {
+     "path": "cmd: s5a/bench.ts",
+     "lines": "-",
+     "quote": "[three 100c/60p] build 28.2ms meshes=596 geoms=596 mats=596"
+    }
+   ],
+   "bites_when": "30-100 characters visible at once on the integrated GPU (many-NPC rooms); today's yard is about 10 draw calls and is fine.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "Headless bench shows JS cost under 0.2 ms for 596 meshes; the real GPU/driver cost per draw cannot be measured here, so this is a scaling risk, not a measured miss. Draw counts: player 4, walker 3, floor 1, wall 1, door 1, motifs share geometry/material per group.",
+   "recommendation": "Cache geometry by (slot, shape id) and toon materials by (hex, grime); give Tier 3 crowd one merged geometry with vertex colours and a shared material, keep full per-part kitbash for Tier 1/2, and move highlight to a clone-on-select or outline pass.",
+   "fix_cost": "M",
+   "ignore_cost": "Draw calls and 3x-per-character GPU allocations grow linearly with the crowd and only get fixed under profiler pressure."
+  },
+  {
+   "id": "S5A-08",
+   "topic": "feel",
+   "kind": "problem",
+   "claim": "The renderer is hard-capped at devicePixelRatio 1 with antialias off, so on the Retina MacBook the toon silhouettes render at half resolution with jagged edges, and the cap is not adaptive to measured frame time.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/shellDocument.ts",
+     "lines": "24-26",
+     "quote": "export function cappedDevicePixelRatio(devicePixelRatio: number): number {\n  return Math.min(devicePixelRatio, 1);\n}"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "79-79",
+     "quote": "const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });"
+    }
+   ],
+   "bites_when": "Now on any Retina display; becomes visible quality debt when the diegetic text and the thin 0.14 m door edges are judged by friends.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "A DPR of 1 is the safe budget for the integrated GPU and the scene is about 10 draws, so it is probably cheap to raise; the real fill-rate effect was not measurable headless.",
+   "recommendation": "Make the cap a setting with an adaptive step (1 -> 1.5 -> 2 from a rolling frame-time average, FXAA or 1.5x supersample for edges), and keep text in DOM so it is crisp regardless.",
+   "fix_cost": "S",
+   "ignore_cost": "The game looks soft and aliased on the target machine while headroom goes unused."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "The pure NDC projection used for DebugInspectorCards matches Three's own camera.project to 4e-16 (roll, fov, aspect), so DOM overlays anchored by projectWorldToNdc will land on the right pixel. Protect it with a parity test against THREE.PerspectiveCamera.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "334-337",
+     "quote": "export function projectWorldToNdc(\n  worldPos: readonly [number, number, number],\n  camera: CameraRenderState,\n): NdcProjection {"
+    }
+   ]
+  },
+  {
+   "claim": "The closed-form critically damped spring is unconditionally stable at any dt and already uses render dt with a 0.25 s clamp, so the camera needs no change for variable frame time; only its target needs interpolation.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "188-195",
+     "quote": "const clampedDt = Math.min(dtSeconds, MAX_CAMERA_SPRING_DT_SECONDS);\n  const safeCurrent = Number.isFinite(current) ? current : safeTarget;\n  const safeVelocity = Number.isFinite(velocity) ? velocity : 0;"
+    }
+   ]
+  },
+  {
+   "claim": "disposeSceneGraph frees every geometry and material exactly once (counts match built meshes: 596/596 and 2176/2176) and spares the shared gradient ramp; geometry/material sharing within a motif group is deduplicated by Set.",
+   "evidence": [
+    {
+     "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+     "lines": "379-383",
+     "quote": "if (\n      mat instanceof THREE.MeshToonMaterial &&\n      mat.gradientMap !== null &&\n      mat.gradientMap !== sharedRamp\n    ) {"
+    }
+   ]
+  },
+  {
+   "claim": "Semantic ids are schema-validated and uniqueness-checked per stage (segments, props, lights, motifs), and nothing in the render path uses Math.random or Date.now, so ids and pose order are deterministic.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/SceneVisualBlueprints.ts",
+     "lines": "325-325",
+     "quote": "message: `Duplicate semanticId '${prop.semanticId}' in stage '${stage.stageId}'`,"
+    }
+   ]
+  },
+  {
+   "claim": "Per-frame JS cost is small and allocation light: builder 5 us (today) to 89 us (100 chars, 60 props), apply 6 to 165 us, 0.3-5 KB/frame. Do not spend effort optimising the JS side; effort belongs on draw count and mount hitch. No shadow maps, no point lights in the starter stages, FogExp2 only.",
+   "evidence": [
+    {
+     "path": "cmd: node --expose-gc --import hook.mjs s5a/bench.ts",
+     "lines": "-",
+     "quote": "[builder 100c/60p] 88.7 us/frame, 3.1 KB/frame; [three 100c/60p] apply 165.3 us, 4.91 KB/frame"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Diegetic text as DOM anchored by the existing projection, not WebGL sprites",
+   "proposal": "Render NPC bubbles, lace pages and ambient lines as absolutely positioned DOM nodes updated once per rAF from RenderFrame.entityPoses[i].headAnchorWorldPosition run through projectWorldToNdc (compute only for the <=N speakers, not all entities, and not just in debugMode). Use transform: translate3d on pooled elements and CSS for the parchment skin; run it in the same rAF after buildFrame so there is no one-frame lag.",
+   "reference": "Disco Elysium and Crusader Kings style DOM/Canvas UI over a WebGL scene; Three CSS2DRenderer pattern",
+   "replaces_or_changes": "Avoids canvas-texture sprites (one draw call plus texture upload per bubble, blurry at DPR 1) and gives SLM-length text, wrapping, accessibility and reduced-motion for free. Only the inspector cards use the projection today."
+  },
+  {
+   "title": "Authored-hero plus merged-crowd character tiers",
+   "proposal": "Keep the 7-part kitbash for Tier 1/2, but build Tier 3 ambient_crowd as one merged BufferGeometry per costume archetype with vertex colours, shared across all crowd members through InstancedMesh with instanceColor and per-instance matrices. Pool instances in the resident space and drive them from the same entityPoses.",
+   "reference": "Assassin's Creed / Hitman crowd tiers; Three.js InstancedMesh with instanceColor",
+   "replaces_or_changes": "Replaces per-NPC 7-mesh groups for the crowd, collapsing ~4.5 draw calls per NPC to one per archetype and removing per-material highlight problems for bystanders."
+  },
+  {
+   "title": "Interpolation via a tiny render-state buffer owned by PlaySession",
+   "proposal": "Have the fixed-step loop write a flat Float32Array of {x,y,z,yaw,teleportEpoch} per resident entity at each tick (prev and curr swapped), and let buildFrame lerp from that buffer with alpha. The buffer also gives the renderer a stable entity ordering without sorting object keys per frame.",
+   "reference": "Glenn Fiedler 'Fix Your Timestep' with render-state snapshots (Overwatch ECS netcode, Unity interpolated rigidbodies)",
+   "replaces_or_changes": "Replaces the Object.keys().sort() + zod + object-literal pose path with typed arrays, and satisfies the hardening batch's golden-run requirement because the buffer is presentation-only and not in the hashed state."
+  }
+ ],
+ "could_not_verify": [
+  "Actual GPU frame time, draw-call cost, fill rate and shader compile time on Intel UHD/Iris Plus (and AMD dGPU switching) were not measurable headless; all 'draw call' figures are mesh counts from a Node scene graph, not GPU measurements.",
+  "Whether stages with different point-light counts trigger a visible program recompile hitch at stage swap (starter stages have zero point lights; only the unused charnel_stairs default has one with a god-ray cone).",
+  "Additive double-sided god-ray cone overdraw cost with several torches, and whether the cone intercepts raycastPick clicks (raycastPick returns the first hit with any semanticId, floor-only filtering applies only to raycastFloor).",
+  "Real GC pauses: heapUsed deltas in the bench are coarse; the 0.3-5 KB/frame figures are order-of-magnitude only.",
+  "PROFILE SCENARIO for Opus with the owner: run npm run dev, open the page in Chrome (not Safari) on the 2019 MacBook with the laptop on battery and power mode default, close other tabs, DevTools > Performance with Screenshots off and 'Enable advanced paint instrumentation' off, CPU throttle none. Load a synthetic pack/stage of 100 characters and 60 props (copy the bench synth in /private/tmp/.../scratchpad/s5a/bench.ts into a throwaway dev entry or stage-lab edit), stand in the room, record 10 s idle and 10 s of walking between waypoints, then record once across a door (stage swap). Read: (1) Frames lane for dropped frames and the frame-time histogram (target 16.6 ms, flag p95 above 12 ms); (2) the Main thread flame: share of 'Animation Frame Fired' split into applyRenderFrameToScene, WebGLRenderer.render (renderBufferDirect, setProgram, uniform uploads) and updateMatrixWorld; (3) the GPU lane (or chrome://gpu and the 'GPU' track) for GPU-bound frames, i.e. long 'Raster' / idle main thread with long frames; (4) the doorway recording for a single long task above 50 ms (scene build) and any 'Compile Shader'/'Link Program' entries; (5) Memory tab heap timeline with Allocation sampling for sawtooth GC and, after 10 door crossings, renderer.info.memory.geometries/textures and programs counts in the console to confirm disposal; (6) repeat at DPR 1 vs 2 by toggling the cap to see fill-rate sensitivity, and with ?godrays suppressed (reduce-motion on) to isolate the cone cost."
+ ]
+}

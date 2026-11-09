@@ -1,0 +1,744 @@
+{
+ "findings": [
+  {
+   "id": "S6B-01",
+   "topic": "process",
+   "kind": "gap",
+   "claim": "Archived spec scenarios assert that a call is made or a payload round-trips, not that the feature's stated Purpose happens, so features that do nothing end to end (lab Save, telemetry pipeline, file saves) are fully spec-compliant and fully gated.",
+   "evidence": [
+    {
+     "path": "openspec/specs/play-shell/spec.md",
+     "lines": "110-112",
+     "quote": "#### Scenario: The stage panel saves through the disk bridge\n- **WHEN** the stage panel saves the selected stage blueprint or character visual\n- **THEN** the save SHALL use the existing scene-blueprint or character-visual disk route"
+    },
+    {
+     "path": "openspec/specs/stage-inspector-lab-and-dom-mirror/spec.md",
+     "lines": "3",
+     "quote": "for persisting live visual edits to disk"
+    },
+    {
+     "path": "openspec/specs/session-telemetry-and-compaction/spec.md",
+     "lines": "9",
+     "quote": "The telemetry system SHALL record every player, NPC, rival operative, orbital, and system event to a structured NDJSON session log"
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/00-baseline.md",
+     "lines": "18-19",
+     "quote": "Nothing posts to /api/telemetry or /api/saves.\n  logs/ files are 0 bytes; saves/ empty."
+    }
+   ],
+   "bites_when": "now, and again on every future change whose Purpose is a persistence or pipeline effect (05b pacing-profile PUT, 05a sound-lab disk persistence, text-pool authoring kit): each will pass its scenarios with no consumer.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Looked for a scenario in any of the 14 specs that has a reader of the saved file (a load-after-save, reload, or session-restart WHEN). Stage-lab GET/PUT scenarios (stage-inspector spec) test the bridge round-trip only; nothing in src calls GET (S4-01). No telemetry scenario drives the game; tests feed the logger directly. Did not find a counterexample.",
+   "recommendation": "Add a spec-rule to config.yaml: every requirement whose Purpose is persistence, logging or a pipeline MUST carry one scenario that starts at the user-visible trigger and ends at an observable consumer (save, reload, assert), and design.md MUST list the producer and consumer call sites in non-test code. Backfill for lab Save and telemetry in the hardening amendments.",
+   "fix_cost": "S",
+   "ignore_cost": "Each future 'persisting' feature repeats the lab-Save outcome: green gates, nothing loaded."
+  },
+  {
+   "id": "S6B-02",
+   "topic": "docs",
+   "kind": "problem",
+   "claim": "At least six archived spec requirements assert behaviour that the accepted register says is wrong or untrue, so the hardening steps will either violate the spec or silently diverge from it unless the specs are amended in the same commits.",
+   "evidence": [
+    {
+     "path": "openspec/specs/deterministic-simulation-primitives/spec.md",
+     "lines": "28",
+     "quote": "the store SHALL return a clone/value matching the declared default of type `T`"
+    },
+    {
+     "path": "openspec/specs/session-telemetry-and-compaction/spec.md",
+     "lines": "31",
+     "quote": "any prior session's active and compacted log files in `./logs/` SHALL be replaced by the new session's log files"
+    },
+    {
+     "path": "openspec/specs/clean-architecture-and-quality-gate/spec.md",
+     "lines": "35",
+     "quote": "unit tests in under 5 seconds without requiring network access"
+    },
+    {
+     "path": "openspec/specs/multi-session-saves-and-debug-skill/spec.md",
+     "lines": "13",
+     "quote": "SHALL restore the exact `schemaVersion`, `epochId`, `worldTick`, `SeededRandom` state, `StateSliceStore` values"
+    },
+    {
+     "path": "openspec/specs/deterministic-simulation-primitives/spec.md",
+     "lines": "20",
+     "quote": "any `.ts` file in `src/domain/` or `src/content/` calls `Math.random()` or `Date.now()`"
+    },
+    {
+     "path": "openspec/specs/play-shell/spec.md",
+     "lines": "96-97",
+     "quote": "### Requirement: Missing stage does not kill the loop\nWhen the focus entity's `spaceId` has no stage in the launch directory"
+    },
+    {
+     "path": "openspec/specs/encoded-visual-framework-and-render-frame/spec.md",
+     "lines": "24",
+     "quote": "smooth camera position, look-at target, pitch, yaw, and FOV across volume transitions"
+    }
+   ],
+   "bites_when": "as each hardening step lands: hx step 3 (clone-on-read is spec'd, S3-01), 0a (spec orders the wipe, S4-03), 0b (<5 s is false at 6.1-6.6 s, S0), 4 (Map/Set slices are not 'exact', S3-02), 6 (application is outside the determinism ban, S4-04), 5 (a throw still kills the loop, S3-05/S5-03; the requirement title overclaims), 05d (pitch/yaw are dead fields, S5-06).",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether each requirement is narrower than I read it. The clone line is in a 'default fallback' scenario but the wording is a SHALL on the store contract; the retention scenario says 'replaced' by design (it ordered the behaviour S4-03 flags); the 5 s clause has no scenario, so no test can fail it. The kinematics and waypoint specs held up: no contradiction with S3-11/S3-12 beyond silence (S6B-02 notes the waypoint spec never says what the entity's phase is after truncation).",
+   "recommendation": "Make each hardening change a spec-delta change: its specs/ folder carries MODIFIED requirements for the lines above (clone -> share-on-read, retention -> rotate to logs/prev, verify budget -> measured number plus a timed test, save exactness -> versioned codec, determinism scope -> domain+application+content, loop requirement -> frame guard). Add to the waypoint spec a scenario for the post-truncation phase and a Blocked outcome.",
+   "fix_cost": "S",
+   "ignore_cost": "The first hardening commit that fixes a bug contradicts a SHALL, and the next gate agent 'finds' a spec violation in correct code."
+  },
+  {
+   "id": "S6B-03",
+   "topic": "process",
+   "kind": "gap",
+   "claim": "The gates catch what a diff review can see (layering, naming, edge cases in new functions) and miss four classes the review later found: feature does nothing end to end, threat model of a new route, cost of a call on a hot path, and failure containment of a loop; about 30 of the later register findings trace to archived changes that passed all gates.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "170-171",
+     "quote": "launch 6 parallel review subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the delivered change across six axes:\n      1. Adversarial Review (edge cases, failure modes, concurrency/race conditions, invalid inputs)"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "106",
+     "quote": "includes Oct 21, 2026 security patches for CVE-2026-111497"
+    },
+    {
+     "path": "cmd: grep -rn -i 'csrf\\|origin\\|threat' openspec/changes/archive/*02*/ openspec/changes/archive/*04*/",
+     "lines": "",
+     "quote": "(no matches in the proposal, design, spec or tasks of changes 02 and 04 for CSRF, Origin or a threat model)"
+    }
+   ],
+   "bites_when": "now: the next dev-server route (05b PUT /api/pacing-profiles, 05a sound-lab persistence, telemetry wiring) ships under the same axes.",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Counts are attributed by file origin (git log --follow) and the register's slot column; boundary cases (S3-01 spans 01 and 03, S3-02 spans 02/03, S4-02 spans 02 and 04) are counted once at first origin, so the table can be off by 2-3. Checked that fix(review) commits exist: 01 dc7515f, 01a b1234b0, 02 801ce92 (touched NdjsonSessionTelemetry.ts and localDiskBridgePlugin.ts and left both defects), 03 42bf8c8; change 04's review fixes were folded into docs commit 122ac1a; change 05 has no review-fix commit at all; 05c needed 3 fix + 1 perf commits. The gates do produce fixes, so the claim is about dimensions, not about the gates doing nothing. No finding argues for fewer gates.",
+   "recommendation": "Add four checks to the gates (details in S6B-03 table below the findings): (G1) 'Does the shipped feature do what proposal.md says': a Subagent runs the feature through the real entry point (npm run dev page or CLI), reports producer and consumer call sites, and fails on a write with no reader or a pipeline with no feeder. (G2) Security/trust-boundary axis for any route, port, file path or parser: Origin, Content-Type, size, path, token. (G3) Hot-path cost axis: per-frame call graph, allocation, and a micro-benchmark threshold for any slice/store/renderer call. (G4) Failure-containment axis: what does a throw in this code do to the rAF loop, the tick, and the save? Add a throwing-input test per entry point. (G5) Post-merge defect ledger: a one-line-per-defect file recording which axis should have caught each later finding, reviewed at each gate. (G6) Spec-vs-reality diff: grep each SHALL against the code that implements it.",
+   "fix_cost": "S",
+   "ignore_cost": "The core-model steps (Observation, Presence, Act) add hot-path stores and cross-layer pipelines, the exact classes the gates miss, so the same 30-per-7-changes defect rate will recur at larger scale.",
+   "recommendation_gate_table": [
+    {
+     "change": "01",
+     "later_defects": [
+      "S4-04 determinism guard literal-only",
+      "S4-05 layer-test blind spots",
+      "S3-01 clone cost (StateSliceStore born here)"
+     ],
+     "missed_dimension": "Adversarial bypass test of the guard itself (does the guard catch an aliased Math.random?); hot-path cost"
+    },
+    {
+     "change": "02",
+     "later_defects": [
+      "S4-02 bridge CSRF",
+      "S4-03 logger truncates on start",
+      "S4-14 compaction/CLI gaps",
+      "S3-03 no save migration or pack check",
+      "S0 telemetry/save pipeline unfed by the game"
+     ],
+     "missed_dimension": "security/trust-boundary; end-to-end feature trace (G1); failure-containment (crash on reload erases evidence)"
+    },
+    {
+     "change": "03",
+     "later_defects": [
+      "S3-01 clone per read/write (10-16 ms at 5k rows)",
+      "S3-02 untyped slices, Map/Set lost",
+      "S3-04 throw aborts batch",
+      "S3-06 pause drops effects",
+      "S3-07 no hash/golden",
+      "S3-08 seed scramble",
+      "S3-10 kinematics cannot host commit/steer",
+      "S3-15 zero-speed mover",
+      "S3-14 legacy accumulate"
+     ],
+     "missed_dimension": "hot-path cost (G3); determinism golden-run (no gate demands a replay test); failure containment (G4)"
+    },
+    {
+     "change": "04",
+     "later_defects": [
+      "S4-01 lab Save never loaded",
+      "S5-05 shape data hardcoded in renderer",
+      "S5-06 dead pitch/yaw fields",
+      "S5-07 one geometry per part",
+      "S5-08 DPR 1",
+      "S4-02 two more unguarded PUT routes"
+     ],
+     "missed_dimension": "end-to-end feature trace (G1); security (G2); dead-field check (a schema field with no reader)"
+    },
+    {
+     "change": "05",
+     "later_defects": [
+      "S3-11 door closes mid-route: silent doorway dwell",
+      "S3-12 retarget plans from last waypoint"
+     ],
+     "missed_dimension": "adversarial state-machine sequence tests (interrupt mid-route); no review-fix commit exists for this change"
+    },
+    {
+     "change": "05c",
+     "later_defects": [
+      "S3-05 any throw kills rAF loop",
+      "S5-03 bad id throws in render loop",
+      "S3-09 frame order in PlaySession",
+      "S3-18 sticky status",
+      "S5-02 room-change hitch 28-72 ms",
+      "S5-09 stateless input",
+      "S5-14 free-cam gated on isPaused"
+     ],
+     "missed_dimension": "failure containment (G4); hot-path cost (G3); also 3 fix + 1 perf commits landed during the change, so intra-change gates caught only the visible bugs"
+    }
+   ],
+   "approx_totals": "01:3, 02:5, 03:9, 04:6, 05:2, 05c:7 = 32 defect-instances against 6 changes (counting S3-01 once at 01); 12 are failure-containment/hot-path/security classes no current axis names."
+  },
+  {
+   "id": "S6B-04",
+   "topic": "process",
+   "kind": "problem",
+   "claim": "The roadmap is a 27-entry prose list inside a YAML context string with one repeated status tag, no machine-readable dependencies (9 of 20 planned entries state none, including the keystone 05b), and a non-monotonic order, so an agent cannot reliably answer 'what is next' or 'what does X depend on', and the accepted reorder (about 12 insertions, 2 splits, 1 rescope) will make it worse.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "127-133",
+     "quote": "  5c. 05c-play-shell\n  5d. 05d-direct-floor-locomotion\n  5e. 05e-proximity-use-and-menu-grammar\n  5a. 05a-acoustics-and-procedural-web-audio"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "136-137",
+     "quote": "  6c. 06c-epoch-travel-vignettes\n  6b. 06b-assassination-and-cover-persecution"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "132",
+     "quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md",
+     "lines": "12-14",
+     "quote": "3. StateSlice clone fix \u2192 05b-1 (elapsedWatches, advance_watches, *Ticks\u2192*Watches, timeHorizonConfig, Committed Time-Spend verbs)."
+    }
+   ],
+   "bites_when": "at the next /opsx-propose: the propose agent reads config.yaml prose to find the next change and its prerequisites, and today the right answer (hardening, then 05d) appears nowhere in it.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Counted 'Depends on' per planned line with awk: 11 of 20 planned entries carry one, 9 do not (05a, 05b, 06a, 06b, 06c, 09, 09a, 10, 11). 05c IS now tagged [archived] (b9ce743 fixed it by hand), so the stale-tag part of the baseline is already repaired, but only manually. Order is alphabetical-by-suffix, not by dependency (05a, 05b sit after 05e though 05b-1 now precedes 05d work in dependency terms).",
+   "recommendation": "Move the roadmap out of config.yaml into openspec/roadmap.yaml, one record per change: {id, title, status: archived|active|proposed|planned|parked, depends_on: [ids], slot: family, specs_modified: [capabilities], source: [register ids]}. Ids are stable slugs that are never renumbered (keep 01..05c as-is; new ones use a family prefix, e.g. hx-0a, cm-act, 05b-1); order is derived by topological sort with `slot` as a tiebreak; letter suffixes mean 'split of' only. Add a tests/architecture check: ids unique, depends_on resolve, graph acyclic, archived ids equal the folders under openspec/changes/archive, exactly zero 'active' beyond one. config.yaml's context keeps a two-line pointer. Add an npm script `roadmap:next` printing the first planned change whose deps are all archived.",
+   "fix_cost": "M",
+   "ignore_cost": "Every reorder requires hand-editing a prose list read by agents as authority, and the first mis-ordered propose burns a change cycle."
+  },
+  {
+   "id": "S6B-05",
+   "topic": "process",
+   "kind": "risk",
+   "claim": "The 4-6 task rule counts two fixed overhead tasks (docs and review) inside the cap, leaving 2-4 feature tasks, forces docs into trailing commits that lag the code, and is already broken by the amended roadmap (hardening steps 6 and 7, 05d with 11 prerequisites) so the cap measures the wrong thing; the properties that matter (green commit, reviewable diff) are not what it checks.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "154",
+     "quote": "Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "209",
+     "quote": "End each change with a documentation, verification, and 6-subagent review task"
+    },
+    {
+     "path": "openspec/changes/archive/2026-11-08-05c-play-shell/tasks.md",
+     "lines": "19",
+     "quote": "- [x] 5.1 Update `src/application/README.md`, `src/application/AGENTS.md`, and `src/content/README.md` to name `PlaySession`"
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/05-runtime-feel.md",
+     "lines": "33-53",
+     "quote": "1. **Hardening step 5 (amended).**"
+    }
+   ],
+   "bites_when": "at hx-6 and 05d, whose scope in the accepted list is 7 and 11 work items: the author either splits into artificial changes or breaks the cap again, and the 'one commit = one task' mapping gets lost.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "Counted task checkboxes: 01=6, 01a=5, 02=8, 03=6, 04=6, 05=6, 05c=7, so 5 of 7 obeyed it and every one that obeyed had 4.1/4.2 (docs/review) as 2 of its 6; the two that broke it (02, 05c) are the two with an extra surface (bridge/CLI; browser page). Checked whether the rule helps commit greenness: all 7 changes' feature commits are green by verify, and each commit maps to one task, so the 1-task-1-commit part IS working. 05c's seventh task (7.1) was written after delivery to hold a fix, and 3 more fix/perf commits had no task at all, so the checklist does not reflect the real commit stream. The doc split (a43063b then b68f6fa, tasks 5.1 and 6.1) existed only because docs are batched after code; S0 counts 29 docs commits vs 26 feat.",
+   "recommendation": "Keep 'one task = one green, reviewable commit' and '<= 3 source files plus tests per task'. Replace the count cap by a size rule: a change over 8 tasks or touching over 3 layers must split along a dependency. Move per-section README/AGENTS updates into the feature task that changes the module (a doc check already guards them), leaving one closing task for review. Record unplanned fix commits as 'x.y-fix' tasks so the checklist matches git. Keep the 6-subagent gate as is.",
+   "fix_cost": "S",
+   "ignore_cost": "hx-6 and 05d either break the rule silently (the rule's authority erodes) or get split by the cap rather than by dependency."
+  },
+  {
+   "id": "S6B-06",
+   "topic": "sequencing",
+   "kind": "gap",
+   "claim": "The accepted register implies roughly 30 new changes and amendments, but none is yet an OpenSpec proposal, and several accepted slots (pre-05b-1 launch validation, telemetry wiring, minimal audio, the spec amendments in S6B-02) have no owner in the roadmap; unless they are listed as changes with dependencies, they will be absorbed into whichever neighbouring change is proposed next and break the size rule.",
+   "evidence": [
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md",
+     "lines": "29-30",
+     "quote": "The validateLaunch / kind-table / docs-truth work lands before the first new kind at 05b-1 (slice 04)."
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md",
+     "lines": "31",
+     "quote": "A **new minimal-audio change goes directly after 05e**"
+    },
+    {
+     "path": "reviews/2026-11-08-root-and-branch/register.md",
+     "lines": "32",
+     "quote": "Label click-to-waypoint as dev tooling. Wire browser telemetry to `/api/telemetry`."
+    }
+   ],
+   "bites_when": "at the first /opsx-propose after synthesis.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked 02b and the register for an existing change id for telemetry wiring and for the launch validator: neither has one. The 'hardening batch' is described as one batch of 9 steps; 3 of the 9 are over 8 file-edits and cannot be one change under any size rule.",
+   "recommendation": "Adopt the change_plan list in this file as the input to slice 7: it names one change per accepted slot, with dependencies, and marks which are spec-delta changes.",
+   "fix_cost": "S",
+   "ignore_cost": "Slice 7 produces a roadmap with the same prose-blob problem."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "The 1-task=1-commit mapping with a Verify and Commit line per task is working: every feature commit in the archive is a single conventional commit per task, and the archive folders retain proposal, design, tasks and delta specs, so the history is auditable.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "155",
+     "quote": "Each task MUST touch at most 1-3 source files plus its corresponding test file, compile cleanly, pass `npm run verify`, and map 1:1 to a single Conventional Commit."
+    }
+   ]
+  },
+  {
+   "claim": "The post-change review gate does find and fix real defects (fix(review) commits exist for 01, 01a, 02, 03 and a fix wave in 05c); keep all axes and add the four in S6B-03.",
+   "evidence": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "170",
+     "quote": "launch 6 parallel review subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the delivered change across six axes:"
+    }
+   ]
+  },
+  {
+   "claim": "Specs are written in WHEN/THEN with test-style concreteness (30 scenarios in play-shell, 32 in change 05), and most are covered by a matching unit test (checked DPR cap, missing_stage, reduced motion, 256 KiB cap), so spec-to-test traceability is mostly real; the gap is outcome coverage, not scenario coverage.",
+   "evidence": [
+    {
+     "path": "openspec/specs/play-shell/spec.md",
+     "lines": "57-59",
+     "quote": "#### Scenario: A high device pixel ratio is capped\n- **WHEN** `devicePixelRatio` is greater than `1` and the renderer is created"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Roadmap as a checked DAG file with a generated 'next' view",
+   "proposal": "Store the roadmap as openspec/roadmap.yaml (id, status, depends_on, specs_modified, source findings). A tiny tests/architecture check validates it (unique ids, resolvable deps, acyclic, archived == archive folders). A script prints 'next' (first planned change whose deps are archived) and 'needs X' (transitive deps). The prose descriptions stay in each change's proposal.md, not in config.yaml.",
+   "reference": "Bazel/Make dependency graphs; Shape Up 'hill chart' kept as status only; ADR index files validated in CI.",
+   "replaces_or_changes": "Replaces the 27-line prose roadmap in config.yaml and the manual [archived]/[planned - revisable] tags."
+  },
+  {
+   "title": "Headless-browser smoke script as the 'does it work' gate, outside verify",
+   "proposal": "Add `npm run smoke` that starts Vite, drives the real page with Playwright (Chromium), asserts: page boots, no console error across 600 frames, F3 lab Save then reload shows the saved value, a forced throw in a frame is contained, logs/current-session.jsonl is non-empty. Run it at the post-change gate only, same status as `eval:ai` (outside verify, so the <5s budget is untouched).",
+   "reference": "Walking-skeleton end-to-end test (Cockburn); the AI eval runner pattern already adopted for eval:ai.",
+   "replaces_or_changes": "Adds a gate G1 backed by a script rather than a subagent's reading; would have failed on lab Save (04), the unfed telemetry (02) and the dead rAF loop (05c)."
+  },
+  {
+   "title": "Spec 'Wired by' line per requirement, grep-checked",
+   "proposal": "Each requirement in openspec/specs gets a `Wired by:` line naming the non-test file and symbol that is its producer and consumer. A tests/architecture check greps that each named symbol exists and has at least one non-test reference. A requirement with 'Wired by: none (library)' is allowed but visible.",
+   "reference": "Requirements traceability matrix; DbC contracts with call-site checks.",
+   "replaces_or_changes": "Turns 'Purpose says persisting' into a mechanically-checkable claim; flags saveToSlot/loadFromSlot (never called) and GET scene-blueprints on the next verify."
+  }
+ ],
+ "could_not_verify": [
+  "Per-change defect attribution is by git origin of the file plus register slot, not blame of the specific line; totals may be off by 2-3.",
+  "Whether the Composer 2.5 Fast / Grok review subagents saw the CSRF and discarded it: no review transcripts are archived, only the fix commits.",
+  "Whether openspec validate --strict enforces anything about WHEN/THEN coverage of Purpose: did not run the CLI (read-only brief)."
+ ],
+ "change_plan": [
+  {
+   "id": "docs-rules-spine-and-roadmap-graph",
+   "title": "Docs: rules spine, system graph, clock record, roadmap.yaml",
+   "scope": "Docs-only (no code): 8-rule rules spine, 7-primitive system graph, clock decision record, Leverage Chain definition; DESIGN_NOTES section 9 amendment so per-NPC tone blips are not a synthesized voice; P3 cameo note; migrate the roadmap to openspec/roadmap.yaml with its architecture check.",
+   "depends_on": [],
+   "source_findings": [
+    "S1-R1",
+    "S2-13",
+    "S2-17",
+    "S1-R9",
+    "S5-20",
+    "S6B-04"
+   ]
+  },
+  {
+   "id": "hx-0a-bridge-and-logger-lock",
+   "title": "Hardening 0a: bridge lock, logger never truncates",
+   "scope": "One guarded write-route helper (Origin allow-list, Sec-Fetch-Site, Content-Type, per-run token, size cap that destroys the stream, realpath containment), explicit server.cors, real http middleware test on 127.0.0.1:0, logger rotates the previous session to logs/prev. Spec delta: session-telemetry retention scenario, multi-session-saves bridge scenarios, stage-inspector routes.",
+   "depends_on": [],
+   "source_findings": [
+    "S4-02",
+    "S4-03",
+    "S6B-02"
+   ]
+  },
+  {
+   "id": "hx-0b-parallel-verify",
+   "title": "Hardening 0b: parallel, louder verify",
+   "scope": "Run format, lint, typecheck, vitest in parallel with buffered one-line PASS/FAIL; keep verify:serial; delete prose-pinning arch tests; pre-commit runs verify. Spec delta: replace the unmeasured '<5 s' clause with a measured budget and a timed check.",
+   "depends_on": [],
+   "source_findings": [
+    "S4-15",
+    "S4-16",
+    "S6B-02"
+   ]
+  },
+  {
+   "id": "hx-1-legacy-clamp-and-seed-scramble",
+   "title": "Hardening 1+2: legacy clamp, seed scramble",
+   "scope": "Clamp legacy mutations to [0,1] with a telemetry note (throw kept in an authoring-time contract test); splitmix32 seed scramble with a golden-vector test.",
+   "depends_on": [
+    "hx-0b-parallel-verify"
+   ],
+   "source_findings": [
+    "S3-14",
+    "S3-08"
+   ]
+  },
+  {
+   "id": "hx-3-state-slices-and-test-builders",
+   "title": "Hardening 3: share-on-read slices, typed and versioned",
+   "scope": "Freeze-on-write, share-on-read StateSliceStore; optional schema/version/migrate on StateSliceKey; plain-JSON guard; tests/support builders makeRegistry, makeWorldState, makeStageBlueprint. Spec delta: deterministic-simulation-primitives default-fallback scenario no longer demands a clone.",
+   "depends_on": [
+    "hx-1-legacy-clamp-and-seed-scramble"
+   ],
+   "source_findings": [
+    "S3-01",
+    "S3-02",
+    "S4-13",
+    "S6B-02"
+   ]
+  },
+  {
+   "id": "hx-4-world-state-codec-and-pack-identity",
+   "title": "Hardening 4: WorldStateCodec, pack identity, id pattern",
+   "scope": "WorldStateCodec with snapshotVersion, Zod load, migrations chain, epoch/pack check, one field list; packId/version on registry and save envelope; one entity-id pattern check at load and materialize; listSlots reports why a slot is unreadable. Spec delta: save round-trip scenario.",
+   "depends_on": [
+    "hx-3-state-slices-and-test-builders"
+   ],
+   "source_findings": [
+    "S3-03",
+    "S4-10",
+    "S5-03",
+    "S3-09"
+   ]
+  },
+  {
+   "id": "hx-5-reducer-outcomes-and-frame-guard",
+   "title": "Hardening 5: reducer outcomes, frame try/catch, pause semantics",
+   "scope": "Reducer returns applied/rejected with reason; split simulationFrozen from command acceptance; PlaySession.status per call; frame try/catch that re-arms rAF; lab mode is a PlaySession flag, free-cam gated on it. Spec delta: play-shell loop requirement and pause scenarios.",
+   "depends_on": [
+    "hx-4-world-state-codec-and-pack-identity"
+   ],
+   "source_findings": [
+    "S3-04",
+    "S3-05",
+    "S3-06",
+    "S3-18",
+    "S5-14"
+   ]
+  },
+  {
+   "id": "hx-6a-tick-phases-and-interpolation",
+   "title": "Hardening 6a: coordinator.tick, fixed step, interpolation seam",
+   "scope": "coordinator.tick(dt, commands) with a named phase order; 1/60 s accumulator with capped catch-up; interpolation seam (prev/curr, alpha, teleport marker) in RenderFrameBuilder; PlaySession frame order moves into tick.",
+   "depends_on": [
+    "hx-5-reducer-outcomes-and-frame-guard"
+   ],
+   "source_findings": [
+    "S3-09",
+    "S3-07",
+    "S5-04"
+   ]
+  },
+  {
+   "id": "hx-6b-state-hash-golden-run-determinism-lint",
+   "title": "Hardening 6b: hashWorldState, golden run, determinism lint",
+   "scope": "hashWorldState; src/application/headless/runScenario harness; golden run with shuffled insertion and throwing Math.random/Date stubs, slice JSON round trip, PHASES-order test; one ESLint determinism block for domain, non-scene content, application; ban node:*, require, non-literal import(). Spec delta: determinism ban scope.",
+   "depends_on": [
+    "hx-6a-tick-phases-and-interpolation"
+   ],
+   "source_findings": [
+    "S3-07",
+    "S4-04",
+    "S4-05",
+    "S4-07",
+    "S6B-02"
+   ]
+  },
+  {
+   "id": "hx-7-kinematics-outcomes",
+   "title": "Hardening 7: kinematics outcomes and portal fixes",
+   "scope": "Split stepping by locomotion mode behind a context object; total phase-transition helper; transition events {behaviourId, outcome Arrived|Blocked|Interrupted, residualDt}; spaceId flips on portal-plane crossing; fix door-closes-mid-route dwell and retarget-from-last-waypoint; reject zero-speed moves. Spec delta: waypoint truncation phase scenario, blocked outcome.",
+   "depends_on": [
+    "hx-6b-state-hash-golden-run-determinism-lint"
+   ],
+   "source_findings": [
+    "S3-10",
+    "S3-11",
+    "S3-12",
+    "S3-15",
+    "S6B-02"
+   ]
+  },
+  {
+   "id": "telemetry-wiring-and-crash-ring",
+   "title": "Telemetry wiring: browser feeds the bridge",
+   "scope": "Browser posts telemetry through the guarded bridge; crash ring buffer flushed on throw; query limit/tail/count-by; honest skill text; newline guard; ENOSPC warning; Act-log vs telemetry policy recorded. Label click-to-waypoint as dev tooling.",
+   "depends_on": [
+    "hx-0a-bridge-and-logger-lock",
+    "hx-5-reducer-outcomes-and-frame-guard"
+   ],
+   "source_findings": [
+    "S1-R11",
+    "S4-12",
+    "S4-14",
+    "S6B-01"
+   ]
+  },
+  {
+   "id": "gate-brief-amendments",
+   "title": "Process: gate briefs and spec rules",
+   "scope": "Edit config.yaml rules/gates: G1 end-to-end feature trace, G2 trust-boundary axis, G3 hot-path cost axis, G4 failure containment, G5 defect ledger, G6 spec-vs-reality diff; spec rule for Purpose-bearing requirements; size rule replacing the 4-6 cap; optional npm run smoke.",
+   "depends_on": [],
+   "source_findings": [
+    "S6B-01",
+    "S6B-03",
+    "S6B-05"
+   ]
+  },
+  {
+   "id": "pre-05d-render-residency-and-shape-table",
+   "title": "Pre-05d: renderer residency, cache, shape descriptor",
+   "scope": "Content shape descriptor (primitive, dims, offset) read by renderer and footprint builder; build only resident-space poses; geometry/material cache with shared-resource-safe dispose; compileAsync warm-up; unknown shape ids fail validation.",
+   "depends_on": [
+    "hx-7-kinematics-outcomes"
+   ],
+   "source_findings": [
+    "S5-02",
+    "S5-05",
+    "S5-07"
+   ]
+  },
+  {
+   "id": "05d-direct-floor-locomotion",
+   "title": "05d amendment: InputFrame, control frame, locomotion, readability test",
+   "scope": "Amend 05d to add: InputState/InputFrame (event.code, blur/visibility, edge-triggered Space), camera control frame derived from volume yaw/pitch with latch and single zoom-out, mesh-footprint blocking, readability contract test (value tiers). Split off render work to the pre-05d change to stay within the size rule.",
+   "depends_on": [
+    "pre-05d-render-residency-and-shape-table"
+   ],
+   "source_findings": [
+    "S5-06",
+    "S5-09",
+    "S5-11",
+    "S5-15"
+   ]
+  },
+  {
+   "id": "05e-proximity-use-and-menu-grammar",
+   "title": "05e amendment: modal stack, state variants, Settings model",
+   "scope": "Amend 05e: modal input stack that consumes Space/Escape in-frame, prop state-variant in shape table, warm mark on the selected Space target (debug highlight off cyan), minimal Settings model outside the hash; clause reworded to 'no second domain pause flag'.",
+   "depends_on": [
+    "05d-direct-floor-locomotion"
+   ],
+   "source_findings": [
+    "S5-10",
+    "S5-12",
+    "S5-15",
+    "S5-18"
+   ]
+  },
+  {
+   "id": "audio-minimal-footsteps-doors-menu-murmur",
+   "title": "Minimal audio (new change after 05e)",
+   "scope": "Footsteps by surface, doors, menu confirm/back, murmur through doors on a provisional audibility-tier rule; per-NPC tone blips added when text pages exist (07). Full 05a stays later.",
+   "depends_on": [
+    "05e-proximity-use-and-menu-grammar",
+    "docs-rules-spine-and-roadmap-graph"
+   ],
+   "source_findings": [
+    "S5-19",
+    "S5-20"
+   ]
+  },
+  {
+   "id": "lab-launch-validation-and-kind-table",
+   "title": "Pre-05b-1a: validateLaunch, kind table, ref table",
+   "scope": "validateLaunch(pack, stages, visuals) collecting all errors with id and file hint; defineModuleKind kind table; registry ref table (drop duplicate check, add institutionalLineageId ref); epoch-agnostic denylist derived from exported packs and moved to tests/architecture.",
+   "depends_on": [
+    "audio-minimal-footsteps-doors-menu-murmur",
+    "hx-4-world-state-codec-and-pack-identity"
+   ],
+   "source_findings": [
+    "S4-06",
+    "S4-08",
+    "S4-09"
+   ]
+  },
+  {
+   "id": "lab-json-source-of-truth-and-docs-truth",
+   "title": "Pre-05b-1b: JSON packs/stages as source of truth, docs truth pass",
+   "scope": "Loader that reads allowlisted, Zod-checked JSON packs and stages at runtime through validateLaunch (no TS emission); rewrite content AGENTS recipes to working steps; fix stale HF/ONNX pointers; caveat on lab Save; doc check that every *Blueprint named in an AGENTS.md exists unless tagged (planned); fixtures out of the content barrel.",
+   "depends_on": [
+    "lab-launch-validation-and-kind-table",
+    "hx-0a-bridge-and-logger-lock"
+   ],
+   "source_findings": [
+    "S4-01",
+    "S4-11",
+    "S6B-01"
+   ]
+  },
+  {
+   "id": "05b-1-watch-clock-and-time-spend",
+   "title": "05b-1 (split of 05b): watch clock and Committed Time-Spend",
+   "scope": "elapsedWatches, advance_watches, *Ticks->*Watches rebase, timeHorizonConfig, Committed Time-Spend verbs and the watch budget; fractional-watch talk cost. 05b-2 (storyteller, envelopes, storylets, pacing lab) moves after the vertical slice.",
+   "depends_on": [
+    "lab-json-source-of-truth-and-docs-truth"
+   ],
+   "source_findings": [
+    "S2-01",
+    "S2-10",
+    "S1-R3"
+   ]
+  },
+  {
+   "id": "cm-act-envelope-and-ring",
+   "title": "Core step 4: effect envelope, Act ring, BehaviorModule commit",
+   "scope": "Effect envelope {effect, actorId?, causeActId?}; bounded frozen Act ring slice; BehaviorModule commit; stateless counter-based rolls roll(worldSeed, streamKey, counter); stimulus dedupe and age-vs-priority eviction.",
+   "depends_on": [
+    "05b-1-watch-clock-and-time-spend"
+   ],
+   "source_findings": [
+    "S2-02",
+    "S3-08",
+    "S3-13",
+    "S4-12"
+   ]
+  },
+  {
+   "id": "cm-observation-and-notebook",
+   "title": "Core step 5: Observation table, derived discovery, notebook data model",
+   "scope": "Sparse who-learned-what Observation table; discovery derived per observer; integer noisy-OR belief with reason tags; notebook data model with omission-referent rule; instrument data profiles and decay keys; audibility-tier integration; visual tells paired with non-visual noticing; branded BeliefView projector.",
+   "depends_on": [
+    "cm-act-envelope-and-ring"
+   ],
+   "source_findings": [
+    "S2-03",
+    "S2-12",
+    "S2-14",
+    "S2-15",
+    "S2-18",
+    "S5-13",
+    "S5-19",
+    "S4-07"
+   ]
+  },
+  {
+   "id": "cm-presence-and-materialize",
+   "title": "Core step 6: presence function and materialize-on-entry",
+   "scope": "Pure (entityId, watch, seed) -> placement; materialize on room entry; crowd and materialized NPCs get a mesh (renderer subset after residency work); WorldBuilder; per-frame allocation cleanup only when a room holds 100+ bodies.",
+   "depends_on": [
+    "cm-observation-and-notebook"
+   ],
+   "source_findings": [
+    "S2-11",
+    "S5-01",
+    "S3-16"
+   ]
+  },
+  {
+   "id": "cm-threads-ledger-emergency-diffusion",
+   "title": "Core step 7: ThreadRuntime, pillar relations, ResourceLedger, EmergencyRuntime, closed-form diffusion",
+   "scope": "StateSlice-based ThreadRuntime, Leverage Chain pillar relations, ResourceLedger, EmergencyRuntime with fuse, closed-form diffusion, balancing loops.",
+   "depends_on": [
+    "cm-presence-and-materialize"
+   ],
+   "source_findings": [
+    "S2-13",
+    "S2-15",
+    "S2-16",
+    "S2-19",
+    "S2-09"
+   ]
+  },
+  {
+   "id": "05f-local-ai-eval-framework",
+   "title": "05f amendment: reuse runScenario, golden/eval split",
+   "scope": "Amend 05f: reuse hx-6b runScenario harness; tests/ exact, golden/ hashes, eval/ distributions and corpora; evidence-coverage and diffusion cases with real fixtures; Zod-checked fixtures.",
+   "depends_on": [
+    "cm-threads-ledger-emergency-diffusion",
+    "hx-6b-state-hash-golden-run-determinism-lint"
+   ],
+   "source_findings": [
+    "S4-18",
+    "S2-roadmap-order-step-8"
+   ]
+  },
+  {
+   "id": "07-text-source-port-line-gate-and-authoring-kit",
+   "title": "Pre-07: TextSourcePort, LineBrief and gate, freeze-on-show, authoring kit",
+   "scope": "TextSourcePort application port with authored and pool adapters (generated adapter stubbed); LineBrief and gate(line, brief) pure functions over Observations; shown text frozen into ConversationHistory and the save; authoring kit; 07 paging then depends on it.",
+   "depends_on": [
+    "05f-local-ai-eval-framework"
+   ],
+   "source_findings": [
+    "S2-06",
+    "S2-08",
+    "S2-04"
+   ]
+  },
+  {
+   "id": "07-tactical-dialogue-and-voices",
+   "title": "07 amendment and 07e reshape",
+   "scope": "07: depends on the TextSourcePort change; ambient lines and Settings readingSpeed/captions; per-NPC tone blips. 07e reshaped from voice-register evals to line gates (depends 07d, 05f): banned-lemma, cadence, clause-omission fixtures register as gates, not only evals.",
+   "depends_on": [
+    "07-text-source-port-line-gate-and-authoring-kit",
+    "05e-proximity-use-and-menu-grammar"
+   ],
+   "source_findings": [
+    "S2-06",
+    "S5-12",
+    "S2-04"
+   ]
+  },
+  {
+   "id": "08-local-text-generation",
+   "title": "08 rescope: local text generation (replaces ONNX intent parser)",
+   "scope": "Replace the free-text ONNX intent parser (obsolete under P2) with the generated TextSourcePort adapter plus a timing spike on the real 2019 Mac; runtime SLM tier only if the spike passes; suite registers on the 05f runner.",
+   "depends_on": [
+    "07-tactical-dialogue-and-voices",
+    "05f-local-ai-eval-framework"
+   ],
+   "source_findings": [
+    "S1-R7",
+    "S2-04",
+    "S2-05"
+   ]
+  },
+  {
+   "id": "11-pass-1-vertical-slice",
+   "title": "Vertical slice: first pass of the Epoch 1 pack",
+   "scope": "One thread, few NPCs, one office/pretext, ledger, stub end card; engine test, not a replacement for engine work.",
+   "depends_on": [
+    "07-text-source-port-line-gate-and-authoring-kit",
+    "cm-threads-ledger-emergency-diffusion"
+   ],
+   "source_findings": [
+    "S1-R1",
+    "R1"
+   ]
+  },
+  {
+   "id": "05b-2-storyteller-and-pacing-lab",
+   "title": "05b-2 (split of 05b): storyteller, envelopes, storylets, pacing lab",
+   "scope": "Curve envelopes, 5-stage thread gates, StoryletTemplate grammar, F3 Pacing Lab; tuned against the vertical slice; its PUT route uses the hx-0a guarded helper.",
+   "depends_on": [
+    "11-pass-1-vertical-slice",
+    "hx-0a-bridge-and-logger-lock"
+   ],
+   "source_findings": [
+    "S2-01",
+    "S6B-03"
+   ]
+  }
+ ]
+}

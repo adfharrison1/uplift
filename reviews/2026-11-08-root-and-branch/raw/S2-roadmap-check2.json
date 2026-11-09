@@ -1,0 +1,48 @@
+{
+"dependency_breaks":[
+"Slice at position 7 needs ThreadRuntime, ResourceLedger and Leverage Chain (introduction step 8, S2-16 'now'), but the draft puts the Leverage Chain in 06 (position 8). The slice's win/fail shape is the Leverage Chain, so it cannot be built first.",
+"Slice has no way to talk. Paging (07) is at 10 and the Writing Desk and advisor lace page are in 06. Talk is the main verb, so a slice before 07 tests locomotion and menus only.",
+"Position 3 gives the watch clock but not Committed Time-Spend actions. The slice and presence both need a verb that spends watches. timeHorizonConfig (watchesPerDay, epochWatchBudget) is assigned to 05b-2 at position 12, but the clock cannot be defined without it.",
+"S2-17 rules spine (8 rules, 'now') and S2-13 system graph have no slot in the draft. Every later step is meant to be shaped by them. S2-14 instrument profiles and decay keys (step 7) and S2-15 balancing loops are also unplaced; the draft files S2-14 as 'Delta coupling' in 09, but 06 and the slice use funds.",
+"S2-06 LineBrief and gate and S2-08 authoring kit are 'before-06', but they sit at 11 (08'). The 06 Writing Desk and rival or advisor passages would be written as hand prose, creating the ~15-passage drift S2-04 warns about.",
+"07e is 'reshaped as gates' at 11 but depends on 07d, which sits at 14. S2-10 player-gated world and diffusion split is 'before-06', but closed-form diffusion is bundled into 06a at 9.",
+"05b-2 StorytellerPacingDirector meters thread point-releases, so it needs ThreadRuntime. It correctly follows 06, but the slice at 7 needs release gating, which the draft defers."
+],
+"split_issues":[
+"05b-1/05b-2 is a good seam (clock and rename versus director, envelopes, storylets, lab) provided PacingProfile.timeHorizonConfig and the Committed Time-Spend actions stay in 05b-1. As drafted, 05b-2 owns the numbers 05b-1 needs.",
+"05b-1 absorbing the presence function (S2-11) is sound, since presence is a function of watch. But presence has three blockers that are not all in 05d/05e; say which. Materialize-on-enter touches the 05c stage swap.",
+"Slice split from 11: cutting 'one thread, few NPCs' out of 11 is clean. But 11 also owns the content-pack plumbing and the authoring kit. The slice should be the first pass at the Epoch 1 pack, not a throwaway; otherwise the data is rebuilt.",
+"Slice includes the end card, but the Legacy Export Gate and epoch-end evaluation are in 09. Use a stub evaluator behind the same interface.",
+"Putting the effect envelope, the Act ring and the BehaviorModule commit together at 4 is one unit and should stay together. Watch the StateSlice clone fix first, as drafted."
+],
+"too_early":[
+"The vertical slice at 7 is built before 07 paging, the Writing Desk and the text path, the very things it must validate under P2 and P4. Its feedback and inference-trail test is therefore weak.",
+"The 05f eval runner at 6 has first cases (evidence coverage) that need Observations (5) and diffusion (not built until 9). It is fine as a runner with a smoke case, but the evidence-coverage case needs a hand-built fixture or comes later.",
+"05a audio at 13 is fine, but nothing depends on it; leave it floating late."
+],
+"too_late":[
+"Rules spine, system graph and Leverage Chain definition (docs and small schema): must be first, before 05d, because they guide all architecture (P1).",
+"S2-14 instrument data profiles and decay keys: should land with the Observation table, because discovery per observer is meaningless with the hard-coded 0.25.",
+"TextSourcePort, LineBrief, gate and the authoring kit: need to precede 06 and be consumed by the slice. Only the runtime SLM tier and timing spike (P2, S2-05) can stay later.",
+"Closed-form diffusion and player-gated world (S2-10): needed by Observations in the slice and by 06 rivals.",
+"ThreadRuntime and ResourceLedger as plain slices (step 8) should arrive before 06, because 06 content registers against them."
+],
+"corrected_order":[
+"0. Docs only: rules spine (S2-17), system graph (S2-13), clock decision record, Leverage Chain definition (S2-16). No code.",
+"1. 05d direct floor locomotion",
+"2. 05e proximity use and menus",
+"3. StateSlice clone fix, then 05b-1: elapsedWatches, advance_watches, *Ticks to *Watches rename, timeHorizonConfig, Committed Time-Spend action verbs",
+"4. Core model A: effect envelope (actor/cause), Act ring, BehaviorModule commit",
+"5. Core model B: Observation table, derived discovery view (set_discovery_layer shim), notebook data model, instrument data profiles and decay keys (S2-14)",
+"6. Presence function and materialize on room entry or watch spend (S2-11)",
+"7. ThreadRuntime, pillar relations (Leverage Chain), ResourceLedger, EmergencyRuntime as registered slices; closed-form diffusion and player-gated world (S2-10)",
+"8. 05f eval runner, with evidence-coverage and diffusion cases now backed by real fixtures",
+"9. 07 dialogue paging with TextSourcePort (authored and pool adapters), LineBrief and gate, freeze-on-show, and the authoring kit (generated adapter stubbed)",
+"10. Vertical slice (first pass of the Epoch 1 pack): one thread, few NPCs, one office/pretext, ledger, stub epoch-end card. This tests engine, talk, inference trails and indirect feedback together",
+"11. 06 utility AI, rivals with tellProfile, wider world overview, Writing Desk, Report-as-Observation, 06a Regard on top. Slice findings feed this",
+"12. 05b-2 storyteller, envelopes, storylets, pacing lab, tuned against the slice",
+"13. 08' local text generation (generated adapter and timing spike on the Mac) and 07e register gates; 07a-07d",
+"14. 05a audio, 06c, 06b, 09 (emergency fuse), 09a, 10 (Ship/Drone crew handoff, P3), 11 rest of content"
+],
+"note":"Owner intent (strong engine first, then collaborative enrichment) is best served by pulling the cheap spine items (docs, ledger/thread slices, text path) ahead of the slice, and by moving the slice after dialogue so it exercises talk, indirect feedback (P4) and text provenance (P2). Generation-quality tier remains last because it is gated on a hardware spike, not because it is optional. 05a is independent. Not verified: exact 05f dependency on diffusion fixtures."
+}

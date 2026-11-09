@@ -1,0 +1,2472 @@
+{
+ "amendments": [
+  {
+   "id": "A-53",
+   "sources": [
+    "S4-02",
+    "S4-03",
+    "owner decision after slice 4"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules (NEW section, created by this amendment as the first entry of the section)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Bridge lock: Origin allow-list, Host check, Content-Type, per-run token, size limits, allowlisted paths with realpath containment, explicit server.cors, an http middleware test on 127.0.0.1:0. One guarded write-route helper reused by every lab route.",
+   "new_text_outline": "- Bridge lock: Origin allow-list, Host check, Content-Type, per-run token, size limits, allowlisted paths with realpath containment, explicit server.cors, an http middleware test on 127.0.0.1:0.\n- One guarded write-route helper reused by every lab route.\n- Create the \"Engineering rules\" section heading in DESIGN_NOTES.md; this record is its first entry so the security record is the first docs edit (ruling 1).\n- Every later Engineering-rules amendment (A-12, A-86 to A-91, A-95, A-54, A-56, A-57) appends to this section and does not create it.\n- The guarded write-route helper is marked (planned) until hx-ops-safety ships; A-52, A-59 and A-71 use the same wording.",
+   "plan_change_ref": "hx-ops-safety",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "src/infrastructure/AGENTS.md",
+     "section": "written by the shipping change only",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-54",
+   "sources": [
+    "S4-15",
+    "S4-16",
+    "owner decision after slice 4"
+   ],
+   "target": "AGENTS.md#Quick Verify block (edited by the shipping change, hx-ops-safety, not by the docs batches)",
+   "anchor_quote": "`npm run verify` executes in sequence:",
+   "action": "rewrite",
+   "summary": "verify runs format, lint, typecheck and vitest in parallel with one PASS/FAIL line per step (verify:serial kept); pre-commit runs verify; arch tests that pin SKILL.md prose and the lint-staged array are deleted; the <5s budget is restated against the measured parallel time (2.4-3.1 s) and checked by a timed test. Replaces the 'under 5 seconds' spec clause through A-82.",
+   "new_text_outline": "- verify runs format, lint, typecheck and vitest in parallel with one PASS/FAIL line per step (verify:serial kept); pre-commit runs verify; arch tests that pin SKILL.md prose and the lint-staged array are deleted; the <5s budget is restated against the measured parallel time (2.4-3.1 s) and checked by a timed test.\n- Replaces the 'under 5 seconds' spec clause through A-82.\n- Runs first among the doc-touching items: the verify change is part of hx-ops-safety, so the AGENTS Quick Verify edit rides that change; A-68 later keeps the edited Quick Verify and cuts only version numbers.",
+   "plan_change_ref": "hx-ops-safety",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "README.md",
+     "section": "README.md Quick Verify paragraph",
+     "anchor_quote": "Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in sequence (`<5s`)"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "rules.design verify-budget clause and the \"no 23MB ONNX load\" fast-test clause (the ONNX word is A-29)",
+     "anchor_quote": null
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "Engineering rules entry",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-79",
+   "sources": [
+    "S6B-04",
+    "ch2 doc shape",
+    "owner decision after slice 6 (1)"
+   ],
+   "target": "openspec/config.yaml#context \"Planned Atomic Change Sequence (Living Roadmap\" block -> openspec/roadmap.yaml (new); package.json roadmap:next script",
+   "anchor_quote": "Planned Atomic Change Sequence (Living Roadmap",
+   "action": "move",
+   "summary": "Migrate the planned atomic change sequence out of config.yaml into openspec/roadmap.yaml: an ordered array whose entries carry id, title, one-line scope, depends_on, specs_modified and status (planned | parked | proposed). Archived and active are derived from openspec/changes folders, never typed. Add a roadmap:next script that prints the first planned entry whose depends_on are all archived. The docs-truth test (A-75) asserts the DAG is valid and ids resolve. Do the move first as a faithful copy with no reorder, then apply the reorder in A-58 to the new file. Config header and become one pointer line. Every amendment that earlier targeted the roadmap inside config.yaml (A-28, A-45, A-58 to A-62) now targets roadmap.yaml.",
+   "new_text_outline": "- Migrate the planned atomic change sequence out of config.yaml into openspec/roadmap.yaml: an ordered array whose entries carry id, title, one-line scope, depends_on, specs_modified and status (planned | parked | proposed).\n- Archived and active are derived from openspec/changes folders, never typed.\n- Add a roadmap:next script that prints the first planned entry whose depends_on are all archived.\n- The docs-truth test (A-75) asserts the DAG is valid and ids resolve.\n- Do the move first as a faithful copy with no reorder, then apply the reorder in A-58 to the new file.\n- Config header and become one pointer line.\n- Every amendment that earlier targeted the roadmap inside config.yaml (A-28, A-45, A-58 to A-62) now targets roadmap.yaml.\n- The DAG check test is NOT added here; it is a check of the single docs-truth test (A-75).\n- Correct the stale roadmap tags during the migration (S0B-42 erratum: 05c is tagged [archived] in config.yaml).\n- Seed roadmap.yaml directly from the v3 change plan (64 ids) with the original ids restored (ruling 3); the legacy block becomes one pointer line only after the seed exists and every legacy entry has a home (A-72 removes the pointer text).\n- Config Review Gates and other later blocks are not touched here.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "1. 01-clean-scaffold-and-verify"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "package.json",
+     "section": "scripts: roadmap:next",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-58",
+   "sources": [
+    "02b",
+    "owner amendment after slice 5",
+    "ch3 order_issues",
+    "S4-08",
+    "ruling 1",
+    "ruling 2",
+    "ruling 3",
+    "ruling 4",
+    "ruling 9",
+    "ruling 17",
+    "A4 apply_conflict 13",
+    "A4 cross-slice telemetry slot"
+   ],
+   "target": "openspec/roadmap.yaml#entries and depends_on for the whole plan (new file, seeded by A-79)",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Seed roadmap.yaml with the 64 ids of the v3 change plan and apply the accepted order (hx-ops-safety first, then docs-spine-and-roadmap, process-gates-and-ledger, hardening, M2 to M6 as sequenced in the plan). Each entry carries id, title, milestone, depends_on, specs_modified, status. Original ids are restored for untouched changes (07a-dialogue-interruption, 07b-role-pretext-choices, 07c-fund-spending-choices, 06a, 06b, 06c-epoch-travel-vignettes, 09a-doomsday-clocks-and-rival-unveiling, 05a). Ambient lines stay in 07-dialogue-paging, not in 07a. This inventory adds no P3 build slot (P3 is recorded as a pillar by A-03); the plan's own 10-crew-handoff entry is kept as the plan has it, minus the cameo, which is a note only and stripped from the 10 scope.",
+   "new_text_outline": "- Seed roadmap.yaml with the 64 ids of the v3 change plan and apply the accepted order (hx-ops-safety first, then docs-spine-and-roadmap, process-gates-and-ledger, hardening, M2 to M6 as sequenced in the plan).\n- Each entry carries id, title, milestone, depends_on, specs_modified, status.\n- Original ids are restored for untouched changes (07a-dialogue-interruption, 07b-role-pretext-choices, 07c-fund-spending-choices, 06a, 06b, 06c-epoch-travel-vignettes, 09a-doomsday-clocks-and-rival-unveiling, 05a).\n- Ambient lines stay in 07-dialogue-paging, not in 07a.\n- This inventory adds no P3 build slot (P3 is recorded as a pillar by A-03); the plan's own 10-crew-handoff entry is kept as the plan has it, minus the cameo, which is a note only and stripped from the 10 scope.\n- Entry list = the 64 plan ids; includes review-gates, defect-ledger, design-notes-skill-fix entries (as process-gates-and-ledger) that v2 omitted.\n- Order edges: telemetry-wiring directly after 05b-1 and before the Act ring (cm-act-envelope-and-rolls); eval/replay before the 07 text skeleton; 11-pass-1-slice is the M5 go/no-go; 06 depends_on the slice as an ordering and go/no-go edge (gate edges marked so they can be waived).\n- Q1 (owner-pending): the timing spike entry 08a-timing-spike is held just before the 07 text skeleton per Opus recommendation; if the owner prefers the accepted order (after 05b-2), move it and record in roadmap.yaml. The generated adapter 08-generated-text-adapter stays after 05b-2 either way.\n- Owner-decision gate: Q2 (save policy) is recorded as a gate before cm-observation-notebook.\n- Orphan items get owners: inference trails -> 06-overview-writing-desk-report and 11-pass-1-slice; notebook presenter -> 07-notebook-presenter; command-log replay tool -> 05f-eval-and-replay; camera directive stack -> 07-camera-directive-stack; roadmap sync and AGENTS truth rewrite -> docs-spine-and-roadmap and process-gates-and-ledger.\n- Parked entries each with a revisit trigger: onboarding, DPR and antialiasing, silhouette budget, theme roles, later notebook categories, offline self-play tuning, small classifier spike, INV-D Bayesian network, INV-F exact-inference network, RC2 runtime reranker, dither-fade occlusion, merged Tier-3 crowd, compiler-API import scan, Epoch 1 definition of done, past-advisor cameo.\n- Remove the P3 build-slot parenthetical; reorders and records dependencies only, scope text per entry is edited by A-59 to A-62, A-28, A-45, A-35.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "8. 08-local-onnx-hybrid-intent"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "11. 11-epoch-1-world-population-and-content-pack"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "8. 08-local-onnx-hybrid-intent"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "11. 11-epoch-1-world-population-and-content-pack"
+    }
+   ]
+  },
+  {
+   "id": "A-59",
+   "sources": [
+    "02b",
+    "S2-01",
+    "S2-10",
+    "RB3",
+    "audit fidelity A-59",
+    "A4 cross-slice talk cost",
+    "ruling 7"
+   ],
+   "target": "openspec/roadmap.yaml#05b-1 and 05b-2 entries (05b entry migrated from config)",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Split 05b. 05b-1: elapsedWatches, advance_watches, *Ticks to *Watches, timeHorizonConfig, committed time-spend verbs including the watch budget, scars record the watch, sourceScarId check, and the fractional-watch talk cost (the 07 pager charges it). 05b-2: storyteller as a seeded card deck over the thread state machine, envelopes, storylets, pacing lab, tuned against the vertical slice; its PUT route uses the guarded helper (A-53).",
+   "new_text_outline": "- Split 05b. 05b-1: elapsedWatches, advance_watches, *Ticks to *Watches, timeHorizonConfig, committed time-spend verbs including the watch budget, scars record the watch, sourceScarId check, and the fractional-watch talk cost (the 07 pager charges it). 05b-2: storyteller as a seeded card deck over the thread state machine, envelopes, storylets, pacing lab, tuned against the vertical slice; its PUT route uses the guarded helper (A-53).\n- 05b-1 owns the fractional time-spend verb and its watch budget; the 07-dialogue-paging entry charges that verb per conversation. State both halves; add the verb to the 05b-1 scope in the plan entry.\n- 05b-2 entries (05b-2-envelopes-and-gates, 05b-2-storylets-and-lab): its PUT route uses the guarded helper, marked (planned) until hx-ops-safety ships.\n- Retain the original 05b ids as notes in the entry titles.",
+   "plan_change_ref": "05b-1-watch-clock-and-time-spend",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    }
+   ]
+  },
+  {
+   "id": "A-60",
+   "sources": [
+    "R1",
+    "S1-R1",
+    "02b",
+    "audit fidelity A-60",
+    "ruling 9"
+   ],
+   "target": "openspec/roadmap.yaml#new validated_by field; 11-pass-1-slice entry; 06 depends_on edge",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Add a validated_by field to roadmap.yaml. The one-thread vertical slice (11-pass-1-slice, milestone M5) tests the engine; it does not replace engine work (owner: 'The vertical slice tests the engine; it does not replace engine work.'). 06-utility-ai gets depends_on 11-pass-1-ledger-end-card as an ordering and go/no-go edge (marked waivable), and validated_by is set on the slice. The v2 clause 'unless the owner adds one' is dropped.",
+   "new_text_outline": "- Add a validated_by field to roadmap.yaml.\n- The one-thread vertical slice (11-pass-1-slice, milestone M5) tests the engine; it does not replace engine work (owner: 'The vertical slice tests the engine; it does not replace engine work.'). 06-utility-ai gets depends_on 11-pass-1-ledger-end-card as an ordering and go/no-go edge (marked waivable), and validated_by is set on the slice.\n- The v2 clause 'unless the owner adds one' is dropped.\n- Ruling 9: depends_on is kept as an ordering and go/no-go gate; the slice is M5.",
+   "plan_change_ref": "11-pass-1-slice",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "6. 06-utility-ai-rivals-and-wider-world"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "6. 06-utility-ai-rivals-and-wider-world"
+    }
+   ]
+  },
+  {
+   "id": "A-61",
+   "sources": [
+    "02b",
+    "S2-04",
+    "S2-06",
+    "ch3",
+    "ruling 3",
+    "ruling 7",
+    "ruling 8"
+   ],
+   "target": "openspec/roadmap.yaml#07 family entries (07-text-port-and-history, 07-authoring-kit, 07-dialogue-paging, 07-bubble-lace-skins-and-tone-blips, 07e)",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "07 gains TextSourcePort (authored and pool adapters), LineBrief and gate, freeze-on-show, the authoring kit (generated adapter stubbed) and ConversationHistory; the 07 pager ships per-NPC tone blips, ambient lines, Settings readingSpeed/captions and the talk watch cost. 07e becomes its own gate-eval entry depending on 07d, the eval runner and the gate (and 08 per the corrected order).",
+   "new_text_outline": "- 07 gains TextSourcePort (authored and pool adapters), LineBrief and gate, freeze-on-show, the authoring kit (generated adapter stubbed) and ConversationHistory; the 07 pager ships per-NPC tone blips, ambient lines, Settings readingSpeed/captions and the talk watch cost. 07e becomes its own gate-eval entry depending on 07d, the eval runner and the gate (and 08 per the corrected order).\n- 07-dialogue-paging: paging, response menus, ambient lines and the talk watch cost (charges the 05b-1 verb per conversation). Ambient lines live ONLY here; 07a-dialogue-interruption keeps interruption.\n- 07-text-port-and-history: TextSourcePort, LineBrief and gate, ConversationHistory, freeze-on-show; 07-authoring-kit separate.\n- 07-bubble-lace-skins-and-tone-blips: bubble and lace skins, captions, readingSpeed, tone blips.\n- 07e becomes its own gate-eval entry depending on 07d, the eval runner and the gate.",
+   "plan_change_ref": "07-dialogue-paging",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "7e. 07e-voice-register-evals"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "7. 07-tactical-dialogue-and-voices"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "7e. 07e-voice-register-evals"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "7. 07-tactical-dialogue-and-voices"
+    }
+   ]
+  },
+  {
+   "id": "A-62",
+   "sources": [
+    "02b",
+    "S2-18",
+    "S2-19",
+    "audit plan_conflicts A-62"
+   ],
+   "target": "openspec/roadmap.yaml#09 family entries (09-delta-coupling-and-forecast, 09-emergency-fuse)",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "09 gains Delta spent on insertion (rule owned by A-21) and the emergency fuse; 09a keeps its scope. Single ownership: A-21 states the rule, this amendment only extends the entry's scope.",
+   "new_text_outline": "- 09 gains Delta spent on insertion (rule owned by A-21) and the emergency fuse; 09a keeps its scope.\n- Single ownership: A-21 states the rule, this amendment only extends the entry's scope.\n- 09-delta-coupling-and-forecast extends scope to the insertion rule owned by A-21; 09a keeps its scope and original id.",
+   "plan_change_ref": "09-delta-coupling-and-forecast",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "9. 09-orbital-mechanics-weather-and-gate"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "9. 09-orbital-mechanics-weather-and-gate"
+    }
+   ]
+  },
+  {
+   "id": "A-28",
+   "sources": [
+    "S2-04",
+    "S2-05",
+    "S1-R7",
+    "audit deletion_issues 18",
+    "ruling Q1"
+   ],
+   "target": "openspec/roadmap.yaml#08a-timing-spike and 08-generated-text-adapter entries (08 entry migrated from config)",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Retire 08-local-onnx-hybrid-intent as designed; it is replaced, not deleted. The old entry becomes two entries: 08a-timing-spike (no-merge investigation on the real Mac, plus generated-line quality prototype) and 08-generated-text-adapter (generated TextSourcePort adapter and worker). Intent, negation and latency eval cases are dropped. Slot of 08a is owner-pending Q1: Opus recommends just before the 07 text skeleton; the generated adapter stays after 05b-2 and before 07d.",
+   "new_text_outline": "- Retire 08-local-onnx-hybrid-intent as designed; it is replaced, not deleted.\n- The old entry becomes two entries: 08a-timing-spike (no-merge investigation on the real Mac, plus generated-line quality prototype) and 08-generated-text-adapter (generated TextSourcePort adapter and worker).\n- Intent, negation and latency eval cases are dropped.\n- Slot of 08a is owner-pending Q1: Opus recommends just before the 07 text skeleton; the generated adapter stays after 05b-2 and before 07d.\n- depends_on from the plan: 08-generated-text-adapter depends on 07 text port, the eval runner and 05b-2.",
+   "plan_change_ref": "08-generated-text-adapter",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "additional quoted passage touched by this amendment",
+     "anchor_quote": "Local MiniLM-L6-v2 setup script"
+    }
+   ],
+   "source_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "3-stage lexical + Web Worker ONNX free-text parser"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Local MiniLM-L6-v2 setup script"
+    }
+   ]
+  },
+  {
+   "id": "A-45",
+   "sources": [
+    "owner decision after slice 5",
+    "R5C5",
+    "audit fidelity A-45",
+    "ruling 5",
+    "ruling 13",
+    "A4 cross-slice audibility"
+   ],
+   "target": "openspec/roadmap.yaml#audio-minimal entry (new, directly after 05e-settings-model)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "New minimal-audio change as its own roadmap entry directly after 05e (before 05b-1): footsteps by surface (reading the surface attribute from the pre-05d shape descriptor), doors, menu confirm and back, murmur through doors on a provisional audibility-tier table. Per-NPC tone blips ship with 07-bubble-lace-skins-and-tone-blips, not here. cm-instrument-profiles-audibility-tells owns the integrated tier rule and replaces the provisional table; 05a only consumes it and loses the calculator from its scope. Full 05a stays later (05a-audio-engine, 05a-sound-lab). Owner wording: 'The minimal audio slice becomes its own new change, directly after 05e (before 05b-1).'",
+   "new_text_outline": "- New minimal-audio change as its own roadmap entry directly after 05e (before 05b-1): footsteps by surface (reading the surface attribute from the pre-05d shape descriptor), doors, menu confirm and back, murmur through doors on a provisional audibility-tier table.\n- Per-NPC tone blips ship with 07-bubble-lace-skins-and-tone-blips, not here. cm-instrument-profiles-audibility-tells owns the integrated tier rule and replaces the provisional table; 05a only consumes it and loses the calculator from its scope.\n- Full 05a stays later (05a-audio-engine, 05a-sound-lab).\n- Owner wording: 'The minimal audio slice becomes its own new change, directly after 05e (before 05b-1).'\n- Depends on docs-spine-and-roadmap (section 9 amendment, A-46).\n- Remove the calculator from the 05a entry scope (ruling 5).\n- Owner wording to preserve verbatim: The minimal audio slice becomes its own new change, directly after 05e (before 05b-1). It covers footsteps by surface, doors, menu confirm/back sounds, and murmur through doors on a provisional audibility-tier rule. Observation integration of the audibility tiers follows at core step 5. Full 05a stays later.",
+   "plan_change_ref": "audio-minimal",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "new section \"Minimal audio\" (separate from the Sound Design block rewritten by A-44)",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-35",
+   "sources": [
+    "INV-D"
+   ],
+   "target": "DESIGN_NOTES.md#Orbital Blackout / psychohistory notes (section 3) and roadmap entry 09-delta-coupling-and-forecast",
+   "anchor_quote": "### 3. Orbital Blackout Contingencies, Doomsday Clocks",
+   "action": "add",
+   "summary": "Ship Mind forecast is a closed-form banded hazard from the Mind's own Observations, shown as a band plus its top two causes, fixed band edges with hysteresis; the Bayesian network stays parked. Mark planned, owned by the orbital-mechanics change.",
+   "new_text_outline": "- Ship Mind forecast is a closed-form banded hazard from the Mind's own Observations, shown as a band plus its top two causes, fixed band edges with hysteresis; the Bayesian network stays parked.\n- Mark planned, owned by the orbital-mechanics change.\n- INV-D Bayesian network stays parked: recorded as a parked roadmap.yaml entry with a revisit trigger (ruling 17).",
+   "plan_change_ref": "09-delta-coupling-and-forecast",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/roadmap.yaml",
+     "section": "09-delta-coupling-and-forecast entry",
+     "anchor_quote": null
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "Psychohistory Forecast (source of the migrated entry)",
+     "anchor_quote": "Psychohistory Forecast"
+    }
+   ]
+  },
+  {
+   "id": "A-76",
+   "sources": [
+    "S6A-05",
+    "S6A-08",
+    "ch2 doc shape",
+    "A4 apply_conflict 2"
+   ],
+   "target": "DESIGN_NOTES.md#top of file: new frame block above the first dated section",
+   "anchor_quote": "## Creative Review Enrichments & Multi-Epoch Continuity Architecture (5th Nov 2026)",
+   "action": "add",
+   "summary": "Add the top-of-file frame in this order: (1) pillars P1-P5 (A-01), (2) a 'Where facts live' owner table (one row per duplicated fact: epoch ladder -> DESIGN_NOTES section 4 plus the default pack constant; versions -> package.json and .nvmrc only; verify steps and budget -> package.json scripts, one sentence in AGENTS Quick Verify; layer rules -> AGENTS plus tests/architecture; roadmap order and depends_on -> openspec/roadmap.yaml; review gates -> uplift-review-gates skill; engine counts such as the 7-epoch default arc -> asserted by the docs-truth test against code constants), (3) a status index TABLE ONLY (each section: shipped / partial / planned, plus the roadmap id) - this amendment writes the index and does NOT write heading markers; A-69 alone writes the heading markers, (4) the numbered Rules spine R1..R8 skeleton filled by A-05, each with a status, all revisable under P5, (5) a dispositions appendix at the bottom for raw notes, one-line rows only (A-77). No docs/spine.md, no ADR folder, no START.md.",
+   "new_text_outline": "- Add the top-of-file frame in this order: (1) pillars P1-P5 (A-01), (2) a 'Where facts live' owner table (one row per duplicated fact: epoch ladder -> DESIGN_NOTES section 4 plus the default pack constant; versions -> package.json and .nvmrc only; verify steps and budget -> package.json scripts, one sentence in AGENTS Quick Verify; layer rules -> AGENTS plus tests/architecture; roadmap order and depends_on -> openspec/roadmap.yaml; review gates -> uplift-review-gates skill; engine counts such as the 7-epoch default arc -> asserted by the docs-truth test against code constants), (3) a status index TABLE ONLY (each section: shipped / partial / planned, plus the roadmap id) - this amendment writes the index and does NOT write heading markers;\n- A-69 alone writes the heading markers, (4) the numbered Rules spine R1..R8 skeleton filled by A-05, each with a status, all revisable under P5, (5) a dispositions appendix at the bottom for raw notes, one-line rows only (A-77).\n- No docs/spine.md, no ADR folder, no START.md.\n- Index at the top (ruling 15: DESIGN_NOTES grows to about 16k words and is the design home).",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-01",
+   "sources": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5"
+   ],
+   "target": "DESIGN_NOTES.md#top pillars block (inside the A-76 frame)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Record all five owner pillars verbatim in one block, with P5 worded as the owner gave it (every decision settled in this review stays open; core model, rules spine and roadmap order are the examples). Record the de-weighted topics: scale versus solo-developer time, and the number of review gates. The config context gets a pointer only. AGENTS.md gets a pointer in A-66, not a pillar paragraph (AGENTS describes shipped code only).",
+   "new_text_outline": "- Record all five owner pillars verbatim in one block, with P5 worded as the owner gave it (every decision settled in this review stays open; core model, rules spine and roadmap order are the examples).\n- Record the de-weighted topics: scale versus solo-developer time, and the number of review gates.\n- The config context gets a pointer only.\n- AGENTS.md gets a pointer in A-66, not a pillar paragraph (AGENTS describes shipped code only).\n- Quote P1-P5 and the de-weighted note from the owner wording field verbatim.\n- Owner wording to preserve verbatim: P1. The engine, modules, content objects and 3D render UI are built as a strong, decoupled, epoch-agnostic framework. The owner and an agent can then add detail and colour collaboratively as they go. The underlying tech and mechanics in the design notes are wanted. Some rules should still be set early enough to guide how the architecture evolves. | P2. There is no free-text player input. A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring. | P3. Each epoch has a new operative with their own new Ship and Drone crew, because that is how the Culture works. The new crew, and the loss of the previous one, are part of the fun. | P4. Some feedback is meant to be indirect: the player pieces together related events, NPC behaviour and world outcomes. | P5. Everything the review settles stays open to later change. Core model, rules spine and roadmap order are a direction with room to add and modify, not a frozen spec. | De-weighted: scale versus solo-developer time, and the number of review gates.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context: one short pointer line after the standing directive \"keep all registries and configuration data-driven\" (no restated pillars)",
+     "anchor_quote": "keep all registries and configuration data-driven and epoch-agnostic so mechanics, camera parameters, tick rates, and content sub-types can be tuned"
+    }
+   ]
+  },
+  {
+   "id": "A-77",
+   "sources": [
+    "S6A-04",
+    "ch2 doc shape",
+    "register slice 5 owner decision 4"
+   ],
+   "target": "DESIGN_NOTES.md#raw dump \"world interaction notes 8th nov 2026\" to end of file -> notes/inbox.md (new); dispositions appendix",
+   "anchor_quote": "world interaction notes 8th nov 2026",
+   "action": "move",
+   "summary": "Create notes/inbox.md for raw dumps. Move the 8 Nov 'world interaction notes' dump out of DESIGN_NOTES (to end) into the inbox verbatim, then log one disposition row per paragraph in the dispositions appendix, then the design-notes skill empties the inbox (A-78). Row dispositions: (1) WASD free movement, not click-to-move -> integrated, section 7; (2) interact by moving near and pressing Space, menus on WASD/Space/Escape -> integrated, section 8; (3) dialogue as single readable chunks advanced by Space -> integrated, section 10; (4) pause menu on Escape when nothing else is open -> integrated, section 8; (5) camera centred on the player, with world events able to capture it and hand it back -> integrated only in part (S5-11): the control-frame latch and single zoom-out land with the first locomotion change, the capture/return directive stack lands with dialogue and events; (6) a single 'further out zoom' -> the single yaw-neutral zoom-out scalar (S5-11). Rows 5 and 6 are the items that only ever appeared in the dump, so they must not be lost.",
+   "new_text_outline": "- Create notes/inbox.md for raw dumps.\n- Move the 8 Nov 'world interaction notes' dump out of DESIGN_NOTES (to end) into the inbox verbatim, then log one disposition row per paragraph in the dispositions appendix, then the design-notes skill empties the inbox (A-78).\n- Row dispositions: (1) WASD free movement, not click-to-move -> integrated, section 7;\n- (2) interact by moving near and pressing Space, menus on WASD/Space/Escape -> integrated, section 8;\n- (3) dialogue as single readable chunks advanced by Space -> integrated, section 10;\n- (4) pause menu on Escape when nothing else is open -> integrated, section 8;\n- (5) camera centred on the player, with world events able to capture it and hand it back -> integrated only in part (S5-11): the control-frame latch and single zoom-out land with the first locomotion change, the capture/return directive stack lands with dialogue and events;\n- (6) a single 'further out zoom' -> the single yaw-neutral zoom-out scalar (S5-11).\n- Rows 5 and 6 are the items that only ever appeared in the dump, so they must not be lost.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "there should be a single \"further out zoom\" available to the player to help them navigate"
+    }
+   ]
+  },
+  {
+   "id": "A-63",
+   "sources": [
+    "S1-R8",
+    "R8",
+    "R5",
+    "R7",
+    "coverage gaps",
+    "ruling 17",
+    "A4 missing target A-04",
+    "A3 A-63"
+   ],
+   "target": "DESIGN_NOTES.md#new \"Open, deferred and parked\" list (inside the status index; also holds the \"Ideas, not scheduled\" sub-list that A-04 appends to)",
+   "anchor_quote": null,
+   "action": "mark-planned",
+   "summary": "Explicit open items, each one line, no content written for them. S1-R8 onboarding / first-10-minutes design: deferred by the owner ('Owner isn't ready for this yet. Revisit later.'). R8 Epoch 1 as definition of done with its own ending: open ('Open; owner didn't address it.'), parked entry in roadmap.yaml. R5 text-only advisor/writing prototype: open, becomes a generation-quality prototype under P2 (08a-timing-spike). R7 authored quality-gated storylet cards vs generated cards: RESOLVED by S2-08 (authored/generated split and the hybrid pipeline); only the storylet-card question is left to the storyteller change. Save policy (S1-R5): undecided, owner question Q2, candidate is autosave at watch boundaries plus named manual saves, notebook persisting across reloads; blocks cm-observation-notebook. GPU profile (slice 5): open. Parked spikes: small fine-tuned classifier for line selection, RC2 runtime reranker, R4A1 compiler-API import scanning, typed ESLint (attach to the first async-port change), INV-D, INV-F, each with a roadmap.yaml parked entry. Create the sub-heading 'Ideas, not scheduled' (target for A-04). OWNER DECISION: Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked.",
+   "new_text_outline": "- Explicit open items, each one line, no content written for them.\n- S1-R8 onboarding / first-10-minutes design: deferred by the owner ('Owner isn't ready for this yet.\n- Revisit later.').\n- R8 Epoch 1 as definition of done with its own ending: open ('Open; owner didn't address it.'), parked entry in roadmap.yaml.\n- R5 text-only advisor/writing prototype: open, becomes a generation-quality prototype under P2 (08a-timing-spike).\n- R7 authored quality-gated storylet cards vs generated cards: RESOLVED by S2-08 (authored/generated split and the hybrid pipeline); only the storylet-card question is left to the storyteller change.\n- Save policy (S1-R5): undecided, owner question Q2, candidate is autosave at watch boundaries plus named manual saves, notebook persisting across reloads; blocks cm-observation-notebook.\n- GPU profile (slice 5): open.\n- Parked spikes: small fine-tuned classifier for line selection, RC2 runtime reranker, R4A1 compiler-API import scanning, typed ESLint (attach to the first async-port change), INV-D, INV-F, each with a roadmap.yaml parked entry.\n- Create the sub-heading 'Ideas, not scheduled' (target for A-04).\n- Creates the heading A-04 needs.\n- Owner wording to preserve verbatim: Onboarding: 'Owner isn't ready for this yet. Revisit later.' R8: 'Open; owner didn't address it.'",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-94",
+   "sources": [
+    "S1-12",
+    "S1-13",
+    "R6",
+    "R9",
+    "S1-R9",
+    "R5C2",
+    "INV-1"
+   ],
+   "target": "DESIGN_NOTES.md#dispositions appendix, \"Considered and rejected\" rows",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Log rejected options so they are not re-proposed: R6 seasonal council with rooms as scenes (rejected-by-review); R9 CK3 numeric odds (rejected-by-review; qualitative odds in advisor speech instead); S1-R9 re-rolled advisors weaken the through-line (rejected-by-owner, P3); S1-13 no epoch-handoff payoff (rejected-by-review, already specified in the epoch-transition section); S1-12 tone is only flavour (rejected-by-review, folded into S1-R2); R5C2 global 'important' accent (rejected, breaks P4); a LAYA-class or JEV-class decision model in the simulation path (rejected, INV-A); general probabilistic-programming engines, learned nets and JEPA-style world models at runtime (rejected, INV-F).",
+   "new_text_outline": "- Log rejected options so they are not re-proposed: R6 seasonal council with rooms as scenes (rejected-by-review);\n- R9 CK3 numeric odds (rejected-by-review; qualitative odds in advisor speech instead);\n- S1-R9 re-rolled advisors weaken the through-line (rejected-by-owner, P3);\n- S1-13 no epoch-handoff payoff (rejected-by-review, already specified in the epoch-transition section);\n- S1-12 tone is only flavour (rejected-by-review, folded into S1-R2);\n- R5C2 global 'important' accent (rejected, breaks P4); a LAYA-class or JEV-class decision model in the simulation path (rejected, INV-A); general probabilistic-programming engines, learned nets and JEPA-style world models at runtime (rejected, INV-F).\n- Keep the S1-R9 label for the re-rolled-advisor row; R9 is only the CK3 numeric-odds route (label collision fixed).",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-04",
+   "sources": [
+    "S1-R9",
+    "owner idea after slice 1",
+    "audit fidelity A-04",
+    "ruling 4",
+    "ruling 16"
+   ],
+   "target": "DESIGN_NOTES.md#\"Open, deferred and parked\" list, sub-list \"Ideas, not scheduled\" (created by A-63)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Record only the owner's idea as a design-note candidate, unscheduled, with no roadmap entry other than the parked entry past-advisor-cameo. Owner wording: 'past advisors occasionally appear with help or notes over the Culture's galactic network.' No rate limit, pack registration, latency spec or routing note. Stripped from the 10-crew-handoff scope.",
+   "new_text_outline": "- Record only the owner's idea as a design-note candidate, unscheduled, with no roadmap entry other than the parked entry past-advisor-cameo.\n- Owner wording: 'past advisors occasionally appear with help or notes over the Culture's galactic network.' No rate limit, pack registration, latency spec or routing note.\n- Stripped from the 10-crew-handoff scope.\n- No cross-reference to S4-10.\n- Owner wording to preserve verbatim: Owner's addition: past advisors occasionally appear with help or notes over the Culture's galactic network. Design-note candidate.",
+   "plan_change_ref": null,
+   "owner_pending": null
+  },
+  {
+   "id": "A-70",
+   "sources": [
+    "S0B",
+    "audit deletion_issues 6-9, 14, 17",
+    "A4 apply_conflict 4",
+    "A4 apply_conflict 9"
+   ],
+   "target": "openspec/config.yaml#context planned-change bullets (direct floor locomotion, proximity use, conversation text bubbles, paging, interruption, pretext, fund, advisory omission, eval framework, voice-register evals) and VoiceProfile",
+   "anchor_quote": "The focus operative walks the current floor with camera-relative WASD at `walkSpeedMetersPerSec`.",
+   "action": "mark-planned",
+   "summary": "Mark the planned-change bullets as planned until the context cut (A-72) moves them: direct floor locomotion, proximity use, conversation paging, interruption, pretext, fund, advisory omission, eval framework, voice-register evals. Rewrite present tense to 'planned' and append '[planned - revisable]'. Line 43 also loses the clause 'free-text intent cases on `08`' (this amendment owns ; A-29 does not touch it). `VoiceProfile` on gets '(planned)'. Nothing is deleted here; A-72 later moves the surviving text to DESIGN_NOTES and roadmap.yaml pointers.",
+   "new_text_outline": "- Mark the planned-change bullets as planned until the context cut (A-72) moves them: direct floor locomotion, proximity use, conversation paging, interruption, pretext, fund, advisory omission, eval framework, voice-register evals.\n- Rewrite present tense to 'planned' and append '[planned - revisable]'.\n- Line 43 also loses the clause 'free-text intent cases on `08`' (this amendment owns ;\n- A-29 does not touch it). `VoiceProfile` on gets '(planned)'.\n- Nothing is deleted here;\n- A-72 later moves the surviving text to DESIGN_NOTES and roadmap.yaml pointers.\n- Owns the no-loss move (replaces v2 deferral to A-72): for EACH config paragraph that A-72 will cut (visual/camera/play-shell about 900 words, core model/plug-and-play about 630, clocks about 350, concept ladder, sound, hardware pipeline), diff the text against DESIGN_NOTES.md; any sentence without a home is copied into DESIGN_NOTES as a marked (planned) paragraph. The diff table is recorded in the change; A-72 may only cut after it passes.\n- Keep each appended \"[planned - revisable]\" tag; later rewrites of the same config lines (A-37, A-38, A-40, A-49) must keep the tag and tense.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Space uses a target within `0.4` m of its surface and inside `\u00b145\u00b0` of facing."
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Space advances any conversation the player enters or a world event opens, one chunk at a time"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "One offline runner, `eval/` via `npm run eval:ai`, for every AI subject."
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "free-text intent cases on `08`"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Characters (`CharacterBlueprint` & `VoiceProfile`)"
+    }
+   ]
+  },
+  {
+   "id": "A-71",
+   "sources": [
+    "S0B",
+    "S4-02",
+    "audit deletion_issues 16, 33, 34",
+    "A4 missing target 7"
+   ],
+   "target": "openspec/config.yaml#context Sound Lab / Pacing Lab sentence; DESIGN_NOTES Save Patch and Pacing Inspector bullets",
+   "anchor_quote": "`F3` Sound Lab (`PUT /api/audio-patches`), and `F3` Pacing Lab (`PUT /api/pacing-profiles/:profileId`)",
+   "action": "mark-planned",
+   "summary": "The Sound Lab and Pacing Lab routes do not exist yet but are the designed lab tooling for the audio and pacing-lab changes. Mark them '(planned)', do not delete, and add 'through the guarded bridge write-route helper' (the bridge lock owns that helper). Rewrite the config sentence and the two DESIGN_NOTES bullets in the future tense.",
+   "new_text_outline": "- The Sound Lab and Pacing Lab routes do not exist yet but are the designed lab tooling for the audio and pacing-lab changes.\n- Mark them '(planned)', do not delete, and add 'through the guarded bridge write-route helper' (the bridge lock owns that helper).\n- Rewrite the config sentence and the two DESIGN_NOTES bullets in the future tense.\n- Wording \"through the guarded bridge write-route helper (planned, built by hx-ops-safety)\".",
+   "plan_change_ref": "hx-ops-safety",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "bullets \"click **Save Patch to Disk**\" and \"**Live `F3` Pacing & Envelope Inspector\"",
+     "anchor_quote": "click **Save Patch to Disk** via the Vite Local Disk Bridge `PUT /api/audio-patches`"
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "bullets \"click **Save Patch to Disk**\" and \"**Live `F3` Pacing & Envelope Inspector\"",
+     "anchor_quote": "**Live `F3` Pacing & Envelope Inspector (`GET`/`PUT /api/pacing-profiles/:profileId`)**"
+    }
+   ]
+  },
+  {
+   "id": "A-69",
+   "sources": [
+    "S0B",
+    "S6A-01",
+    "audit deletion_issues 0-4, 21, 30-32",
+    "A4 apply_conflict 2",
+    "A4 apply_conflict 3",
+    "A4 plan_without_doc_home 07a"
+   ],
+   "target": "DESIGN_NOTES.md#section headings 7, 8, 9, 10, 10a-10e, 11 (status markers) and the tense of the planned passages",
+   "anchor_quote": "WASD moves the focus body across the current room at that body's `walkSpeedMetersPerSec`.",
+   "action": "mark-planned",
+   "summary": "Turn the planned-as-shipped passages into marked-planned design. Add a status marker to each section heading: sections 7 and 8, 10 to 10e and 11 are planned (not shipped); section 6 is shipped. Rewrite the present-tense sentences into the future tense while keeping the design text, which is accepted: the WASD walk (224), the Space-use arc (237), the eval:ai loop (299), and the advisor sulk and omissible clause (, planned for the advisory-omission change; this amendment owns , A-03 owns , A-04 inserts after 26). Nothing is deleted. These passages are also the destination for the text that leaves root AGENTS.md (A-68). locomotionMode (waypoint | direct) is recorded here as a planned contract, because the kinematics split by mode depends on it.",
+   "new_text_outline": "- Turn the planned-as-shipped passages into marked-planned design.\n- Add a status marker to each section heading: sections 7 and 8, 10 to 10e and 11 are planned (not shipped); section 6 is shipped.\n- Rewrite the present-tense sentences into the future tense while keeping the design text, which is accepted: the WASD walk (224), the Space-use arc (237), the eval:ai loop (299), and the advisor sulk and omissible clause (, planned for the advisory-omission change; this amendment owns , A-03 owns , A-04 inserts after 26).\n- Nothing is deleted.\n- These passages are also the destination for the text that leaves root AGENTS.md (A-68). locomotionMode (waypoint | direct) is recorded here as a planned contract, because the kinematics split by mode depends on it.\n- A-69 ALONE writes the heading markers (A-76 writes the index only); the index roadmap-id column is filled here with ids that exist in roadmap.yaml (seeded in the preceding batch), so the docs-truth marker check starts green.\n- Edit the tense of the eval:ai loop sentence (\"The loop: `npm run eval:ai` ...\") ; A-30 follows this edit and touches only the heading, the NLP bullet and the section 11 clauses.\n- Keep the 07a interruption text and \"the unread tail of a cut conversation does not fire\" in section 10a, marked planned (07a-dialogue-interruption).\n- Nothing deleted; text leaving root AGENTS.md (A-68) lands here as (planned) paragraphs.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "Space uses the nearest point of a prop footprint, or of a person's disc, within `0.4` m"
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "`npm run eval:ai` loads every registered case, rolls it with a fixed seed under `FAST_EVAL_PACING_CONFIG`, and reports pass or fail."
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "Repeatedly freezing one advisor out causes them to sulk and drop an `omissible` clause from their next briefing"
+    }
+   ]
+  },
+  {
+   "id": "A-51",
+   "sources": [
+    "S4-01",
+    "owner decision after slice 4",
+    "audit deletion_issues 35"
+   ],
+   "target": "DESIGN_NOTES.md#section 6 Play Shell text on Save to Disk and the 500MB .glb bullet; interfaces README/AGENTS caveat by the shipping change",
+   "anchor_quote": "persists edits via **\"Save to Disk\"**",
+   "action": "rewrite",
+   "summary": "Lab JSON is the source of truth: packs and stages are JSON, loaded and Zod-checked at runtime through validateLaunch, with no emitted TS; the bridge writes only allowlisted, schema-checked files. The 'Save to Disk' feature description stays; add the interim caveat that, until the loader exists, a stage-lab save does not persist into the game. Same caveat for Save Patch to Disk (DESIGN_NOTES , marked planned in A-71). Section README/AGENTS for interfaces change in the shipping change.",
+   "new_text_outline": "- Lab JSON is the source of truth: packs and stages are JSON, loaded and Zod-checked at runtime through validateLaunch, with no emitted TS; the bridge writes only allowlisted, schema-checked files.\n- The 'Save to Disk' feature description stays; add the interim caveat that, until the loader exists, a stage-lab save does not persist into the game.\n- Same caveat for Save Patch to Disk (DESIGN_NOTES , marked planned in A-71).\n- Section README/AGENTS for interfaces change in the shipping change.\n- Edits only the quoted passages; the stageLabPanel README/AGENTS change rides pre-05b-pack-source-of-truth.",
+   "plan_change_ref": "pre-05b-pack-source-of-truth",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "Zero 500MB `.glb` Repo Bloat"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context play-shell sentence",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-05",
+   "sources": [
+    "S2-17",
+    "S1-R1",
+    "owner decision after slice 2"
+   ],
+   "target": "DESIGN_NOTES.md#Rules spine R1..R8 (skeleton created by A-76); config context pointer only",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Write the eight rules as a numbered spine R1..R8, each one paragraph with a status and an enforcing test or lint named (or 'to be written'): R1 one watch clock; R2 actor and cause on every effect; R3 thread structure (stages, one spine thread in crisis_fuse); R4 discovery has a referent and an observer; R5 emergency cardinality and fuse (fuse built later, A-07); R6 reject instead of throw; R7 resource ledger; R8 epoch-end reads both ledgers and the Observation table. The section states it is revisable (P5). The minimal fields the owner named for S1-R1 are carried by A-16. Config gets a pointer, not a copy. AGENTS gets a pointer in A-66.",
+   "new_text_outline": "- Write the eight rules as a numbered spine R1..R8, each one paragraph with a status and an enforcing test or lint named (or 'to be written'): R1 one watch clock;\n- R2 actor and cause on every effect;\n- R3 thread structure (stages, one spine thread in crisis_fuse);\n- R4 discovery has a referent and an observer;\n- R5 emergency cardinality and fuse (fuse built later, A-07);\n- R6 reject instead of throw;\n- R7 resource ledger;\n- R8 epoch-end reads both ledgers and the Observation table.\n- The section states it is revisable (P5).\n- The minimal fields the owner named for S1-R1 are carried by A-16.\n- Config gets a pointer, not a copy.\n- AGENTS gets a pointer in A-66.\n- No AGENTS pointer here; A-66 adds the pointer after the text exists.\n- Owner wording to preserve verbatim: Accepts the 8-rule rules spine, leaving room to modify.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context pointer line to the rules spine",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-06",
+   "sources": [
+    "S2-17",
+    "S2-02",
+    "S3-04",
+    "ruling 6",
+    "A4 cross-slice pause"
+   ],
+   "target": "DESIGN_NOTES.md#Rules spine R2 and R6, including the single pause/lab definition",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Reducer rejects an effect with a reason code instead of throwing; unknown ids behave the same everywhere. The throw is kept only as an authoring-time contract test. AGENTS.md ('spend_orbital_delta throws') stays true today and is edited only by the change that ships the reject outcome.",
+   "new_text_outline": "- Reducer rejects an effect with a reason code instead of throwing; unknown ids behave the same everywhere.\n- The throw is kept only as an authoring-time contract test.\n- AGENTS.md ('spend_orbital_delta throws') stays true today and is edited only by the change that ships the reject outcome.\n- R6 note, one definition everywhere (ruling 6): player pause sets the single domain freeze bit (time freezes, effects still reduce and return outcomes); lab mode is a PlaySession flag that also holds the bit; free-cam keys are gated on lab mode; hx-reducer-and-frame-safety owns the bit and the acceptance.",
+   "plan_change_ref": "hx-reducer-and-frame-safety",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "AGENTS.md",
+     "section": "`spend_orbital_delta` throws on `burn` unless the phase is `zenith` (stays true until the reject outcome ships)",
+     "anchor_quote": "`spend_orbital_delta` throws on `burn` unless the phase is `zenith`"
+    }
+   ]
+  },
+  {
+   "id": "A-07",
+   "sources": [
+    "S2-17",
+    "S2-19"
+   ],
+   "target": "DESIGN_NOTES.md#Core Rule table \"Emergencies Charge Interest\" row and Rules spine R5",
+   "anchor_quote": "Emergencies Charge Interest",
+   "action": "rewrite",
+   "summary": "Emergency cardinality and fuse are written as a rule: EmergencyRuntime carries a scope, and compounding applies to the scoped group, not everyone. The fuse itself is 'later' (S2-19) and is built in the orbital-mechanics change, not pulled forward into the threads/ledger core step.",
+   "new_text_outline": "- Emergency cardinality and fuse are written as a rule: EmergencyRuntime carries a scope, and compounding applies to the scoped group, not everyone.\n- The fuse itself is 'later' (S2-19) and is built in the orbital-mechanics change, not pulled forward into the threads/ledger core step.",
+   "plan_change_ref": "cm-ledger-and-emergency",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Emergency States bullet (context)",
+     "anchor_quote": "Emergency States (`EmergencyStateBlueprint`): Suppresses (and compounds interest on) routine traits"
+    }
+   ]
+  },
+  {
+   "id": "A-08",
+   "sources": [
+    "7-primitive core model",
+    "P5",
+    "owner decision after slice 2"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Core model: seven primitives\" after the Core Rule table",
+   "anchor_quote": "Core Rule: Epoch-Agnostic Engine Abstractions with Era-Specific Content Bindings",
+   "action": "add",
+   "summary": "Define the seven primitives: watch clock; Act (ground-truth event in a bounded ring; effects carry an optional causeActId via an envelope); Observation (who learned what; merges Report, Trace, Belief); presence function; ThreadRuntime / ResourceLedger / EmergencyRuntime slices; LineBrief plus gate; TextSourcePort. Storage is bounded (Tier 3 holds nothing, Tier 2 on demand, epoch end compacts into scars). Marked planned and revisable. Only DESIGN_NOTES carries it; section AGENTS/README pairs add each primitive in the change that ships it.",
+   "new_text_outline": "- Define the seven primitives: watch clock;\n- Act (ground-truth event in a bounded ring; effects carry an optional causeActId via an envelope);\n- Observation (who learned what; merges Report, Trace, Belief); presence function;\n- ThreadRuntime / ResourceLedger / EmergencyRuntime slices;\n- LineBrief plus gate;\n- TextSourcePort.\n- Storage is bounded (Tier 3 holds nothing, Tier 2 on demand, epoch end compacts into scars).\n- Marked planned and revisable.\n- Only DESIGN_NOTES carries it; section AGENTS/README pairs add each primitive in the change that ships it.\n- Owner wording to preserve verbatim: Accepts the 7-primitive core model and the corrected order in slices/02b-roadmap-reorder.md, leaving plenty of room to add and modify.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-11",
+   "sources": [
+    "S2-01",
+    "S1-R6",
+    "S2-17"
+   ],
+   "target": "DESIGN_NOTES.md#4-clock hierarchy bullets and Rules spine R1; config Clock 2 bullet",
+   "anchor_quote": "The 4-Clock Simulation Hierarchy (Rebasing Change 03 `*Tick` Fields onto Campaign Watches)",
+   "action": "rewrite",
+   "summary": "Clock decision record: elapsedWatches on WorldState advanced only by advance_watches; worldTick is an effect serial and never time; scars record the watch; every *Ticks field is renamed *Watches while it has no users; the 4-clock shape is kept; Clock 1 runs on a fixed 1/60 s step with an accumulator.",
+   "new_text_outline": "- Clock decision record: elapsedWatches on WorldState advanced only by advance_watches; worldTick is an effect serial and never time; scars record the watch; every *Ticks field is renamed *Watches while it has no users; the 4-clock shape is kept;\n- Clock 1 runs on a fixed 1/60 s step with an accumulator.",
+   "plan_change_ref": "05b-1-watch-clock-and-time-spend",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Clock 2 bullet and neighbours (cut by A-72 after A-70 diff)",
+     "anchor_quote": "Clock 2 \u2014 Campaign Watch & Committed Time-Spend Clock (`elapsedWatches`)"
+    }
+   ]
+  },
+  {
+   "id": "A-15",
+   "sources": [
+    "S1-R1",
+    "S2-16"
+   ],
+   "target": "DESIGN_NOTES.md#Core Rule table \"Inertia as Load-Bearing Pillars\" row and new Leverage Chain definition",
+   "anchor_quote": "Inertia as Load-Bearing Pillars (`InertiaPillar[]`)",
+   "action": "rewrite",
+   "summary": "Leverage Chain definition: pillars gain bearsOnThreadId and supportedBy; thread inertia is derived from them; a chain is a derived query over shared supporters; the player verb is weaken_support. AGENTS.md (inertiaPillars) is edited by the shipping change.",
+   "new_text_outline": "- Leverage Chain definition: pillars gain bearsOnThreadId and supportedBy; thread inertia is derived from them; a chain is a derived query over shared supporters; the player verb is weaken_support.\n- AGENTS.md (inertiaPillars) is edited by the shipping change.",
+   "plan_change_ref": "cm-threads-and-pillars",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Slow-Burn Butterfly Threads bullet",
+     "anchor_quote": "Slow-Burn Butterfly Threads, Martyrdom & Crises (`TrajectoryThreadBlueprint`)"
+    }
+   ]
+  },
+  {
+   "id": "A-16",
+   "sources": [
+    "S1-R1",
+    "audit fidelity A-16"
+   ],
+   "target": "DESIGN_NOTES.md#Rules spine, one \"Player loop (minimal)\" entry",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Re-scoped to the minimal rules-spine fields the owner named for S1-R1 and nothing more: mission, verbs per thread, win/fail shape, epoch-end evaluation, Leverage Chain definition. The owner said 'Don't write everything up front.' No Epoch 1 player contract and no 'what a bad epoch looks like' page: Epoch 1 as definition of done (R8) is open and sits in A-63.",
+   "new_text_outline": "- Re-scoped to the minimal rules-spine fields the owner named for S1-R1 and nothing more: mission, verbs per thread, win/fail shape, epoch-end evaluation, Leverage Chain definition.\n- The owner said 'Don't write everything up front.' No Epoch 1 player contract and no 'what a bad epoch looks like' page: Epoch 1 as definition of done (R8) is open and sits in A-63.\n- Owner wording to preserve verbatim: Keep building the engine, but set a minimal rules spine early so it can guide the architecture: mission, verbs per thread, win/fail shape, epoch-end evaluation, Leverage Chain definition. The vertical slice tests the engine; it does not replace engine work. Don't write everything up front.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-19",
+   "sources": [
+    "S2-13",
+    "S1-R10",
+    "A3 coverage gap S1-R10"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"System graph\" (content from raw/S2-system-graph.json), before the first Generational Operatives section",
+   "anchor_quote": "### Generational Operatives & The Culture Advisory Pair",
+   "action": "add",
+   "summary": "Adopt the who-writes / who-reads graph as the dependency spine: five hubs (watch clock, Regard graph, thread runtime, office/pretext/funds ledger, actor/provenance on effects) built before further leaf effects. Owner asked for help drafting it (S1-R10). Status index row marks it planned.",
+   "new_text_outline": "- Adopt the who-writes / who-reads graph as the dependency spine: five hubs (watch clock, Regard graph, thread runtime, office/pretext/funds ledger, actor/provenance on effects) built before further leaf effects.\n- Owner asked for help drafting it (S1-R10).\n- Status index row marks it planned.\n- Verify raw/S2-system-graph.json covers every who-writes/who-reads row; Opus drafts any missing rows during this amendment (S1-R10 owner decision).",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-14",
+   "sources": [
+    "S1-R3",
+    "S2-10",
+    "ruling 7"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Loop cycles (minute, session, epoch)\" before section 0",
+   "anchor_quote": "### 0. 50\u2013100 Hour Campaign Pacing, 4-Clock Hierarchy",
+   "action": "add",
+   "summary": "Write the minute cycle (room), session cycle (watches spent, what returns), and epoch cycle. Owner: 'The cost of talking comes from the world.' Talking is a fractional time-spend verb: 05b-1 owns the verb and its budget; 07-dialogue-paging owns charging it per conversation, so the verb is not dead code. The world moves on because NPCs move on by watch.",
+   "new_text_outline": "- Write the minute cycle (room), session cycle (watches spent, what returns), and epoch cycle.\n- Owner: 'The cost of talking comes from the world.' Talking is a fractional time-spend verb: 05b-1 owns the verb and its budget; 07-dialogue-paging owns charging it per conversation, so the verb is not dead code.\n- The world moves on because NPCs move on by watch.\n- Owner wording to preserve verbatim: Write the minute, session and epoch cycles. The cost of talking comes from the world.",
+   "plan_change_ref": "05b-1-watch-clock-and-time-spend",
+   "owner_pending": null
+  },
+  {
+   "id": "A-20",
+   "sources": [
+    "S1-R6",
+    "S4-09",
+    "A4 apply_conflict 7"
+   ],
+   "target": "openspec/config.yaml#context, one new standing-directive line placed after the StateSliceKey line (a separate line; the StateSliceKey clause is A-55)",
+   "anchor_quote": "Custom module state MUST use typed `StateSliceKey<T>`",
+   "action": "add",
+   "summary": "Freeze extension: no new registry kind or effect without content that uses it. Settle the clock model before more time-bearing schema. Nothing is deleted. The guard is enforced by a test in the kind-table change, not by prose.",
+   "new_text_outline": "- Freeze extension: no new registry kind or effect without content that uses it.\n- Settle the clock model before more time-bearing schema.\n- Nothing is deleted.\n- The guard is enforced by a test in the kind-table change, not by prose.\n- A-20 owns ONLY the new freeze-extension line; A-55 owns the StateSliceKey sentence itself.\n- Owner wording to preserve verbatim: Freeze extension: no new kind or effect without content that uses it. Settle the clock model before more time-bearing schema. No deletion.",
+   "plan_change_ref": "pre-05b-launch-validation",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "Rules spine note",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-02",
+   "sources": [
+    "P2",
+    "S1-R7",
+    "audit deletion_issues 10-13, 37, 19"
+   ],
+   "target": "openspec/config.yaml#context hardware block: the 100% local line and the 3-stage pipeline lines (one edit); DESIGN_NOTES new section \"Text pipeline (P2)\"",
+   "anchor_quote": "100% local execution after `git clone`, `npm install`, and `npm run setup-models`.",
+   "action": "rewrite",
+   "summary": "State P2 and rewrite the config hardware block once. Line 53: 'after git clone, npm install, and npm run setup-models' becomes the install line without setup-models (the script does not exist); the local model cache rule is kept as '(planned, gated on the timing spike)'. Lines 55-58: the 3-stage free-text pipeline is retired; the replacement is a pointer to the text pipeline (TextSourcePort, LineBrief and gate, A-23 to A-26). The planned local text-generation worker (HF/ONNX adapter in infrastructure) is KEPT as planned under P2, not deleted. The MiniLM embedding intent worker () is the part that is obsolete. Zero API Keys stays. Line 56 is handled by A-67 in the same edit.",
+   "new_text_outline": "- State P2 and rewrite the config hardware block once.\n- Line 53: 'after git clone, npm install, and npm run setup-models' becomes the install line without setup-models (the script does not exist); the local model cache rule is kept as '(planned, gated on the timing spike)'.\n- Lines 55-58: the 3-stage free-text pipeline is retired; the replacement is a pointer to the text pipeline (TextSourcePort, LineBrief and gate, A-23 to A-26).\n- The planned local text-generation worker (HF/ONNX adapter in infrastructure) is KEPT as planned under P2, not deleted.\n- The MiniLM embedding intent worker () is the part that is obsolete.\n- Zero API Keys stays.\n- Line 56 is handled by A-67 in the same edit.\n- The config hardware block is edited once here; A-72 later moves the survivors. The pre-05b config line 56 cleanup becomes a no-op if A-72 already cut it.\n- Owner wording to preserve verbatim: There is no free-text player input. A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Local NLP uses a 3-stage hybrid pipeline:"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Intent Combiner + Anti-LLM-Speak Period-Voice Composer"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "section": "new section \"Text pipeline (P2)\" before section 10 Conversation Paging",
+     "anchor_quote": "### 10. Conversation Paging and Ambient Lines"
+    },
+    {
+     "file": "src/infrastructure/AGENTS.md",
+     "section": "model weights line",
+     "anchor_quote": "All model weights must load from the local `./public/models/` cache after running `npm run setup-models`."
+    }
+   ]
+  },
+  {
+   "id": "A-67",
+   "sources": [
+    "audit deletion_issues 11,13 note",
+    "S2-07",
+    "S2-04"
+   ],
+   "target": "openspec/config.yaml#context hardware block stage 1 \"Deterministic Lexical & Pragmatic Extractor\", edited inside the single edit of A-02",
+   "anchor_quote": "Deterministic Lexical & Pragmatic Extractor (<1ms: negation/prohibition polarity, speaker-target roles, speech act, and rival linguistic tell detection).",
+   "action": "rewrite",
+   "summary": "Stage 1 of the retired pipeline has no parent once stages 2 and 3 go. Its jobs are re-homed, not dropped: negation / speech-act extraction served the free-text parser and is retired (P2); 'rival linguistic tell detection' becomes the deterministic tellProfile post-pass (A-22); the <1 ms lexical check survives as gate tier 1 (banned lemmas, cadence) in the LineBrief gate (A-26). Delete the line only in the same edit that adds those pointers.",
+   "new_text_outline": "- Stage 1 of the retired pipeline has no parent once stages 2 and 3 go.\n- Its jobs are re-homed, not dropped: negation / speech-act extraction served the free-text parser and is retired (P2);\n- 'rival linguistic tell detection' becomes the deterministic tellProfile post-pass (A-22); the <1 ms lexical check survives as gate tier 1 (banned lemmas, cadence) in the LineBrief gate (A-26).\n- Delete the line only in the same edit that adds those pointers.",
+   "plan_change_ref": "pre-05b-pack-source-of-truth",
+   "owner_pending": null
+  },
+  {
+   "id": "A-23",
+   "sources": [
+    "S2-04",
+    "P2"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Text pipeline (P2)\" placed before section 10",
+   "anchor_quote": "### 10. Conversation Paging and Ambient Lines",
+   "action": "add",
+   "summary": "Rule: surfaced text is a view of structured facts, produced behind TextSourcePort and frozen into ConversationHistory and the save when shown. No free-text player input. Replaces the drifted passages (A-29, A-30).",
+   "new_text_outline": "- Rule: surfaced text is a view of structured facts, produced behind TextSourcePort and frozen into ConversationHistory and the save when shown.\n- No free-text player input.\n- Replaces the drifted passages (A-29, A-30).",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null
+  },
+  {
+   "id": "A-24",
+   "sources": [
+    "S2-05",
+    "owner decision after slice 2",
+    "A4 cross-slice spike",
+    "Q1"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline, hybrid generation subsection",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Hybrid generation: authoring-time SLM generation counts as P2 (drafted, curated, pooled); a runtime SLM tier for filler is first-class but gated on a one-day timing spike on the real Mac; its output is cached into the save. Record the owner's stipulation and the INV-1 outcome. The slot of the spike is owner-pending Q1: Opus recommends splitting it, so the no-merge timing investigation runs just before the 07 text skeleton (designing the generated-adapter seam with real numbers) while the generated adapter stays after 05b-2. The accepted order is retained if the owner prefers it. The register tag 'before-06' is corrected to the chosen slot once Q1 is answered.",
+   "new_text_outline": "- Hybrid generation: authoring-time SLM generation counts as P2 (drafted, curated, pooled); a runtime SLM tier for filler is first-class but gated on a one-day timing spike on the real Mac; its output is cached into the save.\n- Record the owner's stipulation and the INV-1 outcome.\n- The slot of the spike is owner-pending Q1: Opus recommends splitting it, so the no-merge timing investigation runs just before the 07 text skeleton (designing the generated-adapter seam with real numbers) while the generated adapter stays after 05b-2.\n- The accepted order is retained if the owner prefers it.\n- The register tag 'before-06' is corrected to the chosen slot once Q1 is answered.\n- Owner wording to preserve verbatim: also investigate a \"JEV\"-style decision network or decision web for runtime use, if it has a place (owner: \"like Microsoft-decision, or Laya\"; not JEPA)",
+   "plan_change_ref": "08a-timing-spike",
+   "owner_pending": null
+  },
+  {
+   "id": "A-25",
+   "sources": [
+    "S2-04",
+    "S2-05"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline, TextSourcePort subsection",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "TextSourcePort is an application port with authored, pool and generated adapters; infrastructure holds the planned HF/ONNX adapter; a fact-first realiser (RC3) and Tracery-style grammars (RC1) supply the deterministic fallback. AGENTS.md changes only when the port ships.",
+   "new_text_outline": "- TextSourcePort is an application port with authored, pool and generated adapters; infrastructure holds the planned HF/ONNX adapter; a fact-first realiser (RC3) and Tracery-style grammars (RC1) supply the deterministic fallback.\n- AGENTS.md changes only when the port ships.",
+   "plan_change_ref": "07-text-port-and-history",
+   "owner_pending": null
+  },
+  {
+   "id": "A-26",
+   "sources": [
+    "S2-06"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline, LineBrief subsection",
+   "anchor_quote": "**Voice Register & Anti-LLM-Slop Evals (`07e-voice-register-evals`)**",
+   "action": "add",
+   "summary": "LineBrief (grounding facts, speaker, register, tells) and a three-tier gate: lexical, grounding where every fact id must survive, tell compliance. On failure retry, then fall back to the pool and queue the line for review. Gate suites register on the eval runner. Lands with the text-source-port change before the 07 pager.",
+   "new_text_outline": "- LineBrief (grounding facts, speaker, register, tells) and a three-tier gate: lexical, grounding where every fact id must survive, tell compliance.\n- On failure retry, then fall back to the pool and queue the line for review.\n- Gate suites register on the eval runner.\n- Lands with the text-source-port change before the 07 pager.\n- Gate suites register on the eval runner after 05f-eval-and-replay.",
+   "plan_change_ref": "07-text-port-and-history",
+   "owner_pending": null
+  },
+  {
+   "id": "A-27",
+   "sources": [
+    "S2-08"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline, authored/generated split",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Authored/generated split: spine, Tier-1 bibles and keystones hand-authored with help; Tier-2, letters, gazette and rumours pool-generated and curated; Tier-3 templated. Authoring kit: CharacterBible, RegisterCard, few-shot builder, draft/accept CLI. Owner is happy to get help with authoring (P2).",
+   "new_text_outline": "- Authored/generated split: spine, Tier-1 bibles and keystones hand-authored with help;\n- Tier-2, letters, gazette and rumours pool-generated and curated;\n- Tier-3 templated.\n- Authoring kit: CharacterBible, RegisterCard, few-shot builder, draft/accept CLI.\n- Owner is happy to get help with authoring (P2).",
+   "plan_change_ref": "07-authoring-kit",
+   "owner_pending": null
+  },
+  {
+   "id": "A-34",
+   "sources": [
+    "INV-A",
+    "INV-E",
+    "INV-F",
+    "owner decision after slice 3",
+    "A3 A-34",
+    "ruling 17"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline, AI notes (INV verdicts)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "No decision model (LAYA or JEV class) in the simulation path; an advisory authoring-time gate tier is allowed. Runtime selection of pooled lines is by tag and seed over Observations. Learning is offline only (tables fitted from deterministic self-play, committed as data tied to the rules hash). A small fine-tuned classifier for line selection is a parked later spike (parked entry in roadmap.yaml); a small capped exact-inference network (INV-F) is acceptable only if a later need appears and is a parked entry. General probabilistic-programming engines, learned nets and JEPA-style world models are rejected at runtime (A-94). Ruling 17: INV-A is also written as a spec rule in the 07-text-port-and-history change.",
+   "new_text_outline": "- No decision model (LAYA or JEV class) in the simulation path; an advisory authoring-time gate tier is allowed.\n- Runtime selection of pooled lines is by tag and seed over Observations.\n- Learning is offline only (tables fitted from deterministic self-play, committed as data tied to the rules hash).\n- A small fine-tuned classifier for line selection is a parked later spike (parked entry in roadmap.yaml); a small capped exact-inference network (INV-F) is acceptable only if a later need appears and is a parked entry.\n- General probabilistic-programming engines, learned nets and JEPA-style world models are rejected at runtime (A-94).\n- Ruling 17: INV-A is also written as a spec rule in the 07-text-port-and-history change.\n- Owner wording to preserve verbatim: INV-1 verdict accepted: no decision model in the sim path; integer belief maths and designed-in misbelief; small classifier parked as a later spike.",
+   "plan_change_ref": "07-text-port-and-history",
+   "owner_pending": null
+  },
+  {
+   "id": "A-99",
+   "sources": [
+    "A4 plan_without_doc_home"
+   ],
+   "target": "DESIGN_NOTES.md#new passage \"Writing Desk\" in the Text pipeline section",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Planned Writing Desk on the text port: the player composes by choosing among generated or pooled options behind TextSourcePort (no free-text player input, P2); Report-as-Observation is covered by A-22. Marked (planned), owned by 06-overview-writing-desk-report.",
+   "new_text_outline": "- Planned Writing Desk on the text port: the player composes by choosing among generated or pooled options behind TextSourcePort (no free-text player input, P2);\n- Report-as-Observation is covered by A-22.\n- Marked (planned), owned by 06-overview-writing-desk-report.\n- Closes A4 plan_without_doc_home for 06-overview-writing-desk-report.",
+   "plan_change_ref": "06-overview-writing-desk-report",
+   "owner_pending": null
+  },
+  {
+   "id": "A-29",
+   "sources": [
+    "S2-04",
+    "audit deletion_issues 20, 23-29, 36, 38"
+   ],
+   "target": "DESIGN_NOTES.md#free-text / ONNX intent drift in sections 8, 10, 10e and 11 (four quoted clauses)",
+   "anchor_quote": "Dialogue wording, interruption, pretexts, and free-text intent stay in their own changes.",
+   "action": "rewrite",
+   "summary": "Edit the remaining free-text / ONNX intent drift. Clause cuts, with the surrounding sentence rewritten so it reads whole: DESIGN_NOTES section 10 'and free-text intent'; section 8 'Free-text intent is the change after that family.' (the sentence also ends 'A second pause flag.', which A-49 rewrites after this edit); section 10 'Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging.' (keep 'A back-page and a transcript on screen. A typewriter. Speech audio. Camera grabs.' as the not-in-this-section list); section 11 'The free-text intent suite.' README 'local ONNX Web Worker' becomes 'planned local text-generation worker' (the worker stays planned under P2). tests/AGENTS 'loading the 23MB ONNX model' becomes 'loading any model'. Config rules.design '23MB ONNX load' becomes 'model load'. The config free-text intent clause belongs to A-70; the section 11 heading and bullets belong to A-30.",
+   "new_text_outline": "- Edit the remaining free-text / ONNX intent drift.\n- Clause cuts, with the surrounding sentence rewritten so it reads whole: DESIGN_NOTES section 10 'and free-text intent'; section 8 'Free-text intent is the change after that family.' (the sentence also ends 'A second pause flag.', which A-49 rewrites after this edit); section 10 'Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging.' (keep 'A back-page and a transcript on screen.\n- A typewriter.\n- Speech audio.\n- Camera grabs.' as the not-in-this-section list); section 11 'The free-text intent suite.' README 'local ONNX Web Worker' becomes 'planned local text-generation worker' (the worker stays planned under P2). tests/AGENTS 'loading the 23MB ONNX model' becomes 'loading any model'.\n- Config rules.design '23MB ONNX load' becomes 'model load'.\n- The config free-text intent clause belongs to A-70; the section 11 heading and bullets belong to A-30.\n- Runs after A-69 (tense) and before A-49 (shared pause sentence in section 8).\n- Config line 43 belongs to A-70; the section 11 heading and bullets belong to A-30.",
+   "plan_change_ref": "docs-spine-and-roadmap",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "Free-text intent is the change after that family."
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging."
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "The free-text intent suite."
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "rules.design clause \"no WebGL or 23MB ONNX load required in fast unit tests\"",
+     "anchor_quote": "no WebGL or 23MB ONNX load required in fast unit tests"
+    },
+    {
+     "file": "README.md",
+     "section": "\"local ONNX Web Worker\" wording",
+     "anchor_quote": "local ONNX Web Worker"
+    },
+    {
+     "file": "tests/AGENTS.md",
+     "section": "\"loading the 23MB ONNX model\"",
+     "anchor_quote": "loading the 23MB ONNX mo"
+    },
+    {
+     "file": "src/domain/README.md",
+     "section": "free-text/ONNX wording",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-30",
+   "sources": [
+    "S2-06",
+    "S4-18",
+    "R3C1",
+    "audit deletion_issues 3, 22, 32",
+    "A4 apply_conflict 3"
+   ],
+   "target": "DESIGN_NOTES.md#\"Lightweight AI & NLP Evaluation Testing Framework\" heading and bullets; section 11 clauses",
+   "anchor_quote": "### Lightweight AI & NLP Evaluation Testing Framework (`05f-local-ai-eval-framework`)",
+   "action": "rewrite",
+   "summary": "Own every edit in these two blocks. Retitle the heading to 'Local AI Evaluation Testing Framework' and drop 'NLP'; the change id in the heading stays (DESIGN_NOTES may cite ids). Replace the 'Hybrid NLP & ONNX Intent Evals' bullet with a pointer to the text-pipeline gate and text-generation suites that register on the runner. Section 11 'free-text intent (change 08)' and 'the intent dataset' are cut. Split ownership: tests/ exact, golden/ hashes, eval/ distributions and corpora, one headless harness (runScenario). The text-gate suites sit on the runner only after the text-source-port change. The eval runner is described as planned. The runner's scripted command log (A-95) is also recorded here. AGENTS.md is handled in A-68.",
+   "new_text_outline": "- Own every edit in these two blocks.\n- Retitle the heading to 'Local AI Evaluation Testing Framework' and drop 'NLP'; the change id in the heading stays (DESIGN_NOTES may cite ids).\n- Replace the 'Hybrid NLP & ONNX Intent Evals' bullet with a pointer to the text-pipeline gate and text-generation suites that register on the runner.\n- Section 11 'free-text intent (change 08)' and 'the intent dataset' are cut.\n- Split ownership: tests/ exact, golden/ hashes, eval/ distributions and corpora, one headless harness (runScenario).\n- The text-gate suites sit on the runner only after the text-source-port change.\n- The eval runner is described as planned.\n- The runner's scripted command log (A-95) is also recorded here.\n- AGENTS.md is handled in A-68.\n- Follows A-69 explicitly: A-69 already changed the tense of the eval:ai loop sentence; A-30 does not touch it.\n- A-30 owns the heading retitle, the NLP bullet pointer and the two section 11 cuts, and the command-log recording from A-95.",
+   "plan_change_ref": "05f-eval-and-replay",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "**Hybrid NLP & ONNX Intent Evals (Change 08)**: Golden dataset of free-text player inputs"
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "free-text intent (change 08)"
+    },
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "the intent dataset"
+    }
+   ]
+  },
+  {
+   "id": "A-12",
+   "sources": [
+    "S3-07",
+    "S3-09",
+    "S4-04",
+    "S3-08",
+    "S5-04"
+   ],
+   "target": "DESIGN_NOTES.md#determinism notes (SimulationPacingConfig bullets) and the Engineering rules section",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Determinism rules: seed passes splitmix32 before SeededRandom; fixed 1/60 s step with capped catch-up; interpolation seam (prev/curr, alpha, teleport marker) in RenderFrameBuilder so the render step can run between fixed steps; hashWorldState plus a golden run (shuffled insertion, throwing Math.random / Date stubs); one ESLint determinism block covering domain, non-scene content AND application; ban node:*, require and non-literal import(). When it ships, the AGENTS layer table gains Math.random / Date.now bans on the application row, which today lists none.",
+   "new_text_outline": "- Determinism rules: seed passes splitmix32 before SeededRandom; fixed 1/60 s step with capped catch-up; interpolation seam (prev/curr, alpha, teleport marker) in RenderFrameBuilder so the render step can run between fixed steps; hashWorldState plus a golden run (shuffled insertion, throwing Math.random / Date stubs); one ESLint determinism block covering domain, non-scene content AND application; ban node:*, require and non-literal import().\n- When it ships, the AGENTS layer table gains Math.random / Date.now bans on the application row, which today lists none.",
+   "plan_change_ref": "hx-fixed-step-tick",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context determinism line \"Math.random() and Date.now() are forbidden...\"",
+     "anchor_quote": "`Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`."
+    },
+    {
+     "file": "AGENTS.md",
+     "section": "layer table application row (edited by the shipping change)",
+     "anchor_quote": "| `application`                   | `src/application/`"
+    }
+   ]
+  },
+  {
+   "id": "A-86",
+   "sources": [
+    "S5-04",
+    "hx-6a"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules, interpolation seam entry",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Interpolation seam: RenderFrameBuilder receives previous and current poses plus alpha and a teleport marker; teleports and room changes do not interpolate. Application README/AGENTS record it in the change that ships it. Landed as its own commit, separate from the tick-phase work.",
+   "new_text_outline": "- Interpolation seam: RenderFrameBuilder receives previous and current poses plus alpha and a teleport marker; teleports and room changes do not interpolate.\n- Application README/AGENTS record it in the change that ships it.\n- Landed as its own commit, separate from the tick-phase work.",
+   "plan_change_ref": "hx-fixed-step-tick",
+   "owner_pending": null
+  },
+  {
+   "id": "A-87",
+   "sources": [
+    "S3-14",
+    "S2-01"
+   ],
+   "target": "DESIGN_NOTES.md#section 4 legacy notes and Engineering rules",
+   "anchor_quote": "### 4. Configurable $N$-Epoch Civilizational Ladder",
+   "action": "add",
+   "summary": "Legacy mutations clamp to [0,1] with a telemetry note; the throw is kept only as an authoring-time contract test. sourceScarId is checked against the scar set. Scars record the watch (A-11). Domain AGENTS/legacy section updated by the shipping change.",
+   "new_text_outline": "- Legacy mutations clamp to [0,1] with a telemetry note; the throw is kept only as an authoring-time contract test. sourceScarId is checked against the scar set.\n- Scars record the watch (A-11).\n- Domain AGENTS/legacy section updated by the shipping change.",
+   "plan_change_ref": "hx-1-legacy-clamp-seed-scramble",
+   "owner_pending": null
+  },
+  {
+   "id": "A-88",
+   "sources": [
+    "S3-13",
+    "S3-08"
+   ],
+   "target": "DESIGN_NOTES.md#\"Human-Paced NPC Cognition & Anti-Thundering-Herd Cascade Guardrails\" notes",
+   "anchor_quote": "### Human-Paced NPC Cognition & Anti-Thundering-Herd Cascade Guardrails (Changes 03 & 06)",
+   "action": "add",
+   "summary": "Stimulus cap evicts by priority then age, with dedupe, instead of age alone (the stateless roll(worldSeed, streamKey, counter) half is in A-09).",
+   "new_text_outline": "- Stimulus cap evicts by priority then age, with dedupe, instead of age alone (the stateless roll(worldSeed, streamKey, counter) half is in A-09).",
+   "plan_change_ref": "cm-act-envelope-and-rolls",
+   "owner_pending": null
+  },
+  {
+   "id": "A-52",
+   "sources": [
+    "S4-12",
+    "S4-03",
+    "S1-R11",
+    "S4-14",
+    "R3C1",
+    "audit deletion_issues 5, 15, 39",
+    "A4 apply_conflict 7",
+    "A4 cross-slice telemetry"
+   ],
+   "target": "openspec/config.yaml#context telemetry bullets (the first three: every event, only the latest session log, debug skill); uplift-debug skill; AGENTS Session Telemetry bullet when the code ships",
+   "anchor_quote": "MUST be logged to `./logs/current-session.jsonl`",
+   "action": "rewrite",
+   "summary": "Replace the telemetry policy rather than removing it (the 50 MiB / 500 MiB caps stay true of the logger). The Act log records what happened; telemetry holds crash, warn, frame spikes and hash checkpoints; decision traces come from replaying the scripted command log with tracing on. Log nothing, replay with tracing. The logger never truncates: the previous session rotates into logs/prev/. Browser telemetry goes through the guarded bridge with a crash ring buffer flushed on throw; query limit/tail/count-by; newline guard; ENOSPC warning; honest skill text ('local ONNX NLP decisions' is removed because none exist). AGENTS.md keeps describing the current logger until the wiring ships, then the shipping change rewrites it.",
+   "new_text_outline": "- Replace the telemetry policy rather than removing it (the 50 MiB / 500 MiB caps stay true of the logger).\n- The Act log records what happened; telemetry holds crash, warn, frame spikes and hash checkpoints; decision traces come from replaying the scripted command log with tracing on.\n- Log nothing, replay with tracing.\n- The logger never truncates: the previous session rotates into logs/prev/.\n- Browser telemetry goes through the guarded bridge with a crash ring buffer flushed on throw; query limit/tail/count-by; newline guard;\n- ENOSPC warning; honest skill text ('local ONNX NLP decisions' is removed because none exist).\n- AGENTS.md keeps describing the current logger until the wiring ships, then the shipping change rewrites it.\n- A-52 does NOT touch the Multi-session Save/Load bullet; A-32 owns that bullet.\n- Adopts the plan slot: telemetry wiring directly after 05b-1 and before cm-act-envelope-and-rolls; the CLI and compaction half is last and may slip to 05f.\n- The guarded bridge write-route helper wording is \"(planned, built by hx-ops-safety)\".",
+   "plan_change_ref": "telemetry-wiring",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Only the latest session log is retained on new session start"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "AGENTS.md",
+     "section": "Session Telemetry & Debug Skill bullet (edited by the shipping change)",
+     "anchor_quote": "Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl`"
+    },
+    {
+     "file": ".agents/skills/uplift-debug/SKILL.md",
+     "section": "frontmatter/body \"local ONNX NLP decisions\" wording",
+     "anchor_quote": "trace NPC utility or local ONNX NLP decisions"
+    }
+   ]
+  },
+  {
+   "id": "A-55",
+   "sources": [
+    "S3-01",
+    "S3-02",
+    "S3-03",
+    "S4-10",
+    "owner decision after slice 3",
+    "ruling 16"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"State, saves and pack identity\"; config StateSliceKey sentence",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Slices are frozen on write and shared on read; StateSliceKey gains an optional schema, version and migrate plus a plain-JSON guard; WorldStateCodec owns snapshotVersion, Zod load, migrations and epoch check; saves carry packId and version. Decision S4-10: one registry per epoch. Fingerprint reconciliation is parked with the epoch-transition change.",
+   "new_text_outline": "- Slices are frozen on write and shared on read;\n- StateSliceKey gains an optional schema, version and migrate plus a plain-JSON guard;\n- WorldStateCodec owns snapshotVersion, Zod load, migrations and epoch check; saves carry packId and version.\n- Decision S4-10: one registry per epoch.\n- Fingerprint reconciliation is parked with the epoch-transition change.",
+   "plan_change_ref": "hx-save-integrity",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "StateSliceKey<T> sentence only (A-20 owns the new freeze line after it)",
+     "anchor_quote": "Custom module state MUST use typed `StateSliceKey<T>` descriptors, never untyped `Record<string, any>`."
+    }
+   ]
+  },
+  {
+   "id": "A-56",
+   "sources": [
+    "S4-08",
+    "S4-06",
+    "S4-09",
+    "S4-11",
+    "S1-R6",
+    "ruling 11",
+    "ruling 12",
+    "A4 apply_conflict 12"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules, validateLaunch / kind table / fixtures entry; content AGENTS recipes by the shipping change",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "validateLaunch(pack, stages, visuals) collects every error and runs in PlaySession and pack tests; shape validation before validateLaunch uses an interim loader check that is then folded into validateLaunch (ruling 12); the epoch-agnostic denylist is derived from exported packs and moved into tests/architecture; a defineModuleKind kind table with a ref table; the freeze-extension guard (A-20) lives here; the docs-truth check at first covers root AGENTS.md only (A-75), and the extension to every *Blueprint named in a section AGENTS.md lands in pre-05b-pack-source-of-truth after those files are rewritten; test fixtures leave the content barrel; content AGENTS recipes are rewritten to working steps.",
+   "new_text_outline": "- validateLaunch(pack, stages, visuals) collects every error and runs in PlaySession and pack tests; shape validation before validateLaunch uses an interim loader check that is then folded into validateLaunch (ruling 12); the epoch-agnostic denylist is derived from exported packs and moved into tests/architecture; a defineModuleKind kind table with a ref table; the freeze-extension guard (A-20) lives here; the docs-truth check at first covers root AGENTS.md only (A-75), and the extension to every *Blueprint named in a section AGENTS.md lands in pre-05b-pack-source-of-truth after those files are rewritten; test fixtures leave the content barrel; content AGENTS recipes are rewritten to working steps.",
+   "plan_change_ref": "pre-05b-launch-validation",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "src/content/AGENTS.md",
+     "section": "recipes (rewritten by pre-05b-pack-source-of-truth)",
+     "anchor_quote": "Create a `CharacterBlueprint` or `RivalCivBlueprint`"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "plug-and-play ZERO hardcoded bullet",
+     "anchor_quote": "ZERO hardcoded characters, rooms, behaviors, or feudal-only lore"
+    }
+   ]
+  },
+  {
+   "id": "A-57",
+   "sources": [
+    "S3-10",
+    "S3-11",
+    "S3-12",
+    "S3-15",
+    "S3-05",
+    "S3-18"
+   ],
+   "target": "DESIGN_NOTES.md#\"Human-Paced Cognitive Phases\" bullet and Engineering rules",
+   "anchor_quote": "Human-Paced Cognitive Phases",
+   "action": "add",
+   "summary": "Tick phase order is commands, watch, materialize, kinematics, cognition, commit, flush; move outcomes (Arrived, Blocked, Interrupted) as data with residualDt; the door-closes-mid-route dwell and retarget-from-last-waypoint are fixed; zero-speed moves are rejected; the frame try/catch re-arms rAF; PlaySession.status is per call. Section AGENTS update rides the shipping change.",
+   "new_text_outline": "- Tick phase order is commands, watch, materialize, kinematics, cognition, commit, flush; move outcomes (Arrived, Blocked, Interrupted) as data with residualDt; the door-closes-mid-route dwell and retarget-from-last-waypoint are fixed; zero-speed moves are rejected; the frame try/catch re-arms rAF;\n- PlaySession.status is per call.\n- Section AGENTS update rides the shipping change.",
+   "plan_change_ref": "hx-fixed-step-tick",
+   "owner_pending": null
+  },
+  {
+   "id": "A-89",
+   "sources": [
+    "S3-16"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules, one-line note",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Per-frame allocation waste: decision recorded as 'do nothing until a room holds 100+ bodies'. A one-line note, no work scheduled.",
+   "new_text_outline": "- Per-frame allocation waste: decision recorded as 'do nothing until a room holds 100+ bodies'.\n- A one-line note, no work scheduled.",
+   "plan_change_ref": null,
+   "owner_pending": null
+  },
+  {
+   "id": "A-90",
+   "sources": [
+    "S3-17",
+    "S4-13"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules, tests entry",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Each test ships with the fix that needs it. Shared builders live in tests/support (makeRegistry, makeWorldState, makeStageBlueprint). Monolithic tests are split. The bridge gets http-level tests. Acceptance lines (frozen inputs, RNG golden values, caps, mid-hop states, dt splits) are added to the hardening changes.",
+   "new_text_outline": "- Each test ships with the fix that needs it.\n- Shared builders live in tests/support (makeRegistry, makeWorldState, makeStageBlueprint).\n- Monolithic tests are split.\n- The bridge gets http-level tests.\n- Acceptance lines (frozen inputs, RNG golden values, caps, mid-hop states, dt splits) are added to the hardening changes.",
+   "plan_change_ref": "hx-slice-store",
+   "owner_pending": null
+  },
+  {
+   "id": "A-91",
+   "sources": [
+    "S4-05",
+    "S4-07",
+    "S4-17",
+    "R4A1"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules, layer-test blind spots entry",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Layer-test blind spots to close: import =, export *, barrel files, type-only imports, and enforcement of the content/scene rule. Every new invariant ships with a guarded test. Typed ESLint is recorded as later (attach to the first async-port change); compiler-API import scanning (R4A1) is recorded as parked.",
+   "new_text_outline": "- Layer-test blind spots to close: import =, export *, barrel files, type-only imports, and enforcement of the content/scene rule.\n- Every new invariant ships with a guarded test.\n- Typed ESLint is recorded as later (attach to the first async-port change); compiler-API import scanning (R4A1) is recorded as parked.",
+   "plan_change_ref": "hx-determinism-harness",
+   "owner_pending": null
+  },
+  {
+   "id": "A-95",
+   "sources": [
+    "R3C1",
+    "R3B2",
+    "R3A3",
+    "S4-12"
+   ],
+   "target": "DESIGN_NOTES.md#Engineering rules / section 11 command-log entry",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "R3C1 ruling: the scripted command log is the artifact for golden tests, 05f fixtures and bug repro, not the player save format (a reducer change invalidates a command log). R3B2: the Act ring is frozen and bounded and is chunked only if the benchmark at the expected cap fails. R3A3: dwell-site slots are later, held as data on the prop blueprint with the final metre steered; not a new movement system. The replay-with-tracing tool is owned by the eval-runner change.",
+   "new_text_outline": "- R3C1 ruling: the scripted command log is the artifact for golden tests, 05f fixtures and bug repro, not the player save format (a reducer change invalidates a command log).\n- R3B2: the Act ring is frozen and bounded and is chunked only if the benchmark at the expected cap fails.\n- R3A3: dwell-site slots are later, held as data on the prop blueprint with the final metre steered; not a new movement system.\n- The replay-with-tracing tool is owned by the eval-runner change.\n- Owner wording to preserve verbatim: Opus rules: the scripted command log is the artifact for golden tests, 05f fixtures and bug repro. It is not the player save format.",
+   "plan_change_ref": "05f-eval-and-replay",
+   "owner_pending": null
+  },
+  {
+   "id": "A-09",
+   "sources": [
+    "S2-02",
+    "S3-08",
+    "S3-04",
+    "S3-13"
+   ],
+   "target": "DESIGN_NOTES.md#core model \"Act\" primitive (after the Anti-Thundering-Herd cascade bullet)",
+   "anchor_quote": "**Anti-Thundering-Herd NPC-to-NPC Cascade Dampening**:",
+   "action": "add",
+   "summary": "Act record {id, actorId, verb, objectRef, motiveTag, spaceId, watch, perceptibility} in a frozen bounded ring; effect envelope {effect, actorId?, causeActId?}; BehaviorModule gets a commit returning WorldEffect[]; stateless counter-based roll(worldSeed, streamKey, counter) for randomness inside Acts. Stimulus dedupe is A-88.",
+   "new_text_outline": "- Act record {id, actorId, verb, objectRef, motiveTag, spaceId, watch, perceptibility} in a frozen bounded ring; effect envelope {effect, actorId?, causeActId?};\n- BehaviorModule gets a commit returning WorldEffect[]; stateless counter-based roll(worldSeed, streamKey, counter) for randomness inside Acts.\n- Stimulus dedupe is A-88.",
+   "plan_change_ref": "cm-act-envelope-and-rolls",
+   "owner_pending": null
+  },
+  {
+   "id": "A-10",
+   "sources": [
+    "S2-03",
+    "S2-12",
+    "S2-15",
+    "S2-18",
+    "INV-B",
+    "ruling 17"
+   ],
+   "target": "DESIGN_NOTES.md#core model \"Observation\" primitive and the discovery-layer rows; config IllicitInstrumentType bullet",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Discovery layers (noticed, assayed, attributed, theorized) become a decaying view derived per observer from the Observation table; set_discovery_layer survives as a shim; Regard.exposure is no longer the only record of who knows what.",
+   "new_text_outline": "- Discovery layers (noticed, assayed, attributed, theorized) become a decaying view derived per observer from the Observation table; set_discovery_layer survives as a shim;\n- Regard.exposure is no longer the only record of who knows what.\n- INV-B details live here, decided before the Observation schema freezes: collapse parents sharing an origin or channel, spoof as a negative term, an order-independence test, a parent cap (ruling 17).",
+   "plan_change_ref": "cm-observation-notebook",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Contested Offices bullet naming IllicitInstrumentType, PressureStockType",
+     "anchor_quote": "`IllicitInstrumentType`, `PressureStockType`"
+    }
+   ]
+  },
+  {
+   "id": "A-13",
+   "sources": [
+    "S2-10",
+    "S1-R3",
+    "audit fidelity A-13"
+   ],
+   "target": "DESIGN_NOTES.md#cascade cap paragraph and conversation paging line \"Reading costs no watch.\"",
+   "anchor_quote": "Reading costs no watch.",
+   "action": "rewrite",
+   "summary": "Split embodied cascades (keep the 2-hop cap) from information diffusion (closed form, per watch). No wall-clock beats. The cost attaches to talking, the conversation as a time-spend, not to each page turn; talking costs a fractional watch so the world moves on while you talk. DESIGN_NOTES 'Reading costs no watch' is revised to say that page turns cost no wall-clock time while the conversation itself spends a fractional watch. Ambient lines still spend no watch ().",
+   "new_text_outline": "- Split embodied cascades (keep the 2-hop cap) from information diffusion (closed form, per watch).\n- No wall-clock beats.\n- The cost attaches to talking, the conversation as a time-spend, not to each page turn; talking costs a fractional watch so the world moves on while you talk.\n- DESIGN_NOTES 'Reading costs no watch' is revised to say that page turns cost no wall-clock time while the conversation itself spends a fractional watch.\n- Ambient lines still spend no watch ().\n- Clause ownership: A-13 owns the sentences \"Reading costs no watch.\" and \"An ambient line does not spend a watch.\" (kept true) ; A-43 owns only \"A line shows only when that speaker is audible...\" in the same bullet.\n- Both halves of the talk-cost rule are stated: 05b-1 owns the verb and budget; 07-dialogue-paging charges it.\n- Owner wording to preserve verbatim: The cost of talking comes from the world.",
+   "plan_change_ref": "cm-diffusion-and-balancing",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "An ambient line does not spend a watch."
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context Human-Paced Cognition bullets (cut by A-72 after A-70 diff)",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-17",
+   "sources": [
+    "S1-R2",
+    "P4"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Inference trails and signposting\", before the Competing Spacefaring Civilizations section",
+   "anchor_quote": "### Competing Spacefaring Civilizations (Multi-Epoch Rival Theses",
+   "action": "add",
+   "summary": "Each covert effect leaves discoverable traces in events, NPC behaviour and world state. Light signposting, e.g. advisor nudges or notebook prompts. Advisors may omit but never lie unless a rival spoofs. No numeric debrief; qualitative odds in advisor speech. Delivery sits with the utility-AI/advisor change and the lace page; the spine records only the rule.",
+   "new_text_outline": "- Each covert effect leaves discoverable traces in events, NPC behaviour and world state.\n- Light signposting, e.g. advisor nudges or notebook prompts.\n- Advisors may omit but never lie unless a rival spoofs.\n- No numeric debrief; qualitative odds in advisor speech.\n- Delivery sits with the utility-AI/advisor change and the lace page; the spine records only the rule.\n- Owner wording to preserve verbatim: Indirect feedback is intentional (P4). Design inference trails: each covert effect leaves discoverable traces in events, NPC behaviour and world state. Add light signposting, e.g. advisor nudges or notebook prompts.",
+   "plan_change_ref": "06-overview-writing-desk-report",
+   "owner_pending": null
+  },
+  {
+   "id": "A-18",
+   "sources": [
+    "S1-R4",
+    "S2-11",
+    "audit fidelity A-18",
+    "A3 A-18/A-22"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Presence model\", before the Unified Interpersonal Regard Web section",
+   "anchor_quote": "### 1. Unified Interpersonal `Regard` Web",
+   "action": "add",
+   "summary": "Per-character watch-of-day presence table resolved by a pure function (entityId, watch, seed) to a placement, materialized on room entry or watch spend; entities start off-stage; phases resolve on a watch jump. The macro-lever rule is recorded verbatim in the owner's words: 'Every macro lever must be something the player interacts with in some way, and is aware of that interaction in some way, at some point. That covers remote adversaries and correspondents.'",
+   "new_text_outline": "- Per-character watch-of-day presence table resolved by a pure function (entityId, watch, seed) to a placement, materialized on room entry or watch spend; entities start off-stage; phases resolve on a watch jump.\n- The macro-lever rule is recorded verbatim in the owner's words: 'Every macro lever must be something the player interacts with in some way, and is aware of that interaction in some way, at some point.\n- That covers remote adversaries and correspondents.'",
+   "plan_change_ref": "cm-presence-and-materialize",
+   "owner_pending": null
+  },
+  {
+   "id": "A-21",
+   "sources": [
+    "S2-14",
+    "S2-15",
+    "S2-18",
+    "RB2",
+    "audit plan_conflicts A-62",
+    "A4 docs_without_plan A-21"
+   ],
+   "target": "DESIGN_NOTES.md#Core Rule table instrument and stock rows",
+   "anchor_quote": "3 Illicit Orbital Insertion Modes (`IllicitInstrumentType`)",
+   "action": "rewrite",
+   "summary": "Single owner of the insertion rule. Instrument coupling coefficients and discovery floors become data profiles per mode, registered by packs, with decay keys; one table of loops with a tuning key each; forged fiat no longer jumps straight to attributed; insertion spends Delta and requires zenith (rejected otherwise); the economy is a stock-flow model (RB2) and stocks get diegetic tells. A-62 only extends the orbital-mechanics change's scope to include this.",
+   "new_text_outline": "- Single owner of the insertion rule.\n- Instrument coupling coefficients and discovery floors become data profiles per mode, registered by packs, with decay keys; one table of loops with a tuning key each; forged fiat no longer jumps straight to attributed; insertion spends Delta and requires zenith (rejected otherwise); the economy is a stock-flow model (RB2) and stocks get diegetic tells.\n- A-62 only extends the orbital-mechanics change's scope to include this.\n- Stock-flow economy and diegetic stock tells are owned by cm-ledger-and-emergency (diffusion ratchet by cm-diffusion-and-balancing); extend those plan scopes accordingly.",
+   "plan_change_ref": "cm-ledger-and-emergency",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "3 Societal Pressure Stocks (`PressureStockType`)"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Contested Offices / economy bullet",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-22",
+   "sources": [
+    "S2-07",
+    "S2-09",
+    "audit fidelity A-22",
+    "A3 A-18/A-22"
+   ],
+   "target": "DESIGN_NOTES.md#Rival theses (The Tithe) and Report-as-Observation; config RivalCivBlueprint bullet",
+   "anchor_quote": "**The Tithe (*Predatory Hegemonists*)**",
+   "action": "rewrite",
+   "summary": "Rival tells become a structured tellProfile with a deterministic post-pass and presence/absence evals (field reserved in the spine, schema owned by 06-rivals-remote-evidence); each rival gets a small agenda that emits Acts; remote reports are Observations with latency. The invariant eval carries the owner's sentence: 'Every macro lever must be something the player interacts with in some way, and is aware of that interaction in some way, at some point. That covers remote adversaries and correspondents.'",
+   "new_text_outline": "- Rival tells become a structured tellProfile with a deterministic post-pass and presence/absence evals (field reserved in the spine, schema owned by 06-rivals-remote-evidence); each rival gets a small agenda that emits Acts; remote reports are Observations with latency.\n- The invariant eval carries the owner's sentence: 'Every macro lever must be something the player interacts with in some way, and is aware of that interaction in some way, at some point.\n- That covers remote adversaries and correspondents.'",
+   "plan_change_ref": "06-rivals-remote-evidence",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Rival Spacefaring Operatives bullet",
+     "anchor_quote": "Rival Spacefaring Operatives (`RivalCivBlueprint`)"
+    }
+   ]
+  },
+  {
+   "id": "A-31",
+   "sources": [
+    "S1-R5",
+    "S2-12",
+    "R3",
+    "R5B4"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Lace-log notebook\", before section 9",
+   "anchor_quote": "### 9. Conversation Text Bubbles, No Voice Acting",
+   "action": "add",
+   "summary": "Lace log is the notebook: auto-recorded known facts, suspicions, partial knowledge with open questions, and complete omissions (gaps). Added categories: source and reliability, learned-on watch, staleness, contradiction pairs, who-else-knows, player hypotheses graded on corroboration, spoof flags. Omission-referent rule: show a gap only when it refers to something real. Ambient lines are written in as a record, not a replay. The presenter UI is owned by the 07 pager, the data model by the Observation change. OWNER DECISION: Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked.",
+   "new_text_outline": "- Lace log is the notebook: auto-recorded known facts, suspicions, partial knowledge with open questions, and complete omissions (gaps).\n- Added categories: source and reliability, learned-on watch, staleness, contradiction pairs, who-else-knows, player hypotheses graded on corroboration, spoof flags.\n- Omission-referent rule: show a gap only when it refers to something real.\n- Ambient lines are written in as a record, not a replay.\n- The presenter UI is owned by the 07 pager, the data model by the Observation change.\n- Persistence waits on the save-policy decision (Q2); the data model is owned by cm-observation-notebook and the presenter by 07-notebook-presenter.\n- Owner wording to preserve verbatim: The lace-log notebook records known facts, suspicions, partial knowledge with open questions, and complete omissions (gaps).",
+   "plan_change_ref": "cm-observation-notebook",
+   "owner_pending": null
+  },
+  {
+   "id": "A-32",
+   "sources": [
+    "S1-R5"
+   ],
+   "target": "DESIGN_NOTES.md#Lace-log notebook, save-policy open note; config Multi-session Save/Load bullet (owned by A-32 alone)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Save policy is undecided. Record it as an open decision (candidate: autosave at watch boundaries), with the notebook held in the save. Written in A-63's open list; no policy text is invented. OWNER DECISION: Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked.",
+   "new_text_outline": "- Save policy is undecided.\n- Record it as an open decision (candidate: autosave at watch boundaries), with the notebook held in the save.\n- Written in A-63's open list; no policy text is invented.\n- Owner wording to preserve verbatim: Save policy still to be decided.",
+   "plan_change_ref": "cm-observation-notebook",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "Multi-session Save/Load bullet",
+     "anchor_quote": "Multi-session Save/Load persists named session snapshots under `./saves/`."
+    }
+   ]
+  },
+  {
+   "id": "A-33",
+   "sources": [
+    "INV-B",
+    "INV-C",
+    "INV-E",
+    "INV-F",
+    "owner decision after slice 3",
+    "ruling 17"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Belief and deliberate misbelief\", before the Anti-Thundering-Herd section",
+   "anchor_quote": "### Human-Paced NPC Cognition & Anti-Thundering-Herd Cascade Guardrails",
+   "action": "add",
+   "summary": "Integer fixed-point noisy-OR belief combiner on Observation (collapse parents sharing an origin or channel, spoof as a negative term, order-independence test, parent cap, reason tag per step). NPC considerations read a branded BeliefView, not world state, with a contract test against omniscient reads. Belief-conditioned utility terms for NPCs; expected-utility planning for rivals only; low confidence maps to investigate or wait. Deliberate misbelief: NPCs acting on stale or spoofed beliefs are the readable mistakes P4 depends on. Player style is tracked with counters (INV-E).",
+   "new_text_outline": "- Integer fixed-point noisy-OR belief combiner on Observation (collapse parents sharing an origin or channel, spoof as a negative term, order-independence test, parent cap, reason tag per step).\n- NPC considerations read a branded BeliefView, not world state, with a contract test against omniscient reads.\n- Belief-conditioned utility terms for NPCs; expected-utility planning for rivals only; low confidence maps to investigate or wait.\n- Deliberate misbelief: NPCs acting on stale or spoofed beliefs are the readable mistakes P4 depends on.\n- Player style is tracked with counters (INV-E).\n- INV-B details (collapse shared-origin parents, spoof as a negative term, order-independence test, parent cap) are decided before the Observation schema freezes.",
+   "plan_change_ref": "cm-observation-notebook",
+   "owner_pending": null
+  },
+  {
+   "id": "A-96",
+   "sources": [
+    "A4 plan_without_doc_home"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Resource ledger\", before section 1 (Regard)",
+   "anchor_quote": "### 1. Unified Interpersonal `Regard` Web",
+   "action": "add",
+   "summary": "Planned ResourceLedger as the economy hub: stipends, funds and pressure stocks as ledger entries; reconciles the Omen Ledger naming; diegetic tells for pressure stocks; R7 one rule line. Marked (planned), revisable.",
+   "new_text_outline": "- Planned ResourceLedger as the economy hub: stipends, funds and pressure stocks as ledger entries; reconciles the Omen Ledger naming; diegetic tells for pressure stocks;\n- R7 one rule line.\n- Marked (planned), revisable.\n- Closes A4 plan_without_doc_home cm-resource-ledger.",
+   "plan_change_ref": "cm-ledger-and-emergency",
+   "owner_pending": null
+  },
+  {
+   "id": "A-97",
+   "sources": [
+    "A4 plan_without_doc_home"
+   ],
+   "target": "DESIGN_NOTES.md#section 1 Regard: planned note on Regard.exposure vs the Observation table",
+   "anchor_quote": "### 1. Unified Interpersonal `Regard` Web",
+   "action": "add",
+   "summary": "Add a planned note to the Regard section: Regard shares data with presence and the Observation table; Regard.exposure is no longer the only knowledge record. Marked (planned).",
+   "new_text_outline": "- Add a planned note to the Regard section: Regard shares data with presence and the Observation table;\n- Regard.exposure is no longer the only knowledge record.\n- Marked (planned).\n- Closes A4 plan_without_doc_home 06a-regard.",
+   "plan_change_ref": "06a-interpersonal-regard-and-romantasy",
+   "owner_pending": null
+  },
+  {
+   "id": "A-98",
+   "sources": [
+    "A4 plan_without_doc_home"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Storyteller deck, thread gates and storylets\", after the 4-clock section 0",
+   "anchor_quote": "### 1. Unified Interpersonal `Regard` Web",
+   "action": "add",
+   "summary": "Planned storyteller as a seeded card deck over the thread state machine (RB3), 5-stage gates, and Tracery-style storylet grammar for cards. R7 is settled by S2-08 (authored/generated split); only the storylet-card question is left to this change. Marked (planned).",
+   "new_text_outline": "- Planned storyteller as a seeded card deck over the thread state machine (RB3), 5-stage gates, and Tracery-style storylet grammar for cards.\n- R7 is settled by S2-08 (authored/generated split); only the storylet-card question is left to this change.\n- Marked (planned).\n- Closes A4 plan_without_doc_home 05b-2.",
+   "plan_change_ref": "05b-2-envelopes-and-gates",
+   "owner_pending": null
+  },
+  {
+   "id": "A-100",
+   "sources": [
+    "A4 plan_without_doc_home"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Vertical slice (first pass of 11)\", after section 11",
+   "anchor_quote": "### 11. Local AI Eval Framework",
+   "action": "add",
+   "summary": "Pass criteria for the slice (M5 go/no-go): one thread end to end, few NPCs, one office and pretext, authored lines through the text port, a stub end card; the G1 trace excludes macro levers that need rivals (06). It tests the engine and does not replace engine work. Marked (planned), revisable.",
+   "new_text_outline": "- Pass criteria for the slice (M5 go/no-go): one thread end to end, few NPCs, one office and pretext, authored lines through the text port, a stub end card; the G1 trace excludes macro levers that need rivals (06).\n- It tests the engine and does not replace engine work.\n- Marked (planned), revisable.\n- Closes A4 plan_without_doc_home 11-pass-1.",
+   "plan_change_ref": "11-pass-1-slice",
+   "owner_pending": null
+  },
+  {
+   "id": "A-36",
+   "sources": [
+    "S5-15",
+    "S5-18"
+   ],
+   "target": "DESIGN_NOTES.md#Visual & UI Direction Diegetic UI Bifurcation bullet",
+   "anchor_quote": "**Diegetic UI Bifurcation**",
+   "action": "add",
+   "summary": "Readability rule: three value tiers (environment low, actors mid-high, signal brightest), signal hues reserved, mood never carries signal; lace text on a solid panel at a fixed type size; debug highlight moves off cyan. Enforced by a readability contract test.",
+   "new_text_outline": "- Readability rule: three value tiers (environment low, actors mid-high, signal brightest), signal hues reserved, mood never carries signal; lace text on a solid panel at a fixed type size; debug highlight moves off cyan.\n- Enforced by a readability contract test.",
+   "plan_change_ref": "05d-arrival-hold-readability",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context Diegetic UI Bifurcation bullet",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-47",
+   "sources": [
+    "S5-01",
+    "S5-05",
+    "S5-02",
+    "S5-03",
+    "S5-07",
+    "ruling 13"
+   ],
+   "target": "DESIGN_NOTES.md#Play Shell / Direct Locomotion footprint and body-drawn bullets",
+   "anchor_quote": "A prop blocks the oriented footprint of the mesh the kitbash builder draws for it",
+   "action": "rewrite",
+   "summary": "A content shape descriptor (primitive, dims, offset) is read by both the renderer and the footprint builder; vocabulary starts as box, cylinder, cone, icosahedron; unknown shape ids fail validation. Renderer residency: build only resident-space poses; geometry/material cache with shared-resource-safe dispose; compileAsync warm-up (S5-07 is in the pre-05d residency work, not 'later'). Crowd and materialized NPCs get a mesh from present poses (pooled add/remove) at the presence core step, which uses a renderer subset after the residency work. Entity-id pattern checked at load and materialize.",
+   "new_text_outline": "- A content shape descriptor (primitive, dims, offset) is read by both the renderer and the footprint builder; vocabulary starts as box, cylinder, cone, icosahedron; unknown shape ids fail validation.\n- Renderer residency: build only resident-space poses; geometry/material cache with shared-resource-safe dispose; compileAsync warm-up (S5-07 is in the pre-05d residency work, not 'later').\n- Crowd and materialized NPCs get a mesh from present poses (pooled add/remove) at the presence core step, which uses a renderer subset after the residency work.\n- Entity-id pattern checked at load and materialize.\n- The surface attribute that footsteps need is carried by the shape/floor descriptor (ruling 13).",
+   "plan_change_ref": "pre-05d-renderer-shape",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "A body is drawn only when a `CharacterVisualBlueprint.characterId` matches"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context play-shell bullet (cut by A-72 after diff)",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-48",
+   "sources": [
+    "S5-16",
+    "S5-17",
+    "S5-08",
+    "audit plan_conflicts A-48"
+   ],
+   "target": "DESIGN_NOTES.md#Visual & UI Direction, new later bullet \"(planned, later)\"",
+   "anchor_quote": "### Visual & UI Direction, Semantic Wall Addressing",
+   "action": "add",
+   "summary": "Later notes: silhouette budget (TF2 principle, black-silhouette lab view), theme schema roles before the second epoch pack, merged Tier-3 crowd past about a dozen, DPR 1 and no antialiasing (adaptive DPR rides with Settings, A-41).",
+   "new_text_outline": "- Later notes: silhouette budget (TF2 principle, black-silhouette lab view), theme schema roles before the second epoch pack, merged Tier-3 crowd past about a dozen, DPR 1 and no antialiasing (adaptive DPR rides with Settings, A-41).\n- Silhouette budget, theme roles and merged Tier-3 crowd are also parked entries in roadmap.yaml; DPR above 1 and antialiasing parked until a measured frame budget has headroom.",
+   "plan_change_ref": null,
+   "owner_pending": null
+  },
+  {
+   "id": "A-38",
+   "sources": [
+    "S5-11",
+    "S5-06",
+    "owner decision after slice 5",
+    "A4 cross-slice camera stack"
+   ],
+   "target": "DESIGN_NOTES.md#section 7 WASD sentence (\"W is into the picture...\") ; camera-capture note",
+   "anchor_quote": "W is into the picture, taken from the active camera volume's settled yaw.",
+   "action": "rewrite",
+   "summary": "Camera control frame derives from the volume yaw, pitch and distance and is latched while a move key is held across a volume change; one yaw-neutral zoom-out scalar. Tagged '(planned, later)': the capture/return directive stack is the change 07-camera-directive-stack, after the pager. Space never skips a capture, movement or Escape hands control back, no captures during a conversation, reduce-motion cuts, each capture has a maximum hold. Keeps the A-69 tense and tag; A-39 follows this edit.",
+   "new_text_outline": "- Camera control frame derives from the volume yaw, pitch and distance and is latched while a move key is held across a volume change; one yaw-neutral zoom-out scalar.\n- Tagged '(planned, later)': the capture/return directive stack is the change 07-camera-directive-stack, after the pager.\n- Space never skips a capture, movement or Escape hands control back, no captures during a conversation, reduce-motion cuts, each capture has a maximum hold.\n- Keeps the A-69 tense and tag;\n- A-39 follows this edit.\n- Owner wording to preserve verbatim: the camera should move with the players charachter centred, but we should leave the option open for certain world events to capture that centring, to show action, before automatically returning the camera to the player. we should research best practices/improvements/suggestions on this",
+   "plan_change_ref": "05d-input-and-control-frame",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context play-shell bullet tag",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-39",
+   "sources": [
+    "S5-09"
+   ],
+   "target": "DESIGN_NOTES.md#section 7 sentence \"Releasing the keys stops the body on that frame.\"; interfaces README/AGENTS by the shipping change",
+   "anchor_quote": "Releasing the keys stops the body on that frame.",
+   "action": "rewrite",
+   "summary": "InputState/InputFrame: keyup, blur and visibilitychange handled; event.code for physical keys; held and pressed sets; data action table; Space edge-triggered, no auto-repeat; dev HUD neutralised so Space cannot re-click it.",
+   "new_text_outline": "- InputState/InputFrame: keyup, blur and visibilitychange handled; event.code for physical keys; held and pressed sets; data action table;\n- Space edge-triggered, no auto-repeat; dev HUD neutralised so Space cannot re-click it.\n- Follows A-38 and keeps its tense and tag.",
+   "plan_change_ref": "05d-input-and-control-frame",
+   "owner_pending": null
+  },
+  {
+   "id": "A-37",
+   "sources": [
+    "S5-15",
+    "owner decision after slice 5",
+    "A-30 note",
+    "ruling 16"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 \"The winner's name is the prompt.\" passage; config proximity bullet",
+   "anchor_quote": "The winner's name is the prompt.",
+   "action": "rewrite",
+   "summary": "The currently selected Space target carries a warm mark so the 0.4 m / +-45 degree use rule can be read. A global 'important' accent is rejected (it breaks P4). Edited together with the A-69 tense change in one pass.",
+   "new_text_outline": "- The currently selected Space target carries a warm mark so the 0.4 m / +-45 degree use rule can be read.\n- A global 'important' accent is rejected (it breaks P4).\n- Edited together with the A-69 tense change in one pass.",
+   "plan_change_ref": "05e-modal-stack-use-and-menu",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context proximity-use bullet (keeps the planned tag from A-70)",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-40",
+   "sources": [
+    "S5-10",
+    "S5-09",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 menu grammar sentences and section 10 Escape clause; config menu-grammar bullets",
+   "anchor_quote": "Escape on an empty stack opens the player pause menu",
+   "action": "rewrite",
+   "summary": "Input grammar: W/S are vertical, Space confirms, Escape goes back; A/D are aliases in vertical lists and own left/right in horizontal rows; arrow keys are a second binding set. The top modal layer consumes every Space and Escape press in the frame it happens, which replaces the per-case clauses about opening keys and held keys. AGENTS.md /58 edits are in A-68.",
+   "new_text_outline": "- Input grammar: W/S are vertical, Space confirms, Escape goes back;\n- A/D are aliases in vertical lists and own left/right in horizontal rows; arrow keys are a second binding set.\n- The top modal layer consumes every Space and Escape press in the frame it happens, which replaces the per-case clauses about opening keys and held keys.\n- AGENTS.md /58 edits are in A-68.\n- Keeps the earlier tense and \"[planned - revisable]\" tag on the same lines.",
+   "plan_change_ref": "05e-modal-stack-use-and-menu",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context menu-grammar bullet",
+     "anchor_quote": "WASD, Space, and Escape drive every menu"
+    }
+   ]
+  },
+  {
+   "id": "A-49",
+   "sources": [
+    "S3-06",
+    "S5-14",
+    "owner decision after slice 5",
+    "A-50 merged",
+    "ruling 6"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 pause sentences (\"A second pause flag.\", \"That pause freezes the room...\")",
+   "anchor_quote": "A second pause flag.",
+   "action": "rewrite",
+   "summary": "Pause is one domain freeze bit (simulationFrozen): it freezes time only, and effects still reduce and return outcomes. Lab mode (desaturation, free-cam, picking) is a PlaySession interface flag that also holds the bit, and free-cam keys are gated on it, not on isPaused(). The 05e clause 'A second pause flag.' in section 8 is reworded to 'no second domain pause flag'. A-50 is merged into this amendment.",
+   "new_text_outline": "- Pause is one domain freeze bit (simulationFrozen): it freezes time only, and effects still reduce and return outcomes.\n- Lab mode (desaturation, free-cam, picking) is a PlaySession interface flag that also holds the bit, and free-cam keys are gated on it, not on isPaused().\n- The 05e clause 'A second pause flag.' in section 8 is reworded to 'no second domain pause flag'.\n- A-50 is merged into this amendment.\n- Runs after A-29 (shared sentence). Uses the single pause/lab definition in the R6 spine note (A-06): reword \"A second pause flag.\" to \"no second domain pause flag\"; hx-reducer-and-frame-safety owns the bit and acceptance, the lab flag and free-cam gating belong to the same change family.\n- A-50 merged into this amendment.",
+   "plan_change_ref": "hx-reducer-and-frame-safety",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "That pause freezes the room through the existing paused bit"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context debug-pause bullet \"Pauses 60Hz kinematics...\"",
+     "anchor_quote": "Pauses 60Hz kinematics, cognitive pulses, and watch advancement"
+    }
+   ]
+  },
+  {
+   "id": "A-41",
+   "sources": [
+    "S5-12",
+    "S5-18",
+    "audit fidelity A-41",
+    "ruling 8",
+    "ruling 16"
+   ],
+   "target": "DESIGN_NOTES.md#new section \"Accessibility and Settings\" (created here, before A-42 edits it)",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Settings model kept outside the hash: reduceMotion, hold or toggle movement, textScale (05e-settings-model). readingSpeed, ambient persistence and captions arrive with 07-bubble-lace-skins-and-tone-blips and full audio. Adaptive DPR is recorded as a parked entry (DPR above 1 and antialiasing, revisit on a measured frame budget). The Settings model is described in DESIGN_NOTES only; AGENTS.md describes it when it ships, without change ids.",
+   "new_text_outline": "- Settings model kept outside the hash: reduceMotion, hold or toggle movement, textScale (05e-settings-model). readingSpeed, ambient persistence and captions arrive with 07-bubble-lace-skins-and-tone-blips and full audio.\n- Adaptive DPR is recorded as a parked entry (DPR above 1 and antialiasing, revisit on a measured frame budget).\n- The Settings model is described in DESIGN_NOTES only;\n- AGENTS.md describes it when it ships, without change ids.\n- The optional qualitative-odds setting is dropped (ruling 16).",
+   "plan_change_ref": "05e-settings-model",
+   "owner_pending": null
+  },
+  {
+   "id": "A-44",
+   "sources": [
+    "S5-20",
+    "R5C5",
+    "audit fidelity A-44",
+    "A4 apply_conflict 8"
+   ],
+   "target": "DESIGN_NOTES.md#Sound Design block (the whole section, written once); config sound bullets",
+   "anchor_quote": "(Zero Git Repo Bloat)",
+   "action": "rewrite",
+   "summary": "Audio identity is hybrid (procedural synthesis plus a small CC0 sample set), so the 'zero .wav' claim is relaxed. Status accepted (P5, revisable). Samples enter at the audio change or full 05a; this amendment does not imply the minimal audio change ships samples. Full 05a stays later.",
+   "new_text_outline": "- Audio identity is hybrid (procedural synthesis plus a small CC0 sample set), so the 'zero .wav' claim is relaxed.\n- Status accepted (P5, revisable).\n- Samples enter at the audio change or full 05a; this amendment does not imply the minimal audio change ships samples.\n- Full 05a stays later.\n- A-44 is the single writer of the Sound block and goes first among the sound amendments; it re-reads the block and carries forward A-71 (planned tag on Sound Lab). A-46, A-43 and A-42 then edit single sentences without rewriting the block.",
+   "plan_change_ref": "audio-minimal",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context sound bullet \"Zero large `.wav` assets in git\"",
+     "anchor_quote": "Zero large `.wav` assets in git"
+    }
+   ]
+  },
+  {
+   "id": "A-46",
+   "sources": [
+    "owner decision after slice 5",
+    "R5C4",
+    "S5-20",
+    "audit fidelity A-46"
+   ],
+   "target": "DESIGN_NOTES.md#section 9 \"Neither adds an `AudioContext` for speech.\" and \"There is no voice acting.\"; Lace bus sentence",
+   "anchor_quote": "Neither adds an `AudioContext` for speech.",
+   "action": "rewrite",
+   "summary": "Amend section 9 so per-NPC tone blips are not counted as a synthesised voice: a subtle per-character pitch/timbre signature timed to bubble text pages; no phonemes or words; nothing reads a line aloud. The blips ship with the 07 pager, not with the minimal audio change (tone blips are deferred to 07). Everything else stays non-speech; the lace bus stays non-speech. AGENTS.md is handled in A-68.",
+   "new_text_outline": "- Amend section 9 so per-NPC tone blips are not counted as a synthesised voice: a subtle per-character pitch/timbre signature timed to bubble text pages; no phonemes or words; nothing reads a line aloud.\n- The blips ship with the 07 pager, not with the minimal audio change (tone blips are deferred to 07).\n- Everything else stays non-speech; the lace bus stays non-speech.\n- AGENTS.md is handled in A-68.\n- Single-sentence edit after A-44; tone blips ship with 07-bubble-lace-skins-and-tone-blips, not with audio-minimal.\n- Owner wording to preserve verbatim: Per-NPC tone blips approved: a subtle per-character pitch/timbre signature as bubble text pages. DESIGN_NOTES \u00a79 needs an amendment so this is not counted as a synthesised voice.",
+   "plan_change_ref": "07-bubble-lace-skins-and-tone-blips",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context \"There is no voice acting.\" bullet",
+     "anchor_quote": "There is no voice acting."
+    }
+   ]
+  },
+  {
+   "id": "A-43",
+   "sources": [
+    "S5-19",
+    "owner decision after slice 5",
+    "ruling 5",
+    "A4 cross-slice audibility"
+   ],
+   "target": "DESIGN_NOTES.md#Sound block audibility sentence and conversation line \"A line shows only when that speaker is audible...\"",
+   "anchor_quote": "A line shows only when that speaker is audible under the earshot rule",
+   "action": "rewrite",
+   "summary": "Audibility has three diegetic tiers (silent, murmur, clear), never a meter. One owner: cm-instrument-profiles-audibility-tells owns the tier rule's Observation integration; audio-minimal ships a provisional table that it replaces; 05a only consumes the rule and drops the calculator from its scope; 07 ambient lines use it.",
+   "new_text_outline": "- Audibility has three diegetic tiers (silent, murmur, clear), never a meter.\n- One owner: cm-instrument-profiles-audibility-tells owns the tier rule's Observation integration; audio-minimal ships a provisional table that it replaces; 05a only consumes the rule and drops the calculator from its scope; 07 ambient lines use it.",
+   "plan_change_ref": "cm-instrument-profiles-audibility-tells",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context \"Shared Audibility & Stealth Formula\" bullet",
+     "anchor_quote": "**Shared Audibility & Stealth Formula**"
+    }
+   ]
+  },
+  {
+   "id": "A-42",
+   "sources": [
+    "S5-13",
+    "P4",
+    "A4 missing target A-42"
+   ],
+   "target": "DESIGN_NOTES.md#\"Accessibility and Settings\" section (created by A-41) and the Obra Dinn fracture-cue bullet",
+   "anchor_quote": "Short *Obra Dinn*-style fracture cues",
+   "action": "add",
+   "summary": "Every visual tell registers a passive 'noticing' in the lace log, so no clue is visual-only. Slot: cm-instrument-profiles-audibility-tells pairs each tell with a non-visual noticing path (writes the passive noticing entry); validated at the eval runner (05f-eval-and-replay). Applies after A-41 creates the section.",
+   "new_text_outline": "- Every visual tell registers a passive 'noticing' in the lace log, so no clue is visual-only.\n- Slot: cm-instrument-profiles-audibility-tells pairs each tell with a non-visual noticing path (writes the passive noticing entry); validated at the eval runner (05f-eval-and-replay).\n- Applies after A-41 creates the section.",
+   "plan_change_ref": "cm-instrument-profiles-audibility-tells",
+   "owner_pending": null
+  },
+  {
+   "id": "A-03",
+   "sources": [
+    "P3",
+    "S1-R9",
+    "audit fidelity A-03",
+    "A4 apply_conflict 14"
+   ],
+   "target": "DESIGN_NOTES.md#Generational Operatives & The Culture Advisory Pair (new-operative paragraph) and section 4 legacy lines",
+   "anchor_quote": "**each Epoch dispatches a new playable Culture operative**",
+   "action": "rewrite",
+   "summary": "State P3 as a pillar: each epoch has a new operative and a new Ship/Drone crew, and the loss of the previous crew is part of the fun (owner: 'Each epoch has a new operative with their own new Ship and Drone crew, because that is how the Culture works. The new crew, and the loss of the previous one, are part of the fun.'). Record S1-R9 (re-rolled advisors weaken the through-line) as rejected-by-owner, with the owner's cameo addition recorded in A-04. Keep the existing legacy and sacrifice citation untouched. No editor gloss.",
+   "new_text_outline": "- State P3 as a pillar: each epoch has a new operative and a new Ship/Drone crew, and the loss of the previous crew is part of the fun (owner: 'Each epoch has a new operative with their own new Ship and Drone crew, because that is how the Culture works.\n- The new crew, and the loss of the previous one, are part of the fun.').\n- Record S1-R9 (re-rolled advisors weaken the through-line) as rejected-by-owner, with the owner's cameo addition recorded in A-04.\n- Keep the existing legacy and sacrifice citation untouched.\n- No editor gloss.",
+   "plan_change_ref": "10-crew-handoff",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "DESIGN_NOTES.md",
+     "anchor_quote": "both cite your predecessor operatives' past sacrifices from `CivilizationLegacyState`"
+    }
+   ]
+  },
+  {
+   "id": "A-78",
+   "sources": [
+    "S6A-01",
+    "S6A-04",
+    "ch2 doc shape",
+    "A4 apply_conflict 6"
+   ],
+   "target": ".agents/skills/uplift-design-notes/SKILL.md#frontmatter, step 1 registry list, steps 3.2 and 3.3, dump handling lines",
+   "anchor_quote": "3. Root `AGENTS.md` \u2014 add a registry bullet when the decision names a new system.",
+   "action": "rewrite",
+   "summary": "Fix the drift generator. Step 3.3 no longer adds a root AGENTS.md registry bullet: decisions are written into DESIGN_NOTES.md with a status line plus a roadmap.yaml entry. AGENTS.md is written only by the change that ships the code. Step 3.2 writes a roadmap.yaml entry instead of a config planned-sequence line. Raw dumps arrive in notes/inbox.md; the skill logs one disposition row per item in the DESIGN_NOTES appendix and then empties the inbox, which replaces 'leave the raw dump in the file until the user asks to remove it' and 'Do not delete the user's raw notes unless they ask' for the inbox only. Frontmatter description and the registry-list read in step 1 are updated. The 4-6 task wording moves to the size rule (A-81).",
+   "new_text_outline": "- Fix the drift generator.\n- Step 3.3 no longer adds a root AGENTS.md registry bullet: decisions are written into DESIGN_NOTES.md with a status line plus a roadmap.yaml entry.\n- AGENTS.md is written only by the change that ships the code.\n- Step 3.2 writes a roadmap.yaml entry instead of a config planned-sequence line.\n- Raw dumps arrive in notes/inbox.md; the skill logs one disposition row per item in the DESIGN_NOTES appendix and then empties the inbox, which replaces 'leave the raw dump in the file until the user asks to remove it' and 'Do not delete the user's raw notes unless they ask' for the inbox only.\n- Frontmatter description and the registry-list read in step 1 are updated.\n- The 4-6 task wording moves to the size rule (A-81).\n- A-78 lands first on this file; A-81 (after it) owns only the 4-6 task wording on the step 3.2 line.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": ".agents/skills/uplift-design-notes/SKILL.md",
+     "anchor_quote": "2. `openspec/config.yaml` \u2014 add a context bullet and a planned-sequence line"
+    },
+    {
+     "file": ".agents/skills/uplift-design-notes/SKILL.md",
+     "anchor_quote": "Leave the raw dump in the file until the user asks to remove it."
+    },
+    {
+     "file": ".agents/skills/uplift-design-notes/SKILL.md",
+     "anchor_quote": "Do not delete the user's raw notes unless they ask."
+    }
+   ]
+  },
+  {
+   "id": "A-80",
+   "sources": [
+    "S6B-03",
+    "owner decision after slice 6 (1)",
+    "ruling 16",
+    "A3 A-80"
+   ],
+   "target": ".agents/skills/uplift-review-gates/SKILL.md#new skill with the gate briefs; AGENTS.md Atomic Delivery section; config Review Gates block",
+   "anchor_quote": null,
+   "action": "move",
+   "summary": "Create the uplift-review-gates skill and move the gate briefs there verbatim (3-subagent spec audit, 2-subagent per-subtask review, 6-subagent post-change review). The AGENTS.md section shrinks to a pointer to the skill plus the OpenSpec commands; the config Review Gates block becomes a pointer. Additions only, nothing removed from any gate: G1 end-to-end feature trace (run the real entry point, name the producer and consumer call sites); G2 security / trust-boundary axis inside the adversarial reviewers; G3 hot-path cost axis inside the performance reviewer; G4 failure-containment axis inside the adversarial reviewers; G5 defect ledger (A-83); G6 scenario-to-test traceability check. The 'never reduce review' owner rule holds. The optional smoke script is dropped (ruling 16).",
+   "new_text_outline": "- Create the uplift-review-gates skill and move the gate briefs there verbatim (3-subagent spec audit, 2-subagent per-subtask review, 6-subagent post-change review).\n- The AGENTS.md section shrinks to a pointer to the skill plus the OpenSpec commands; the config Review Gates block becomes a pointer.\n- Additions only, nothing removed from any gate: G1 end-to-end feature trace (run the real entry point, name the producer and consumer call sites);\n- G2 security / trust-boundary axis inside the adversarial reviewers;\n- G3 hot-path cost axis inside the performance reviewer;\n- G4 failure-containment axis inside the adversarial reviewers;\n- G5 defect ledger (A-83);\n- G6 scenario-to-test traceability check.\n- The 'never reduce review' owner rule holds.\n- The optional smoke script is dropped (ruling 16).\n- No-loss: diff the moved gate briefs against the old text.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "AGENTS.md",
+     "section": "## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 6-Subagent Review (becomes a pointer plus the OpenSpec commands)",
+     "anchor_quote": "## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 6-Subagent Review"
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "context \"Review Gates (standing directive\" block (becomes a pointer)",
+     "anchor_quote": "Review Gates (standing directive \u2014 do not skip):"
+    }
+   ]
+  },
+  {
+   "id": "A-82",
+   "sources": [
+    "S6B-01",
+    "S6B-02",
+    "owner decision after slice 6 (1)",
+    "A4 missing target A-82"
+   ],
+   "target": "openspec/config.yaml#rules.specs and rules.design (add consumer-scenario and MODIFIED-delta rules)",
+   "anchor_quote": "Specify observable domain, simulation, telemetry, or rendering behavior using testable WHEN/THEN scenarios",
+   "action": "add",
+   "summary": "Add the consumer-scenario spec rule, and require a MODIFIED delta whenever a register finding contradicts an archived requirement. The three archived requirements that certify defects are the first deltas: the store 'clone' scenario, the 'replaced' log retention scenario, and the 'under 5 seconds' verify clause (restate against a measured budget).",
+   "new_text_outline": "- Add the consumer-scenario spec rule, and require a MODIFIED delta whenever a register finding contradicts an archived requirement.\n- The three archived requirements that certify defects are the first deltas: the store 'clone' scenario, the 'replaced' log retention scenario, and the 'under 5 seconds' verify clause (restate against a measured budget).\n- Adds the rule and the list of the three first deltas only; the delta files are written inside hx-ops-safety and hx-slice-store because those changes do not exist yet.\n- Owner wording to preserve verbatim: Spec rule: a requirement whose purpose is persistence, logging or a pipeline MUST have a scenario that runs from the user-visible trigger to an observable consumer, and its design.md lists the call sites. Every register finding that contradicts an archived requirement needs a MODIFIED delta.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": ".agents/skills/uplift-review-gates/SKILL.md",
+     "section": "G6 scenario-to-test traceability",
+     "anchor_quote": null
+    },
+    {
+     "file": "openspec/specs/deterministic-simulation-primitives/spec.md",
+     "section": "store clone scenario (MODIFIED delta written inside hx-slice-store)",
+     "anchor_quote": "the store SHALL return a clone/value matching the declared default of type `T`"
+    },
+    {
+     "file": "openspec/specs/session-telemetry-and-compaction/spec.md",
+     "section": "replaced log retention scenario (delta written inside hx-ops-safety)",
+     "anchor_quote": "any prior session's active and compacted log files in `./logs/` SHALL be replaced by the new session's log files"
+    },
+    {
+     "file": "openspec/specs/clean-architecture-and-quality-gate/spec.md",
+     "section": "under 5 seconds clause (delta written inside hx-ops-safety)",
+     "anchor_quote": "executes formatting checks, ESLint static analysis, typechecking, architectural/static boundary checks, and unit tests in under 5 seconds"
+    }
+   ]
+  },
+  {
+   "id": "A-81",
+   "sources": [
+    "S6B-05",
+    "owner decision after slice 6 (1)",
+    "A4 apply_conflict 5",
+    "A4 apply_conflict 6"
+   ],
+   "target": ".agents/skills/uplift-review-gates/SKILL.md#audit Subagent B wording (moved from config and AGENTS) ; config 4-6 task rules ; design-notes skill 4-6 wording",
+   "anchor_quote": null,
+   "action": "rewrite",
+   "summary": "Replace the 4-6 task count with the size rule. Update every place that states it: the config rules.tasks line and the Atomic Task strategy bullet, the audit Subagent B wording (now in the uplift-review-gates skill after A-80 turned the config and AGENTS gate blocks into pointers), and the design-notes skill lines that say 4-6. Owner rule: 'One task is one green, reviewable commit touching at most 3 source files plus tests. The docs update rides inside the feature task. There is one closing review task, and unplanned fixes are recorded as tasks. Instead of a hard 4-6 count, a change over 8 tasks or 3 layers must justify itself or split, checked by audit Subagent B.'",
+   "new_text_outline": "- Replace the 4-6 task count with the size rule.\n- Update every place that states it: the config rules.tasks line and the Atomic Task strategy bullet, the audit Subagent B wording (now in the uplift-review-gates skill after A-80 turned the config and AGENTS gate blocks into pointers), and the design-notes skill lines that say 4-6.\n- Owner rule: 'One task is one green, reviewable commit touching at most 3 source files plus tests.\n- The docs update rides inside the feature task.\n- There is one closing review task, and unplanned fixes are recorded as tasks.\n- Instead of a hard 4-6 count, a change over 8 tasks or 3 layers must justify itself or split, checked by audit Subagent B.'\n- Retargeted to the skill file: after A-80 the config Review Gates block and AGENTS gate section are pointers, so the audit Subagent B wording is edited in the skill.\n- Strict order on the design-notes skill: A-78 first, then A-81 for the 4-6 wording only.\n- Owner wording to preserve verbatim: Task-size rule: One task is one green, reviewable commit touching at most 3 source files plus tests. The docs update rides inside the feature task. There is one closing review task, and unplanned fixes are recorded as tasks. Instead of a hard 4-6 count, a change over 8 tasks or 3 layers must justify itself or split, checked by audit Subagent B.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "rules.tasks \"Limit each change to 4-6 atomic tasks\" and the Atomic Task strategy bullet \"4 to 6 small, self-contained tasks\"",
+     "anchor_quote": "Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks."
+    },
+    {
+     "file": "openspec/config.yaml",
+     "section": "rules.tasks \"Limit each change to 4-6 atomic tasks\" and the Atomic Task strategy bullet \"4 to 6 small, self-contained tasks\"",
+     "anchor_quote": "Limit each change to 4-6 atomic tasks achievable within a single session"
+    },
+    {
+     "file": ".agents/skills/uplift-design-notes/SKILL.md",
+     "section": "\"4\u20136\" wording on step 3.2 (after A-78)",
+     "anchor_quote": "Split ideas that would blow the 4\u20136 task budget."
+    },
+    {
+     "file": ".agents/skills/uplift-design-notes/SKILL.md",
+     "section": "\"4\u20136\" wording on step 3.2 (after A-78)",
+     "anchor_quote": "changes too large for 4\u20136 tasks"
+    }
+   ]
+  },
+  {
+   "id": "A-83",
+   "sources": [
+    "S6B-03",
+    "owner decision after slice 6 (2)",
+    "G5",
+    "ruling 10",
+    "A4 apply_conflict 10",
+    "A4 apply_conflict 11"
+   ],
+   "target": "openspec/defect-ledger.yaml (new; location confirmed by the owner Q3) ; opsx-archive wrapper script (new) ; gates skill pointer",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "Add the defect ledger as a tracked file with a removal mechanism that cannot be skipped. Each entry: id, source (register finding id), severity, fixing change (a roadmap.yaml id; a finding with no fixing change is recorded as parked). Owner: 'The archive step deletes the entries for the change being archived, and the docs-truth test fails if any entry names an already-archived change, or names a change that does not exist in roadmap.yaml.' An opsx-archive wrapper script performs the delete; the opsx-archive instructions and the gates skill only point at the script. Entries are removed when fixed, never marked done. The seed scope (all severities with a slotted fix, or majors only) is owner-pending Q3.",
+   "new_text_outline": "- Add the defect ledger as a tracked file with a removal mechanism that cannot be skipped.\n- Each entry: id, source (register finding id), severity, fixing change (a roadmap.yaml id; a finding with no fixing change is recorded as parked).\n- Owner: 'The archive step deletes the entries for the change being archived, and the docs-truth test fails if any entry names an already-archived change, or names a change that does not exist in roadmap.yaml.' An opsx-archive wrapper script performs the delete; the opsx-archive instructions and the gates skill only point at the script.\n- Entries are removed when fixed, never marked done.\n- The seed scope (all severities with a slotted fix, or majors only) is owner-pending Q3.\n- The ledger check lives only in the docs-truth test (A-75); no separate tests/architecture ledger test.\n- Fixing-change ids exist in roadmap.yaml (seeded earlier), so the check starts green.\n- Owner wording to preserve verbatim: Defect ledger: tracked in the repo, with a mechanism that guarantees an entry is removed when it is fixed. Each entry carries an id, a source, a severity and the change that will fix it. The archive step deletes the entries for the change being archived, and the docs-truth test fails if any entry names an already-archived change, or names a change that does not exist in roadmap.yaml.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "operations.archive guidance \"Confirm npm run verify passes, the 6-subagent post-change review...\"",
+     "anchor_quote": "Confirm npm run verify passes, the 6-subagent post-change review has been completed and addressed, and all task commits are clean before archiving"
+    }
+   ]
+  },
+  {
+   "id": "A-73",
+   "sources": [
+    "S6A-02",
+    "S6A-05",
+    "S4-11",
+    "A3 A-73"
+   ],
+   "target": "openspec/config.yaml#context \"Stack & Pinned Versions\" block; README pinned-versions table and TS 6.0.3 statement; AGENTS version numbers",
+   "anchor_quote": "Hugging Face Transformers (`@huggingface/transformers`): 4.3.2",
+   "action": "rewrite",
+   "summary": "Versions live only in package.json (and .nvmrc for Node). Delete the pinned-version list from config.yaml and replace the README table with a pointer; the docs-truth test asserts any version that remains in README matches package.json and .nvmrc. Fix the contradiction in README ('npm:@typescript/typescript6@6.0.2' labelled 'TS 6.0.3'). Drop the version numbers from AGENTS.md. The Hugging Face line (4.3.2) is not installed and not in package.json: delete the number, and keep the planned local text-generation worker in the text-pipeline notes with 'pin chosen when installed'. 05c is already tagged [archived] (S0B-42 erratum), so no tag fix is needed.",
+   "new_text_outline": "- Versions live only in package.json (and .nvmrc for Node).\n- Delete the pinned-version list from config.yaml and replace the README table with a pointer; the docs-truth test asserts any version that remains in README matches package.json and .nvmrc.\n- Fix the contradiction in README ('npm:@typescript/typescript6@6.0.2' labelled 'TS 6.0.3').\n- Drop the version numbers from AGENTS.md.\n- The Hugging Face line (4.3.2) is not installed and not in package.json: delete the number, and keep the planned local text-generation worker in the text-pipeline notes with 'pin chosen when installed'. 05c is already tagged [archived] (S0B-42 erratum), so no tag fix is needed.\n- The sentence \"A-65 is withdrawn\" is removed (no such amendment).",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Stack & Pinned Versions (verified 2026-10-29"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "README.md",
+     "section": "README pinned-versions table and \"TS 6.0.3\"",
+     "anchor_quote": "Official Microsoft TS 6.0.3 JS AST API bridge required by `typescript-eslint`"
+    },
+    {
+     "file": "AGENTS.md",
+     "section": "version numbers in Quick Verify typecheck line and the TypeScript policy bullet",
+     "anchor_quote": "`tsc --noEmit` via native TypeScript 7.0.2"
+    }
+   ]
+  },
+  {
+   "id": "A-74",
+   "sources": [
+    "S6A-03"
+   ],
+   "target": "openspec/config.yaml#context pinned-stack CVE claims; rules.design pinned-versions clause; README CVE line",
+   "anchor_quote": "includes Oct 21, 2026 security patches for CVE-2026-111497",
+   "action": "rewrite",
+   "summary": "Drop the CVE ids and the 'verified 2026-10-29 / CVE-patched' claims, which cannot be verified offline. State that npm audit is a manual step run by the owner. Remove 'pinned dependency & CVE manifest' from the documentation hierarchy rule.",
+   "new_text_outline": "- Drop the CVE ids and the 'verified 2026-10-29 / CVE-patched' claims, which cannot be verified offline.\n- State that npm audit is a manual step run by the owner.\n- Remove 'pinned dependency & CVE manifest' from the documentation hierarchy rule.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Include the pinned-versions table verified on 2026-10-29 (including CVE-patched runtime/package versions)"
+    }
+   ],
+   "secondary_anchors": [
+    {
+     "file": "README.md",
+     "section": "README CVE line",
+     "anchor_quote": "Includes Oct 21, 2026 security fixes (`CVE-2026-111497`"
+    }
+   ]
+  },
+  {
+   "id": "A-64",
+   "sources": [
+    "S1-R11"
+   ],
+   "target": "src/interfaces/README.md#click-to-waypoint binding description",
+   "anchor_quote": "The bindings are `waypoint` (always active)",
+   "action": "rewrite",
+   "summary": "Label the click-to-waypoint binding as dev tooling, not the player path. Wire browser telemetry to /api/telemetry is a separate item (A-52).",
+   "new_text_outline": "- Label the click-to-waypoint binding as dev tooling, not the player path.\n- Wire browser telemetry to /api/telemetry is a separate item (A-52).",
+   "plan_change_ref": "telemetry-wiring",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "src/interfaces/AGENTS.md",
+     "section": "registerDevHudPanel note",
+     "anchor_quote": "A later lab calls `registerDevHudPanel` and appends a `PlayBinding`"
+    }
+   ]
+  },
+  {
+   "id": "A-68",
+   "sources": [
+    "S6A-01",
+    "S6A-05",
+    "ch2 doc shape",
+    "A4 missing target A-68",
+    "ruling 15"
+   ],
+   "target": "AGENTS.md#whole file (rewrite to shipped code only; target about 900 words, test ceiling 1050)",
+   "anchor_quote": "`locomotionMode` is `waypoint` (default) or `direct`. A direct body takes a steer and walks the floor.",
+   "action": "rewrite",
+   "summary": "Rewrite root AGENTS.md as shipped code only: target about 900 words, test ceiling 1050. Keep: title and one-paragraph intro, change-citation rule, Quick Verify (as edited by hx-ops-safety, versions removed), layer rules table, zero-any policy, shipped registry bullets (characters, offices, channels, threads, emergency, orbital pass, session telemetry) without future-tense claims, the section map table, an Agent Skills rule one-liner, and a pointer to DESIGN_NOTES (pillars and status index) and to the review-gates skill. Cut or move (text kept, tense changed, no change ids): the locomotionMode sentence, the Prop footprints, Proximity use, Local AI eval runner and Conversation paging bullets (to DESIGN_NOTES as (planned)); the 7-epoch ladder paragraph (owner is DESIGN_NOTES section 4); the whole Atomic Delivery section (A-80); version numbers (A-73); the Design-Note Dump Skill bullet (moves to the skill description). No pointer to the rules spine paragraphs here; A-66 adds it after the text exists.",
+   "new_text_outline": "- Rewrite root AGENTS.md as shipped code only: target about 900 words, test ceiling 1050.\n- Keep: title and one-paragraph intro, change-citation rule, Quick Verify (as edited by hx-ops-safety, versions removed), layer rules table, zero-any policy, shipped registry bullets (characters, offices, channels, threads, emergency, orbital pass, session telemetry) without future-tense claims, the section map table, an Agent Skills rule one-liner, and a pointer to DESIGN_NOTES (pillars and status index) and to the review-gates skill.\n- Cut or move (text kept, tense changed, no change ids): the locomotionMode sentence, the Prop footprints, Proximity use, Local AI eval runner and Conversation paging bullets (to DESIGN_NOTES as (planned)); the 7-epoch ladder paragraph (owner is DESIGN_NOTES section 4); the whole Atomic Delivery section (A-80); version numbers (A-73); the Design-Note Dump Skill bullet (moves to the skill description).\n- No pointer to the rules spine paragraphs here;\n- A-66 adds it after the text exists.\n- See budget_plan.agents_md for the exact keep and cut lists.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "AGENTS.md",
+     "anchor_quote": "A prop blocks the oriented footprint of its drawn mesh plus a `0.03` m slop."
+    },
+    {
+     "file": "AGENTS.md",
+     "anchor_quote": "Space selects a same-room target within `0.4` m of its surface and inside `\u00b145\u00b0` of facing"
+    },
+    {
+     "file": "AGENTS.md",
+     "anchor_quote": "Every AI subject is scored by one offline command, `npm run eval:ai`, from cases under `eval/`."
+    },
+    {
+     "file": "AGENTS.md",
+     "anchor_quote": "A conversation the player enters, or that a world event opens, advances one chunk at a time on Space."
+    },
+    {
+     "file": "AGENTS.md",
+     "anchor_quote": "Epoch ladder (`EpochProfileBlueprint[]`, default 7-Epoch arc"
+    }
+   ]
+  },
+  {
+   "id": "A-66",
+   "sources": [
+    "S1-R1",
+    "S2-17",
+    "A3 A-66",
+    "A4 missing target A-68"
+   ],
+   "target": "AGENTS.md#section map (one new pointer row/line to DESIGN_NOTES pillars, rules spine, core model, system graph, status index); README.md Directory Map",
+   "anchor_quote": "| **Test Suites**          | [`tests/README.md`](tests/README.md)",
+   "action": "add",
+   "summary": "Root AGENTS.md and README.md gain pointers to the pillars, rules spine, core model, system graph and status index in DESIGN_NOTES.md. Section AGENTS.md and README.md files get a pointer only where that section's rules change, in the change that changes them (AGENTS and README updated together). No change ids in root files, and no restatement of the rules.",
+   "new_text_outline": "- Root AGENTS.md and README.md gain pointers to the pillars, rules spine, core model, system graph and status index in DESIGN_NOTES.md.\n- Section AGENTS.md and README.md files get a pointer only where that section's rules change, in the change that changes them (AGENTS and README updated together).\n- No change ids in root files, and no restatement of the rules.\n- Lands after A-68 and after the spine text exists (A-05 to A-19).",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "README.md",
+     "section": "Directory Map pointer",
+     "anchor_quote": null
+    }
+   ]
+  },
+  {
+   "id": "A-72",
+   "sources": [
+    "S6A-06",
+    "S6A-05",
+    "ch2 doc shape",
+    "A4 apply_conflict 4",
+    "A4 budget"
+   ],
+   "target": "openspec/config.yaml#context whole block (cut under 1.5k words; whole-block cuts that point to DESIGN_NOTES)",
+   "anchor_quote": "Concept, Setting & Multi-Epoch Continuity:",
+   "action": "rewrite",
+   "summary": "Cut the config context from about 5.1k words to under 1.5k by whole-block cuts (see budget_plan.config_context for the exact blocks). Runs only after A-70's no-loss diff passes: every cut paragraph has a verified home in DESIGN_NOTES.md or roadmap.yaml. Pinned versions go (A-73); the roadmap goes (A-79); gates go (A-80). The word budget becomes a docs-truth assertion in A-75, which lands after this amendment.",
+   "new_text_outline": "- Cut the config context from about 5.1k words to under 1.5k by whole-block cuts (see budget_plan.config_context for the exact blocks).\n- Runs only after A-70's no-loss diff passes: every cut paragraph has a verified home in DESIGN_NOTES.md or roadmap.yaml.\n- Pinned versions go (A-73); the roadmap goes (A-79); gates go (A-80).\n- The word budget becomes a docs-truth assertion in A-75, which lands after this amendment.\n- Zero outright deletions of valid planned content: each cut block lists its destination.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "more_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "anchor_quote": "Stack & Pinned Versions (verified 2026-10-29"
+    }
+   ]
+  },
+  {
+   "id": "A-75",
+   "sources": [
+    "S6A-07",
+    "S6A-05",
+    "S4-11",
+    "ch2 doc shape",
+    "ruling 11",
+    "A4 apply_conflict 10",
+    "A4 apply_conflict 12",
+    "A4 apply_conflict 13"
+   ],
+   "target": "tests/architecture/docs_truth.test.ts (new); tests/AGENTS.md and tests/README.md; package.json",
+   "anchor_quote": null,
+   "action": "add",
+   "summary": "One docs-truth test replaces the existence-and-length check and lands LAST in process-gates-and-ledger so it starts green (after roadmap.yaml, the ledger and the AGENTS rewrite exist). It asserts, for root AGENTS.md only at first: (1) backticked identifiers and npm scripts resolve to code or package.json, and every *Blueprint named in root AGENTS.md exists unless tagged '(planned)'; (2) README versions match package.json and .nvmrc; (3) change ids appear only in openspec/ and DESIGN_NOTES.md; (4) DESIGN_NOTES status markers resolve to roadmap.yaml ids; (5) word budgets (AGENTS target about 900 with ceiling 1050; config context under 1.5k); (6) the roadmap DAG is valid and ids resolve; (7) the defect ledger rule (an entry that names an archived change or a change absent from roadmap.yaml fails; this is the single home of that check); (8) engine numbers against code constants (the default 7-epoch arc). The section-AGENTS *Blueprint check is added later in pre-05b-pack-source-of-truth.",
+   "new_text_outline": "- One docs-truth test replaces the existence-and-length check and lands LAST in process-gates-and-ledger so it starts green (after roadmap.yaml, the ledger and the AGENTS rewrite exist).\n- It asserts, for root AGENTS.md only at first: (1) backticked identifiers and npm scripts resolve to code or package.json, and every *Blueprint named in root AGENTS.md exists unless tagged '(planned)';\n- (2) README versions match package.json and .nvmrc;\n- (3) change ids appear only in openspec/ and DESIGN_NOTES.md;\n- (4) DESIGN_NOTES status markers resolve to roadmap.yaml ids;\n- (5) word budgets (AGENTS target about 900 with ceiling 1050; config context under 1.5k);\n- (6) the roadmap DAG is valid and ids resolve;\n- (7) the defect ledger rule (an entry that names an archived change or a change absent from roadmap.yaml fails; this is the single home of that check);\n- (8) engine numbers against code constants (the default 7-epoch arc).\n- The section-AGENTS *Blueprint check is added later in pre-05b-pack-source-of-truth.",
+   "plan_change_ref": "process-gates-and-ledger",
+   "owner_pending": null,
+   "secondary_anchors": [
+    {
+     "file": "openspec/config.yaml",
+     "section": "context \"tests/architecture/layer_boundaries.test.ts MUST verify that root README.md and AGENTS.md exist\" bullet (replaced)",
+     "anchor_quote": "`tests/architecture/layer_boundaries.test.ts` MUST verify that root `README.md` and `AGENTS.md` exist and link to all section `README.md` and `AGENTS.md` files"
+    }
+   ]
+  }
+ ],
+ "apply_order": [
+  {
+   "batch": "B0",
+   "amendment_ids": [
+    "A-53",
+    "A-54"
+   ],
+   "why": "Security first (ruling 1): hx-ops-safety is the first change in the whole plan. Its doc footprint is the Engineering rules section (bridge lock record, created here so later Engineering-rules amendments have a target) and the Quick Verify edit that rides the parallel-verify code. No other doc batch touches AGENTS.md before this.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B1",
+   "amendment_ids": [
+    "A-79",
+    "A-58",
+    "A-59",
+    "A-60",
+    "A-61",
+    "A-62",
+    "A-28",
+    "A-45",
+    "A-35"
+   ],
+   "why": "docs-spine-and-roadmap part 1: roadmap.yaml is created from the config block and seeded with the 64 v3 plan ids (original ids restored) before anything cites a roadmap id, so status markers (A-69), the ledger seed (A-83) and the docs-truth marker/DAG checks can resolve. Parked entries (INV-D, INV-F, RC2, classifier spike, cameo, onboarding, Epoch 1 done) are created here. The config roadmap block becomes a pointer only after the seed exists.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B2",
+   "amendment_ids": [
+    "A-76",
+    "A-01",
+    "A-77",
+    "A-63",
+    "A-94",
+    "A-04"
+   ],
+   "why": "docs-spine-and-roadmap part 2: the DESIGN_NOTES frame (pillars, Where-facts-live, status index table, spine skeleton, dispositions appendix), the inbox move, the Open/deferred/parked list that A-04 needs (A-63 creates \"Ideas, not scheduled\" first), and rejected rows. Record-keeping only. A-76 writes the index only; heading markers wait for A-69.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B3",
+   "amendment_ids": [
+    "A-70",
+    "A-71",
+    "A-69",
+    "A-51"
+   ],
+   "why": "docs-spine-and-roadmap part 3: truth pass on planned-as-shipped text. A-70 marks the config bullets planned and runs the no-loss diff for every config block A-72 will cut; A-71 marks the lab routes planned; A-69 alone writes heading markers and fills the status-index roadmap ids (roadmap.yaml exists from B1); A-51 adds the lab save caveat. Nothing deleted.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B4",
+   "amendment_ids": [
+    "A-05",
+    "A-06",
+    "A-07",
+    "A-08",
+    "A-11",
+    "A-15",
+    "A-16",
+    "A-19",
+    "A-14",
+    "A-20"
+   ],
+   "why": "docs-spine-and-roadmap part 4: rules spine R1..R8, the single pause/lab definition, core model, clock record, Leverage Chain, system graph, loop cycles, freeze directive. No AGENTS pointer yet (A-66 follows the AGENTS rewrite).",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B5",
+   "amendment_ids": [
+    "A-02",
+    "A-67",
+    "A-23",
+    "A-24",
+    "A-25",
+    "A-26",
+    "A-27",
+    "A-34",
+    "A-99",
+    "A-29",
+    "A-30"
+   ],
+   "why": "docs-spine-and-roadmap part 5: P2 text pipeline as one batch; config hardware block edited once (A-02 with A-67); A-29 free-text drift runs after A-69 and before A-49; A-30 follows A-69 on the eval loop sentence. Q1 (timing-spike slot) is owner-pending in A-24.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B6",
+   "amendment_ids": [
+    "A-12",
+    "A-86",
+    "A-87",
+    "A-88",
+    "A-52",
+    "A-55",
+    "A-56",
+    "A-57",
+    "A-89",
+    "A-90",
+    "A-91",
+    "A-95"
+   ],
+   "why": "docs-spine-and-roadmap part 6: determinism and engineering rules appended to the Engineering rules section created in B0; telemetry policy replaced (A-52 owns the telemetry bullets only, not the save/load bullet); state, saves and pack identity.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B7",
+   "amendment_ids": [
+    "A-09",
+    "A-10",
+    "A-13",
+    "A-17",
+    "A-18",
+    "A-21",
+    "A-22",
+    "A-31",
+    "A-32",
+    "A-33",
+    "A-96",
+    "A-97",
+    "A-98",
+    "A-100"
+   ],
+   "why": "docs-spine-and-roadmap part 7: core-model leaves (Act, Observation, presence, belief, notebook, economy, Regard, storyteller deck, slice criteria). Owner wording in A-14, A-18, A-22. Q2 (save policy) stays owner-pending in A-31 and A-32.",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B8",
+   "amendment_ids": [
+    "A-36",
+    "A-47",
+    "A-48",
+    "A-38",
+    "A-39",
+    "A-37",
+    "A-40",
+    "A-49",
+    "A-41",
+    "A-44",
+    "A-46",
+    "A-43",
+    "A-42",
+    "A-03"
+   ],
+   "why": "docs-spine-and-roadmap part 8: runtime feel and audio. Order fixes the shared lines: A-38 then A-39 (section 7); A-37 then A-40 then A-49 (section 8, after A-29); A-41 creates Accessibility and Settings before A-42 edits it; A-44 writes the Sound block once, then A-46, A-43, A-42 edit single sentences. A-03 last (pillar P3).",
+   "docs_truth_checks_enabled_after": []
+  },
+  {
+   "batch": "B9",
+   "amendment_ids": [
+    "A-78",
+    "A-80",
+    "A-82",
+    "A-81",
+    "A-83",
+    "A-73",
+    "A-74",
+    "A-64",
+    "A-68",
+    "A-66",
+    "A-72",
+    "A-75"
+   ],
+   "why": "process-gates-and-ledger: design-notes skill fix, gates skill, spec rules, size rule (A-81 after A-78 and A-80), ledger with archive wrapper script (roadmap.yaml exists), versions and CVE pass, AGENTS rewrite (after A-69 gave the planned text a home), pointers (A-66 after the spine exists), config cut A-72 only after the A-70 diff passes, and the single docs-truth test A-75 last so it starts green.",
+   "docs_truth_checks_enabled_after": [
+    "root AGENTS.md identifiers and npm scripts resolve",
+    "every *Blueprint named in root AGENTS.md exists unless tagged (planned) (section AGENTS extension arrives with pre-05b-pack-source-of-truth)",
+    "README versions match package.json and .nvmrc",
+    "change ids appear only in openspec/ and DESIGN_NOTES.md",
+    "DESIGN_NOTES status markers resolve to roadmap.yaml ids",
+    "roadmap DAG valid and ids resolve",
+    "defect ledger rule (no entry names an archived or absent change)",
+    "word budgets: AGENTS ceiling 1050, config context under 1.5k",
+    "engine numbers vs code constants (default 7-epoch arc)"
+   ]
+  }
+ ],
+ "budget_plan": {
+  "agents_md": {
+   "keep": [
+    "Title + one-paragraph intro (53 words)",
+    "OpenSpec change citations rule (75)",
+    "Quick Verify block as edited by hx-ops-safety, without TypeScript version numbers (about 70)",
+    "Clean Architecture layer rules: text diagram and table (141)",
+    "Strict TypeScript / ESLint / Prettier / zero-any policy, compressed, version bullet removed (about 70)",
+    "Shipped registry bullets, future-tense claims dropped: Characters (without the locomotionMode sentence, about 36), Rival Spacefaring Operatives (30), Contested Offices (43), Correspondence Channels (15), Inertia/Threads (21), Emergency States (16), Orbital Pass (40), Session Telemetry & Debug Skill (29), Agent Skills Rule (20)",
+    "Section-specific guides intro and map table, compressed (about 190)",
+    "Pointers (about 40): DESIGN_NOTES pillars/status index, rules spine (A-66), uplift-review-gates skill, OpenSpec commands /opsx-propose /opsx-apply /opsx-archive"
+   ],
+   "cut_or_move": [
+    {
+     "block": "Atomic Delivery section: Post-Propose 3-subagent audit, Per-Subtask 2-subagent review, Post-Change 6-subagent review (about 586 words)",
+     "to": ".agents/skills/uplift-review-gates/SKILL.md verbatim (A-80), AGENTS keeps a pointer plus OpenSpec commands"
+    },
+    {
+     "block": "Prop footprints and arrival hold bullet (58)",
+     "to": "DESIGN_NOTES section 7 as (planned) paragraph (A-69)"
+    },
+    {
+     "block": "Proximity use, menu grammar and interactionHold bullet (65)",
+     "to": "DESIGN_NOTES section 8 as (planned) (A-69)"
+    },
+    {
+     "block": "Local AI eval runner bullet (52)",
+     "to": "DESIGN_NOTES section 11 as (planned) (A-69, A-30)"
+    },
+    {
+     "block": "Conversation paging and ambient lines bullet (144)",
+     "to": "DESIGN_NOTES section 10 as (planned) (A-69)"
+    },
+    {
+     "block": "locomotionMode sentence inside the Characters bullet",
+     "to": "DESIGN_NOTES section 7 as planned contract (A-69)"
+    },
+    {
+     "block": "Epoch / Era synonym and 7-epoch ladder paragraph (65)",
+     "to": "DESIGN_NOTES section 4 (owner of the ladder), referenced from the Where-facts-live table"
+    },
+    {
+     "block": "Design-Note Dump Skill bullet (53)",
+     "to": "uplift-design-notes SKILL.md description (A-78)"
+    },
+    {
+     "block": "TypeScript 7.0.2 / typescript6 6.0.2 version numbers in Quick Verify and the TS policy bullet (about 40)",
+     "to": "package.json only (A-73)"
+    }
+   ],
+   "est_words": 930,
+   "test_ceiling": 1050
+  },
+  "config_context": {
+   "keep": [
+    "Project line (line 4) and a short concept summary: covert Special Circumstances operative, Culture inspiration, Epoch === Era with a pointer to DESIGN_NOTES section 4 for the ladder (about 90)",
+    "Hardware & Local-Only Constraints, without the retired 3-stage free-text pipeline: baseline hardware, 100% local, zero API keys (about 100)",
+    "Telemetry/logging/save bullets as rewritten by A-52 and A-32 (about 100)",
+    "Code Architecture standing directive: layering, pure reducer and typed StateSliceKey, zero-any policy, determinism (about 200)",
+    "Plug-and-Play first line: core engine has ZERO hardcoded characters, rooms, behaviors or feudal-only logic, plus one pointer to DESIGN_NOTES core rule (about 50)",
+    "Standing directives: freeze extension (A-20), Evolving Design & Configuration Flexibility (63), Atomic Task & Commit Strategy as the size rule (about 60)",
+    "Hierarchical Documentation & Agent Guidance, compressed; skills location rule (about 110)",
+    "Pointer lines: pillars and rules spine, roadmap.yaml, review-gates skill, versions in package.json (about 60)"
+   ],
+   "cut_or_move": [
+    {
+     "block": "Concept ladder: seven epoch bullets and the Uplift-compressed generational flow / ceilings (about 400 of the 626 concept words)",
+     "to": "DESIGN_NOTES section 4 and the Core Rule table (A-70 no-loss diff)"
+    },
+    {
+     "block": "Visual Style, Camera & Diegetic UI Architecture including play shell, direct locomotion, proximity use, bubbles, paging, interruption, pretext, fund, duel omission, eval framework, voice-register evals (about 918)",
+     "to": "DESIGN_NOTES sections 6 to 11 and Visual & UI Direction (A-70 no-loss diff, marked planned)"
+    },
+    {
+     "block": "Sound Design block (136)",
+     "to": "DESIGN_NOTES Sound Design (A-44)"
+    },
+    {
+     "block": "Local NLP 3-stage hybrid pipeline lines (about 60)",
+     "to": "DESIGN_NOTES Text pipeline (A-02, A-67); the planned local generation worker is KEPT there"
+    },
+    {
+     "block": "Plug-and-Play registry sub-bullets for Characters, Rivals, Offices, Overview, Regard, Travel, Assassination, Threads, Emergency, Orbital (about 580)",
+     "to": "DESIGN_NOTES Core Rule table and sections 0 to 5 (no-loss diff)"
+    },
+    {
+     "block": "Real-Time 60 FPS vs 4-Clock pacing and cognition (353)",
+     "to": "DESIGN_NOTES section 0 and Engineering rules (A-11, A-12)"
+    },
+    {
+     "block": "Stack & Pinned Versions (108)",
+     "to": "package.json and .nvmrc only (A-73, A-74)"
+    },
+    {
+     "block": "Planned Atomic Change Sequence (1035)",
+     "to": "openspec/roadmap.yaml (A-79); one pointer line stays"
+    },
+    {
+     "block": "Review Gates (468)",
+     "to": "uplift-review-gates skill (A-80); one pointer line stays"
+    }
+   ],
+   "est_words": 1150,
+   "ceiling": 1500
+  },
+  "design_notes_est_words": 16000
+ }
+}

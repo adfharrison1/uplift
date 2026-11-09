@@ -1,0 +1,89 @@
+[
+ {
+  "id": "S4-01",
+  "claim": "Lab saves go to JSON files under src/content/scene/stages and src/content/scene/characters; neither directory exists and nothing loads from them, so runtime content comes only from the TS constants and every stage-lab save is a dead write (split-brain).",
+  "paths": [
+   "src/interfaces/composition/browserMain.ts:465-467",
+   "src/interfaces/vite/localDiskBridgePlugin.ts:51-54"
+  ]
+ },
+ {
+  "id": "S4-04",
+  "claim": "The determinism guard is two regexes/selectors that only match the literal call shapes Math.random(), Date.now(), performance.now(), new Date(); aliasing, destructuring, Math.random.call, crypto.getRandomValues/randomUUID, Date() and Math?.random?.() pass both, and application (which will host tick) has no determinism rule at all.",
+  "paths": [
+   "eslint.config.mjs:39",
+   "tests/architecture/layer_boundaries.test.ts:121-122"
+  ]
+ },
+ {
+  "id": "S4-05",
+  "claim": "The layer test is a regex import scanner that cannot see require(), import x = require(), template-literal or variable dynamic import(), or node: built-ins in domain/application, and it does not enforce the content/scene -> interfaces/three-only rule or detect cycles.",
+  "paths": [
+   "AGENTS.md:30",
+   "tests/architecture/layer_boundaries.test.ts:49"
+  ]
+ },
+ {
+  "id": "S4-06",
+  "claim": "Epoch-agnosticism of domain/application is guarded by a hand-typed denylist of 5 Highglass ids (plus a PlaySession-only string check); the second content pack is unguarded, and no check forbids any content-id-shaped literal in domain/application.",
+  "paths": [
+   "tests/unit/application/PlaySession.test.ts:124-126",
+   "tests/unit/content/StarterHoldStage.test.ts:23-26"
+  ]
+ },
+ {
+  "id": "S4-07",
+  "claim": "The accepted core-model and hardening invariants have no automated guard and the codebase already shows the drift they would catch: id-order is sorted at some sites and not at others, and slices accept Map/Set silently.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:207",
+   "src/domain/core/StateSliceRegistry.ts:21",
+   "src/domain/simulation/KinematicsEngine.ts:574"
+  ]
+ },
+ {
+  "id": "S4-08",
+  "claim": "Adding one character or prop touches 3 hand-synced files joined by bare string ids, and only two of the joins are checked by one pack-specific test, not by any load-time validator; stage props are never checked against the pack.",
+  "paths": [
+   "src/application/rendering/RenderFrameBuilder.ts:710-711",
+   "src/application/shell/PlaySession.ts:263-267",
+   "src/content/scene/starterHoldStages.ts:87",
+   "src/content/worlds/starterHoldPack.ts:56-57"
+  ]
+ },
+ {
+  "id": "S4-09",
+  "claim": "The registry is a closed 11-kind class: adding a kind means editing the Zod file, EpochModulePackInput, a Map field, a snapshot and a restore line in registerPack, a registerX, a getX and the domain barrel, and the accepted-core-model kinds (thread runtime, resource ledger profile, instrument profiles, presence tables, tellProfile, CharacterBible, pools) would make it a god-registry. | Several registry checks are inconsistent or redundant: assertSeparationWeight re-implements a Zod bound, while OfficeBlueprint.institutionalLineageId, which is the same kind of reference as the checked thread lineage ids, is never validated; 7 of 8 typed getters have no non-test caller.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:126",
+   "src/domain/registries/EpochBlueprints.ts:242-255",
+   "src/domain/registries/EpochModuleRegistry.ts:109-123",
+   "src/domain/registries/EpochModuleRegistry.ts:266",
+   "src/domain/registries/EpochModuleRegistry.ts:63-75",
+   "src/domain/registries/EpochModuleRegistry.ts:713-716"
+  ]
+ },
+ {
+  "id": "S4-15",
+  "claim": "verify is 5.3-6.7 s wall because five steps run sequentially as five nested npm processes with two separate vitest startups; running them in parallel measured 2.4 s and merging the vitest runs saves ~0.5 s, with nothing weakened.",
+  "paths": [
+   "package.json:24"
+  ]
+ },
+ {
+  "id": "S4-16",
+  "claim": "Part of the architecture suite guards prose rather than behaviour: it pins literal sentences and model names inside two SKILL.md files and the exact lint-staged array, so editing a skill or hook fails verify while protecting no engine property, and the real hook never runs verify.",
+  "paths": [
+   ".husky/pre-commit:1",
+   "tests/architecture/layer_boundaries.test.ts:392",
+   "tests/architecture/layer_boundaries.test.ts:425",
+   "tests/architecture/layer_boundaries.test.ts:431"
+  ]
+ },
+ {
+  "id": "S4-17",
+  "claim": "ESLint runs only untyped configs (tseslint.configs.strict, no projectService), so no-floating-promises and switch-exhaustiveness-check cannot fire; a floating promise and a non-exhaustive switch both lint clean.",
+  "paths": [
+   "eslint.config.mjs:10"
+  ]
+ }
+]

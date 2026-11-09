@@ -1,0 +1,141 @@
+{
+ "findings": [
+  {
+   "id": "S3-01",
+   "claim": "StateSliceStore deep-clones on every get, every withSlice and twice per updateSlice, and the set_state_slice reducer case clones twice more (define + withSlice); append cost is O(total rows), so a 5000-row Act ring already costs ~16 ms per appended row (one whole 60 FPS frame) and 20000 rows ~74 ms.",
+   "rec": "Make slices frozen-on-write, shared-on-read: withSlice does one deepFreeze (skip if already frozen) and get() returns the frozen reference; updaters must return new values (spread/concat), which the type already encourages via readonly. For the Act ring use a chunked persistent structure: array of fixed 256-row frozen chunks plus a head chunk, so append copies at most one chunk; Observation as Record<holderId, frozen rows> so a write touches one holder. Drop the redundant defineStateSlice call in set_state_slice. toSnapshot can return the frozen refs without cloning."
+  },
+  {
+   "id": "S3-02",
+   "claim": "State slices are untyped at the boundary: StateSliceKey carries only id and defaultValue (no schema, no version), the StateSliceRegistry is never consulted by the store or the reducer, set_state_slice accepts any id and any value, and Map/Set slice values survive in memory but are silently emptied by the JSON save; the Act ring and Observation table (evolving, large) cannot be migrated or validated on load.",
+   "rec": "Extend StateSliceKey with an optional Zod schema and integer version plus an optional migrate(old, fromVersion); make set_state_slice resolve through the registry (unknown id -> rejection) and validate on write in dev/eval; reject non-plain-JSON values (Map/Set/Date/function) in defineStateSlice/withSlice. Slice values then are guaranteed save-safe."
+  },
+  {
+   "id": "S3-03",
+   "claim": "The save format has no migration path: SAVE_SLOT_SCHEMA_VERSION is a z.literal(1) on the envelope only, the inner world snapshot is unversioned and guarded by a hand-written type guard that skips discoveryLayer and activeEmergencyId, so the first added WorldState field (elapsedWatches, Act ring, Observation table) either hides every old save or loads it with undefined fields. | loadFromSlot trusts the save over the registry: it never checks epochId against the coordinator, nor that entity, prop and space ids exist in the loaded pack, so a save from pack A loaded into pack B yields a world whose entities are not in registry.getAllCharacters().",
+   "rec": "Before adding watch fields, put a snapshotVersion inside the world snapshot, load through a Zod schema, and add a migrations[] chain (v1 -> v2 fills elapsedWatches from worldTick). listSlots should return unreadable slots with a reason instead of swallowing them. | Store a content fingerprint (pack epochId plus sorted id lists, or a hash) in the snapshot. On load, reject on epoch mismatch and reconcile by policy on id drift: drop unknown entities, add new ones from blueprints, re-home entities whose waypoint vanished."
+  },
+  {
+   "id": "S3-04",
+   "claim": "The reducer has no outcome channel: appliedEffects is just the parsed input list, spend_orbital_delta and unknown entity/prop ids throw and abort the whole batch while unknown pillar ids silently no-op, and dispatchEffects silently drops all effects while paused (so the set_paused effect can never unpause and nothing in src dispatches it), so 'reject instead of throw' cannot be added without changing the result type and every call site.",
+   "rec": "Change applyWorldEffects to return {state, outcomes: ReadonlyArray<{effect, status:'applied'|'rejected', reason?}>}; make requireEntity/requireProp and the orbital guards produce 'rejected' (keep the throw only for schema violations = programmer error). Keep appliedEffects as a filtered view so callers migrate gradually. Delete set_paused or let it bypass the paused guard."
+  },
+  {
+   "id": "S3-05",
+   "claim": "Any exception inside session.frame permanently kills the render loop, because onFrame schedules the next requestAnimationFrame as its last statement with no try/catch; coordinator code throws freely (RangeError on dt, reducer 'Unknown entityId', TypeError on a malformed loaded entity).",
+   "rec": "Wrap the frame body in try/catch that logs to telemetry, pauses the sim and still reschedules rAF. Make dispatchEffects return rejected effects with a reason (S2-17 'reject instead of throw') rather than propagating."
+  },
+  {
+   "id": "S3-06",
+   "claim": "Pause is implemented as 'reject all commands', not 'stop sim time': dispatchEffects returns an empty result with no telemetry while paused, and even the set_paused effect cannot be applied. That contradicts the core model, where advance_watches, Act logging and text freeze happen from menus that pause the room.",
+   "rec": "Split two flags: simulationFrozen (gates stepFrame and pulse) and commandsAccepted. Make dispatchEffects return an explicit status/rejected list. Let watch and Act effects through while the room is frozen."
+  },
+  {
+   "id": "S3-07",
+   "claim": "There is no way to test whole-run determinism: no state hash or canonical serialiser exists, naive JSON.stringify of WorldState silently drops every state slice (a Map), the coordinator's SeededRandom is never consumed by any sim code, and the only save test saves at tick 1 before any frame is stepped. | The sim steps with the raw rAF dt, so trajectories, separation slides and phase-change timestamps depend on the frame rate, and logged runs are not replayable.",
+   "rec": "Add domain hashWorldState (sorted keys, slices via toSnapshot, float quantised) and a tests/golden/run.test.ts: seeded fixture, scripted input list (move, dispatch, pause), assert hash at frames 60/600, and that save at N then load then continue equals an uninterrupted run. Store the expected hash in the repo and update it deliberately. | Accumulate real time in PlaySession and step the sim in fixed 1/60 s slices (render interpolates). Cheap, and it makes eval:ai and replay exact."
+  },
+  {
+   "id": "S3-08",
+   "claim": "SeededRandom does not scramble its seed, so small seeds give strongly non-uniform first draws (the coordinator default seed 1 yields first nextFloat 6.3e-5; 16% of seeds 1..1000 have a first float < 0.01 vs ~1% expected), seeds 0, 2^32 and 0x6d2b79f5 alias to one stream, and the single mutable stream lives outside WorldState with no fork/derive API, so any added roll shifts every later roll.",
+   "rec": "Run the seed through splitmix32 (or mulberry32 init) in the constructor, and keep Xorshift only as the stepper. Add a pure counter-based roll: rollFloat(worldSeed, streamKey, counter) = hash32(seed ^ hash(streamKey), counter), where counter is actId or watch; put worldSeed in WorldState (immutable) so replay needs seed + effect log, not a threaded generator. Keep SeededRandom for sequential local use only."
+  },
+  {
+   "id": "S3-09",
+   "claim": "The frame order lives in the render shell (PlaySession.frame), not the coordinator: there is no coordinator.tick(dt) that runs commands, watch advance, kinematics, cognition and a commit phase, so headless evals and the golden test must re-implement the order, and nothing has a slot for advance_watches, materialize, behaviour commit or text freeze. | SimulationCoordinator mixes at least seven separable jobs, and the save codec lists WorldState fields four separate times by hand, so every new WorldState field must be added in four places and a missed save-side field fails silently.",
+   "rec": "Add coordinator.tick(dt, commands) with a fixed documented order: (1) accept commands and effects, (2) advance_watches if a watch was spent, (3) materialize if the space or watch changed, (4) truncate paths and stepKinematics, (5) pulse cognition and consume stimuli, (6) behaviour commit emits Acts plus effects through the envelope, (7) flush telemetry once with the final state, with text freeze happening at the point a line is shown (a command, not a frame step). PlaySession calls only tick. | Extract: (1) WorldStateCodec with a version and Zod schema (serialise/deserialise, one field list); (2) pulseCognition(state, opts) into domain with the coordinator doing only telemetry; (3) buildInitialEntities/Props into a WorldBuilder that materialize will reuse; (4) a CoordinatorTelemetry helper replacing the nine repeated record({epochId, worldTick, ...}) blocks. Leave the frame loop and command intake in the coordinator."
+  },
+  {
+   "id": "S3-10",
+   "claim": "Kinematics cannot host a BehaviorModule commit at dwell end: the transition event carries no behaviour id, blocked/complete reason or sub-frame time, and the pending dwell/cooldown/behaviour fields are never cleared, so a later unrelated move re-runs the old dwell. | Neither a direct-steer body nor the presence function fits stepKinematics as written: the signature has no input/collider/presence slot, every entity is assumed to follow activePath, spaceId changes only on waypoint arrival, and off-stage entities still integrate paths. | set_cognitive_phase and move_entity_to_waypoint leave stale phase data: a move onto a performing_dwell entity forces 'moving' but keeps phaseRemainingSeconds=10 and activeBehaviorId, and an idle transition never clears activeBehaviorId or the pending dwell/cooldown fields, so 'what is this NPC doing' cannot be read from state.",
+   "rec": "Add behaviourId + outcome ('completed'|'blocked'|'interrupted') + residual dt to the transition event, clear pending/active fields on cooldown->idle, and have the app layer, not the engine, turn performing_dwell->cooldown into commit effects. | Before 05d, split stepKinematics into a per-locomotion-mode step (path follower, direct steer) behind one context object (spaceKinds, steers, colliders, presence), and flip spaceId when the hop crosses the portal plane, not at the far node. Skip path integration for off-stage entities and resolve them in the presence function. | Make phase transitions total: a single transition helper that sets all phase fields (clear activeBehaviorId/pending* on idle, zero phaseRemaining on moving) and a table-driven test over (from,to) pairs."
+  },
+  {
+   "id": "S3-11",
+   "claim": "When a portal closes mid-route, the truncated path is treated as a normal arrival: the entity runs its full destination dwell and cooldown at the stop point, including inside the doorway, and nothing reports that the move was blocked.",
+   "rec": "Make truncation produce an explicit abort (clear pending dwell, emit a 'path_blocked' transition, go straight to cooldown/idle) and either finish the current hop or snap back to the last waypoint. Put the blocked outcome in the transition event so the behaviour commit can skip."
+  },
+  {
+   "id": "S3-12",
+   "claim": "Re-targeting a moving entity plans from its last reached waypoint, not its position, so a click back to the waypoint it just left returns 'already_there' and is ignored while the old path keeps running; other retargets cut a straight line from mid-hop to the new first node.",
+   "rec": "Plan from a nav-position (nearest node on the current hop, or an explicit 'between' source) and have move_entity_to_waypoint prepend a snap-back node when the entity is mid-hop. Decide this before 05d defines floor-to-waypoint handoff."
+  },
+  {
+   "id": "S3-13",
+   "claim": "The per-entity stimulus cap evicts the oldest stimulus regardless of importance and stimulusId is never deduplicated, so 32 ambient chatter stimuli silently delete an earlier player-caused alarm, and a replayed effect enqueues the same stimulus twice.",
+   "rec": "Dedupe on stimulusId (no-op or merge), and evict by lowest priority/oldest among non-externalRelease, non-requiresExternalTrigger stimuli; emit an 'evicted' rejection result rather than silent drop."
+  },
+  {
+   "id": "S3-14",
+   "claim": "Legacy lineage mutations accumulate across epochs but apply with a hard throw instead of saturation, and a mutation's sourceScarId is never checked against any recorded scar, so two legal add mutations (0.3 + 0.3 on a 0.6 drive) make applyLegacyToCharacterBlueprints throw, which breaks epoch start and loadFromSlot.",
+   "rec": "Clamp the final value to [0,1] with a telemetry note for runtime-derived mutations; reserve the throw for an authoring-time contract test. Validate sourceScarId against the combined scar lists in the schema superRefine."
+  },
+  {
+   "id": "S3-15",
+   "claim": "Three movement edge cases misbehave: a zero-speed mover stays in 'moving' forever, a pure-vertical hop snaps yaw toward +Z, and the planner counts hops, not metres.",
+   "rec": "Reject or complete zero-speed moves at plan time, skip yaw when dx and dz are both ~0, and switch BFS to Dijkstra on edge length with the same id tie-break."
+  },
+  {
+   "id": "S3-16",
+   "claim": "Movement is fine today (0.6 ms/frame for 200 movers) but wastes allocation every frame: the grid and a sorted id list are rebuilt even when nobody moves, and the coordinator rebuilds portal gates and per-entity maps each frame.",
+   "rec": "Skip the grid when no embodied mover exists, key cells by space, use integer cell keys, and build portal gates only when a portal prop changed. Do nothing else until a room holds 100+ bodies."
+  },
+  {
+   "id": "S3-17",
+   "claim": "The movement tests assert behaviour well but never combine truncation with kinematics, never split a run across different dt, and miss the mid-hop states that hide S3A-01 and S3A-02. | Reducer tests prove single-path happy cases only: nothing asserts input non-mutation (no frozen inputs), the stimulus and audio caps, duplicate/unknown ids, effect-order dependence, schema-versus-type parity, or SeededRandom golden values, so the determinism the whole replay story depends on is checked only as 'two runs agree with each other'.",
+   "rec": "Add a small seeded property test (random path + random dt splits give the same final state for a lone walker), one coordinator-level 'close door mid-hop' test that asserts the blocked outcome, and move grid tests to their own file. | Add: (1) golden vector for SeededRandom (seed 42 -> first 5 uint32); (2) a helper that deepFreezes WorldState and effects then runs every effect type; (3) cap tests for stimuli/audio; (4) a seeded random-batch replay test that applies the same effect list twice and compares JSON; (5) a type-level test that each WorldEffect variant is covered by a reducer test via an exhaustive record of fixtures."
+  },
+  {
+   "id": "S3-18",
+   "claim": "PlaySession.status is sticky: a 'blocked', 'paused' or 'unknown_prop' result from any request stays in every later PlayFrameResult until another request overwrites it, because resolveResident only clears 'missing_stage'.",
+   "rec": "Make status a per-call result, or clear non-stage statuses at the top of frame(). Also fix the doc comment on lines 102-105 that sits above focusSharesDrawnSpace instead of getSpaceOrigin."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R3A1",
+   "title": "Fixed-step accumulator with render interpolation",
+   "proposal": "Run the domain at a constant 1/60 s step driven by an accumulator in PlaySession, and let the renderer lerp between the last two states. Entities then produce identical traces for identical inputs regardless of display rate."
+  },
+  {
+   "id": "R3A2",
+   "title": "Motion as a tiny state machine with explicit outcomes",
+   "proposal": "Give each mover a MoveIntent {target, mode, onComplete} and have the step return Arrived | Blocked | Interrupted per entity. Waypoint paths, direct steer and presence snaps are three producers of the same outcome; the behaviour commit consumes only outcomes."
+  },
+  {
+   "id": "R3A3",
+   "title": "Navmesh-free steering with dwell-site slots",
+   "proposal": "Keep waypoints for room-to-room routing but give each prop/seat a tiny slot list and let direct steer handle the last metre. Avoids waypoint spam for 05d and removes the need for the 0.05 m snap hacks in separation."
+  },
+  {
+   "id": "R3B1",
+   "title": "Stateless counter-based rolls instead of threaded generators",
+   "proposal": "Replace the shared stateful SeededRandom with a pure roll(worldSeed, streamKey, counter) hash (splitmix/murmur finalizer). Streams are keyed by subsystem plus actId/watch, so adding a roll in one subsystem never moves another, and replay needs only seed plus the effect log. Keep the class for local sequential helpers."
+  },
+  {
+   "id": "R3B2",
+   "title": "Chunked persistent log for the Act ring and Observation table",
+   "proposal": "Store the ring as an array of frozen 256-row chunks with a head chunk and a base index; append copies only the head. Observation rows are keyed by holderId so a write replaces one frozen bucket. Reads return frozen references (no clone), writes freeze once."
+  },
+  {
+   "id": "R3B3",
+   "title": "Reducer returns outcomes, application layer owns the envelope",
+   "proposal": "applyWorldEffects(state, Envelope[]) where Envelope = {effect, actorId?, causeActId?}; the reducer returns outcomes (applied/rejected+reason) and stamps causeActId onto emitted audio cues, scars and stimuli. The 17 variants stay untouched because the envelope wraps rather than extends them."
+  },
+  {
+   "id": "R3C1",
+   "title": "Input log plus checkpoint saves",
+   "proposal": "Treat a save as seed + scripted command log + a periodic snapshot (every watch). Replaying the log from the last checkpoint must reproduce the state hash. The golden-run test and the bug-repro format become the same artifact, and a corrupt snapshot can be rebuilt from the log."
+  },
+  {
+   "id": "R3C2",
+   "title": "Declared tick schedule instead of a hard-coded frame body",
+   "proposal": "Define the frame as an ordered list of named phases (commands, watch, materialize, kinematics, cognition, commit, flush), each registered by the engine or by a pack, with the order asserted in one test. Adding advance_watches or materialize becomes inserting a phase, not editing PlaySession and the coordinator."
+  },
+  {
+   "id": "R3C3",
+   "title": "Per-slice versioned save chunks with fixers",
+   "proposal": "Store each slice (world core, entities, props, acts, observations, legacy) as a named chunk with its own version and a registered upgrade function. A pack that adds a slice adds its chunk and fixer, and old saves load with defaults instead of failing."
+  }
+ ]
+}

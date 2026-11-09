@@ -1,0 +1,77 @@
+{
+  "issues": [
+    {
+      "severity": "should",
+      "file": "DESIGN_NOTES.md",
+      "what": "C5 high item still open. Root AGENTS.md describes locomotionMode, interactionHold, direct bodies, arrival hold, proximity use and the `npm run eval:ai` command as current behaviour. src has 0 hits for locomotionMode, interactionHold, set_direct_steer, and package.json has no eval:ai script (only tests/*.md mention it). DESIGN_NOTES marks all of it planned, so a fresh agent reading both gets opposite answers. DESIGN_NOTES never says which wins. The Telemetry bullet records this only for telemetry wording.",
+      "fix": "Add one sentence to the 'How to read this file' paragraph or a Where-facts-live row: 'Until the AGENTS.md rewrite in process-gates-and-ledger ships, root AGENTS.md describes some planned behaviour as current (direct locomotion, proximity use, eval:ai); the status marks here win.'"
+    },
+    {
+      "severity": "should",
+      "file": "openspec/roadmap.yaml",
+      "what": "Header line 5 says 'Change ids are allowed here and in DESIGN_NOTES.md only'. The citation rule in AGENTS.md and the .cursor rule now also allows design/. The roadmap restates the rule and disagrees with it.",
+      "fix": "Change line 5 to 'allowed here, in DESIGN_NOTES.md and in design/ only'."
+    },
+    {
+      "severity": "should",
+      "file": "DESIGN_NOTES.md",
+      "what": "Status index column is defined as 'the roadmap ids that own the unshipped part', but two rows list archived ids: 'Core model: terminology and epoch-agnostic rule' lists 03-modular-registries-and-kinematics (archived) and 'Presentation: visual and UI direction' lists 04-third-person-camera-and-inspector (archived). C5 fixed the same defect for 05c-play-shell. For 04 the real owners are 05d-arrival-hold-readability and 05a-audio-engine.",
+      "fix": "Drop 03 and 04 from those two rows (keep 10-registry-swap-and-legacy and the 05d/05a ids), or say 'none' where nothing unshipped remains."
+    },
+    {
+      "severity": "should",
+      "file": "DESIGN_NOTES.md",
+      "what": "Conversation paging is not fully implementable. (a) No bullet says what Space does on the last chunk (the page shows an 'end mark', and the Dispositions row says 'Space exits from the last chunk', but the paging text never states it closes the conversation). (b) 'Escape leaves and confirms nothing' is stated for a chunk, but the menu grammar says Escape 'goes back one layer'. It is unspecified whether Escape on the choice menu returns to the chunk or leaves the whole talk. The pre-tightening text had the same gaps.",
+      "fix": "Add: 'Space on a chunk with an end mark closes the conversation.' Add: 'Escape on the choice menu leaves the conversation (no row is confirmed)' or the back-one-layer alternative, whichever the owner wants."
+    },
+    {
+      "severity": "should",
+      "file": "DESIGN_NOTES.md",
+      "what": "Direct floor locomotion leaves two facts the proximity rule depends on unstated. (a) Proximity use tests a 'facing' arc, but nothing says facing follows the movement direction while walking. Only 'facing holds' after turn-in-place is stated. (b) 'A and D with no W or S turn in place' does not say what A and D do when combined with W or S (strafe, curve, or ignored). Diagonals are mentioned but WASD diagonal semantics are not.",
+      "fix": "Add one sentence: 'While walking, facing is the steer direction (or: A/D with W/S strafe and facing is the control-frame W direction).' Pick one and state it."
+    },
+    {
+      "severity": "nit",
+      "file": "DESIGN_NOTES.md",
+      "what": "Visual authoring framework (shipped) names 'disk bridge JSON in src/content/scene/stages/*.json and characters/*.json' as the output location. Neither directory exists in src (localDiskBridgePlugin defaults to those paths and would create them on first save), and the Lab saves bullet says nothing reads them. Open since the C5 low items.",
+      "fix": "Add 'created on first save' after the paths."
+    },
+    {
+      "severity": "nit",
+      "file": "DESIGN_NOTES.md",
+      "what": "Epoch watch arithmetic: '8-14 hours' is derived from '50-100 hours divided by N Epochs' (Four clocks bullet and Loop cycles), which gives 7.1-14.3 h for the 7-epoch default. Open since the C5 low items. The pending fractional-watch owner decision also appears only inside the 'Talking costs time' bullet and not in Open, deferred and parked.",
+      "fix": "Use 'about 7-14 hours' (or state the campaign range that yields 8-14). Add a one-line Open item for the fractional watch unit."
+    },
+    {
+      "severity": "nit",
+      "file": "DESIGN_NOTES.md",
+      "what": "The Dispositions intro defines S1-R9, S1-13, S1-12, R5C2, INV-A and INV-F as review ids, but the 'Considered and rejected' table also uses 'S1-R2' (in the S1-12 row note), which is not in the defined list.",
+      "fix": "Add S1-R2 to the defined list or reword the note to 'folded into the inference-trails finding'."
+    },
+    {
+      "severity": "nit",
+      "file": "design/README.md",
+      "what": "The Status index says it is 'the only place the full set is listed, including every design/ file', while design/README.md also lists all six files. The README gives bare links with no one-line description, and states no precedence if a design file and its DESIGN_NOTES summary ever differ. I found no current contradictions between the six files and their summaries (thresholds, 0.75/0.45 bands, 2-3 contingencies, 2 MB, 7 rungs, 15-30 year gap, vignette rolls all match).",
+      "fix": "Reword the index sentence to 'the table of record', add one descriptive clause per link, and add 'DESIGN_NOTES.md wins on a mismatch; fix the file here.'"
+    },
+    {
+      "severity": "nit",
+      "file": "design/travel-vignettes.md",
+      "what": "Cites a sway amplitude 'clamped by existing reduceMotionAndFlashing'. That name is the shipped PlaySession/RenderFrameBuilder option. DESIGN_NOTES Accessibility and Settings plans a Settings field called reduceMotion and never relates the two names.",
+      "fix": "In Accessibility and Settings, add 'reduceMotion drives the shipped reduceMotionAndFlashing option', or use one name in both places."
+    },
+    {
+      "severity": "nit",
+      "file": "design/regard-and-romantasy.md",
+      "what": "Uses 'Tier 1' and 'Tier 2' for the storage tiers (baseline prior and sparse edges) in the same file that uses Tier 1 and Tier 2 for character tiers (utility_schemer, role_routine). Also, the epoch-ladder table header says '3-6 disguises per Epoch' but lists one or two items per rung (DESIGN_NOTES Advisors lists three for Epoch 1).",
+      "fix": "Rename the storage tiers 'baseline layer' and 'sparse layer'. Label the disguise column 'examples'."
+    },
+    {
+      "severity": "nit",
+      "file": "DESIGN_NOTES.md",
+      "what": "Arrival hold now reads 'holds short of a point the disc covers while a timer runs'. The earlier text said the timer runs while the disc covers the point. When the timer starts and stops is now implicit.",
+      "fix": "Restore: 'The timer starts when the NPC is held short and runs while the disc covers the point.'"
+    }
+  ],
+  "verdict": "ready_with_fixes"
+}

@@ -1,0 +1,142 @@
+{
+"findings":[
+{"id":"S3B-01","topic":"arch","kind":"problem",
+ "claim":"StateSliceStore deep-clones on every get, every withSlice and twice per updateSlice, and the set_state_slice reducer case clones twice more (define + withSlice); append cost is O(total rows), so a 5000-row Act ring already costs ~16 ms per appended row (one whole 60 FPS frame) and 20000 rows ~74 ms.",
+ "evidence":[
+  {"path":"src/domain/core/StateSliceRegistry.ts","lines":"109-110","quote":"const stored = this.entries.get(key.id) as T;\n    return cloneValue(stored);"},
+  {"path":"src/domain/core/StateSliceRegistry.ts","lines":"118","quote":"next.set(key.id, cloneValue(newValue));"},
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"461-464","quote":"const sliceKey = defineStateSlice<unknown>(effect.sliceId, effect.value);"},
+  {"path":"cmd: node (resolve-hook) /private/tmp/claude-501/-Users-alanharrison-Desktop-Code-uplift/6a379abe-f9f1-4eb1-ba01-f0a5d31597b8/scratchpad/s3b/r1.ts","lines":"-","quote":"slice rows=500: get 1.06ms, append via updateSlice 1.95ms\nslice rows=5000: get 8.22ms, append via updateSlice 16.59ms\nslice rows=20000: get 39.54ms, append via updateSlice 73.58ms\nset_state_slice 5000 rows 16.35 ms/effect"}],
+ "bites_when":"The first Act-emitting behaviour commit (core-model step 4) writes the ring through updateSlice or set_state_slice, or any HUD/notebook reader calls get() per frame; also createInitialWorldState and loadFromSlot do toSnapshot+fromSnapshot (2 more clones of every slice).",
+ "severity":"major","confidence":"high",
+ "disconfirm":"Checked whether any production code uses slices yet: no (grep finds only SimulationCoordinator save/load and the reducer), so cost is zero today; also checked entities/props maps: only a shallow O(entities) spread per effect (1000 effects x 300 entities = 4.5 ms) and untouched entities keep identity, so those are fine. Numbers are on this dev machine, not the 2019 i7 (likely 1.5-2x slower).",
+ "recommendation":"Make slices frozen-on-write, shared-on-read: withSlice does one deepFreeze (skip if already frozen) and get() returns the frozen reference; updaters must return new values (spread/concat), which the type already encourages via readonly. For the Act ring use a chunked persistent structure: array of fixed 256-row frozen chunks plus a head chunk, so append copies at most one chunk; Observation as Record<holderId, frozen rows> so a write touches one holder. Drop the redundant defineStateSlice call in set_state_slice. toSnapshot can return the frozen refs without cloning.",
+ "fix_cost":"M",
+ "ignore_cost":"The Act ring is built on a store that makes every append cost a frame, and the 'write per watch' workaround gets baked into the model."},
+
+{"id":"S3B-02","topic":"arch","kind":"gap",
+ "claim":"State slices are untyped at the boundary: StateSliceKey carries only id and defaultValue (no schema, no version), the StateSliceRegistry is never consulted by the store or the reducer, set_state_slice accepts any id and any value, and Map/Set slice values survive in memory but are silently emptied by the JSON save; the Act ring and Observation table (evolving, large) cannot be migrated or validated on load.",
+ "evidence":[
+  {"path":"src/domain/core/StateSliceRegistry.ts","lines":"8-11","quote":"readonly id: string;\n  readonly defaultValue: T;"},
+  {"path":"src/domain/simulation/WorldState.ts","lines":"256-260","quote":"type: z.literal('set_state_slice'),\n    sliceId: z.string().trim().min(1),\n    value: z.unknown(),"},
+  {"path":"src/infrastructure/persistence/FileSaveSlotRepository.ts","lines":"119","quote":"const serialized = `${JSON.stringify(envelope, null, 2)}\\n`;"},
+  {"path":"cmd: r1.ts (Map slice)","lines":"-","quote":"Map survives clone: true | JSON of snapshot: {\"m\":{}}"}],
+ "bites_when":"First pack registers a ThreadRuntime/ResourceLedger/Act slice and the shape changes between two commits while a save exists (loadFromSlot returns old-shaped data cast as T), or an author uses a Map for an Observation index.",
+ "severity":"major","confidence":"high",
+ "disconfirm":"Looked for any consumer of StateSliceRegistry in src: only domain/index.ts re-exports it; no production defineStateSlice call exists outside the reducer. So nothing is broken yet; this is a seam gap, not a live bug.",
+ "recommendation":"Extend StateSliceKey with an optional Zod schema and integer version plus an optional migrate(old, fromVersion); make set_state_slice resolve through the registry (unknown id -> rejection) and validate on write in dev/eval; reject non-plain-JSON values (Map/Set/Date/function) in defineStateSlice/withSlice. Slice values then are guaranteed save-safe.",
+ "fix_cost":"M",
+ "ignore_cost":"Every pack slice ships with no save migration path, and a renamed field silently reads as undefined mid-game."},
+
+{"id":"S3B-03","topic":"arch","kind":"risk",
+ "claim":"SeededRandom does not scramble its seed, so small seeds give strongly non-uniform first draws (the coordinator default seed 1 yields first nextFloat 6.3e-5; 16% of seeds 1..1000 have a first float < 0.01 vs ~1% expected), seeds 0, 2^32 and 0x6d2b79f5 alias to one stream, and the single mutable stream lives outside WorldState with no fork/derive API, so any added roll shifts every later roll.",
+ "evidence":[
+  {"path":"src/domain/core/SeededRandom.ts","lines":"10-16","quote":"const uint32 = seed >>> 0;\n  return uint32 === 0 ? DEFAULT_NON_ZERO_SEED : uint32;"},
+  {"path":"src/application/simulation/SimulationCoordinator.ts","lines":"277","quote":"this.rng = options.rng ?? new SeededRandom(1);"},
+  {"path":"cmd: r1.ts","lines":"-","quote":"seed 1 6.30e-5 1.57e-2 6.16e-1\nseed 2 1.26e-4 3.13e-2 1.62e-1\nseeds 1..1000 whose FIRST nextFloat<0.01: 163 (expected ~10)\nseed 4294967296 2.53e-1 5.70e-1 6.10e-1"}],
+ "bites_when":"The first probabilistic rule lands (interception risk, detection roll, storyteller deck shuffle) and a human-chosen seed such as 1, 2, 42 is used: the first roll of the run is near 0 and 'roll < risk' triggers on every small seed. Also bites the day a second subsystem draws from the shared stream.",
+ "severity":"major","confidence":"high",
+ "disconfirm":"Checked whether anything rolls today: grep for nextFloat/nextInt/choose in src finds no caller (only getRng accessor), so nothing is skewed yet. Checked zero-seed handling: it is handled (fixed default), and the nextInt rejection sampling is correct.",
+ "recommendation":"Run the seed through splitmix32 (or mulberry32 init) in the constructor, and keep Xorshift only as the stepper. Add a pure counter-based roll: rollFloat(worldSeed, streamKey, counter) = hash32(seed ^ hash(streamKey), counter), where counter is actId or watch; put worldSeed in WorldState (immutable) so replay needs seed + effect log, not a threaded generator. Keep SeededRandom for sequential local use only.",
+ "fix_cost":"S",
+ "ignore_cost":"Every saved run's random stream is pinned to the current weak seeding, and changing it later invalidates all golden/eval fixtures."},
+
+{"id":"S3B-04","topic":"arch","kind":"problem",
+ "claim":"The per-entity stimulus cap evicts the oldest stimulus regardless of importance and stimulusId is never deduplicated, so 32 ambient chatter stimuli silently delete an earlier player-caused alarm, and a replayed effect enqueues the same stimulus twice.",
+ "evidence":[
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"176-180","quote":"const nextStimuli = [...entity.pendingStimuli, stimulus];\n      const boundedStimuli =\n        nextStimuli.length > MAX_PENDING_STIMULI_PER_ENTITY\n          ? nextStimuli.slice(nextStimuli.length - MAX_PENDING_STIMULI_PER_ENTITY)"},
+  {"path":"cmd: r1.ts","lines":"-","quote":"after 33 enqueues pending= 32 PLAYER_ALARM kept? false\ndup stimulusId count 2"}],
+ "bites_when":"An NPC that sits unattended in awaiting_trigger (the hop-cap state, which by design stops consuming) is fed by a busy room for >32 enqueues: the player-caused stimulus that caused the cascade vanishes and the inference trail (P4) goes dark with no telemetry.",
+ "severity":"minor","confidence":"high",
+ "disconfirm":"Checked whether the cap is reachable: only if consumption stalls; awaiting_trigger entities consume nothing, so yes. Not reachable in the 3-minute slice today.",
+ "recommendation":"Dedupe on stimulusId (no-op or merge), and evict by lowest priority/oldest among non-externalRelease, non-requiresExternalTrigger stimuli; emit an 'evicted' rejection result rather than silent drop.",
+ "fix_cost":"S",
+ "ignore_cost":"Silent evidence loss that looks like an AI bug in playtest."},
+
+{"id":"S3B-05","topic":"arch","kind":"gap",
+ "claim":"The reducer has no outcome channel: appliedEffects is just the parsed input list, spend_orbital_delta and unknown entity/prop ids throw and abort the whole batch while unknown pillar ids silently no-op, and dispatchEffects silently drops all effects while paused (so the set_paused effect can never unpause and nothing in src dispatches it), so 'reject instead of throw' cannot be added without changing the result type and every call site.",
+ "evidence":[
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"397-399","quote":"if (effect.mode === 'burn' && state.orbitalPass.phase !== 'zenith') {\n        throw new Error("},
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"325","quote":"const nextPillars = entity.inertiaPillars.filter((p) => p.id !== effect.pillarId);"},
+  {"path":"src/application/simulation/SimulationCoordinator.ts","lines":"506","quote":"if (this.state.paused || effects.length === 0) {"},
+  {"path":"cmd: r1.ts","lines":"-","quote":"unknown entity -> Unknown entityId 'ghost' in WorldEffect\nunknown pillar -> no throw, appliedEffects 1"}],
+ "bites_when":"Insertion becomes a player verb (S2-18): a burn at horizon must produce a diegetic 'rejected, no zenith' result, and a stale NPC id in a queued effect must not crash the frame; today both throw out of dispatchEffects.",
+ "severity":"major","confidence":"high",
+ "disconfirm":"Checked whether batches are atomic: yes, state is immutable and the throw discards the batch, so no corruption, only abort. Checked NaN/Infinity: Zod 4 rejects NaN deltas before the reducer. Checked set_paused: coordinator has its own setPaused, so the effect is simply dead code.",
+ "recommendation":"Change applyWorldEffects to return {state, outcomes: ReadonlyArray<{effect, status:'applied'|'rejected', reason?}>}; make requireEntity/requireProp and the orbital guards produce 'rejected' (keep the throw only for schema violations = programmer error). Keep appliedEffects as a filtered view so callers migrate gradually. Delete set_paused or let it bypass the paused guard.",
+ "fix_cost":"M",
+ "ignore_cost":"Every new verb copies the throw pattern and the player's illegal action becomes a crash or a silent nothing."},
+
+{"id":"S3B-06","topic":"arch","kind":"problem",
+ "claim":"set_cognitive_phase and move_entity_to_waypoint leave stale phase data: a move onto a performing_dwell entity forces 'moving' but keeps phaseRemainingSeconds=10 and activeBehaviorId, and an idle transition never clears activeBehaviorId or the pending dwell/cooldown fields, so 'what is this NPC doing' cannot be read from state.",
+ "evidence":[
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"109","quote":"cognitivePhase: entity.cognitivePhase === 'deliberating' ? 'deliberating' : 'moving',"},
+  {"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"133","quote":"...(effect.behaviorId !== undefined ? { activeBehaviorId: effect.behaviorId } : {}),"},
+  {"path":"cmd: r1.ts","lines":"-","quote":"move over dwell: moving phaseRemaining 10 behavior b1\nafter idle: activeBehaviorId= b1 pendingDwell 0"}],
+ "bites_when":"The behaviour commit (core-model step 4) emits an Act from activeBehaviorId on dwell completion, or the notebook/inference trail reads current behaviour: an interrupted or finished NPC is still credited with b1.",
+ "severity":"minor","confidence":"med",
+ "disconfirm":"grep finds no reader of activeBehaviorId outside the reducer and WorldState, so nothing misreads it yet; I did not verify whether KinematicsEngine ignores phaseRemainingSeconds while 'moving'.",
+ "recommendation":"Make phase transitions total: a single transition helper that sets all phase fields (clear activeBehaviorId/pending* on idle, zero phaseRemaining on moving) and a table-driven test over (from,to) pairs.",
+ "fix_cost":"S",
+ "ignore_cost":"Stale behaviour ids become false Acts once a commit step consumes them."},
+
+{"id":"S3B-07","topic":"arch","kind":"risk",
+ "claim":"Legacy lineage mutations accumulate across epochs but apply with a hard throw instead of saturation, and a mutation's sourceScarId is never checked against any recorded scar, so two legal add mutations (0.3 + 0.3 on a 0.6 drive) make applyLegacyToCharacterBlueprints throw, which breaks epoch start and loadFromSlot.",
+ "evidence":[
+  {"path":"src/domain/legacy/CivilizationLegacyState.ts","lines":"328-331","quote":"if (!Number.isFinite(finalVal) || finalVal < 0 || finalVal > 1) {\n        throw new Error("},
+  {"path":"src/domain/legacy/CivilizationLegacyState.ts","lines":"75-82","quote":"lineageMutations: z.array(LineageMutationSchema).readonly(),"},
+  {"path":"cmd: r2.ts","lines":"-","quote":"schema accepted mutations citing unrecorded scars: 2\nTHROW: LineageMutation out of bounds on lineage 'L' drive 'greed': final value 1.2 must be in [0, 1]"}],
+ "bites_when":"The first epoch handoff where two scars target the same lineage drive with same-sign adds; the coordinator concatenates inherited and new mutations (SimulationCoordinator.ts:718-719) so the list only grows over 7 epochs.",
+ "severity":"minor","confidence":"med",
+ "disconfirm":"The existing tests assert this throw as intended behaviour (tests lines 291, 309), so it is a deliberate content-validation rule, not an accident; it only becomes a runtime failure because mutations originate from player-driven scars, not authored content. My second repro (override order) failed on a bad blueprint fixture and is not claimed.",
+ "recommendation":"Clamp the final value to [0,1] with a telemetry note for runtime-derived mutations; reserve the throw for an authoring-time contract test. Validate sourceScarId against the combined scar lists in the schema superRefine.",
+ "fix_cost":"S",
+ "ignore_cost":"A save made after two heavy scars becomes unloadable and the failure appears at load time far from its cause."},
+
+{"id":"S3B-08","topic":"arch","kind":"gap",
+ "claim":"Reducer tests prove single-path happy cases only: nothing asserts input non-mutation (no frozen inputs), the stimulus and audio caps, duplicate/unknown ids, effect-order dependence, schema-versus-type parity, or SeededRandom golden values, so the determinism the whole replay story depends on is checked only as 'two runs agree with each other'.",
+ "evidence":[
+  {"path":"tests/unit/domain/SeededRandom.test.ts","lines":"8-15","quote":"const floatA = rngA.nextFloat();\n      const floatB = rngB.nextFloat();\n      expect(floatA).toBe(floatB);"},
+  {"path":"tests/unit/domain/KinematicsAndReducer.test.ts","lines":"398-402","quote":").toThrow(/Orbital Burn requires 'zenith' pass phase/);"},
+  {"path":"cmd: grep -rn \"MAX_PENDING_STIMULI\\|MAX_EMITTED_AUDIO\" tests","lines":"-","quote":"(no output)"}],
+ "bites_when":"Now: someone changes the Xorshift constants, clamp order or cap logic and every test still passes while saved runs and eval fixtures diverge.",
+ "severity":"minor","confidence":"high",
+ "disconfirm":"Checked the other domain test files and the application SimulationCoordinator test for caps and unknown ids: only one set_state_slice use (coordinator test 439) and no cap tests.",
+ "recommendation":"Add: (1) golden vector for SeededRandom (seed 42 -> first 5 uint32); (2) a helper that deepFreezes WorldState and effects then runs every effect type; (3) cap tests for stimuli/audio; (4) a seeded random-batch replay test that applies the same effect list twice and compares JSON; (5) a type-level test that each WorldEffect variant is covered by a reducer test via an exhaustive record of fixtures.",
+ "fix_cost":"S",
+ "ignore_cost":"Determinism regressions are caught late, in eval drift, not in the 3 s unit suite."}
+],
+"keep":[
+ {"claim":"The reducer is genuinely pure and structurally shared: every case spreads, untouched entities keep identity, batches are all-or-nothing, and entities/props maps are shallow-copied only (1000 effects over 300 entities = 4.5 ms). Protect this; do not 'fix' it with deep clones.",
+  "evidence":[{"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"90-95","quote":"entities: {\n          ...state.entities,\n          [entity.entityId]: {"}]},
+ {"claim":"Exhaustiveness of the effect union is compiler-enforced (switch without default under strict return checking, discriminatedUnion parse before apply), and the prototype-pollution guard on prop patches is correct.",
+  "evidence":[{"path":"src/domain/simulation/WorldEffectReducer.ts","lines":"485-486","quote":"const parsedEffect = WorldEffectSchema.parse(rawEffect);\n    current = applySingleWorldEffect(current, parsedEffect);"}]},
+ {"claim":"SeededRandom's rejection sampling, state serialization (fromState rejects 0) and sorted-key iteration everywhere (KinematicsEngine, coordinator, RenderFrameBuilder) are deterministic-safe; entity key order cannot leak into results.",
+  "evidence":[{"path":"src/domain/core/SeededRandom.ts","lines":"87-91","quote":"const limit = UINT32_MAX_PLUS_ONE - (UINT32_MAX_PLUS_ONE % maxExclusive);"}]}
+],
+"unconsidered_routes":[
+ {"title":"Stateless counter-based rolls instead of threaded generators",
+  "proposal":"Replace the shared stateful SeededRandom with a pure roll(worldSeed, streamKey, counter) hash (splitmix/murmur finalizer). Streams are keyed by subsystem plus actId/watch, so adding a roll in one subsystem never moves another, and replay needs only seed plus the effect log. Keep the class for local sequential helpers.",
+  "reference":"Counter-based RNGs (Philox, SplitMix); Dwarf Fortress/Caves of Qud per-purpose seeded streams; Hades' per-system seeded RNG",
+  "replaces_or_changes":"Removes rngState from the save envelope and the coordinator-held generator; worldSeed joins WorldState."},
+ {"title":"Chunked persistent log for the Act ring and Observation table",
+  "proposal":"Store the ring as an array of frozen 256-row chunks with a head chunk and a base index; append copies only the head. Observation rows are keyed by holderId so a write replaces one frozen bucket. Reads return frozen references (no clone), writes freeze once.",
+  "reference":"Persistent vectors (Clojure/Immer structural sharing), event-sourced log segments",
+  "replaces_or_changes":"Replaces structuredClone-per-get/set in StateSliceStore with freeze-on-write; makes 'bounded ring' a chunk drop rather than a slice() copy."},
+ {"title":"Reducer returns outcomes, application layer owns the envelope",
+  "proposal":"applyWorldEffects(state, Envelope[]) where Envelope = {effect, actorId?, causeActId?}; the reducer returns outcomes (applied/rejected+reason) and stamps causeActId onto emitted audio cues, scars and stimuli. The 17 variants stay untouched because the envelope wraps rather than extends them.",
+  "reference":"Redux-style action meta fields; command/result pattern in Caves of Qud's event system",
+  "replaces_or_changes":"Changes the return type once; replaces dispatchEffects options.actorId (telemetry only) with state-visible provenance."}
+],
+"readiness":{
+ "envelope":"Yes. WorldEffect is a Zod discriminatedUnion; applySingleWorldEffect(state, effect) takes the parsed effect, so a wrapper {effect, actorId, causeActId} can be unwrapped in applyWorldEffects with no variant change. Seam: the loop at WorldEffectReducer.ts:484-488 and DispatchEffectsOptions.actorId already carried to telemetry. Obstacles: appliedEffects is typed ReadonlyArray<WorldEffect> and consumed by inferEffectTelemetryCategory; cause stamping needs the reducer cases that create records (scars, audio cues, stimuli) to accept a cause param.",
+ "slices":"Mechanically yes (defineStateSlice + set_state_slice), practically not until S3B-01 (clone cost) and S3B-02 (no schema/version/registry check) are fixed. Also the save path enumerates WorldState fields by hand in SimulationCoordinator.saveToSlot/loadFromSlot and a hand-written isSerializedWorldStateSnapshot guard, so any new top-level field (elapsedWatches) must be added in ~4 places and an old save loads it as undefined.",
+ "rejection":"Not without a result-type change (S3B-05): outcome channel absent; throws at lines 61, 72, 398, 403.",
+ "advance_watches":"Add elapsedWatches to WorldState (hand interface at WorldState.ts:140-156, createInitialWorldState, coordinator save/load) and a new effect variant; sits beside advance_orbital_pass, whose ticksInCurrentPhase is the only existing tick-unit counter and should fold into it. It must run before any stimulus/presence resolution in a batch since ordering within a batch is strictly sequential; stimuli keep readyAtElapsedSeconds (real seconds) so their fate across a watch jump (S2-11) needs an explicit rule, because enqueue computes readiness from elapsedSimulationSeconds only."
+},
+"could_not_verify":[
+ "Timings were taken on the dev machine, not the 2019 i7 MacBook; expect 1.5-2x slower.",
+ "Whether KinematicsEngine ignores phaseRemainingSeconds while cognitivePhase is 'moving' (S3B-06 severity depends on it).",
+ "Whether the save envelope has a schema version field (SaveSlotRepositoryPort not fully read); relevant to S3B-02 migration."
+]
+}

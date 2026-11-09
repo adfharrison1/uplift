@@ -1,0 +1,183 @@
+{
+ "findings": [
+  {
+   "id": "S6A-01",
+   "sev": "major",
+   "claim": "The design-notes skill's step 3 orders agents to write every new decision into root AGENTS.md as a registry bullet; this procedure is the generator of the present-tense-for-unbuilt drift S0 found, and nothing in it distinguishes planned from shipped.",
+   "rec": "Change the skill: decisions go to DESIGN_NOTES (with a status line) and config roadmap only; AGENTS.md gets a bullet only in the delivering change's docs task, when code exists.",
+   "paths": [
+    ".agents/skills/uplift-design-notes/SKILL.md:60-61",
+    "AGENTS.md:56-56"
+   ]
+  },
+  {
+   "id": "S6A-02",
+   "sev": "major",
+   "claim": "Pinned-version truth is stated in 4 places (README table, config.yaml, AGENTS.md, package.json) and has already diverged: config pins @huggingface/transformers 4.3.2 but it is in neither package.json nor the lockfile; README calls the bridge TS 6.0.3 while every other source says 6.0.2; the pinned Node 24.22.2 and npm 12.2.1 are claims nothing checks (this machine runs v24.13.1, engines says >=24).",
+   "rec": "Make package.json + lockfile the only version source; delete the table from config.yaml and AGENTS.md; have README generate or just say 'see package.json'. Mark HF as 'planned, unpinned'.",
+   "paths": [
+    "README.md:62-62",
+    "openspec/config.yaml:117-117"
+   ]
+  },
+  {
+   "id": "S6A-03",
+   "sev": "minor",
+   "claim": "The CVE IDs and 'verified 2026-10-29' stamp are unverifiable by any agent offline, are copied into README and config, and are injected into every OpenSpec operation and design.md as a required deliverable, so they are noise that reads as authority.",
+   "rec": "Drop CVE IDs and the 'include the table in design' rule; keep one line 'Node per .nvmrc' and run npm audit as the real check.",
+   "paths": [
+    "openspec/config.yaml:106-106",
+    "openspec/config.yaml:200-200"
+   ]
+  },
+  {
+   "id": "S6A-04",
+   "sev": "major",
+   "claim": "The owner's 8 Nov raw dump is half-integrated and the skill forbids removing it, so there is no inbox: WASD/Space/menu/pause items already live in DESIGN_NOTES section 8 and AGENTS.md, while the camera-capture and 'further out zoom' items appear nowhere else and have no roadmap line.",
+   "rec": "Create notes/inbox.md (owner pastes raw, dated); the skill moves each paragraph into a dispositions table (integrated -> section X, open, rejected) and the inbox is emptied. DESIGN_NOTES never holds raw text.",
+   "paths": [
+    ".agents/skills/uplift-design-notes/SKILL.md:31-31",
+    "DESIGN_NOTES.md:314-314"
+   ]
+  },
+  {
+   "id": "S6A-05",
+   "sev": "major",
+   "claim": "The same engine facts are written in 3 places in different prose, creating 8+ multi-copy facts with no designated owner; the 7-epoch ladder alone appears in 6 files (AGENTS, README, DESIGN_NOTES x4 sites, config x3 sites), and the 4-6-task and verify-budget rules are in 4 and 3 files; the duplicates already differ in numbers and wording.",
+   "rec": "Give each fact kind one owner file (table in finding S6A-08) and replace copies with a one-line pointer; numbers live in code constants or one parameter table.",
+   "paths": [
+    "README.md:33-33",
+    "openspec/config.yaml:22-22"
+   ]
+  },
+  {
+   "id": "S6A-06",
+   "sev": "minor",
+   "claim": "openspec/config.yaml 'context:' is about 5.9k words injected into every OpenSpec operation, and most of it duplicates DESIGN_NOTES mechanics lists plus a hand-maintained roadmap whose status tags are already stale (05c delivered but untagged), so agents pay tokens for a stale second copy.",
+   "rec": "Cut context to a under-1.5k-word stub (invariants, pointer to DESIGN_NOTES index, pointer to roadmap file); move the roadmap to openspec/roadmap.md with status derived from the archive dir.",
+   "paths": [
+    "openspec/config.yaml:128-128",
+    "openspec/config.yaml:34-34"
+   ]
+  },
+  {
+   "id": "S6A-07",
+   "sev": "major",
+   "claim": "The only enforced doc check is existence plus length (>50 chars) of section README/AGENTS; nothing checks built-vs-planned, dead identifiers, or version tables, so drift can only be caught by review like this one.",
+   "rec": "Add a docs-truth test: every backticked camelCase/PascalCase identifier or npm script in AGENTS.md and src/*/AGENTS.md must grep-resolve in src/ or package.json, unless inside a block marked <!-- planned -->; plus assert README versions equal package.json. Under 50 lines, under 100 ms.",
+   "paths": [
+    "tests/architecture/layer_boundaries.test.ts:323-323",
+    "tests/architecture/layer_boundaries.test.ts:354-354"
+   ]
+  },
+  {
+   "id": "S6A-08",
+   "sev": "major",
+   "claim": "Review outputs (core model, rules spine, hardening batch, prerequisites) have no designated home; the existing layout already shows how they will become another layer: decisions live in review slices, register, DESIGN_NOTES, config and AGENTS at once.",
+   "rec": "Class -> home: core model & rules spine -> new docs/spine.md (one page, numbered rules R1.., each with status shipped/planned/revisable); hardening batch and prerequisites -> openspec changes plus roadmap order; accepted/rejected rationale -> docs/decisions/ one short ADR per decision, linked from spine rules; pillars P1-P5 -> top of DESIGN_NOTES; AGENTS.md gets only shipped-code rules and a link to the spine.",
+   "paths": [
+    "AGENTS.md:69-69",
+    "reviews/2026-11-08-root-and-branch/register.md:1-3"
+   ]
+  },
+  {
+   "id": "S6B-01",
+   "sev": "major",
+   "claim": "Archived spec scenarios assert that a call is made or a payload round-trips, not that the feature's stated Purpose happens, so features that do nothing end to end (lab Save, telemetry pipeline, file saves) are fully spec-compliant and fully gated.",
+   "rec": "Add a spec-rule to config.yaml: every requirement whose Purpose is persistence, logging or a pipeline MUST carry one scenario that starts at the user-visible trigger and ends at an observable consumer (save, reload, assert), and design.md MUST list the producer and consumer call sites in non-test code. Backfill for lab Save and telemetry in the hardening amendments.",
+   "paths": [
+    "openspec/specs/play-shell/spec.md:110-112",
+    "openspec/specs/session-telemetry-and-compaction/spec.md:9",
+    "openspec/specs/stage-inspector-lab-and-dom-mirror/spec.md:3",
+    "reviews/2026-11-08-root-and-branch/slices/00-baseline.md:18-19"
+   ]
+  },
+  {
+   "id": "S6B-02",
+   "sev": "major",
+   "claim": "At least six archived spec requirements assert behaviour that the accepted register says is wrong or untrue, so the hardening steps will either violate the spec or silently diverge from it unless the specs are amended in the same commits.",
+   "rec": "Make each hardening change a spec-delta change: its specs/ folder carries MODIFIED requirements for the lines above (clone -> share-on-read, retention -> rotate to logs/prev, verify budget -> measured number plus a timed test, save exactness -> versioned codec, determinism scope -> domain+application+content, loop requirement -> frame guard). Add to the waypoint spec a scenario for the post-truncation phase and a Blocked outcome.",
+   "paths": [
+    "openspec/specs/clean-architecture-and-quality-gate/spec.md:35",
+    "openspec/specs/deterministic-simulation-primitives/spec.md:20",
+    "openspec/specs/deterministic-simulation-primitives/spec.md:28",
+    "openspec/specs/encoded-visual-framework-and-render-frame/spec.md:24",
+    "openspec/specs/multi-session-saves-and-debug-skill/spec.md:13",
+    "openspec/specs/play-shell/spec.md:96-97",
+    "openspec/specs/session-telemetry-and-compaction/spec.md:31"
+   ]
+  },
+  {
+   "id": "S6B-03",
+   "sev": "major",
+   "claim": "The gates catch what a diff review can see (layering, naming, edge cases in new functions) and miss four classes the review later found: feature does nothing end to end, threat model of a new route, cost of a call on a hot path, and failure containment of a loop; about 30 of the later register findings trace to archived changes that passed all gates.",
+   "rec": "Add four checks to the gates (details in S6B-03 table below the findings): (G1) 'Does the shipped feature do what proposal.md says': a Subagent runs the feature through the real entry point (npm run dev page or CLI), reports producer and consumer call sites, and fails on a write with no reader or a pipeline with no feeder. (G2) Security/trust-boundary axis for any route, port, file path or parser: Origin, Content-Type, size, path, token. (G3) Hot-path cost axis: per-frame call graph, allocation, and a micro-benchmark threshold for any slice/store/renderer call. (G4) Failure-containment axis: what does a throw in this code do to the rAF loop, the tick, and the save? Add a throwing-input test per entry point. (G5) Post-merge defect ledger: a one-line-per-defect file recording which axis should have caught each later finding, reviewed at each gate. (G6) Spec-vs-reality diff: grep each SHALL against the code that implements it.",
+   "paths": [
+    "openspec/config.yaml:106",
+    "openspec/config.yaml:170-171"
+   ]
+  },
+  {
+   "id": "S6B-04",
+   "sev": "major",
+   "claim": "The roadmap is a 27-entry prose list inside a YAML context string with one repeated status tag, no machine-readable dependencies (9 of 20 planned entries state none, including the keystone 05b), and a non-monotonic order, so an agent cannot reliably answer 'what is next' or 'what does X depend on', and the accepted reorder (about 12 insertions, 2 splits, 1 rescope) will make it worse.",
+   "rec": "Move the roadmap out of config.yaml into openspec/roadmap.yaml, one record per change: {id, title, status: archived|active|proposed|planned|parked, depends_on: [ids], slot: family, specs_modified: [capabilities], source: [register ids]}. Ids are stable slugs that are never renumbered (keep 01..05c as-is; new ones use a family prefix, e.g. hx-0a, cm-act, 05b-1); order is derived by topological sort with `slot` as a tiebreak; letter suffixes mean 'split of' only. Add a tests/architecture check: ids unique, depends_on resolve, graph acyclic, archived ids equal the folders under openspec/changes/archive, exactly zero 'active' beyond one. config.yaml's context keeps a two-line pointer. Add an npm script `roadmap:next` printing the first planned change whose deps are all archived.",
+   "paths": [
+    "openspec/config.yaml:127-133",
+    "openspec/config.yaml:132",
+    "openspec/config.yaml:136-137",
+    "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:12-14"
+   ]
+  },
+  {
+   "id": "S6B-05",
+   "sev": "minor",
+   "claim": "The 4-6 task rule counts two fixed overhead tasks (docs and review) inside the cap, leaving 2-4 feature tasks, forces docs into trailing commits that lag the code, and is already broken by the amended roadmap (hardening steps 6 and 7, 05d with 11 prerequisites) so the cap measures the wrong thing; the properties that matter (green commit, reviewable diff) are not what it checks.",
+   "rec": "Keep 'one task = one green, reviewable commit' and '<= 3 source files plus tests per task'. Replace the count cap by a size rule: a change over 8 tasks or touching over 3 layers must split along a dependency. Move per-section README/AGENTS updates into the feature task that changes the module (a doc check already guards them), leaving one closing task for review. Record unplanned fix commits as 'x.y-fix' tasks so the checklist matches git. Keep the 6-subagent gate as is.",
+   "paths": [
+    "openspec/changes/archive/2026-11-08-05c-play-shell/tasks.md:19",
+    "openspec/config.yaml:154",
+    "openspec/config.yaml:209",
+    "reviews/2026-11-08-root-and-branch/slices/05-runtime-feel.md:33-53"
+   ]
+  },
+  {
+   "id": "S6B-06",
+   "sev": "major",
+   "claim": "The accepted register implies roughly 30 new changes and amendments, but none is yet an OpenSpec proposal, and several accepted slots (pre-05b-1 launch validation, telemetry wiring, minimal audio, the spec amendments in S6B-02) have no owner in the roadmap; unless they are listed as changes with dependencies, they will be absorbed into whichever neighbouring change is proposed next and break the size rule.",
+   "rec": "Adopt the change_plan list in this file as the input to slice 7: it names one change per accepted slot, with dependencies, and marks which are spec-delta changes.",
+   "paths": [
+    "reviews/2026-11-08-root-and-branch/register.md:32",
+    "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:29-30",
+    "reviews/2026-11-08-root-and-branch/slices/02b-roadmap-reorder.md:31"
+   ]
+  }
+ ],
+ "routes": [
+  {
+   "id": "R6A1",
+   "title": "Status front-matter per doc section plus a docs-truth test",
+   "proposal": "Every AGENTS.md bullet and DESIGN_NOTES numbered section carries a first-line marker: [shipped], [partial], or [planned: <roadmap id>]. AGENTS.md may contain only [shipped]; planned lives in DESIGN_NOTES. A vitest in test:arch fails if AGENTS.md has a backticked identifier absent from src/ outside a [planned] block, and if README versions differ from package.json."
+  },
+  {
+   "id": "R6A2",
+   "title": "Layered doc tree with a one-page START-HERE and size budgets",
+   "proposal": "docs/START.md (under 400 words: pillars, 5 invariants, where each fact kind lives, how to verify). Budgets: AGENTS.md under 900 words shipped-only; DESIGN_NOTES split into docs/design/<topic>.md each under 1.5k words with an index table (status, roadmap id); config context under 1.5k words; versions only in package.json; inbox file notes/inbox.md for raw dumps; docs/decisions/ ADRs for review outcomes."
+  },
+  {
+   "id": "R6B1",
+   "title": "Roadmap as a checked DAG file with a generated 'next' view",
+   "proposal": "Store the roadmap as openspec/roadmap.yaml (id, status, depends_on, specs_modified, source findings). A tiny tests/architecture check validates it (unique ids, resolvable deps, acyclic, archived == archive folders). A script prints 'next' (first planned change whose deps are archived) and 'needs X' (transitive deps). The prose descriptions stay in each change's proposal.md, not in config.yaml."
+  },
+  {
+   "id": "R6B2",
+   "title": "Headless-browser smoke script as the 'does it work' gate, outside verify",
+   "proposal": "Add `npm run smoke` that starts Vite, drives the real page with Playwright (Chromium), asserts: page boots, no console error across 600 frames, F3 lab Save then reload shows the saved value, a forced throw in a frame is contained, logs/current-session.jsonl is non-empty. Run it at the post-change gate only, same status as `eval:ai` (outside verify, so the <5s budget is untouched)."
+  },
+  {
+   "id": "R6B3",
+   "title": "Spec 'Wired by' line per requirement, grep-checked",
+   "proposal": "Each requirement in openspec/specs gets a `Wired by:` line naming the non-test file and symbol that is its producer and consumer. A tests/architecture check greps that each named symbol exists and has at least one non-test reference. A requirement with 'Wired by: none (library)' is allowed but visible."
+  }
+ ]
+}

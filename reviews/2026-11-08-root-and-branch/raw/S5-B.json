@@ -1,0 +1,303 @@
+{
+ "findings": [
+  {
+   "id": "S5B-01",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "playInput is a pointer-click adapter with a single stateless keyDown(key, repeat) entry; it has no keyup, no held-key set, no blur/visibility reset, no edge-vs-level distinction and no action layer, so none of the section-8 key rules (held key after menu closes, opener does not confirm, repeat ignored) can be expressed without a rewrite.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "41-41",
+     "quote": "keyDown(key: string, repeat?: boolean): void;"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "186-187",
+     "quote": "ownerWindow.addEventListener('keydown', (event) => {\n    input.keyDown(event.key, event.repeat);"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "238-238",
+     "quote": "A key still held when the menu closes does not steer until it is released."
+    }
+   ],
+   "bites_when": "05d (WASD steer needs 'releasing the keys stops the body on that frame') and 05e (menu stack)",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Grepped all of src/interfaces for keyup/blur/visibilitychange/event.code: none. Checked whether PlaySession tracks held keys: no.",
+   "recommendation": "Build an InputState layer first (keydown/keyup/blur/visibilitychange clear, event.code not event.key, per-frame pressed/released/held sets with 'consumed' flags), mapped through a rebindable action table (move_fwd, ui_prev, ui_next, confirm, back). Domain only sees actions and a steer vector; keep the steer a vector so analog sticks can feed it later.",
+   "fix_cost": "M",
+   "ignore_cost": "Stuck-key walking after alt-tab, and the held-key and opener-confirms rules become scattered special cases in every menu."
+  },
+  {
+   "id": "S5B-02",
+   "topic": "feel",
+   "kind": "problem",
+   "claim": "Keyboard layout and focus are unhandled: the handler reads event.key (WASD breaks on AZERTY/Dvorak, and a hand-rolled 'Backquote' alias shows code and key are already mixed), is on window with no preventDefault, and the dev HUD fills the page with focusable buttons, so Space (the 'use' key) will re-click whichever dev button was last pressed.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "186-187",
+     "quote": "ownerWindow.addEventListener('keydown', (event) => {\n    input.keyDown(event.key, event.repeat);"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "146-146",
+     "quote": "const normalized = key === 'Backquote' ? '`' : key;"
+    },
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "249-251",
+     "quote": "const button = parent.ownerDocument.createElement('button');\n    button.type = 'button';\n    button.textContent = label;"
+    }
+   ],
+   "bites_when": "first time 05e ships and the owner clicks a focus or waypoint button, then presses Space to use a door",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Looked for tabindex, blur() or focus management on canvas/panels; none. Browser button activation on Space is standard behaviour, not verified live.",
+   "recommendation": "Use event.code for movement/menu actions (event.key only for display labels), preventDefault on bound keys, ignore events whose target is a dev-HUD button/input, and blur dev buttons on click. Make the canvas the default focus target.",
+   "fix_cost": "S",
+   "ignore_cost": "Door menus pop open or dev commands fire on Space presses; non-QWERTY friends cannot play."
+  },
+  {
+   "id": "S5B-03",
+   "topic": "design",
+   "kind": "risk",
+   "claim": "The menu grammar overloads keys in ways that need a single press-consumption model: Space is use, confirm, advance and pause-resume with four 'does not also' exceptions; W/A=previous and S/D=next map horizontal keys onto vertical lists; and Escape has a per-context rule (leave without opening pause on that press).",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "238-238",
+     "quote": "W and A go to the previous row. S and D go to the next. Space confirms."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "238-238",
+     "quote": "The key that opens a menu does not also confirm a row."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "259-259",
+     "quote": "Escape leaves, confirms nothing, and does not open pause on that same press."
+    }
+   ],
+   "bites_when": "05e implementation, and every later menu (07a-07d add pretexts, funds, omission)",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Considered that the Elder Scrolls style the owner cites also uses W/S for rows; the A/D aliasing is the unusual part. Not playtested.",
+   "recommendation": "Make the rule global: every Space/Escape press is consumed by the topmost UI layer in the frame it is pressed and cannot reach a lower layer (modal input stack with a 'consumed this frame' flag). Keep W/S as the vertical axis; use A/D only as aliases in vertical lists, and reserve A/D for left/right in any horizontal row (tabs, yes/no). Add arrow keys as a second binding set.",
+   "fix_cost": "S",
+   "ignore_cost": "Each menu change re-implements the exceptions and the first double-fire bug (conversation start also advancing) appears in 07."
+  },
+  {
+   "id": "S5B-04",
+   "topic": "feel",
+   "kind": "gap",
+   "claim": "The camera is one volume-selected spring target; there is no capture layer, return blend, player skip, or zoom, so the owner's 'world events capture the camera then return' and 'one further-out zoom' have no seam beyond a raw focusPositionOverride.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "125-125",
+     "quote": "readonly focusPositionOverride?: readonly [number, number, number] | undefined;"
+    },
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "528-528",
+     "quote": "const targetPosX = focusPos[0] + activeVolume.offset[0];"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "312-312",
+     "quote": "we should leave the option open for certain world events to capture that centring, to show action, before automatically returning the camera to the player"
+    }
+   ],
+   "bites_when": "first world event wants a look-at (the 'Camera grabs' item is explicitly left out of 07), or zoom is added",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked the spring: one omega per volume for pos, look, pitch, yaw, fov, so a capture would inherit that volume's stiffness. No priority beyond volume selection.",
+   "recommendation": "Add a CameraDirective stack in application (Cinemachine-style): base = player volume rig; layers = {target position, optional offset/fov, priority, blend in/out seconds, max hold, skippable}. Highest priority wins, blend by smoothstep over a duration, return blend is the same blend reversed, Space/Escape skips, and captures are blocked while the player is mid-menu. Zoom is a single scalar on the volume offset (e.g. 1.0 / 1.6) clamped to the volume's bounds and applied before the spring. Captures must never rotate yaw (fixed orientation, WASD frame).",
+   "fix_cost": "M",
+   "ignore_cost": "Event authors hack focusPositionOverride per call site, with unrestored state and no skip."
+  },
+  {
+   "id": "S5B-05",
+   "topic": "feel",
+   "kind": "risk",
+   "claim": "WASD is specified relative to the 'active camera volume's settled yaw', so walking across a volume boundary with a different yaw, or a capture/zoom changing the rig, can remap the controls under the player's fingers (the classic fixed-camera cut problem).",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "224-224",
+     "quote": "W is into the picture, taken from the active camera volume's settled yaw."
+    },
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "551-551",
+     "quote": "const targetYaw = activeVolume.yawDegrees;"
+    },
+    {
+     "path": "src/content/scene/starterHoldStages.ts",
+     "lines": "70-72",
+     "quote": "cameraVolumes: [\n        {\n          id: 'vol_main',"
+    }
+   ],
+   "bites_when": "the first stage with two camera volumes of different yaw (any L-shaped hall or the yard-to-door approach)",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "Both shipped stages have exactly one volume with yaw 0, so it cannot bite today.",
+   "recommendation": "Adopt the RE/FF7 rule: on a volume change the control frame is latched from the old yaw while any move key stays held, and updates only on release or after a short pause; also keep volume yaw changes small or authored at doorways. Cover with a unit test.",
+   "fix_cost": "S",
+   "ignore_cost": "Players reverse direction mid-walk at volume seams and read it as a bug."
+  },
+  {
+   "id": "S5B-06",
+   "topic": "feel",
+   "kind": "gap",
+   "claim": "Accessibility is one clamp: reduceMotionAndFlashing is read from the OS media query each frame, only softens the emergency and zenith tilts, is not a user setting, and nothing in the design notes covers text scale, contrast, caption cues for planned audio, hold/toggle, or reading time for expiring ambient lines.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "195-195",
+     "quote": "reduceMotionAndFlashing: prefersReducedMotion((query) => ownerWindow.matchMedia(query)),"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "264-264",
+     "quote": "It expires on its own. It takes no input, does not lock the player's feet"
+    },
+    {
+     "path": "src/interfaces/composition/shellDocument.ts",
+     "lines": "119-119",
+     "quote": "element.setAttribute('aria-label', 'Uplift');"
+    }
+   ],
+   "bites_when": "05e/07 ship the bubble and lace page (text first reaches players), and 05a ships sound-only cues (12 dB dropout, 174 Hz hum)",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "grep for 'accessib', 'caption', 'subtitle', 'colo.*blind', 'font' in DESIGN_NOTES and src/interfaces found nothing beyond the motion clamp; the dev panel hardcodes 14px sans-serif.",
+   "recommendation": "Put a Settings model in application now (reduceMotion, textScale, readingSpeed multiplier for ambient lifetime, ambientLines: timed|persist-until-dismissed, holdToMove|toggle, captions on) and persist it. Diegetic layer: a real DOM with aria-live=polite for ambient lines and the lace page, rem-based text, WCAG AA contrast checked against the chiaroscuro palette, and every sound-only cue also has a lace caption line (the 'bus does not speak' rule makes captions trivial since all of it is already text). Ambient lifetime should scale with text length (about 60 wpm floor plus a base) and be extendable via the notebook log.",
+   "fix_cost": "M",
+   "ignore_cost": "Retrofitting text scale and caption routing after 07 and 05a land means touching every bubble and cue."
+  },
+  {
+   "id": "S5B-07",
+   "topic": "design",
+   "kind": "risk",
+   "claim": "The inference-trail design (P4) relies on subtle visual tells (mud on a wheel-well, an extra broadsheet, bunting) and sets 'never billboards' as a rule, which excludes players with low vision, colour-vision deficiency, or just a small laptop at 60 FPS and dark chiaroscuro; with no redundant channel the trail can be silently missed.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "207-207",
+     "quote": "Cues stay **subtle and diegetic** (mud on a wheel-well, a folded extra broadsheet"
+    },
+    {
+     "path": "index.html",
+     "lines": "13-13",
+     "quote": "background: #1a1f28;"
+    }
+   ],
+   "bites_when": "the first covert action ships with only a visual tell, and a player misses it",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "The notebook (S1-R5) and advisor nudges (R2) are already accepted and are the natural mitigation, but no design note says every tell must write a notebook line.",
+   "recommendation": "Make it a content-contract rule: every visual tell registers a paired non-visual 'noticing' that the lace log can surface (advisor remark or a notebook 'noticed' entry, gated by an attention roll or proximity, not by sight). Tells must differ in shape or motion, not only colour. Add an optional 'highlight what I could notice' mode that rims-lights tell props. Test: a content check that each TravelSurfaceCueBlueprint has a notebook binding.",
+   "fix_cost": "M",
+   "ignore_cost": "The core inference loop fails for some players and looks like a missing feedback system to everyone."
+  },
+  {
+   "id": "S5B-08",
+   "topic": "arch",
+   "kind": "problem",
+   "claim": "05e's pause menu contradicts the shell's single paused bit: today paused means desaturated plus de-anchored free-cam plus lab, set together in keyDown, and browserMain treats paused as 'debug_free_cam'; 05e needs a pause that freezes without desaturating or freeing the camera while explicitly leaving out 'a second pause flag'.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/playInput.ts",
+     "lines": "151-153",
+     "quote": "const paused = !options.isPaused();\n        options.session.setPaused(paused);\n        options.session.setCameraDeAnchored(paused);"
+    },
+    {
+     "path": "src/interfaces/composition/browserMain.ts",
+     "lines": "171-171",
+     "quote": "coordinator.getWorldState().paused ? 'debug_free_cam' : 'tracking_volume',"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "240-240",
+     "quote": "It does not desaturate the picture and it does not free the camera."
+    }
+   ],
+   "bites_when": "05e task 1",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Checked whether desaturation is driven by a separate flag: de-anchor is separate (setCameraDeAnchored), but browserMain derives cameraMode from the paused bit, so the lab view is tied to it.",
+   "recommendation": "Split now in the plan: paused (freeze sim) stays the domain bit; lab mode (desaturate, de-anchor, free-cam, picking) becomes a session/interface flag. This is not a second domain pause flag, so the 'leaves out' clause should be reworded.",
+   "fix_cost": "S",
+   "ignore_cost": "Pause menu opens with a grey, free-flying camera, or the lab and player pause fight each other."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "The shell has three ordered layers with an empty DOM diegetic layer and a separate dev-hud, so bubbles and lace text can be DOM text (scalable, screen-reader-capable) rather than canvas; the NDC projection used by DebugInspectorCard is reusable for anchoring bubbles.",
+   "evidence": [
+    {
+     "path": "src/interfaces/composition/shellDocument.ts",
+     "lines": "8-8",
+     "quote": "export const SHELL_LAYER_ORDER = ['viewport', 'diegetic', 'dev-hud'] as const;"
+    }
+   ]
+  },
+  {
+   "claim": "Critically damped spring with dt clamp and per-volume stiffness is the right base for a tracking camera and gives free-cam and stage switching a stable footing.",
+   "evidence": [
+    {
+     "path": "src/application/rendering/RenderFrameBuilder.ts",
+     "lines": "28-28",
+     "quote": "export const MAX_CAMERA_SPRING_DT_SECONDS = 0.25 as const;"
+    }
+   ]
+  },
+  {
+   "claim": "Space-to-use with a reach and +-45 degree arc, text chunks capped at about 120 characters, and no voice acting are sound, low-hardware accessibility-friendly choices; chunked paging avoids scroll and timing pressure.",
+   "evidence": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "260-260",
+     "quote": "A chunk is at most two wrapped lines, about `120` characters."
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Camera directive stack with authored shot volumes",
+   "proposal": "Treat camera events as virtual-camera layers (priority, blend in/out, max hold, skip) over the player rig; authors place 'shot' volumes keyed to world events. Return is the same blend reversed, skippable with Space. Cap blends at around 0.6-1.0 s and forbid roll or yaw rotation during blend.",
+   "reference": "Cinemachine priority/blend stack; Hitman's brief look-at cut-ins; Pentiment's fixed framing",
+   "replaces_or_changes": "Replaces ad hoc focusPositionOverride use; fits the 'Camera grabs' item left out of 07."
+  },
+  {
+   "title": "Wall occlusion by dither-fade of near-camera props and walls",
+   "proposal": "Keep fixed orientation and fade or screen-door (dithered) only the wall/prop meshes between camera and player within a cylinder around the focus, using a per-material uniform. No raycast per frame is needed since the camera orientation is fixed per volume: precompute which semanticIds hide for each volume.",
+   "reference": "Disco Elysium/Pentiment cutaway; Hitman roof fade; Diablo-style dither",
+   "replaces_or_changes": "Replaces any runtime raycasting for occlusion; ties to volumes and zoom (further-out zoom can disable fades)."
+  },
+  {
+   "title": "Action-map input with an InputFrame snapshot",
+   "proposal": "Collect raw keys, gamepad and (later) rebinding into one per-frame InputFrame of actions {steer vector, pressed, released, held}; the play session consumes only that. Menus consume pressed actions top-down.",
+   "reference": "Unity Input System action maps, Rewired",
+   "replaces_or_changes": "Replaces playInput.keyDown(string) and gives gamepad d-pad/stick, rebinding and hold/toggle for free."
+  },
+  {
+   "title": "Notebook as the accessibility fallback for ambient lines",
+   "proposal": "Every ambient line is also appended (timestamped, speaker, room) to a lace log feed, so timed text is never lost; ambient lifetime scales with text length and the settings 'persist' option.",
+   "reference": "Disco Elysium thought cabinet and logs; Pentiment's dialogue backlog",
+   "replaces_or_changes": "Resolves expiring-text risk and doubles as the P4 inference notebook. Note: a back-page and transcript are currently excluded from 07."
+  }
+ ],
+ "could_not_verify": [
+  "Wall height versus camera height: offset [0,6,8] with bounds max y 4.5 suggests walls do not occlude today, but I did not check the wall meshes' actual heights.",
+  "Whether desaturation is applied by the renderer from world.paused or cameraDeAnchored: not traced into src/interfaces/three.",
+  "Browser Space-on-focused-button behaviour was reasoned, not run.",
+  "No live play test of the camera spring lag against a 0.22 m/s walker."
+ ]
+}

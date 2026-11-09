@@ -1,0 +1,31 @@
+[
+ {
+  "id": "S2-01",
+  "claim": "Time is three incompatible units: blueprint fields are *Ticks, behaviors are seconds, worldTick is an effect-batch serial that is also stamped onto legacy scars as if it were time, and the designed elapsedWatches clock does not exist in WorldState.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:145,183,202,212,222-227",
+   "src/application/simulation/SimulationCoordinator.ts:514-517",
+   "src/domain/simulation/WorldEffectReducer.ts:298,429,454",
+   "DESIGN_NOTES.md:100"
+  ]
+ },
+ {
+  "id": "S2-02",
+  "claim": "There is no Act/provenance primitive: WorldEffects carry no actor or cause, BehaviorModule has no commit (a finished dwell emits no WorldEffect, nothing selects a behavior), and NPC stimuli carry only a free topic string, so inference trails (P4), attribution for discovery, and the six motive-discovery channels have nothing to be built from.",
+  "paths": [
+   "src/domain/simulation/WorldState.ts:67-68,158-165",
+   "src/domain/registries/EpochBlueprints.ts:231-239",
+   "src/domain/simulation/KinematicsEngine.ts:156-166",
+   "DESIGN_NOTES.md:72,129-130"
+  ]
+ },
+ {
+  "id": "S2-03",
+  "claim": "No model of what anyone knows exists in design or code (the only stand-in is the scalar Regard.exposure), so the config's 'grounded strictly in NPC epistemic memory' generation, the player notebook, gossip and rival spoofing all lack ground truth and provenance.",
+  "paths": [
+   "openspec/config.yaml:58",
+   "DESIGN_NOTES.md:123",
+   "src/domain/simulation/WorldState.ts:79-101"
+  ]
+ }
+]

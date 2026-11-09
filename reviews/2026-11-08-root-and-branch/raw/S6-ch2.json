@@ -1,0 +1,140 @@
+{
+ "findings": [
+  {
+   "id": "S6A-01",
+   "verdict": "endorse",
+   "amended": "Same fix, plus: the skill writes each decision into DESIGN_NOTES with a status line ([shipped]/[partial]/[planned: roadmap-id]) and adds a roadmap.yaml entry. The AGENTS.md bullet is written only by the delivering change's docs step. Migrate existing planned bullets out of AGENTS.md once.",
+   "conflicts": "Today's AGENTS.md carries unbuilt registry bullets (Rival, Offices, Channels, Orbital Pass and others); they must move to DESIGN_NOTES or the new test (S6A-07) fails. Consistent with the design-notes skill's own coherence assessment, which can stay.",
+   "note": "This is the generator of the drift, so fixing the procedure is cheaper than any after-the-fact check. It adds no file and removes no gate."
+  },
+  {
+   "id": "S6A-02",
+   "verdict": "endorse",
+   "amended": "Also assert engines/.nvmrc against package.json in the docs-truth test. Keep one README sentence, 'versions: see package.json'. Mark HF as 'planned, unpinned' in DESIGN_NOTES, not AGENTS.",
+   "conflicts": "AGENTS.md currently names TS 7.0.2 and 6.0.2; the test in S6A-07 should check these against package.json instead of deleting the mention outright.",
+   "note": "Single source of truth plus a loud check is the right shape. No new layer."
+  },
+  {
+   "id": "S6A-03",
+   "verdict": "amend",
+   "amended": "Drop CVE IDs and the 'include table in design' rule as proposed. Keep `npm audit` as a manual or CI step outside verify, and keep the Node pin as one line plus .nvmrc.",
+   "conflicts": "The rule lives in openspec/config.yaml context and is repeated in proposals, so remove it there (S6A-06) rather than in README only. Do not cite this as a change in README/AGENTS.",
+   "note": "Unverifiable authority text is worse than none for agents. Low risk, small edit."
+  },
+  {
+   "id": "S6A-04",
+   "verdict": "amend",
+   "amended": "Endorse notes/inbox.md as the ONE new file, but the dispositions table lives in DESIGN_NOTES as an appendix of one-line rows (raw ref, integrated->section, open->roadmap id, rejected->why), not in a second file. Skill step 0 reads the inbox; inbox must be empty or fully dispositioned at the end of a skill run. Disposition the camera-capture and zoom items right now.",
+   "conflicts": "Skill currently forbids removing the raw dump from DESIGN_NOTES; edit the skill, and the 'three-agent coherence assessment' should check the inbox is empty. Raw dump lines currently in DESIGN_NOTES need a one-time migration.",
+   "note": "Gives the owner a safe dump spot with a lifecycle, which matches how they actually work. It is a staging area that gets emptied, so it cannot drift the way a mirror would. Still, an inbox that is never emptied is the failure mode, so the test should fail loudly if inbox.md has an entry older than the last skill run."
+  },
+  {
+   "id": "S6A-05",
+   "verdict": "amend",
+   "amended": "Owner table lives as a short 'Where facts live' table at the top of DESIGN_NOTES (not a new file). Numbers (epoch count, verify budget, task limits) are asserted by the docs-truth test against code constants or one parameter table; prose copies become pointers.",
+   "conflicts": "Must not collide with P1/P5: the 7-epoch ladder is a default, data-driven, so docs should say 'default arc, see registry' and never a hard count. AGENTS.md text 'default 7-Epoch arc' is acceptable once pointing to the owner.",
+   "note": "Correct diagnosis. A table with no check is one more thing to drift, so tie the table to at least a few mechanical assertions (budget numbers, ladder length vs default pack)."
+  },
+  {
+   "id": "S6A-06",
+   "verdict": "amend",
+   "amended": "Cut context to a stub of under 1.5k words (invariants, rules a proposal must obey, pointers). Move the roadmap to openspec/roadmap.yaml (see S6B-04), not roadmap.md. Add a word budget assertion on the context string so it cannot regrow silently.",
+   "conflicts": "Merge with S6B-04 so there is a single roadmap file, not roadmap.md plus roadmap.yaml. The spec-rules from S6B-01 must still be injected via context rules, so the stub must keep those. The 'check DESIGN_NOTES before proposing' rule in AGENTS.md stays.",
+   "note": "Big token and staleness win with no loss of review gates. Roadmap status should be derived (archive folders), not stored, to avoid the stale tag problem recurring."
+  },
+  {
+   "id": "S6A-07",
+   "verdict": "amend",
+   "amended": "Keep the test, under 100 ms. Scope: AGENTS.md and src/*/AGENTS.md backticked identifiers and npm scripts must resolve; no <!-- planned --> escape hatch inside AGENTS (planned content lives only in DESIGN_NOTES per S6A-01), only an explicit short allowlist file for generic words. Add three cheap checks: README versions equal package.json; AGENTS/README/src/tests contain no OpenSpec change id or 'Change NN' (the existing citation rule is currently unenforced); DESIGN_NOTES sections have a status marker whose roadmap id resolves in roadmap.yaml. Add soft word-count budgets that fail at a ceiling.",
+   "conflicts": "S6A-07 as written allows planned blocks in AGENTS, contradicting S6A-01 and R6A1. Citation rule: planned markers cite roadmap ids, so they may appear only in DESIGN_NOTES/openspec.",
+   "note": "Strongest item in the set: a loud failure beats a review. Risk is false positives on identifiers, so start narrow (PascalCase, snake_case reducer names, npm scripts) and widen."
+  },
+  {
+   "id": "S6A-08",
+   "verdict": "amend",
+   "amended": "Reject the three-new-layer shape. Pillars P1-P5 and a 'Rules spine' section (numbered R1.., each with status shipped/planned/revisable, per P5) live in DESIGN_NOTES with the index table. No docs/decisions ADR folder: the rationale for an accepted/rejected decision lives where OpenSpec already puts it, the change's design.md Decisions section, with the register in reviews/ as archived history. No docs/START.md (see R6A2). Hardening batch and prerequisites become roadmap.yaml entries.",
+   "conflicts": "Compatible with the design-notes skill (which already targets DESIGN_NOTES). docs/spine.md would sit beside DESIGN_NOTES as a second design doc and invite divergence; ADRs duplicate design.md. If the owner wants the spine on its own page, make it a section whose heading is stable, still one file.",
+   "note": "Yes, spine + ADRs + START is one layer too many for a solo owner. The class-to-home idea is the valuable part and is kept as the 'Where facts live' table. AGENTS.md shipped-only plus a link is endorsed."
+  },
+  {
+   "id": "S6B-01",
+   "verdict": "amend",
+   "amended": "Endorse the consumer scenario but scope it: a requirement whose Purpose is persistence, logging, or a pipeline MUST have a scenario from user-visible trigger to observable consumer, and design.md MUST list producer and consumer call sites in non-test code. Add as a rule in openspec/config.yaml rules. Backfill only lab Save and telemetry via the hardening spec-delta changes, not all specs.",
+   "conflicts": "Overlaps R6B3 and G1: use this as the one mechanism and drop R6B3. openspec validate --strict may reject unknown requirement fields, so keep this as a scenario plus a design.md section, not a new spec syntax. Aligned with the 4-6 task rule replacement since the scenario needs a task.",
+   "note": "Addresses the true failure (features compliant yet inert) at spec time, where it is cheapest. Adds a rule, not a file."
+  },
+  {
+   "id": "S6B-02",
+   "verdict": "endorse",
+   "amended": "Same. Also let the audit Subagent B check that every register finding which contradicts an archived requirement has a MODIFIED delta in some roadmap entry (specs_modified field).",
+   "conflicts": "Uses OpenSpec spec deltas as designed. Interacts with roadmap.yaml: specs_modified keeps it traceable.",
+   "note": "Keeps specs true by construction, the best anti-drift form, and uses the existing workflow."
+  },
+  {
+   "id": "S6B-03",
+   "verdict": "amend",
+   "amended": "G1 endorse (run the real entry point, name producer/consumer call sites). G2 and G4 endorse, but add them as named axes inside the existing Adversarial reviewer (post-change #1) and per-subtask Subagent A, and G3 inside Performance (#3), so the briefs are fuller rather than new agents. G5: endorse as a short defect ledger (reviews/ledger.md, one line per post-merge defect with the axis that should have caught it); every row must end in a new test or an edited gate brief, else it is only a log. G6: replace 'grep each SHALL' (grep cannot verify behaviour) with a scenario-to-test traceability check done by the Code Adherence reviewer, plus S6B-01 for end-to-end. Also move the gate briefs out of root AGENTS.md into .agents/skills/uplift-review-gates/SKILL.md so one copy feeds all gates, leaving a pointer in AGENTS.md.",
+   "conflicts": "The gate text is currently in AGENTS.md section 1-3 and the design-notes skill; moving it is a pure relocation, no gate removed. A skill location is already mandated (.agents/skills). A throwing-input test per entry point (G4) adds tests under the <3s unit budget; keep them tiny.",
+   "note": "Adds scrutiny without reducing any gate, which matches the owner's stated preference. G5 is the only item that creates a new artifact, so give it a forcing function. Do not count these as extra gate tasks inside tasks.md."
+  },
+  {
+   "id": "S6B-04",
+   "verdict": "amend",
+   "amended": "Adopt openspec/roadmap.yaml, but simplify: array order IS the order; fields {id, title, depends_on, specs_modified, status: planned|parked|proposed}. Archived and active are derived from openspec/changes/archive and openspec/changes folders, never stored. The architecture test asserts ids unique, deps resolve, every dep appears earlier in the array (valid topological order, replacing topo-sort-with-slot-tiebreak), archived folders are all present as ids, and at most one active. `roadmap:next` prints the first non-archived entry whose deps are archived. Drop `source` and `slot`; findings cite roadmap ids from the register instead.",
+   "conflicts": "If no YAML parser is already a dependency, store as roadmap.json or reuse the existing parser used for config. Letter suffixes: existing changes (05b, 05c, 09a) must keep their ids. Ids appear only in openspec/ and DESIGN_NOTES per the citation rule; DESIGN_NOTES markers must resolve here (S6A-07). Replaces roadmap in config.yaml (S6A-06).",
+   "note": "Roadmap as data answers 'what next' mechanically, which is what agents need. Deriving status avoids the stale-tag defect. Fewer stored fields means fewer drifts, while P5 stays served by trivial edits to a list."
+  },
+  {
+   "id": "S6B-05",
+   "verdict": "amend",
+   "amended": "Keep the intent: one task = one green reviewable commit, at most 3 source files plus tests, docs updates inside the feature task that changes the module, one closing review task, unplanned fixes recorded as 'x.y-fix'. Replace the count cap with: a change with a task whose output no earlier task depends on is a split point; more than 8 tasks or more than 3 layers requires the proposal to name its split or justify it, enforced by audit Subagent B rather than a hard fail.",
+   "conflicts": "Rewrite in all places: AGENTS.md section 1 Subagent B, openspec/config.yaml, and tasks guidance, so only one owner states it (S6A-05). The 6-subagent post-change gate and per-subtask 2-subagent review are untouched. Keep the 'docs check' guard so docs-in-feature-task is still enforced by test:arch.",
+   "note": "A size rule measures the right thing and docs-with-code reduces lag drift. A hard numeric ceiling invites gaming, hence a justify-or-split rule with an agent check."
+  },
+  {
+   "id": "S6B-06",
+   "verdict": "amend",
+   "amended": "Adopt the change plan as roadmap.yaml entries with status planned, each naming depends_on and specs_modified, covering the ownerless slots (launch validation, telemetry wiring, minimal audio, spec amendments). Do not pre-write OpenSpec proposals; they stay /opsx-propose time work so the DESIGN_NOTES check precedes them.",
+   "conflicts": "The finding says 'change_plan list in this file' but S6-recs-routes.json has no such list; the source must be located or regenerated before use. Conflicts with P5 if treated as frozen, so mark planned entries revisable. Citation rule: ids stay in openspec/ and DESIGN_NOTES.",
+   "note": "Needed so accepted work has an owner, but entries are cheap list rows. Pre-proposing 30 changes would go stale immediately."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R6A1",
+   "verdict": "amend",
+   "amended": "Markers go on DESIGN_NOTES numbered sections only; AGENTS.md is shipped-only so needs no marker. Markers are [shipped], [partial], [planned: roadmap-id] and resolve against roadmap.yaml. Same test as S6A-07.",
+   "conflicts": "Overlaps S6A-01 and S6A-07 (one mechanism, not three). R6A1's AGENTS-with-[planned]-block variant conflicts with shipped-only.",
+   "note": "The core of the fix: marker makes planned vs shipped visible and the test makes it loud."
+  },
+  {
+   "id": "R6A2",
+   "verdict": "amend",
+   "amended": "Keep: size budgets (AGENTS.md under about 900 words, DESIGN_NOTES per-section ceiling, config context under 1.5k) enforced by word-count test; versions only in package.json; notes/inbox.md; index table at top of DESIGN_NOTES. Reject: docs/START.md (AGENTS.md is already the auto-loaded start page and a second index drifts), splitting DESIGN_NOTES into docs/design/*, docs/decisions ADRs.",
+   "conflicts": "Splitting DESIGN_NOTES breaks the design-notes skill and every rule naming DESIGN_NOTES.md; ADRs duplicate design.md.",
+   "note": "A 400-word START is a copy of AGENTS.md plus pillars. Put the pillars at the top of DESIGN_NOTES and make AGENTS.md link them. Budgets that fail loudly are the useful part."
+  },
+  {
+   "id": "R6B1",
+   "verdict": "amend",
+   "amended": "As S6B-04 (array order topological, derived status, trimmed fields). Prose descriptions stay in proposal.md.",
+   "conflicts": "Replaces the roadmap section of config.yaml; consistent with S6A-06.",
+   "note": "Adopt, with the simplifications above."
+  },
+  {
+   "id": "R6B2",
+   "verdict": "amend",
+   "amended": "Adopt `npm run smoke` as a post-change gate step run by the G1 reviewer and the Performance reviewer, outside verify like eval:ai. Use system Chromium or a dev-only Playwright dependency, cap runtime, and make assertions deterministic (fixed seed, 600 frames, forced throw contained, Save then reload). Document in AGENTS.md only once it exists.",
+   "conflicts": "Offline-first: Playwright browser download is a one-time install, document it. Must not enter verify (budget under 5 s). Depends on lab Save and frame guard existing (hardening changes).",
+   "note": "This is an added gate that proves features really work, which is what the owner favours. It is the only way to catch the inert-feature class mechanically."
+  },
+  {
+   "id": "R6B3",
+   "verdict": "reject",
+   "amended": "Fold into S6B-01: scenario plus design.md call-site list for persistence/pipeline requirements only.",
+   "conflicts": "Would add a free-form line on every requirement across all specs, which openspec validate may not accept and which needs ongoing upkeep. A symbol grep proves existence, not consumption.",
+   "note": "A drift-prone per-requirement annotation. The scoped consumer scenario gives the same protection with no new syntax."
+  }
+ ],
+ "doc_shape": "Keep: AGENTS.md (shipped-only, under ~900 words, links onward), README.md, section AGENTS/README pairs. DESIGN_NOTES.md gains a top block: pillars P1-P5, 'Where facts live' owner table, index table (section, status shipped/partial/planned+roadmap id), a numbered Rules spine (R1.., status, revisable), and a dispositions appendix; no raw text. New: notes/inbox.md (owner dumps, emptied by the design-notes skill), openspec/roadmap.yaml (ordered list, depends_on, specs_modified; archived/active derived; roadmap:next), .agents/skills/uplift-review-gates/SKILL.md (the gate briefs moved out of AGENTS.md, with G1-G6 axes), reviews/ledger.md (defect ledger). config.yaml context under 1.5k words (invariants plus S6B-01 spec rule, pointers). Versions only in package.json. One docs-truth test in tests/architecture: identifier resolution, README/package versions, no change ids outside openspec and DESIGN_NOTES, markers resolve to roadmap, word budgets, roadmap DAG. No docs/spine.md, ADRs or START.md."
+}

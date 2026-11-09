@@ -1,0 +1,87 @@
+{
+  "lost": [
+    {
+      "old_location": "L599-666 Engineering rules subsection headings",
+      "quote": "### Bridge lock (planned: hx-ops-safety) / ### Determinism (planned: hx-1-legacy-clamp-seed-scramble, hx-fixed-step-tick, hx-determinism-harness) / ### Interpolation seam (planned: hx-fixed-step-tick) / ### State, saves and pack identity (planned: hx-slice-store, hx-save-integrity) / ### Telemetry policy (planned: telemetry-wiring, hx-ops-safety) / ### Layer-test blind spots (planned: hx-determinism-harness) / ### Scripted command log (planned: 05f-eval-and-replay)",
+      "fix": "The new headings read only '(planned)'. Every id survives in the Status index Engineering rules row, but the subsection-to-owner mapping is gone. Restore an inline '(planned: <ids>)' mark on each Engineering rules subsection heading or bullet (Bridge lock: hx-ops-safety; Determinism: hx-1-legacy-clamp-seed-scramble, hx-fixed-step-tick, hx-determinism-harness; Interpolation: hx-fixed-step-tick; State: hx-slice-store, hx-save-integrity; Telemetry: telemetry-wiring, hx-ops-safety; Tests/Layer blind spots: hx-slice-store, hx-determinism-harness; Scripted command log: 05f-eval-and-replay)."
+    },
+    {
+      "old_location": "L471 Section 8, Proximity use, pause bullet",
+      "quote": "Lab mode (desaturation, free-cam, picking) is a `PlaySession` interface flag that also holds the bit",
+      "fix": "New R6 says only 'Lab mode is a PlaySession flag that also holds the bit'. Restore '(desaturation, free-cam, picking)' and 'interface flag' in R6, the only pause-and-lab definition."
+    },
+    {
+      "old_location": "L300-301 Pacing Lab and L439 / L443 Play shell and Sound Lab bridge ownership",
+      "quote": "will go through the guarded bridge write-route helper, planned, built by hx-ops-safety",
+      "fix": "New Pacing Lab, Sound Lab and Bridge lock text keep the guarded-helper claim but drop 'built by hx-ops-safety'. Re-add '(planned: hx-ops-safety)' to the Bridge lock helper bullet."
+    },
+    {
+      "old_location": "L36 and L42 Status index rows",
+      "quote": "| Core Rule: epoch-agnostic abstractions (5 Nov) | partial | `03-modular-registries-and-kinematics`, `10-registry-swap-and-legacy` | and | Human-Paced NPC Cognition & Anti-Thundering-Herd | partial | `06-utility-ai` |",
+      "fix": "The new index has no row for the Core model terminology/epoch-agnostic rule (owner 03-modular-registries-and-kinematics) and the cognition row no longer lists 06-utility-ai. Add a 'Core model: terminology and epoch-agnostic rule | partial' row and keep 06-utility-ai on the cognition row."
+    },
+    {
+      "old_location": "L57 Status index, Text pipeline (P2) row; L188 Inference trails delivery bullet",
+      "quote": "`08a-timing-spike`, `07-text-port-and-history`, `07-authoring-kit`, `08-generated-text-adapter`, `06-rivals-remote-evidence` | and | the lace page (planned: 06-overview-writing-desk-report)",
+      "fix": "Add 06-rivals-remote-evidence back to the Text pipeline index row (tellProfile post-pass and gate tier 3 depend on it) and restore the '(planned: 06-overview-writing-desk-report)' mark on the Delivery bullet of Inference trails."
+    },
+    {
+      "old_location": "L294 Clock 1 definition",
+      "quote": "a conversation charges the talk cost once (see Loop cycles)",
+      "fix": "Minor: restore the '(see Loop cycles)' pointer in Clock 1, since the traceability table says Clock 1 carries a pointer."
+    }
+  ],
+  "altered": [
+    {
+      "old_location": "L365 Rival Spacefaring Operative Strike trigger; L363 Noisy Miracle; L374 extracted_overt",
+      "quote": "Triggered when `discoveryLayer >= 'attributed'` / advances `discoveryLayer` to `noticed`/`assayed` / jumps `discoveryLayer` to `theorized`",
+      "fix": "Deliberate fix F2 changes these from the global ordinal to per-observer Observations (rival must hold an 'attributed' Observation; witnesses get a 'noticed'/'assayed' Observation; 'raises every observer's discovery view to theorized'). This is a design change inside a restructure, and 'every observer' is stronger than the old global jump. Confirm owner intent, or record it as a dated amendment in Dispositions."
+    },
+    {
+      "old_location": "L82 Open items, storylet-card disposition (route RC/R7, finding S2-08)",
+      "quote": "Only the storylet-card question is left to the storyteller change (`05b-2-storylets-and-lab`).",
+      "fix": "New text says the remaining open point is 'the card grammar itself'. The old open question was authored quality-gated cards versus generated cards; the old text was circular, but 'card grammar' is a new reading. Either reword to 'authored quality-gated versus generated storylet cards: resolved by the hybrid pipeline; any remaining detail is decided by 05b-2-storylets-and-lab' or have the owner confirm."
+    },
+    {
+      "old_location": "L251-262 Human-Paced NPC Cognition index row (status partial, id 06-utility-ai)",
+      "quote": "| Human-Paced NPC Cognition & Anti-Thundering-Herd | partial | `06-utility-ai` |",
+      "fix": "New row reads 'NPC minds: cognition phases and cascade guardrails | shipped (stimulus cap and diffusion planned)' with the heading '(shipped)', although the section holds planned bullets (stimulus cap, diffusion). Use 'partial' on the heading and index row, and keep 06-utility-ai."
+    },
+    {
+      "old_location": "L142 and L376 detection-tech chains",
+      "quote": "naked-eye omens/astrologers -> Renaissance lenses -> Colonial observatories -> Industrial telegraph geomagnetism -> Cold-War radar -> Computer/Space-Age orbital telemetry / Cold-War/Computer/Space-Age radar, radio & satellite telemetry",
+      "fix": "The two non-identical chains were merged. The old contingency chain put radio and satellite telemetry across Cold-War to Space-Age; the new merged chain puts radio under Computer/Space-Age only. Low impact; restate 'Cold-War radar, radio' if intended."
+    }
+  ],
+  "merged_wrongly": [
+    {
+      "old_location": "L142 Orbital Pass row (Detection Tech Level chain) and L376 contingency-pool chain",
+      "quote": "Feudal aurora omens -> Renaissance/Colonial optical telescopes -> Industrial telegraph geomagnetic storms -> Cold-War/Computer/Space-Age radar, radio & satellite telemetry",
+      "fix": "These were two chains with different epoch groupings (Renaissance/Colonial together; Cold-War/Computer/Space-Age together). Merged into one detection-tech bullet in the ladder section with parenthetical fragments. Keep the grouped form or confirm that the single chain is intended."
+    }
+  ],
+  "traceability_errors": [
+    {
+      "old_location": "C5-traceability section 2, row 'Lab-save caveat'",
+      "quote": "Launch validation (Lab saves) | Stage lab, Sound Lab, Pacing Lab, play shell point to it",
+      "fix": "Only the Stage lab (Visual authoring framework, L549) and Sound Lab (Audio, L607) point to Lab saves. The Pacing Lab inspector (Clock and time) points only to Bridge lock, and the Play shell (Session bullet) has no pointer and no caveat. Add the pointer in both places or correct the row."
+    },
+    {
+      "old_location": "C5-traceability section 1, row L435-443 Play shell",
+      "quote": "lab-save caveat merged",
+      "fix": "The Play shell says only that the lab 'lets the stage lab save a picked semanticId through the disk bridge'. The old caveat 'that save writes JSON the game does not load' is not in the Play shell, only in Launch validation. Add a pointer in the Play shell or correct the row."
+    },
+    {
+      "old_location": "C5-traceability section 1, Status index row L30-72",
+      "quote": "System graph and Rules spine rows say \"written, enforcement planned\"",
+      "fix": "Actual wording is 'partial (written here; the hubs it names are planned)' for System graph and 'partial (rules written here, R8 open; enforcing tests to be written by the owning changes)' for Rules spine. Correct the quoted wording."
+    },
+    {
+      "old_location": "C5-traceability section 2, row 'Talk cost'",
+      "quote": "Loop cycles | paging, 4-clock and Clock 1 carry a pointer",
+      "fix": "Paging carries 'see Loop cycles'. Clock 1 and the four-clock text restate the talk cost with no pointer. Add the pointer or correct the row."
+    }
+  ],
+  "verdict": "minor_loss",
+  "notes": "Exemplars verified verbatim by diff: Highglass Hold location, seed characters (Sorrel, Pell, Vane, Orin, Mara), threads A to D, the three rival tells blocks, pillars P1-P5 and De-weighted. All 11 quoted owner sentences are verbatim. Backtick identifiers, snake/camel/Pascal identifiers, paths, API routes, roadmap ids, hex values and numeric tokens are all present except retired labels (*Tick, Change NN, was NN tags, raw/S2-system-graph.json). Milestone pointers (M5/M6) in the new pointer table match openspec/roadmap.yaml."
+}

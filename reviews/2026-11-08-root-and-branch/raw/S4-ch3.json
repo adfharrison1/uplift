@@ -1,0 +1,332 @@
+{
+ "amended_hardening_batch": [
+  "0a. Bridge lock (S4-02, R4C3): Origin, Host, content-type, per-run token, one guarded write-route helper, lstat on GETs, destroy over-cap requests; logger constructor never truncates and rotates to logs/prev (S4-03); real http middleware test (S4-13).",
+  "0b. Parallel verify with one-line summaries, verify:serial kept (S4-15, R4A3); delete prose-pinning skill and lint-staged tests, pre-commit runs verify (S4-16).",
+  "1. Legacy mutations clamped to [0,1] with a telemetry note; throw kept in an authoring-time contract test (S3-14).",
+  "2. Seed scramble via splitmix32 plus golden-vector test (S3-08).",
+  "3. State slices: freeze on write, share on read; optional schema/version/migrate; plain-JSON guard; shared tests/support builders introduced here (S3-01, S3-02, S4-13).",
+  "4. WorldStateCodec: snapshotVersion, Zod load, migrations[], epoch check, single field list, listSlots reasons; packId and version stored on the registry and in the envelope (S3-03, S3-09, S4-10).",
+  "5. Reducer outcomes (applied or rejected with reason); simulationFrozen split from accepting commands; per-call PlaySession.status; try/catch around the frame (S3-04, S3-05, S3-06, S3-18).",
+  "6. coordinator.tick(dt, commands) with PHASES order, fixed 1/60 step with capped accumulator, hashWorldState, golden-run test on src/application/headless runScenario including shuffled-insertion and throwing-stub runs, slice JSON round trip, PHASES spy test; ESLint determinism block for domain, content and application plus node:/require bans (S3-07, S4-04, S4-05, S4-07, R4A4).",
+  "7. Kinematics split by locomotion mode behind a context object; total phase-transition helper; outcome events; spaceId flip; door-closes-mid-route; retarget fix; zero-speed reject (S3-10, S3-11, S3-12, S3-15).",
+  "Then, before the first new kind in 05b-1: validateLaunch plus derived epoch-agnostic denylist (S4-08, S4-06), registry kind table (S4-09), docs truth pass (S4-11). Then 05d, 05e, 05b-1 and the core model as accepted."
+ ],
+ "findings": [
+  {
+   "id": "S4-01",
+   "verdict": "amend",
+   "amended": "Now: label Save as dev-only/unloaded in interfaces docs (folded into the S4-11 doc pass). Direction (round-trip JSON vs emit TS patch) is decided when the authoring kit lands.",
+   "conflicts": [
+    "S4-11",
+    "R4B2"
+   ],
+   "slot": "later",
+   "note": "Real split-brain, but the fix choice is the P1 authoring-loop decision and belongs with the authoring kit (core step 9). A doc label is the minimal adequate fix today."
+  },
+  {
+   "id": "S4-02",
+   "verdict": "endorse",
+   "amended": "Do first, independent of everything. Origin allow-list, JSON content-type, per-run token header, Host check, destroy over-cap request, lstat on GET assets. All write routes go through one guarded helper (R4C3).",
+   "conflicts": [
+    "R4C3 (duplicate, merge)",
+    "S4-13 (middleware test ships here)"
+   ],
+   "slot": "hardening-0",
+   "note": "Protects the developer machine; touches only the vite plugin and its new http test. Every later write route (stage lab, authoring-kit accept) inherits the lock, which keeps P1 authoring safe."
+  },
+  {
+   "id": "S4-03",
+   "verdict": "amend",
+   "amended": "Join only constructor-never-truncates and rotate-to-logs/prev. Client occurredAt/receivedAt and the crash beacon go with telemetry wiring, after the S4-12 policy.",
+   "conflicts": [
+    "S4-12",
+    "S4-14",
+    "R4C4"
+   ],
+   "slot": "hardening-0",
+   "note": "Same files as S4-02 and cheap. Needed before hardening-5 adds a catch that reports crashes; otherwise a reload wipes the evidence."
+  },
+  {
+   "id": "S4-04",
+   "verdict": "endorse",
+   "amended": "One ESLint no-restricted-properties/globals block for domain, non-scene content and application; delete the regex copy. Limit to determinism sources.",
+   "conflicts": [
+    "S4-05",
+    "R4A4"
+   ],
+   "slot": "hardening-6",
+   "note": "Application hosts tick from step 6, so the guard must cover it then. Static guard and the stubbed-throw golden run are complementary."
+  },
+  {
+   "id": "S4-05",
+   "verdict": "amend",
+   "amended": "Only add node:* and require/non-literal-import bans to the existing rules, in the same lint pass as S4-04. No full layer-test rewrite; no cycle detection until a cycle shows.",
+   "conflicts": [
+    "R4A1",
+    "S4-04"
+   ],
+   "slot": "hardening-6",
+   "note": "Gap is real but narrow; the current scanner works for the code that exists."
+  },
+  {
+   "id": "S4-06",
+   "verdict": "endorse",
+   "amended": "Derive denylist from every exported pack's ids; move to tests/architecture.",
+   "conflicts": [
+    "S4-08"
+   ],
+   "slot": "05b-1",
+   "note": "Direct P1 guard: keeps domain epoch-agnostic as the second pack arrives. Tiny; ships with validateLaunch."
+  },
+  {
+   "id": "S4-07",
+   "verdict": "amend",
+   "amended": "Items 1-3 (shuffled golden, JSON round trip of every slice, PHASES spy test) join hardening-3/6. Item 4 BeliefView goes to the observation step, 5 FrozenText to the TextSourcePort step, 6 rulesHash binding to the first fitted-data file.",
+   "conflicts": [
+    "R4A2",
+    "R4A4",
+    "S3-02",
+    "S3-07"
+   ],
+   "slot": "hardening-6",
+   "note": "1-3 are free riders on steps 3 and 6. 4-6 guard systems that do not exist yet and would be dead tests now."
+  },
+  {
+   "id": "S4-08",
+   "verdict": "endorse",
+   "amended": "validateLaunch(pack, stages, visuals) collects all errors with id and file hint; called from the PlaySession ctor and every pack test.",
+   "conflicts": [
+    "R4B3 (duplicate, merge)",
+    "S4-06"
+   ],
+   "slot": "05b-1",
+   "note": "Cheapest P1 safety net: owner and agent add characters and props and get one complete error list. Lands before the core model adds more joined files."
+  },
+  {
+   "id": "S4-09",
+   "verdict": "amend",
+   "amended": "Kind table (schema, idOf, refs table, dependsOn, one staged commit); spaces/waypoints stay special. Route OfficeBlueprint.institutionalLineageId through the refs table. Deleting unused getters optional.",
+   "conflicts": [
+    "R4B1 (duplicate)",
+    "S4-10"
+   ],
+   "slot": "05b-1",
+   "note": "Most P1-relevant item: every core-model kind becomes a new file, not a registry edit. Must precede the first new kind (timeHorizonConfig) so the registry is not rewritten twice."
+  },
+  {
+   "id": "S4-10",
+   "verdict": "amend",
+   "amended": "Now: store packId and version on the registry and in the codec envelope with the epoch check. Record the decision: one registry per epoch, cameo content via explicit import list (fits P3). Content hash and override semantics later.",
+   "conflicts": [
+    "S3-03",
+    "S4-09"
+   ],
+   "slot": "hardening-4",
+   "note": "Codec already adds an epoch check; packId/version is two fields in the same change. Layering can be added later without breaking saves (P5)."
+  },
+  {
+   "id": "S4-11",
+   "verdict": "amend",
+   "amended": "Rewrite content AGENTS to the working starter-pack steps, fix stale HF/ONNX pointers, add the lab-save caveat, add the Blueprint-name doc check, move Charnel fixtures to tests/fixtures. Drop the scene-schema relocation: content/scene may import interfaces/three per the layer table.",
+   "conflicts": [
+    "S4-01",
+    "S4-16"
+   ],
+   "slot": "05b-1",
+   "note": "Misleading guides cost the agent half of P1. The relocation contradicts the accepted layer table."
+  },
+  {
+   "id": "S4-12",
+   "verdict": "amend",
+   "amended": "Adopt policy: the Act log records what happened; telemetry holds crash/warn, frame spikes and hash checkpoints; decision traces are opt-in and produced by replay (R4C1). Edit the AGENTS rule that says every AI trace logs. Spill evicted ring entries only if the cap bites.",
+   "conflicts": [
+    "R4C1",
+    "R4C4",
+    "S4-14",
+    "R3B2"
+   ],
+   "slot": "act-step",
+   "note": "Cannot be decided before the Act ring exists. Depends on the hardening-6 command log and hash for replay."
+  },
+  {
+   "id": "S4-13",
+   "verdict": "amend",
+   "amended": "Builders (makeRegistry, makeWorldState, makeStageBlueprint) land in tests/support when hardening-3 first needs them; split mega-cases only in files each step touches. Middleware http test ships with S4-02.",
+   "conflicts": [
+    "S4-02",
+    "S3-17"
+   ],
+   "slot": "hardening-3",
+   "note": "No separate refactor step; the 7 steps stay small."
+  },
+  {
+   "id": "S4-14",
+   "verdict": "amend",
+   "amended": "Not now. When telemetry is wired: ENOSPC to a warning, newline guard, lower caps, fix the skill sentence, add --tail/--limit/--count-by to logs:query. Segment rotation only if volume survives S4-12.",
+   "conflicts": [
+    "S4-12",
+    "S4-03",
+    "R4C4"
+   ],
+   "slot": "later",
+   "note": "Volume shrinks sharply under S4-12; rotation may become unnecessary. The channel is dead today."
+  },
+  {
+   "id": "S4-15",
+   "verdict": "endorse",
+   "amended": "Parallel verify via a small node script with buffered output and one PASS/FAIL line per step; keep verify:serial. Defer vitest isolate:false.",
+   "conflicts": [
+    "R4A3 (duplicate, merge)",
+    "S4-16"
+   ],
+   "slot": "hardening-0",
+   "note": "Independent; speeds every later step and shrinks the agent transcript."
+  },
+  {
+   "id": "S4-16",
+   "verdict": "amend",
+   "amended": "Delete the two SKILL.md sentence tests and lint-staged string assertions; keep existence and the .cursor/skills ban. Pre-commit runs verify once S4-15 lands.",
+   "conflicts": [
+    "S4-15"
+   ],
+   "slot": "hardening-0",
+   "note": "Pairs with S4-15; the hook swap only makes sense once verify is fast."
+  },
+  {
+   "id": "S4-17",
+   "verdict": "amend",
+   "amended": "Typed lint (projectService) for application/interfaces/infrastructure when the first async port lands. Skip the domain switch rule: effect exhaustiveness is already compiler-enforced.",
+   "conflicts": [],
+   "slot": "later",
+   "note": "Hardening-5's catch is sync; there are no async ports yet."
+  },
+  {
+   "id": "S4-18",
+   "verdict": "endorse",
+   "amended": "Adopt R4C2, with the hardening-6 golden harness (src/application/headless runScenario) as the one harness that 05f reuses.",
+   "conflicts": [
+    "R4C2",
+    "S3-07"
+   ],
+   "slot": "05f",
+   "note": "Settles ownership before eval/ exists and gives P1 authors one place per check kind."
+  }
+ ],
+ "routes": [
+  {
+   "id": "R4A1",
+   "verdict": "reject",
+   "amended": "",
+   "conflicts": [
+    "S4-05"
+   ],
+   "slot": "later",
+   "note": "ESLint is already in the toolchain and covers the same forms; a second analyser is bloat. Revisit only if cycles appear."
+  },
+  {
+   "id": "R4A2",
+   "verdict": "endorse",
+   "amended": "One audited projector from WorldState to BeliefView, plus a hidden-truth mutation contract test.",
+   "conflicts": [
+    "S4-07"
+   ],
+   "slot": "observation-step",
+   "note": "Compiler enforcement of hidden information is the P4 guard; it can exist only once Observation does."
+  },
+  {
+   "id": "R4A3",
+   "verdict": "amend",
+   "amended": "Merged into S4-15.",
+   "conflicts": [
+    "S4-15"
+   ],
+   "slot": "hardening-0",
+   "note": "Duplicate of S4-15; the summary-line idea is good."
+  },
+  {
+   "id": "R4A4",
+   "verdict": "endorse",
+   "amended": "Fold into the hardening-6 golden test; Math.random and Date stubs throw.",
+   "conflicts": [
+    "S4-04",
+    "S4-07"
+   ],
+   "slot": "hardening-6",
+   "note": "Strongest determinism oracle for near-zero cost."
+  },
+  {
+   "id": "R4B1",
+   "verdict": "endorse",
+   "amended": "Merged into S4-09.",
+   "conflicts": [
+    "S4-09"
+   ],
+   "slot": "05b-1",
+   "note": "Same item."
+  },
+  {
+   "id": "R4B2",
+   "verdict": "reject",
+   "amended": "Not now. Revisit at the authoring kit once the lab/pack direction is chosen.",
+   "conflicts": [
+    "S4-01"
+   ],
+   "slot": "later",
+   "note": "A JSON-bundle build step is a new pipeline whose shape depends on the authoring kit (P5)."
+  },
+  {
+   "id": "R4B3",
+   "verdict": "endorse",
+   "amended": "Merged into S4-08.",
+   "conflicts": [
+    "S4-08"
+   ],
+   "slot": "05b-1",
+   "note": "Same item; returning all errors is right."
+  },
+  {
+   "id": "R4C1",
+   "verdict": "endorse",
+   "amended": "Policy: replay the command log with tracing. Consistent with the R3C1 ruling (the log is a test and repro artifact, not the save).",
+   "conflicts": [
+    "S4-12",
+    "R3C1"
+   ],
+   "slot": "act-step",
+   "note": "Zero cost in play and fits determinism; requires hardening-6."
+  },
+  {
+   "id": "R4C2",
+   "verdict": "amend",
+   "amended": "data/fitted only when the first fitted table exists; gateLine unit cases in tests/, corpus metrics in eval/.",
+   "conflicts": [
+    "S4-18",
+    "S4-07"
+   ],
+   "slot": "05f",
+   "note": "Rule is sound; fitted tables wait for INV-E."
+  },
+  {
+   "id": "R4C3",
+   "verdict": "endorse",
+   "amended": "Merged into S4-02.",
+   "conflicts": [
+    "S4-02"
+   ],
+   "slot": "hardening-0",
+   "note": "Same item; the guarded helper future-proofs authoring routes."
+  },
+  {
+   "id": "R4C4",
+   "verdict": "amend",
+   "amended": "Browser ring buffer flushed to a crash file through the guarded bridge when telemetry is wired. No separate opt-in trace channel beyond R4C1 replay.",
+   "conflicts": [
+    "R4C1",
+    "S4-12",
+    "S4-14"
+   ],
+   "slot": "later",
+   "note": "Keeps the useful crash box, drops the overlapping second trace channel."
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+[
+ {
+  "id": "S2-11",
+  "claim": "A per-watch presence table has a clean seam via the existing off_stage_region space kind, but three shipped details fight it: every character spawns at its start waypoint at construction, cognition timers run on room seconds while presence changes on watches, and pending stimuli have no defined fate across a watch jump.",
+  "paths": [
+   "src/application/simulation/SimulationCoordinator.ts:143-146",
+   "src/domain/registries/EpochBlueprints.ts:25",
+   "src/domain/simulation/WorldEffectReducer.ts:21",
+   "DESIGN_NOTES.md:99"
+  ]
+ },
+ {
+  "id": "S2-12",
+  "claim": "The notebook categories as stated (known, suspected, partial, omitted) mix player certainty with world state, and 'complete omissions' cannot be shown without leaking that the unknown exists.",
+  "paths": [
+   "DESIGN_NOTES.md:31-32,130"
+  ]
+ },
+ {
+  "id": "S2-13",
+  "claim": "The economy graph has no hub nodes in code: no watch clock, no funds/hooks/pretext state, no office or thread runtime state, no Regard graph, no actor on effects; every built reducer case is a leaf and the only real consumer is a cosmetic camera/fog response.",
+  "paths": [
+   "src/domain/simulation/WorldState.ts:140-156",
+   "src/application/rendering/RenderFrameBuilder.ts:536-540"
+  ]
+ },
+ {
+  "id": "S2-14",
+  "claim": "The only economic coupling (instrument -> stock -> discovery, with a 0.25 factor and fixed layers per mode) is hardcoded in the domain reducer rather than data, contradicting the data-driven, content-skinnable intent.",
+  "paths": [
+   "src/domain/simulation/WorldEffectReducer.ts:261-300",
+   "DESIGN_NOTES.md:14"
+  ]
+ },
+ {
+  "id": "S2-15",
+  "claim": "The pressure/discovery loops have no balancing side: stocks change only on dispatch and never decay, discovery only ratchets up via max(), and forged fiat jumps straight to 'attributed', which the design says triggers rival strikes \u2014 so the first forged coin is a one-way trip.",
+  "paths": [
+   "src/domain/simulation/WorldEffectReducer.ts:46-52,284",
+   "DESIGN_NOTES.md:15,144"
+  ]
+ },
+ {
+  "id": "S2-16",
+  "claim": "Leverage Chain cannot be defined on the current schema: pillars have no 'bears on thread' or 'supported by' relation, thread inertia is one opaque float, and the reducer can only delete a pillar.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:98-103,192",
+   "src/domain/simulation/WorldEffectReducer.ts:325",
+   "DESIGN_NOTES.md:16"
+  ]
+ },
+ {
+  "id": "S2-17",
+  "claim": "Eight rules that constrain engine architecture are unwritten: clock unit; actor/provenance on effects; thread structure; discovery referent and escalation; emergency cardinality and fuse state; validation by rejection instead of throwing (spend_orbital_delta throws); a player resource ledger; what epoch-end export reads.",
+  "paths": [
+   "src/domain/simulation/WorldState.ts:133-138,151,158-165",
+   "src/domain/simulation/WorldEffectReducer.ts:397-400"
+  ]
+ },
+ {
+  "id": "S2-18",
+  "claim": "Orbital Delta is the only real decision among the economic concepts but is uncoupled from illicit insertion and pretexts; pressure stocks are bookkeeping gauges and discovery is a single unlabelled global rank, so none yet gives the player something to weigh or feel.",
+  "paths": [
+   "src/domain/simulation/WorldEffectReducer.ts:261-264,396-401",
+   "DESIGN_NOTES.md:18"
+  ]
+ },
+ {
+  "id": "S2-19",
+  "claim": "The emergency model is a single id with no fuse countdown, and compound_emergency_vices adds the same delta to every entity regardless of the emergency or relevance.",
+  "paths": [
+   "src/domain/simulation/WorldEffectReducer.ts:346-362",
+   "src/domain/registries/EpochBlueprints.ts:208-214"
+  ]
+ }
+]

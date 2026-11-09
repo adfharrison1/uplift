@@ -1,0 +1,91 @@
+{
+ "missing": [
+  "INV-A: no change states 'no decision model in the sim path' as a spec rule. Only the docs verdict (INV-1a/1b) and the roadmap-yaml parked classifier spike exist. The INV-A default (runtime pool selection by tag-and-seed over Observations; optional authoring-time advisory gate tier) is in no scope; 07-text-source-port-and-line-gate should state it.",
+  "INV-F: not in source_findings of any change and not in the ownership_index; only implied by the docs 'INV-1 verdicts'. Needs an id on docs-rules-spine plus a parked record (small capped exact-inference network acceptable later).",
+  "INV-B (as id): not in the ownership_index. The scope of cm-observation-belief covers noisy-OR, reason tags and misbelief but omits: collapse of parents sharing an origin or channel, spoofing as a separate negative term, order-independence test, parent cap, and 'decide before the Observation schema freezes'.",
+  "RC2 (parked runtime reranker, revisit after timing spike): not in roadmap-yaml's list of parked records. INV-D's parked Bayesian network is also missing from that list.",
+  "S2-19 'write the cardinality into the spine now' (slice 2 note): docs-rules-spine scope lists no emergency cardinality/scope.",
+  "S6A-08 (ch2 doc shape for review outputs): listed on docs-rules-spine but the scope text never mentions the ch2 doc shape; only the notes inbox and dispositions appendix.",
+  "S6A-04 'the 8 Nov dump is half-integrated': scope adds notes/inbox.md but no change integrates or triages the existing dump.",
+  "S2-11 'three blockers' (spawn at start waypoint, room-second timers vs watches, stimulus fate across a watch jump): cm-presence-and-materialize does not name them; at least 'start entities off-stage' and 'resolve phases on a watch jump' are not in the scope.",
+  "S5-13 validation at 05f ('then validated at 05f'): 05f scope has no tell/noticing coverage case. Passive noticing entries are also absent from cm-notebook-model.",
+  "S2-09 'invariant eval for aware at some point': 05f cases list only evidence-coverage and diffusion; 06 scope has no such eval.",
+  "R4A2 hidden-truth/omniscient-read contract test for BeliefView and INV-C 'contract test catches omniscient reads': neither cm-observation-belief nor 06-utility-ai-rivals scope states the test.",
+  "RC3 fact-first text gate (every fact id must survive restyling) and RC1 Tracery-style grammars: 07 gate scope says gate(line, brief) with a 3-tier gate but no fact-id survival rule; 05b-2-storylets mentions a grammar but not the model-drafted phrase banks that feed RC3's realiser.",
+  "RB2 diegetic tells for pressure stocks (S2-18 'Stocks get diegetic tells'): cm-observation-belief owns S2-18 but nothing builds stock tells; cm-resource-ledger and instrument profiles do not mention them.",
+  "R5C3 recipe-based kitbash data with a resolve contract test (slot 05b-1): not in any 05b-1 or pre-05b-1 scope.",
+  "R5B4 ambient lines recorded in the notebook (core step 5, 07): not in cm-notebook-model or 07 scopes.",
+  "R5B2 dither-fade wall occlusion and R5A2 merged Tier-3 crowd: recommended/parked routes with no owner and no parked record in roadmap-yaml.",
+  "Footsteps by surface (audio-minimal): no change adds the surface attribute to space/floor/prop data."
+ ],
+ "misowned": [
+  {
+   "id": "S2-19",
+   "change": "cm-emergency-runtime",
+   "issue": "Labelled S2-19(runtime) but S2-19 is the fuse/non-uniform compounding finding, which 09-emergency-fuse owns. The runtime slice is the core-step-7 prerequisite (accepted order), not S2-19 itself. Relabel (e.g. S2-13-hub or core-7) so the pulled-forward runtime is not read as pulling S2-19 forward."
+  },
+  {
+   "id": "S3-14",
+   "change": "hx-1-legacy-clamp-seed-scramble / 10-registry-swap-and-legacy",
+   "issue": "Register slot is 'pre-core / 05b-1; narrowed' and slice 3 names accumulation and the unchecked sourceScarId as the real defects. The plan does the clamp in hx-1, sourceScarId in 05b-1, but defers accumulation to change 10. The pieces add up only if the deferral is intentional; none of the pre-core changes fixes accumulation."
+  },
+  {
+   "id": "S6A-08",
+   "change": "docs-rules-spine",
+   "issue": "Id attached, scope does not do the work (ch2 doc shape absent)."
+  },
+  {
+   "id": "S2-11",
+   "change": "cm-presence-and-materialize",
+   "issue": "Scope covers the presence table and materialize only; the three named blockers are not addressed."
+  },
+  {
+   "id": "S3-09",
+   "change": "hx-6a-tick-phases-fixed-step",
+   "issue": "The 'field list in 4 places' half of S3-09 is delivered by hx-4a-world-state-codec (tagged S3-03). Not an error but the index does not show the split."
+  },
+  {
+   "id": "S2-18",
+   "change": "cm-observation-belief / 09-delta-coupling-and-forecast",
+   "issue": "Three-part finding split two ways (per-observer discovery, Delta, stocks bookkeeping/tells). The stock-tell part has no owner, so the pieces do not sum to the whole."
+  },
+  {
+   "id": "S5-11",
+   "change": "05d-input-and-control-frame / 07-camera-directive-stack",
+   "issue": "Split matches the ruling (latch+zoom at 05d, stack at 07); fine, but 07 'Space never skips' is the only listed acceptance, no return-to-player seam is in 05d. Low risk."
+  },
+  {
+   "id": "INV-C",
+   "change": "06-utility-ai-rivals",
+   "issue": "Scope says belief-conditioned utility only; omits 'expected-utility planning for rivals only', 'low confidence maps to investigate/wait', and the omniscient-read contract test. Also 06 comes after the slice, so NPC utility in the slice is not belief-conditioned."
+  }
+ ],
+ "order_issues": [
+  "Register S2-05 and S2-06/08 are tagged before-06. The plan places the timing spike at 08' after 05b-2 (after 06, 06a). Slice 02b step 13 itself says so, so the plan matches the accepted order, but the register tag and the accepted order conflict and the plan chooses the later one. See placement_answers.timing_spike.",
+  "pre-05d-shape-descriptor says unknown shape ids fail validation, but validateLaunch arrives later at pre-05b-1a. Until then the failure path is only the hx-4c id-pattern check. Needs an interim validator or a note that the shape check is wired into validateLaunch afterwards.",
+  "hx-0a-bridge-lock (a reproduced CSRF, step 0a) is behind docs-rules-spine, roadmap-yaml, design-notes-skill-fix, review-gates-skill and defect-ledger (5 changes). The accepted order puts 0a first in the hardening batch. Consider moving hx-0a and hx-0a2 ahead of the process changes, or confirm the 5 are quick doc-only.",
+  "audio-minimal needs a surface attribute (footsteps by surface) that no earlier change supplies; pre-05d-shape-descriptor or 05e should carry it.",
+  "11-pass-1-thread-wiring promises 'inference trails the player can find' but the advisor nudges/notebook prompts (S1-R2 delivery) land in 06-overview-writing-desk-report, after the slice. The slice tests indirect feedback without the signposting layer.",
+  "11-pass-1-pack-skeleton uses rivals-free content; S1-R4 'every macro lever reaches the player' for remote adversaries is first testable only after 06. Acceptable, but the slice's G1 end-to-end trace should say which levers are excluded.",
+  "11-pass-1-ledger-end-card, 05b-2 and 06 chain linearly. 06 declares depends_on 11-pass-1-ledger-end-card, which is a gate not a technical dependency (see answers). roadmap.yaml should mark such edges so reordering is not blocked later.",
+  "07-dialogue-paging lists ambient lines but 07a-ambient-and-overheard is later; clarify that 07 owns the ambient mechanism and 07a owns the content/overheard rule, otherwise 07a scope is duplicated or empty.",
+  "cm-presence-render-crowd (S5-01) has no dependency on pre-05d residency being merged into 05d's final renderer, but both come before; no issue. cm-instrument-profiles depends on audio-minimal; correct and sufficient.",
+  "telemetry-cli-and-log-guards (S4-14) is placed before cm-act, but only the browser feed and crash ring are needed before the Act ring; the CLI/compaction work could move later without cost.",
+  "Dependencies appear as a single linear chain for ~60 changes; real dependencies (e.g. hx-3c to hx-4a, hx-6c to hx-7a) are not independent of order. This is safe but the roadmap:next DAG check will not catch a missing true dependency. Low."
+ ],
+ "fidelity_issues": [
+  "Minimal audio: placement and exclusions are faithful. audio-minimal sits directly after 05e-settings-model (last 05e change) and excludes tone blips, which ride on 07-bubble-lace-skins-and-tone-blips. But audio-minimal's dependency on docs-rules-spine is fine. Sole nit: '05e' is split into two changes, so 'directly after 05e' is satisfied only if 05e-settings-model is treated as part of 05e.",
+  "Defect ledger: tracked, id/source/severity/fixing change, archive-step deletion via wrapper script, docs-truth test failing on archived or absent changes. Faithful. Weakness: the deletion relies on a wrapper script; the test fails on archived-change entries, which covers bypass. Missing: the ledger spec does not say what happens to a finding with no fixing change (parked), and the entries are 'seeded' from a register that is not itself kept.",
+  "S2-19: not pulled forward as a feature (fuse in 09-emergency-fuse), but EmergencyRuntime is built at core step 7 (as the accepted order lists) and mislabelled S2-19(runtime). The spine cardinality note is not in docs.",
+  "INV-A: no decision model in the sim path is not written as a constraint anywhere; classifier spike is parked in roadmap-yaml (good). cm-observation-belief uses integer noisy-OR (good). The 'frozen into the save' rule for the parked classifier and the authoring-time advisory tier are not recorded.",
+  "Lab JSON source of truth, no TS emission, checked at runtime: faithful (pre-05b-1c-lab-json-loader; 11-rest). The 'checked at runtime' is Zod plus validateLaunch: good.",
+  "Tone blips: placement and the section 9 amendment are faithful. Past-advisor cameo: owner said design-note candidate; the plan also makes it build scope in change 10, which is a mild upgrade.",
+  "Hybrid text and INV-1b investigation: owner asked to investigate; the plan records verdicts in docs. Faithful."
+ ],
+ "placement_answers": {
+  "telemetry": "Placement directly after 05b-1 is defensible and consistent with slice 4 (do the S4-14 fixes with the S1-R11 wiring; Act ring needs tracing; crash ring needs the guarded bridge and the hx-5c frame guard, both earlier). It could not usefully go earlier than hx-5c. It is not required before 05b-1 itself, so the slot is a choice not a constraint. Fix: split S4-14 CLI/compaction (not needed before the Act ring) and move it anywhere before 05f. Keep the browser feed + crash ring where it is.",
+  "timing_spike": "The plan follows the accepted order (02b step 13) but it contradicts the register tag before-06 for S2-05. Real risk: the spike is a no-merge one-day job with no technical dependency on 05b-2, yet it is chained behind 05b-2-pacing-lab. If it fails, the memory budget and P2 (large share of text generated) are learned after 06, 06a, the slice and 05b-2 are built on an authored pool. Recommend: split S2-05 into (a) the no-merge timing spike and generation-quality prototype (R5) placed after 07-authoring-kit/line gate (it needs LineBrief and the gate) and before 06; (b) the generated adapter and worker stay at 08' later. The adapter port stub already keeps 06 safe either way. Alternatively state explicitly that the owner accepts the later slot.",
+  "06_depends_on_slice": "Keep the dependency as a gate, not a technical edge. Order is right: S1-R1 and 02b step 10 then 11 require the slice to test the engine before the big systems. 06 technically needs only Observation, Act, presence, threads, ledger and the text port, all already earlier, so the edge is purely sequencing. Mark it in roadmap.yaml as gate so it can be waived or the slice can be extended, and make the slice's end-card state which 06 assumptions it tested."
+ },
+ "verdict": "ready_with_fixes"
+}

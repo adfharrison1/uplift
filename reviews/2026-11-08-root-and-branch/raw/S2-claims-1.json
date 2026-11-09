@@ -1,0 +1,91 @@
+[
+ {
+  "id": "S2-01",
+  "claim": "Time is three incompatible units: blueprint fields are *Ticks, behaviors are seconds, worldTick is an effect-batch serial that is also stamped onto legacy scars as if it were time, and the designed elapsedWatches clock does not exist in WorldState.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:145,183,202,212,222-227",
+   "src/application/simulation/SimulationCoordinator.ts:514-517",
+   "src/domain/simulation/WorldEffectReducer.ts:298,429,454",
+   "DESIGN_NOTES.md:100"
+  ]
+ },
+ {
+  "id": "S2-02",
+  "claim": "There is no Act/provenance primitive: WorldEffects carry no actor or cause, BehaviorModule has no commit (a finished dwell emits no WorldEffect, nothing selects a behavior), and NPC stimuli carry only a free topic string, so inference trails (P4), attribution for discovery, and the six motive-discovery channels have nothing to be built from.",
+  "paths": [
+   "src/domain/simulation/WorldState.ts:67-68,158-165",
+   "src/domain/registries/EpochBlueprints.ts:231-239",
+   "src/domain/simulation/KinematicsEngine.ts:156-166",
+   "DESIGN_NOTES.md:72,129-130"
+  ]
+ },
+ {
+  "id": "S2-03",
+  "claim": "No model of what anyone knows exists in design or code (the only stand-in is the scalar Regard.exposure), so the config's 'grounded strictly in NPC epistemic memory' generation, the player notebook, gossip and rival spoofing all lack ground truth and provenance.",
+  "paths": [
+   "openspec/config.yaml:58",
+   "DESIGN_NOTES.md:123",
+   "src/domain/simulation/WorldState.ts:79-101"
+  ]
+ },
+ {
+  "id": "S2-04",
+  "claim": "Generated text has no place in the pipeline after P2: the only surfaced-text rule is 'The words are authored. The engine does not invent them', the one generation design (the Composer) is bolted onto the free-text parser P2 removes, change 08 / setup-models / MiniLM / intent evals are obsolete as written, and ~15 doc passages still assert free-text input or ONNX.",
+  "paths": [
+   "DESIGN_NOTES.md:69,235,244,265,270,295,300",
+   "openspec/config.yaml:43,53-58,144,203",
+   "src/infrastructure/AGENTS.md:7",
+   "README.md:85",
+   "tests/AGENTS.md:6"
+  ]
+ },
+ {
+  "id": "S2-05",
+  "claim": "Pure runtime generation is the wrong default here: replay/eval determinism cannot be guaranteed across WASM/WebGPU backends, and a 2019 Intel MBP sharing 16 GB with Three.js can realistically run only small (~0.5-1.5B quantized) models interactively.",
+  "paths": [
+   "openspec/config.yaml:52-53,203",
+   "DESIGN_NOTES.md:36"
+  ]
+ },
+ {
+  "id": "S2-06",
+  "claim": "The generator's grounding inputs and quality gates do not exist: no VoiceProfile, no ConversationHistory, CharacterBlueprint holds only numeric drives and an emergencyVice id, and the planned 07e evals assume deterministic authored lines with no contradiction check, runtime fail path or review queue.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:123",
+   "openspec/config.yaml:84",
+   "DESIGN_NOTES.md:68,299"
+  ]
+ },
+ {
+  "id": "S2-07",
+  "claim": "Rival linguistic tells are a reading puzzle and must be reliable, but the schema only models non-lexical spoof modes (round_numbers, deletion, early_surplus) with no field for the lexical tells the notes describe, and a small model may normalise surface tells away.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:176-186",
+   "DESIGN_NOTES.md:30-32"
+  ]
+ },
+ {
+  "id": "S2-08",
+  "claim": "No document says which text is hand-authored versus generated, and there is no authoring kit, so the first content written risks an incompatible shape.",
+  "paths": [
+   "DESIGN_NOTES.md:36,40"
+  ]
+ },
+ {
+  "id": "S2-09",
+  "claim": "Remote actors reach the player through three disjoint channels (overview, correspondence, one global discoveryLayer scalar) with no common Report primitive, and rivals have no agenda or actions in the schema, so the owner's rule 'aware of the interaction at some point' cannot be checked or tested.",
+  "paths": [
+   "src/domain/registries/EpochBlueprints.ts:179-186",
+   "src/domain/simulation/WorldState.ts:150",
+   "openspec/config.yaml:87"
+  ]
+ },
+ {
+  "id": "S2-10",
+  "claim": "The world is player-gated by construction: NPC chains stop at 2 hops until a player or macro beat, macro beats come only from watches the player spends, and reading/talking spends none, so gossip and NPC-to-NPC consequence cannot propagate while the player explores.",
+  "paths": [
+   "DESIGN_NOTES.md:74,100,262",
+   "src/application/shell/PlaySession.ts:185"
+  ]
+ }
+]

@@ -1,0 +1,190 @@
+{
+ "findings": [
+  {
+   "id": "S4-01",
+   "verdict": "endorse",
+   "note": "Pick the round-trip: JSON under src/content/scene is the single source, loaded by Vite JSON import and Zod-validated at boot, with no TS emission. A printout for paste is a worse authoring loop for P1 and lets agents hand-edit and the lab diverge again. Until then the dev-only label is correct and cheap.",
+   "priority": "first"
+  },
+  {
+   "id": "S4-02",
+   "verdict": "amend",
+   "note": "Proposed fix is incomplete and one part is unsafe as written. Vite dev server defaults to server.cors=true (Access-Control-Allow-Origin: *), so any web page can fetch http://localhost:5173/ cross-origin and READ index.html, including an injected token. A token in HTML therefore adds nothing unless CORS is locked down. Origin-check plus Content-Type is the real protection.",
+   "priority": "first",
+   "amended": "Set server.cors to false or an exact-origin allowlist and server.host to 127.0.0.1. In the bridge, before reading the body: require Sec-Fetch-Site same-origin (or Origin exact match when present), exact Host match, Content-Type application/json, and a custom header (forces preflight). Token optional, defence in depth only after CORS is locked. Write routes: fixed route table, filename regex ^[a-z0-9_-]+$, resolve then realpath-contain inside the allowed dir, lstat and refuse symlinks on read AND write, Zod-validate body before write, destroy the request past the cap, ENOSPC maps to a visible warning. Error messages say what was rejected and why so an agent can fix its call."
+  },
+  {
+   "id": "S4-03",
+   "verdict": "endorse",
+   "note": "Data loss on restart destroys the crash record. Constructor append or rotate to logs/prev (keep N, bounded size). Client-supplied occurredAt must be treated as untrusted data: clamp, cap length, and never trusted for ordering of security-relevant fields. Crash path sent via sendBeacon only works with the same Origin/Content-Type rules (beacon with application/json blob triggers preflight, so send via fetch keepalive).",
+   "priority": "first"
+  },
+  {
+   "id": "S4-04",
+   "verdict": "amend",
+   "note": "Endorse ESLint restricted-globals/properties: it fails in the editor with a message agents read. Do not blanket-ban setTimeout/setInterval/requestAnimationFrame/window in application if ports need them; ban in domain and content (non-scene), and in application ban only clock and randomness. Give each rule a custom message naming the injected alternative (SeededRandom, tick clock port). Delete the regex copy but keep one fixture test proving the rule fires.",
+   "priority": "with-hardening",
+   "amended": "Domain + content(non-scene): Math.random, Date, performance, crypto, timers, DOM globals. Application: Math.random, Date, performance, crypto. Messages: 'use SeededRandom' / 'use the injected clock'."
+  },
+  {
+   "id": "S4-05",
+   "verdict": "amend",
+   "note": "ESLint no-restricted-imports per directory is the right place: fails in editor, readable messages. Add import/no-cycle or use ts.preProcessFile only for cycles. Avoid dependency-cruiser (new dependency tree on a dev machine with an agent running installs). Keep a small fixture test via the ESLint Node API to prove each rule fires.",
+   "priority": "with-hardening",
+   "amended": "no-restricted-imports (patterns incl. node:* for domain/application), no-restricted-syntax for require/ImportEquals/non-literal import(), cycle check by compiler API script, one fixture test."
+  },
+  {
+   "id": "S4-06",
+   "verdict": "amend",
+   "note": "Derived denylist is good. Guard against false positives: ignore comments, require word-boundary match, skip ids under a minimum length or generic words (e.g. 'door'), and report file:line with the offending id and pack. Place in tests/architecture.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "S4-07",
+   "verdict": "amend",
+   "note": "Items 1,2,3,6 endorse (golden hash, JSON-plain slice codec, phase order test, rules-hash binding). Item 4 branded BeliefView: a brand is bypassed by a cast, so add no-restricted-syntax on 'as BeliefView' outside the projector file. Item 5 FrozenText likewise. Skip the Object.entries lint as proposed. Failures must name the invariant (e.g. 'slice X holds a Map: use a plain record').",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "S4-08",
+   "verdict": "endorse",
+   "note": "Best agent-ergonomics item: one validator returning ALL errors, each with id, kind and file hint, called from the PlaySession ctor and every pack test. Also expose as npm run content:check so the stage lab and authoring kit can run it on save. Must also validate untrusted SLM-authored content before it is accepted.",
+   "priority": "first"
+  },
+  {
+   "id": "S4-09",
+   "verdict": "amend",
+   "note": "Deleting assertSeparationWeight and adding the missing institutionalLineageId reference check are cheap and correct now. The full typed kind table is sound but speculative until the new core-model kinds exist; Record<kind, unknown[]> loses static typing, so keep a typed per-kind definition with inference. Land it with the first new kind, not before.",
+   "priority": "later",
+   "amended": "Now: remove duplicate check, add the missing ref check via a ref table. Later: defineModuleKind when the second new kind arrives."
+  },
+  {
+   "id": "S4-10",
+   "verdict": "endorse",
+   "note": "Store packId, version and a canonical content hash (stable key order, no Map) at registerPack. Decide one-registry-per-epoch vs layered; per-epoch with explicit cameo imports is simpler and fits P3. Needed for the save envelope, so do it with the save design.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "S4-11",
+   "verdict": "endorse",
+   "note": "Stale AGENTS prose is the main way agents write wrong code here. The doc check (every backticked *Blueprint in section AGENTS.md exists in src) fails loudly. Amend: allow an explicit '(planned)' marker so DESIGN_NOTES-bound names can be mentioned. Moving Charnel fixtures to tests/fixtures is right. Also correct infrastructure AGENTS about @huggingface/transformers and tests/AGENTS about the intent model.",
+   "priority": "first",
+   "amended": "Doc check ignores names tagged '(planned)'; fix the Save button note and the HF/ONNX pointers in the same change."
+  },
+  {
+   "id": "S4-12",
+   "verdict": "amend",
+   "note": "Reducing always-on trace volume is right, but the AGENTS rule 'every AI input/output/reasoning trace logs' must be rewritten in the same change or agents will keep adding trace calls. Replay-based tracing depends on the golden/replay harness existing; do not drop current tracing before then.",
+   "priority": "later",
+   "amended": "Choose ONE telemetry shape (see R4C1/R4C4) and rewrite the AGENTS and uplift-debug skill to match."
+  },
+  {
+   "id": "S4-13",
+   "verdict": "amend",
+   "note": "Shared builders and one-behaviour-per-it make failures actionable for agents; do the split inside each hardening step. Middleware test: bind the real http server explicitly to 127.0.0.1 port 0, and include Origin/CORS rejection cases as the security regression test for S4-02. Deleting constant-restating assertions is fine.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "S4-14",
+   "verdict": "amend",
+   "note": "Split. Bounded logs:query output (--limit/--tail, compact lines, stderr note when empty) is high-value now: unbounded output floods an agent's context. Segment rotation/index is only needed if always-on tracing stays; if R4C1/R4C4 is adopted it is unnecessary, so do not build it first. Fix the false 'verbatim' sentence and mark the skill inert until wired.",
+   "priority": "with-hardening",
+   "amended": "Now: query limits, count-by, honest skill text, newline guard, ENOSPC warning. Later and only if needed: segments."
+  },
+  {
+   "id": "S4-15",
+   "verdict": "endorse",
+   "note": "Real speedup and the output shape matters: run steps concurrently, buffer output, print one PASS/FAIL line per step and full output only for failures, non-zero exit if any fail, keep verify:serial. All four steps are read-only so concurrency is safe. Skip isolate:false (shared-global leakage causes flaky tests that agents then chase). Correct the '<3s' claim in AGENTS.",
+   "priority": "first"
+  },
+  {
+   "id": "S4-16",
+   "verdict": "endorse",
+   "note": "Prose-pinning tests add friction without protection: remove them, keep existence/frontmatter and the .cursor/skills ban. Run npm run verify in pre-commit once it is ~2.5 s; it is the only hook that stops an agent committing a broken tree. Note --no-verify bypass remains, so tell agents not to use it in AGENTS.",
+   "priority": "first"
+  },
+  {
+   "id": "S4-17",
+   "verdict": "endorse",
+   "note": "Typed lint catches floating promises in the bridge and fetch code. Scope projectService to the three outer layers and measure lint time against the verify budget. Do when the first async port lands.",
+   "priority": "later"
+  },
+  {
+   "id": "S4-18",
+   "verdict": "endorse",
+   "note": "Fixing the golden/tests/eval ownership before eval/ exists prevents duplicated harnesses. Case files as data are fine if loaded at runtime and Zod-validated, not compiled into code.",
+   "priority": "with-hardening"
+  }
+ ],
+ "routes": [
+  {
+   "id": "R4A1",
+   "verdict": "amend",
+   "note": "Prefer ESLint rules for fast in-editor feedback. dependency-cruiser adds a dependency; use the TS compiler API only for cycle detection.",
+   "priority": "later"
+  },
+  {
+   "id": "R4A2",
+   "verdict": "endorse",
+   "note": "Compile-time enforcement beats prose. Add a lint on casts to the brand outside the projector.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "R4A3",
+   "verdict": "endorse",
+   "note": "Compact PASS/FAIL output shrinks transcripts and speeds the loop. Same as S4-15.",
+   "priority": "first"
+  },
+  {
+   "id": "R4A4",
+   "verdict": "endorse",
+   "note": "Throwing stubs plus shuffled insertion catches what no lint can. Install stubs in the test runner without touching domain code.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "R4B1",
+   "verdict": "amend",
+   "note": "Right direction, premature until a second new kind lands.",
+   "priority": "later"
+  },
+  {
+   "id": "R4B2",
+   "verdict": "amend",
+   "note": "Single-source JSON is right for the P1 round-trip (lab edits, agent edits, SLM kit all write the same file). Reject the JSON-to-TS compile step: it adds a build stage and a code-injection path, because any string in an SLM-authored or hand-edited JSON that reaches TS source becomes executable. Load the JSON at runtime through Vite's JSON import and Zod validation; no codegen. If a frozen artifact is ever needed, emit via JSON.stringify only, never string interpolation, and run it through the cross-validator first.",
+   "priority": "first",
+   "amended": "JSON source of truth, validated at load by validateLaunch, no emitted TS. Bridge writes only allowlisted files, schema-checked, and treats all content strings as data."
+  },
+  {
+   "id": "R4B3",
+   "verdict": "endorse",
+   "note": "Same as S4-08.",
+   "priority": "first"
+  },
+  {
+   "id": "R4C1",
+   "verdict": "amend",
+   "note": "Good, and it makes disk traces unnecessary, but only once the golden/replay harness exists. Until then keep minimal tracing and do not delete the trace rule from AGENTS.",
+   "priority": "later"
+  },
+  {
+   "id": "R4C2",
+   "verdict": "endorse",
+   "note": "Clear ownership rule. Fitted-table rulesHash test is a loud, actionable guard.",
+   "priority": "with-hardening"
+  },
+  {
+   "id": "R4C3",
+   "verdict": "amend",
+   "note": "Valuable as a single guarded route helper so a new write route cannot be unauthenticated, but the token-in-HTML mechanism is defeated by Vite's default permissive CORS (cross-origin pages can read index.html). Lock server.cors and rely on Sec-Fetch-Site/Origin/Host/Content-Type; keep the token as secondary.",
+   "priority": "first",
+   "amended": "One guarded registerWriteRoute helper enforcing origin, host, content-type, size, path containment and schema."
+  },
+  {
+   "id": "R4C4",
+   "verdict": "amend",
+   "note": "A crash box with no always-on disk writes is a good fit for a solo machine, but pick it OR R4C1 plus a minimal log, not both. Crash flush goes through the same guarded route.",
+   "priority": "later"
+  }
+ ],
+ "top3": "1) Lock the dev bridge properly (S4-02 amended with R4C3): lock Vite CORS and bind to 127.0.0.1, check Sec-Fetch-Site/Origin/Host/Content-Type, allowlisted paths with realpath and symlink refusal and schema validation, via one guarded route helper; also stop the logger truncating on construct (S4-03). 2) Parallel verify with buffered one-line PASS/FAIL output, and verify in pre-commit (S4-15, R4A3, S4-16), deleting prose-pinning tests. 3) One content source of truth plus loud launch validation and true docs: JSON loaded and Zod-validated at runtime (no JSON-to-TS compile), validateLaunch returning all errors, and the doc check that every *Blueprint named in AGENTS exists (S4-01, R4B2 amended, S4-08, S4-11)."
+}

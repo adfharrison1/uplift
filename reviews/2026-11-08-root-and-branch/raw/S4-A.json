@@ -1,0 +1,267 @@
+{
+ "findings": [
+  {
+   "id": "S4A-01",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "The determinism guard is two regexes/selectors that only match the literal call shapes Math.random(), Date.now(), performance.now(), new Date(); aliasing, destructuring, Math.random.call, crypto.getRandomValues/randomUUID, Date() and Math?.random?.() pass both, and application (which will host tick) has no determinism rule at all.",
+   "evidence": [
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "121-122",
+     "quote": "  const nonDeterministicPattern =\n    /(?:\\b(?:Math\\.random|Date\\.now|performance\\.now)\\s*\\(|\\bnew\\s+Date\\s*\\("
+    },
+    {
+     "path": "eslint.config.mjs",
+     "lines": "39",
+     "quote": "selector: 'CallExpression[callee.object.name=\"Math\"][callee.property.name=\"random\"]',"
+    },
+    {
+     "path": "cmd: probe via the test's own findDeterminismViolations (extracted copy) + repo eslint --stdin --stdin-filename src/domain/x.ts",
+     "lines": "-",
+     "quote": "MISSED by arch regex: 'const r = Math.random; r()', 'const {random} = Math', 'Math.random.call(Math)', 'Reflect.get(Math,\"random\")', 'Date()', 'crypto.getRandomValues(..)', 'crypto.randomUUID()', 'Math?.random?.()', 'new Date;'. ESLint: globalThis.Math.random(), Math['random'](), Date(), crypto.* = CLEAN. Union of both still misses alias, destructure, .call, Reflect, crypto. ESLint on src/application/x.ts 'Math.random()' = CLEAN."
+    }
+   ],
+   "bites_when": "The first time an agent (or the owner) writes the natural 'const rand = Math.random' / crypto.randomUUID() id generator while wiring Act ids or the golden-run harness; or any randomness in application/SimulationCoordinator.tick, which is outside both rules.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Ran the actual functions and the actual repo ESLint config on 24 probe snippets; checked whether src/application contains any such call today (none: grep clean outside infrastructure). So nothing is violated yet; the guard is just weak.",
+   "recommendation": "Replace both with ESLint no-restricted-properties (Math.random, globalThis.Math, Date.*, performance.*) + no-restricted-globals (Date, performance, crypto, setTimeout, setInterval, requestAnimationFrame, window, document, navigator, localStorage), applied to domain, content (non-scene) AND application. I ran this config on the same probes: it flagged alias, destructure, globalThis, bracket, optional-chain, crypto and Date(). Delete the regex copy.",
+   "fix_cost": "S",
+   "ignore_cost": "Determinism, the property the whole golden-run/save-replay plan rests on, is enforced by convention plus a grep that a one-line alias defeats."
+  },
+  {
+   "id": "S4A-02",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "The layer test is a regex import scanner that cannot see require(), import x = require(), template-literal or variable dynamic import(), or node: built-ins in domain/application, and it does not enforce the content/scene -> interfaces/three-only rule or detect cycles.",
+   "evidence": [
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "49",
+     "quote": "    /\\bimport\\s*\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)/g,"
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "30",
+     "quote": "content/scene/*      -> interfaces/three, domain, three"
+    },
+    {
+     "path": "cmd: probe of findLayerImportViolations",
+     "lines": "-",
+     "quote": "MISSED: await import(`../infrastructure/x.js`); await import(p); require('../infrastructure/x.js'); import x = require(...); domain+application import 'node:fs'; scene -> '../../interfaces/hud/x.js'; content/worlds -> '../scene/x.js'. CAUGHT: import type, export * from, quoted import(), multiline import, '@/interfaces' alias."
+    }
+   ],
+   "bites_when": "The first worker/ONNX adapter or lazy-loaded pack: lazy `import(`./packs/${id}.js`)` is the idiomatic way to load epoch packs and is exactly the unchecked form; also when anyone reaches for node:crypto/fs in application.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "Barrel/index.ts crossings are NOT a hole: the check keys on path segments so '../../application/index.js' is caught, and there are no path aliases in tsconfig. import type and export * are caught. Currently no src file does any of the missed forms (grep).",
+   "recommendation": "Move boundaries to ESLint no-restricted-imports with per-directory patterns (covers static, export-from and literal dynamic import), ban require via no-restricted-globals/no-restricted-syntax on ImportExpression with non-literal source, and add `node:*` to the domain/application ban. Keep one small test that asserts the config rejects a fixture, instead of 200 lines of regex.",
+   "fix_cost": "S",
+   "ignore_cost": "A lazy-loaded pack or adapter silently bypasses the one rule that protects P1 decoupling."
+  },
+  {
+   "id": "S4A-03",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "Epoch-agnosticism of domain/application is guarded by a hand-typed denylist of 5 Highglass ids (plus a PlaySession-only string check); the second content pack is unguarded, and no check forbids any content-id-shaped literal in domain/application.",
+   "evidence": [
+    {
+     "path": "tests/unit/content/StarterHoldStage.test.ts",
+     "lines": "23-26",
+     "quote": "const HIGHGLASS_IDS = [\n  'space_glass_yard',\n  'space_player_chambers',"
+    },
+    {
+     "path": "tests/unit/application/PlaySession.test.ts",
+     "lines": "124-126",
+     "quote": "    const source = readFileSync(\n      join(\n        dirname(fileURLToPath(import.meta.url)),"
+    }
+   ],
+   "bites_when": "The day a second pack (or an epoch-2 pack) is added and an id from it, or a hardcoded 'role_' / 'office_' string, leaks into a reducer or the coordinator; the denylist cannot know the new ids.",
+   "severity": "major",
+   "confidence": "high",
+   "disconfirm": "grep for /'(char|space|prop|wp)_.../ literals in src/domain and src/application returned nothing, so no leak exists today; the test is correct but static.",
+   "recommendation": "Make it derive its denylist: iterate every pack exported from src/content, collect all ids from the registry, and assert none occurs as a substring in src/domain or src/application (non-test). Move it into tests/architecture so it is on the guardrail list, not buried in a content test.",
+   "fix_cost": "S",
+   "ignore_cost": "The owner's top pillar (epoch-agnostic) is protected only against the one pack that already exists."
+  },
+  {
+   "id": "S4A-04",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "The accepted core-model and hardening invariants have no automated guard and the codebase already shows the drift they would catch: id-order is sorted at some sites and not at others, and slices accept Map/Set silently.",
+   "evidence": [
+    {
+     "path": "src/application/simulation/SimulationCoordinator.ts",
+     "lines": "207",
+     "quote": "  for (const [entityId, entity] of Object.entries(state.entities)) {"
+    },
+    {
+     "path": "src/domain/simulation/KinematicsEngine.ts",
+     "lines": "574",
+     "quote": "  const sortedEntityIds = Object.keys(state.entities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));"
+    },
+    {
+     "path": "src/domain/core/StateSliceRegistry.ts",
+     "lines": "21",
+     "quote": "  return structuredClone(value);"
+    }
+   ],
+   "bites_when": "Hardening step 6 (golden-run hash) and the Observation/Act slices: an unsorted Object.entries feeding an order-dependent effect makes hashes differ between save/load or engines; a Map in a slice survives structuredClone but comes back empty after JSON save (S3-02).",
+   "severity": "major",
+   "confidence": "med",
+   "disconfirm": "Checked that the unsorted loop at coordinator:207 only copies entities to a new record (order-insensitive), so no current bug; JS integer-like keys also reorder, so 'sorted' is not even always the same order. This is about the next site, not this one.",
+   "recommendation": "Automate in this order. (1) Golden-run hash test (hardening 6) is the master guard: also run it with entity insertion order shuffled. (2) Slice codec rejects non-plain-JSON at defineStateSlice and the test round-trips every registered slice through JSON. (3) A tick-phase contract test: PHASES const array asserted equal to the documented order, and a spy test that each phase runs once in order. (4) Belief-only considerations: type-level, make consideration/gate functions take `BeliefView` (a branded read type exported from domain) and keep WorldState out of that module's imports via no-restricted-imports in src/domain/cognition/**; plus a contract test that mutating hidden truth with beliefs fixed leaves considerations unchanged. (5) Generated text never feeds state: TextSourcePort returns `FrozenText` branded; ESLint no-restricted-imports forbids that module from reducer/phase files; a test that two runs with different text sources hash identical. (6) Rules-hash binding: unit test that every committed fitted-data file's rulesHash equals hashOf(current rules module) so a rule edit fails verify until refit. Skip a custom 'ban Object.entries' lint; the shuffle-order golden test catches the real failure.",
+   "fix_cost": "M",
+   "ignore_cost": "The invariants exist only in review prose; the first violation will be found as an unexplained hash mismatch."
+  },
+  {
+   "id": "S4A-05",
+   "topic": "arch",
+   "kind": "gap",
+   "claim": "ESLint runs only untyped configs (tseslint.configs.strict, no projectService), so no-floating-promises and switch-exhaustiveness-check cannot fire; a floating promise and a non-exhaustive switch both lint clean.",
+   "evidence": [
+    {
+     "path": "eslint.config.mjs",
+     "lines": "10",
+     "quote": "  ...tseslint.configs.strict,"
+    },
+    {
+     "path": "cmd: eslint --stdin --stdin-filename src/domain/x.ts",
+     "lines": "-",
+     "quote": "'async g; f(){ g(); }' => CLEAN; 'switch(x){case \"a\": return 1} return 0' on \"a\"|\"b\" => CLEAN"
+    }
+   ],
+   "bites_when": "Planned async work lands (TextSourcePort generated adapter, ONNX worker, rAF-loop try/catch from hardening 5); src has zero async code outside the Vite plugin today.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "tsc noImplicitReturns + noFallthroughCasesInSwitch catch value-returning switches, and there are no assertNever uses, so effect exhaustiveness relies on return types only. I did not measure typed-lint cost on this repo.",
+   "recommendation": "Add parserOptions.projectService only for src/application, src/interfaces and src/infrastructure with no-floating-promises + no-misused-promises; add switch-exhaustiveness-check to src/domain via a tiny assertNever pattern. Do it when the first async port lands.",
+   "fix_cost": "S",
+   "ignore_cost": "A swallowed rejection in the generation path becomes an invisible missing line of text."
+  },
+  {
+   "id": "S4A-06",
+   "topic": "process",
+   "kind": "problem",
+   "claim": "verify is 5.3-6.7 s wall because five steps run sequentially as five nested npm processes with two separate vitest startups; running them in parallel measured 2.4 s and merging the vitest runs saves ~0.5 s, with nothing weakened.",
+   "evidence": [
+    {
+     "path": "package.json",
+     "lines": "24",
+     "quote": "\"verify\": \"npm run format:check && npm run lint && npm run typecheck && npm run test:arch && npm run test:unit\""
+    },
+    {
+     "path": "cmd: python timing, 12-thread i7-9750H, warm caches",
+     "lines": "-",
+     "quote": "npm run: format:check 0.6 s, lint 1.0, typecheck 0.85, test:arch 0.74, test:unit 2.05 (sum 5.2); full verify 5.3 and 5.4 (earlier runs 5.6, 6.7). Direct bins: prettier 0.38, eslint 0.70, tsc 0.61, vitest tests/ (one run, both dirs) 1.85, same with --no-isolate 1.36. All four in parallel: 2.38 s. Vitest reports 277 ms worker startup per file x 24 files."
+    }
+   ],
+   "bites_when": "Now; the documented budget (<5 s) is already false, and cold-cache ESLint (2.3 s via npx, no .eslintcache) pushes it past 7 s.",
+   "severity": "minor",
+   "confidence": "high",
+   "disconfirm": "Re-measured three times; variance is 5.3-6.7 s, first runs slower (cold cache). Parallel run hit exit 1 only because a stray .vitest/ json I created tripped prettier (removed; repo clean).",
+   "recommendation": "Add `verify` = run format:check, lint, typecheck, `vitest run tests/` concurrently (a 10-line node script or npm-run-all2 -p) with fail-all output, keep `verify:serial` for debugging; set vitest `isolate:false` for tests/unit only if no test mutates globals. Expect ~2.5 s. Also correct the 'under 3 s' unit claim: unit is 1.8-2.3 s now.",
+   "fix_cost": "S",
+   "ignore_cost": "The budget stays a lie, and every added suite makes the serial path longer; the fast loop the owner needs for agent turns degrades."
+  },
+  {
+   "id": "S4A-07",
+   "topic": "process",
+   "kind": "overbuilt",
+   "claim": "Part of the architecture suite guards prose rather than behaviour: it pins literal sentences and model names inside two SKILL.md files and the exact lint-staged array, so editing a skill or hook fails verify while protecting no engine property, and the real hook never runs verify.",
+   "evidence": [
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "425",
+     "quote": "    expect(skillContent).toContain('composer-2.5-fast');"
+    },
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "431",
+     "quote": "    expect(skillContent).toContain('Wait for approval before editing any living doc.');"
+    },
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "392",
+     "quote": "    expect(tsStagedCommands).toEqual(['eslint --fix', 'prettier --write']);"
+    },
+    {
+     "path": ".husky/pre-commit",
+     "lines": "1",
+     "quote": "npx lint-staged"
+    }
+   ],
+   "bites_when": "Next time a skill is reworded or a model name changes (AGENTS.md already names two different models): a verify failure unrelated to the code. Meanwhile pre-commit runs only eslint+prettier on staged files, so typecheck and the arch tests can be skipped at commit.",
+   "severity": "minor",
+   "confidence": "med",
+   "disconfirm": "These tests cost ~ms, not seconds; the cost is friction and false assurance, not time. The existence checks for per-section README/AGENTS are cheap and arguably useful, so I leave them out.",
+   "recommendation": "Delete the two SKILL.md content tests and the config-string assertions (keep file-existence and the .cursor/skills ban). Spend the saved attention on S4A-01/02: swap in the pre-commit `npm run verify` (now ~2.5 s) instead of lint-staged-only.",
+   "fix_cost": "S",
+   "ignore_cost": "Guardrail noise trains the owner and agents to patch the test to make it pass, which tests/AGENTS.md says never to do."
+  }
+ ],
+ "keep": [
+  {
+   "claim": "tsconfig actually delivers every flag AGENTS.md promises: strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes, noImplicitOverride, noImplicitReturns, noFallthroughCasesInSwitch, noUnusedLocals/Parameters.",
+   "evidence": [
+    {
+     "path": "tsconfig.json",
+     "lines": "14-16",
+     "quote": "    \"noUncheckedIndexedAccess\": true,\n    \"exactOptionalPropertyTypes\": true,\n    \"noImplicitReturns\": true,"
+    }
+   ]
+  },
+  {
+   "claim": "Zero-any is enforced twice (ESLint no-explicit-any plus the arch scan) and ban-ts-comment fires; the only suppressions in src/tests are 2 'as unknown as' casts. Keep the ESLint rule; the regex duplicate is redundant and weaker (misses 'extends any', '| any', '<T = any>').",
+   "evidence": [
+    {
+     "path": "eslint.config.mjs",
+     "lines": "21",
+     "quote": "      '@typescript-eslint/no-explicit-any': 'error',"
+    }
+   ]
+  },
+  {
+   "claim": "Import boundary check correctly handles barrels, import type, export * and quoted dynamic import; the layer rules themselves match AGENTS.md except the scene/interfaces-three nuance.",
+   "evidence": [
+    {
+     "path": "tests/architecture/layer_boundaries.test.ts",
+     "lines": "47",
+     "quote": "    /\\b(?:import|export)\\b[\\s\\S]*?\\bfrom\\s*['\"]([^'\"]+)['\"]/g,"
+    }
+   ]
+  }
+ ],
+ "unconsidered_routes": [
+  {
+   "title": "Compiler-API or dependency-cruiser instead of regex",
+   "proposal": "typescript@6 is already a devDependency: walk each file with ts.preProcessFile (or use dependency-cruiser with a rules file) to get every import form, including import=require and non-literal import(). Add cycle detection and a 'no node: in domain' rule in the same pass.",
+   "reference": "dependency-cruiser / ArchUnit-style layer tests",
+   "replaces_or_changes": "Replaces extractImports/findLayerImportViolations (~120 lines of regex) with a verified parser."
+  },
+  {
+   "title": "Branded capability types as the guardrail for the hidden-information rule",
+   "proposal": "Instead of a lint on imports, make considerations take `BeliefView` and give the domain no function that turns WorldState into a BeliefView except one audited projector. The compiler then forbids reading world truth in NPC decisions; a single test covers the projector.",
+   "reference": "Capability/phantom types; Dwarf Fortress-style 'what the unit knows' views; Rust newtype-for-trust",
+   "replaces_or_changes": "Replaces the planned reviewer-vigilance check ('domain never reads world truth') with a type error."
+  },
+  {
+   "title": "Parallel verify with a one-line agent-friendly summary",
+   "proposal": "One node script runs the four tasks concurrently, buffers output, and prints a single PASS/FAIL line per step plus failures only. Cuts wall time to ~2.5 s and shrinks the transcript the agent has to read each turn.",
+   "reference": "npm-run-all2 -p; Turborepo-style task fan-out",
+   "replaces_or_changes": "Replaces the && chain of five nested npm runs."
+  },
+  {
+   "title": "Shuffled-insertion golden test as the determinism oracle",
+   "proposal": "Run the hardening-6 golden run twice, the second time with entity/prop/slice insertion order permuted and with Math.random/Date stubbed to throw. This catches unsorted iteration, hidden randomness and wall-clock reads that no regex can.",
+   "reference": "Deterministic lockstep RTS replay tests (Factorio/Age of Empires desync checks)",
+   "replaces_or_changes": "Supersedes the grep-based determinism rule as the primary guard; the lint becomes the cheap first line."
+  }
+ ],
+ "could_not_verify": [
+  "Did not measure typed-ESLint cost on this repo; the claim that it is cheap enough is unverified.",
+  "Husky hook behaviour on actual commit not exercised (read-only); judged from .husky/pre-commit text.",
+  "verify timings vary 5.3-6.7 s across runs; the split is from warm-cache runs on the 12-thread i7-9750H."
+ ]
+}

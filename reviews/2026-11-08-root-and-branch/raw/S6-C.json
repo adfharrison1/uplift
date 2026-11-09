@@ -1,0 +1,1527 @@
+{
+ "amendments": [
+  {
+   "id": "A-01",
+   "sources": [
+    "P1",
+    "P5"
+   ],
+   "target": "DESIGN_NOTES.md#new top section 'Owner pillars and settled direction' (before line 3); openspec/config.yaml#context (new block after line 20); AGENTS.md#new 'Pillars' paragraph before 'Quick Verify' (line 9)",
+   "action": "add",
+   "summary": "Record P1 (decoupled epoch-agnostic framework, set early rules), P4 (indirect feedback with light signposting) and P5 (core model, rules spine and roadmap order are a revisable direction, not a frozen spec) as binding design context, with the de-weighted topics (solo scale, review-gate count) noted.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "151",
+     "quote": "keep all registries and configuration data-driven and epoch-agnostic so mechanics, camera parameters, tick rates, and content sub-types can be tuned"
+    }
+   ]
+  },
+  {
+   "id": "A-02",
+   "sources": [
+    "P2",
+    "S1-R7"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Text pipeline (P2)' after section 9 (line 246); config.yaml#context (replace lines 55-58); AGENTS.md#new bullet in 'Plug-and-Play Module Registries & Core Systems' (after line 58)",
+   "action": "add",
+   "summary": "State P2: there is no free-text player input; a large share of surfaced text is generated locally by small language models; owner accepts authoring help. This is the umbrella pillar for the rest of the text-pipeline entries.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "235",
+     "quote": "Dialogue wording, interruption, pretexts, and free-text intent stay in their own changes."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "58",
+     "quote": "Intent Combiner + Anti-LLM-Speak Period-Voice Composer"
+    }
+   ]
+  },
+  {
+   "id": "A-03",
+   "sources": [
+    "P3",
+    "S1-R9",
+    "owner idea after slice 1"
+   ],
+   "target": "DESIGN_NOTES.md#lines 22-26 (Generational Operatives and Advisory Pair) and section 4 line 184-185; config.yaml#context line 17-19",
+   "action": "rewrite",
+   "summary": "State that each Epoch has a new operative and a new Ship/Drone crew (Culture fidelity), and the loss of the previous crew is part of the fun. Add the owner idea that past advisors occasionally appear with help or notes over the Culture's galactic network (a cameo channel, not a replacement crew).",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "185",
+     "quote": "each Epoch rolls their personality traits (`humor`, `patience`, `riskTolerance`, `primness`, `omissionSulkThreshold`) within curated `[min, max]` ranges via `SeededRandom`"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "26",
+     "quote": "both cite your predecessor operatives' past sacrifices from `CivilizationLegacyState` in their arguments"
+    }
+   ]
+  },
+  {
+   "id": "A-04",
+   "sources": [
+    "P3",
+    "owner idea after slice 1",
+    "S1-R9"
+   ],
+   "target": "DESIGN_NOTES.md#new bullet after line 26 'Galactic-network cameo'; config.yaml#roadmap item 10 (line 147) and 7d (line 142)",
+   "action": "add",
+   "summary": "Past advisors may cameo (help, notes) over the galactic network. Specify as a channel on the Correspondence/Observation path (arrives as an Observation with channel latency), rate-limited, pack-registered, with the cross-pack import list from the one-registry-per-epoch rule. Mark as design candidate, not scheduled.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "25",
+     "quote": "are randomly selected from curated per-Epoch pools"
+    }
+   ]
+  },
+  {
+   "id": "A-05",
+   "sources": [
+    "S2-17",
+    "S1-R1",
+    "owner decision after slice 2"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Rules spine' (near top, before line 3 content); config.yaml#context new block 'Rules spine (binding, revisable under P5)'; AGENTS.md#new section after 'Quick Verify'",
+   "action": "add",
+   "summary": "Write the 8 rules: (1) one watch clock, (2) actor and cause on every effect, (3) thread structure (stages, one spine thread in crisis_fuse), (4) discovery has a referent and an observer, (5) emergency cardinality and fuse, (6) reject instead of throw, (7) resource ledger, (8) epoch-end reads both ledgers and the Observation table. Each rule is one paragraph with an enforcing test or lint named, and the section says the spine is revisable.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "101",
+     "quote": "max 1 spine thread in `crisis_fuse` at a time"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "19",
+     "quote": "Universal simulation state machine across all Epochs"
+    }
+   ]
+  },
+  {
+   "id": "A-06",
+   "sources": [
+    "S2-17",
+    "S2-02",
+    "S3-04"
+   ],
+   "target": "DESIGN_NOTES.md#rules spine rules 2 and 6; AGENTS.md#line 64 (Orbital Pass bullet)",
+   "action": "rewrite",
+   "summary": "Reducer rejects an effect with a reason code instead of throwing; unknown ids behave the same everywhere. Rewrite the AGENTS statement that spend_orbital_delta throws; keep the throw only as an authoring-time contract test.",
+   "conflicts": [
+    {
+     "path": "AGENTS.md",
+     "lines": "64",
+     "quote": "`spend_orbital_delta` throws on `burn` unless the phase is `zenith`"
+    }
+   ]
+  },
+  {
+   "id": "A-07",
+   "sources": [
+    "S2-17",
+    "S2-19"
+   ],
+   "target": "DESIGN_NOTES.md#line 19 (Emergencies table row) and AGENTS.md#Emergency States bullet; config.yaml#line 92",
+   "action": "rewrite",
+   "summary": "Emergency cardinality and fuse written as a rule: EmergencyRuntime carries a fuse and a scope, and compounding applies to the scoped group, not everyone.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "19",
+     "quote": "Pauses routine behaviors while **compounding suppressed vices** behind closed doors"
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "63",
+     "quote": "compounds `emergencyVice` drives (`trigger_emergency`, `compound_emergency_vices`, `resolve_emergency`) until resolved."
+    }
+   ]
+  },
+  {
+   "id": "A-08",
+   "sources": [
+    "7-primitive core model",
+    "P5",
+    "owner decision after slice 2"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Core model: seven primitives' after the Core Rule table (after line 20); config.yaml#context new block; AGENTS.md#Plug-and-Play section new bullet",
+   "action": "add",
+   "summary": "Define the seven primitives: watch clock, Act (ground-truth event in a bounded ring, effects carry optional causeActId via an envelope), Observation (who learned what; merges Report, Trace, Belief), presence function, ThreadRuntime/ResourceLedger/EmergencyRuntime slices, LineBrief+gate, TextSourcePort. State that storage is bounded (Tier 3 holds nothing, Tier 2 on demand, epoch end compacts into scars) and that it is a revisable direction.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "16",
+     "quote": "Resistance is composed of 3–5 concrete pillars"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "99",
+     "quote": "(`worldTick` remains the discrete effect/telemetry serial counter)"
+    }
+   ]
+  },
+  {
+   "id": "A-09",
+   "sources": [
+    "S2-02",
+    "S3-08",
+    "S3-04"
+   ],
+   "target": "DESIGN_NOTES.md#core-model Act primitive; config.yaml#roadmap new Act-step item; AGENTS.md#new bullet",
+   "action": "add",
+   "summary": "Act record `{id, actorId, verb, objectRef, motiveTag, spaceId, watch, perceptibility}` in a frozen bounded ring; effect envelope `{effect, actorId?, causeActId?}`; BehaviorModule gets a commit returning WorldEffect[]; stateless counter-based roll(worldSeed, streamKey, counter) for randomness inside Acts.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "72",
+     "quote": "`dwellSeconds` (time spent physically performing the action at the waypoint before its `WorldEffect` commits)"
+    }
+   ]
+  },
+  {
+   "id": "A-10",
+   "sources": [
+    "S2-03",
+    "S2-12",
+    "S2-15",
+    "S2-18",
+    "INV-B"
+   ],
+   "target": "DESIGN_NOTES.md#core-model Observation primitive; AGENTS.md#new bullet; config.yaml#context discovery text (line 86)",
+   "action": "rewrite",
+   "summary": "Discovery layers (noticed, assayed, attributed, theorized) become a decaying view derived per observer from the Observation table; set_discovery_layer survives as a shim; Regard.exposure is no longer the only record of who knows what.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "144",
+     "quote": "Triggered when `discoveryLayer >= 'attributed'`"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "147",
+     "quote": "jumps `discoveryLayer` to `theorized`"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "86",
+     "quote": "4 discovery layers (`'noticed' | 'assayed' | 'attributed' | 'theorized'`)"
+    }
+   ]
+  },
+  {
+   "id": "A-11",
+   "sources": [
+    "S2-01",
+    "S1-R6",
+    "S2-17"
+   ],
+   "target": "DESIGN_NOTES.md#section 0 lines 96-102; config.yaml#lines 96-97 and 103",
+   "action": "rewrite",
+   "summary": "Clock decision record: elapsedWatches on WorldState advanced only by advance_watches; worldTick is an effect serial and never time; scars record the watch; every *Ticks field is renamed *Watches while it has no users; the 4-clock shape is kept; Clock 1 runs on a fixed 1/60 s step with an accumulator.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "98",
+     "quote": "The 4-Clock Simulation Hierarchy (Rebasing Change 03 `*Tick` Fields onto Campaign Watches)"
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "59",
+     "quote": "(`orbitalOffsetTicks`, `spoofMode`)"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "97",
+     "quote": "rebasing Change 03's `*Tick` fields in Change `05b`"
+    }
+   ]
+  },
+  {
+   "id": "A-12",
+   "sources": [
+    "S3-07",
+    "S3-09",
+    "S4-04",
+    "S3-08"
+   ],
+   "target": "config.yaml#line 79-80 (Determinism); AGENTS.md#table row 'application' and Quick Verify step 4 (line 20); DESIGN_NOTES.md#line 77-78",
+   "action": "rewrite",
+   "summary": "Determinism rules: seed passes splitmix32 before SeededRandom, fixed 1/60 s step with capped catch-up, hashWorldState plus golden-run (shuffled insertion, throwing Math.random/Date stubs), ESLint determinism block covering domain, non-scene content AND application, ban node:*, require and non-literal import().",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "80",
+     "quote": "`Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "77",
+     "quote": "allowUnclampedFrameDt"
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "20",
+     "quote": "`npm run test:arch` (Clean Architecture inward dependency, zero-`any`, `Math.random` ban, and section doc checks)"
+    }
+   ]
+  },
+  {
+   "id": "A-13",
+   "sources": [
+    "S2-10",
+    "S1-R3"
+   ],
+   "target": "DESIGN_NOTES.md#line 74 (cascade cap) and line 262; config.yaml#line 101-102",
+   "action": "rewrite",
+   "summary": "Split embodied cascades (keep the 2-hop cap) from information diffusion (closed form, per watch). No wall-clock beats. Talking costs a fractional watch so the world moves on as you talk; reading a chunk does not.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "74",
+     "quote": "further propagation pauses in `awaiting_trigger` until a player or macro-world beat occurs"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "262",
+     "quote": "Reading costs no watch."
+    }
+   ]
+  },
+  {
+   "id": "A-14",
+   "sources": [
+    "S1-R3",
+    "S2-10"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Loop cycles (minute, session, epoch)'; config.yaml#context",
+   "action": "add",
+   "summary": "Write the minute cycle (room), session cycle (watches spent, what returns), and epoch cycle; state that the cost of talking comes from the world (NPCs move on by watch) and add fractional-watch talk cost as a time-spend verb alongside committed time-spend actions.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "100",
+     "quote": "advanced when the player performs **Committed Time-Spend Actions**"
+    }
+   ]
+  },
+  {
+   "id": "A-15",
+   "sources": [
+    "S1-R1",
+    "S2-16"
+   ],
+   "target": "DESIGN_NOTES.md#line 16 and new 'Leverage Chain' definition; config.yaml#line 91 and roadmap item 6 (line 134); AGENTS.md#line 54 inertiaPillars",
+   "action": "rewrite",
+   "summary": "Leverage Chain definition: pillars gain bearsOnThreadId and supportedBy; thread inertia is derived from them; a chain is a derived query over shared supporters, and the player verb is weaken_support.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "16",
+     "quote": "lets a clever player topple both with one Leverage Chain"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "91",
+     "quote": "rising Inertia Pillars, Leverage Chains"
+    }
+   ]
+  },
+  {
+   "id": "A-16",
+   "sources": [
+    "S1-R1"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Epoch 1 player contract'; config.yaml#context",
+   "action": "add",
+   "summary": "One-page contract: Epoch 1 mission, verbs per thread, win/fail shape, how the player knows they are winning, epoch-end evaluation, what a bad epoch looks like. Keep it minimal (engine work continues).",
+   "conflicts": []
+  },
+  {
+   "id": "A-17",
+   "sources": [
+    "S1-R2",
+    "P4"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Inference trails and signposting'; config.yaml#context",
+   "action": "add",
+   "summary": "Every covert effect leaves discoverable traces in events, NPC behaviour and world state; light signposting by advisor nudges or notebook prompts; advisors may omit but never lie (unless a rival spoofs); no numeric debrief; qualitative odds in advisor speech.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "207",
+     "quote": "They are never billboards, objective markers, or lace-HUD dumps."
+    }
+   ]
+  },
+  {
+   "id": "A-18",
+   "sources": [
+    "S1-R4",
+    "S2-11"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Presence model'; config.yaml#context; roadmap new presence step",
+   "action": "add",
+   "summary": "Per-character watch-of-day presence table resolved by a pure function (entityId, watch, seed) to a placement, materialized on room entry or watch spend; entities start off-stage; phases resolve on a watch jump; every macro lever is something the player interacts with and is aware of, at some point.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "214",
+     "quote": "The focus operative starts in their authored space."
+    }
+   ]
+  },
+  {
+   "id": "A-19",
+   "sources": [
+    "S2-13",
+    "S1-R10"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'System graph' (link raw/S2-system-graph.json content); AGENTS.md#Section guides",
+   "action": "add",
+   "summary": "Adopt the who-writes/who-reads graph as the dependency spine: five hubs (watch clock, Regard graph, thread runtime, office/pretext/funds ledger, actor/provenance on effects) built before further leaf effects.",
+   "conflicts": []
+  },
+  {
+   "id": "A-20",
+   "sources": [
+    "S1-R6",
+    "S4-09"
+   ],
+   "target": "config.yaml#context new standing directive; AGENTS.md#'Plug-and-Play' intro (line 52)",
+   "action": "add",
+   "summary": "Freeze extension: no new registry kind or effect without content that uses it. Settle the clock model before more time-bearing schema. Nothing deleted.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "83",
+     "quote": "All game content and sub-types register through declarative, epoch-agnostic module contracts"
+    }
+   ]
+  },
+  {
+   "id": "A-21",
+   "sources": [
+    "S2-14",
+    "S2-15",
+    "S2-18"
+   ],
+   "target": "DESIGN_NOTES.md#lines 14-15 (instrument and stock rows); config.yaml#line 86",
+   "action": "rewrite",
+   "summary": "Instrument coupling coefficients and discovery floors become data profiles per mode, registered by packs, with decay keys; one table of loops with a tuning key each; forged fiat no longer jumps straight to attributed; insertion spends Delta and requires zenith (rejected otherwise); stocks get diegetic tells.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "14",
+     "quote": "`forged_fiat_instrument`: *Counterfeit Coin*"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "18",
+     "quote": "Player can spend **Delta (Orbital Indiscretion)** to **Slingshot**"
+    }
+   ]
+  },
+  {
+   "id": "A-22",
+   "sources": [
+    "S2-07",
+    "S2-09"
+   ],
+   "target": "DESIGN_NOTES.md#lines 28-33 (Rival theses); config.yaml#line 85; AGENTS.md#line 59",
+   "action": "rewrite",
+   "summary": "Rival tells become a structured tellProfile with a deterministic post-pass and presence/absence evals; each rival gets a small agenda that emits Acts; remote reports are Observations with latency; invariant eval 'aware at some point'.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "30",
+     "quote": "*Tells*: Vocabulary cluster `earn / deserve / soft / cull`"
+    }
+   ]
+  },
+  {
+   "id": "A-23",
+   "sources": [
+    "S2-04",
+    "P2"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Text pipeline' (replaces lines 65-69 drift and section 10 'free-text' clauses)",
+   "action": "add",
+   "summary": "Rule: surfaced text is a view of structured facts, produced behind TextSourcePort and frozen into ConversationHistory and the save when shown. No free-text player input.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "265",
+     "quote": "The words are authored. The engine does not invent them."
+    }
+   ]
+  },
+  {
+   "id": "A-24",
+   "sources": [
+    "S2-05",
+    "owner decision after slice 2"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline; config.yaml#Hardware (line 51-58)",
+   "action": "add",
+   "summary": "Hybrid generation: authoring-time SLM generation counts as P2 (drafted, curated, pooled); a runtime SLM tier for filler is first-class but gated on a one-day timing spike on the real Mac; its output is cached into the save. Record the owner's stipulation to investigate decision networks and the INV-1 outcome.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "57",
+     "quote": "Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`"
+    }
+   ]
+  },
+  {
+   "id": "A-25",
+   "sources": [
+    "S2-04",
+    "S2-05"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline TextSourcePort subsection; AGENTS.md#Plug-and-Play new bullet",
+   "action": "add",
+   "summary": "TextSourcePort is an application port with authored, pool and generated adapters; infrastructure holds the HF/ONNX adapter; fact-first realiser (RC3) and Tracery-style grammars (RC1) supply the deterministic fallback.",
+   "conflicts": [
+    {
+     "path": "AGENTS.md",
+     "lines": "30",
+     "quote": "content/scene/*      -> interfaces/three, domain, three"
+    }
+   ]
+  },
+  {
+   "id": "A-26",
+   "sources": [
+    "S2-06"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline LineBrief subsection; config.yaml#roadmap 07/07e",
+   "action": "add",
+   "summary": "LineBrief (grounding facts, speaker, register, tells) and a three-tier gate (lexical, grounding where every fact id must survive, tell compliance); on failure retry then fall back to the pool and queue the line for review.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "68",
+     "quote": "Golden dialogue and `AdvisoryDuel` fixtures verifying banned-lemma compliance, cadence rules, and clause-omission behavior."
+    }
+   ]
+  },
+  {
+   "id": "A-27",
+   "sources": [
+    "S2-08"
+   ],
+   "target": "DESIGN_NOTES.md#Text pipeline authored/generated split; AGENTS.md#new bullet; config.yaml#roadmap",
+   "action": "add",
+   "summary": "Authored/generated split: spine, Tier-1 bibles and keystones hand-authored with help; Tier-2, letters, gazette and rumours pool-generated and curated; Tier-3 templated. Authoring kit: CharacterBible, RegisterCard, few-shot builder, draft/accept CLI.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "265",
+     "quote": "The words are authored. The engine does not invent them."
+    }
+   ]
+  },
+  {
+   "id": "A-28",
+   "sources": [
+    "S2-04",
+    "S2-05",
+    "S1-R7"
+   ],
+   "target": "config.yaml#roadmap item 8 (line 144)",
+   "action": "rewrite",
+   "summary": "Retire 08-local-onnx-hybrid-intent; replace with a local text generation change (generated adapter plus the real-Mac timing spike), ordered after 07e per the corrected order; the intent, negation and latency eval cases are dropped.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "144",
+     "quote": "3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry"
+    }
+   ]
+  },
+  {
+   "id": "A-29",
+   "sources": [
+    "S2-04"
+   ],
+   "target": "DESIGN_NOTES.md#lines 65, 69, 235, 244, 270, 295, 300, 301; config.yaml#lines 43, 53, 55-58, 117, 203; AGENTS.md; README.md#85; src/infrastructure/AGENTS.md#7; tests/AGENTS.md#6; .agents/skills/uplift-debug/SKILL.md#8",
+   "action": "rewrite",
+   "summary": "Edit the roughly 15 drifted passages that still assert free-text input, an ONNX intent parser or the Period-Voice Composer (see the deletions list for the full set with quotes).",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "69",
+     "quote": "**Hybrid NLP & ONNX Intent Evals (Change 08)**: Golden dataset of free-text player inputs"
+    }
+   ]
+  },
+  {
+   "id": "A-30",
+   "sources": [
+    "S2-06",
+    "S4-18"
+   ],
+   "target": "DESIGN_NOTES.md#line 65-69 and section 11 (lines 297-301); AGENTS.md#line 57",
+   "action": "rewrite",
+   "summary": "05f runner hosts the text-gate suites and the evidence-coverage and diffusion evals; split ownership: tests/ exact, golden/ hashes, eval/ distributions and corpora, one headless harness (runScenario).",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "300",
+     "quote": "Suites already named are utility and rival goals (change 06), the written register (section 10e), and free-text intent (change 08)."
+    }
+   ]
+  },
+  {
+   "id": "A-31",
+   "sources": [
+    "S1-R5",
+    "S2-12",
+    "R3",
+    "R5B4"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Lace-log notebook'; config.yaml#context",
+   "action": "add",
+   "summary": "Lace log is the notebook: auto-recorded known facts, suspicions, partial knowledge with open questions, and omissions. Categories add source and reliability, learned-on watch, staleness, contradiction pairs, who-else-knows, player hypotheses graded on corroboration, spoof flags. Omission-referent rule: show a gap only when it refers to something real. Ambient lines are written in as a record, not a replay.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "289",
+     "quote": "The dropped clause is recorded in the AI reasoning log."
+    }
+   ]
+  },
+  {
+   "id": "A-32",
+   "sources": [
+    "S1-R5"
+   ],
+   "target": "DESIGN_NOTES.md#Lace-log notebook; config.yaml#line 64 (Save/Load)",
+   "action": "add",
+   "summary": "Save policy is still undecided (owner: to be decided; candidate is autosave at watch boundaries). Record it as an open decision, with the notebook held in the save.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "64",
+     "quote": "Multi-session Save/Load persists named session snapshots under `./saves/`."
+    }
+   ]
+  },
+  {
+   "id": "A-33",
+   "sources": [
+    "INV-B",
+    "INV-C",
+    "owner decision after slice 3"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Belief and deliberate misbelief'; AGENTS.md#new bullet",
+   "action": "add",
+   "summary": "Integer fixed-point noisy-OR belief combiner on Observation (collapse shared origin or channel, spoof as a negative term, order-independence test, parent cap, reason tag per step). NPC considerations read a branded BeliefView, not world state, with a contract test against omniscient reads. Deliberate misbelief: NPCs acting on stale or spoofed beliefs are the readable mistakes P4 depends on.",
+   "conflicts": []
+  },
+  {
+   "id": "A-34",
+   "sources": [
+    "INV-A",
+    "INV-E",
+    "INV-F",
+    "owner decision after slice 3"
+   ],
+   "target": "DESIGN_NOTES.md#section on AI; config.yaml#context and roadmap",
+   "action": "add",
+   "summary": "No decision model (LAYA or JEV class) in the simulation path; an advisory authoring-time gate tier is allowed. Learning is offline only (tables fitted from deterministic self-play, committed as data tied to the rules hash). A small fine-tuned classifier for line selection is a parked later spike; a small capped exact-inference network is acceptable if needed.",
+   "conflicts": []
+  },
+  {
+   "id": "A-35",
+   "sources": [
+    "INV-D"
+   ],
+   "target": "DESIGN_NOTES.md#new bullet under orbital/psychohistory; config.yaml#roadmap item 9 (line 145)",
+   "action": "rewrite",
+   "summary": "Ship Mind forecast is a closed-form banded hazard from the Mind's own Observations, shown as a band plus its top two causes, fixed band edges with hysteresis; Bayesian network stays parked.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "145",
+     "quote": "Psychohistory Forecast"
+    }
+   ]
+  },
+  {
+   "id": "A-36",
+   "sources": [
+    "S5-15",
+    "S5-18"
+   ],
+   "target": "DESIGN_NOTES.md#lines 51-53 (Visual & UI Direction); config.yaml#lines 28-29",
+   "action": "add",
+   "summary": "Readability rule: three value tiers (environment low, actors mid-high, signal brightest), signal hues reserved, mood never carries signal; lace text sits on a solid panel at a fixed type size; debug highlight moves off cyan. Enforced by a readability contract test.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "53",
+     "quote": "razor-thin cyan-white vector arcs"
+    }
+   ]
+  },
+  {
+   "id": "A-37",
+   "sources": [
+    "S5-15",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 line 237; config.yaml#line 36; AGENTS.md#line 56",
+   "action": "rewrite",
+   "summary": "The currently selected Space target carries a warm mark so the 0.4 m / +-45 degree use rule can be read. Reject a global 'important' accent (breaks P4); opt-in assist mode is possible later.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "237",
+     "quote": "The winner's name is the prompt."
+    }
+   ]
+  },
+  {
+   "id": "A-38",
+   "sources": [
+    "S5-11",
+    "S5-06",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#section 7 line 224 and line 312 raw note; config.yaml#lines 27, 35",
+   "action": "rewrite",
+   "summary": "Camera: control frame derives from the volume yaw, pitch and distance, latched while a move key is held across a volume change; single yaw-neutral zoom-out scalar (05d). Capture/return directive stack arrives with dialogue and events: Space never skips a capture, movement or Escape hands control back, no captures during a conversation, reduce-motion cuts, each capture has a maximum hold.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "224",
+     "quote": "W is into the picture, taken from the active camera volume's settled yaw."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "312",
+     "quote": "we should leave the option open for certain world events to capture that centring"
+    }
+   ]
+  },
+  {
+   "id": "A-39",
+   "sources": [
+    "S5-09"
+   ],
+   "target": "DESIGN_NOTES.md#section 7 line 224; interfaces AGENTS/README",
+   "action": "rewrite",
+   "summary": "InputState/InputFrame: keyup, blur and visibilitychange handled; event.code for physical keys; held and pressed sets; data action table; Space edge-triggered, no auto-repeat; dev HUD neutralised so Space cannot re-click it.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "224",
+     "quote": "WASD moves the focus body across the current room"
+    }
+   ]
+  },
+  {
+   "id": "A-40",
+   "sources": [
+    "S5-10",
+    "S5-09",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 lines 238 and section 10 lines 259-261; config.yaml#line 36, 38; AGENTS.md#lines 56, 58",
+   "action": "rewrite",
+   "summary": "Input grammar: W/S are vertical, Space confirms, Escape goes back; A/D are aliases in vertical lists and own left/right in horizontal rows; arrow keys are a second binding set. Consumption: the top modal layer consumes every Space and Escape press in the frame it happens, which replaces the per-case clauses about opening keys and held keys.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "238",
+     "quote": "W and A go to the previous row. S and D go to the next."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "261",
+     "quote": "W and A move to the previous row. S and D move to the next."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "238",
+     "quote": "The key that opens a menu does not also confirm a row."
+    }
+   ]
+  },
+  {
+   "id": "A-41",
+   "sources": [
+    "S5-12",
+    "S5-18",
+    "R9"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'Accessibility and Settings'; line 199; config.yaml#context; AGENTS.md#new bullet",
+   "action": "add",
+   "summary": "Settings model kept outside the hash: reduceMotion, hold or toggle movement, textScale; readingSpeed, ambient persistence and captions follow with 07 and 05a; optional qualitative-odds setting. Adaptive DPR (step down fast, up slowly) rides with Settings.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "199",
+     "quote": "sway amplitude (clamped by existing `reduceMotionAndFlashing`)"
+    }
+   ]
+  },
+  {
+   "id": "A-42",
+   "sources": [
+    "S5-13",
+    "P4"
+   ],
+   "target": "DESIGN_NOTES.md#Accessibility section; lines 85 and 207",
+   "action": "add",
+   "summary": "Every visual tell registers a passive 'noticing' in the lace log (Disco Elysium style), so no clue is visual-only; validated at 05f.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "207",
+     "quote": "Cues stay **subtle and diegetic** (mud on a wheel-well"
+    }
+   ]
+  },
+  {
+   "id": "A-43",
+   "sources": [
+    "S5-19",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#line 82 and line 266; config.yaml#line 48",
+   "action": "rewrite",
+   "summary": "Audibility has three diegetic tiers (silent, murmur, clear), never a meter; provisional rule in the minimal audio change, integrated with Observation at core step 5, used by 07 ambient lines and 05a.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "48",
+     "quote": "`audibility = loudness * distanceFalloff(earshotRadiusMeters) * portalTransmission(open|ajar|closed|barred) * (1 - localMask)`"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "266",
+     "quote": "A line shows only when that speaker is audible under the earshot rule"
+    }
+   ]
+  },
+  {
+   "id": "A-44",
+   "sources": [
+    "S5-20",
+    "R5C5",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#lines 80-89 (Sound design); config.yaml#lines 46-49 and roadmap 5a",
+   "action": "rewrite",
+   "summary": "Audio identity is hybrid: procedural synthesis plus a small CC0 sample set, so the 'zero .wav' claim is relaxed.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "49",
+     "quote": "Zero large `.wav` assets in git"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "88",
+     "quote": "Uses native browser Web Audio synthesis"
+    }
+   ]
+  },
+  {
+   "id": "A-45",
+   "sources": [
+    "owner decision after slice 5",
+    "R5C5"
+   ],
+   "target": "config.yaml#roadmap (new item after 5e, line 130); DESIGN_NOTES.md#new section",
+   "action": "add",
+   "summary": "New minimal-audio change directly after 05e (before 05b-1): footsteps by surface, doors, menu confirm/back, murmur through doors on provisional audibility tiers. Observation integration follows at core step 5; full 05a stays later.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "131",
+     "quote": "5a. 05a-acoustics-and-procedural-web-audio"
+    }
+   ]
+  },
+  {
+   "id": "A-46",
+   "sources": [
+    "owner decision after slice 5",
+    "R5C4",
+    "S5-20"
+   ],
+   "target": "DESIGN_NOTES.md#section 9 lines 246-253 and line 83; config.yaml#lines 37, 47; AGENTS.md#line 58",
+   "action": "rewrite",
+   "summary": "Amend section 9: per-NPC tone blips, a subtle per-character pitch/timbre signature timed to bubble text pages, are not a synthesised voice and do not read a line aloud. Everything else stays non-speech; the lace bus stays non-speech.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "248",
+     "quote": "There is no voice acting, and no synthesised voice reads a line aloud."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "253",
+     "quote": "Neither adds an `AudioContext` for speech. The audio change stays non-speech."
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "83",
+     "quote": "This bus does not speak."
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "58",
+     "quote": "There is no voice acting."
+    }
+   ]
+  },
+  {
+   "id": "A-47",
+   "sources": [
+    "S5-01",
+    "S5-05",
+    "S5-02",
+    "S5-03"
+   ],
+   "target": "DESIGN_NOTES.md#line 216, 225 and 60; config.yaml#line 34; AGENTS.md#line 55",
+   "action": "rewrite",
+   "summary": "A content shape descriptor (primitive, dims, offset) is read by both renderer and the footprint builder; vocabulary starts as box, cylinder, cone, icosahedron; unknown shape ids fail validation. Crowd and materialized NPCs get a mesh from present poses (pooled add/remove at core step 6). Entity-id pattern checked at load and materialize.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "216",
+     "quote": "a pose with no matching visual is skipped"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "34",
+     "quote": "A character is drawn only when `CharacterVisualBlueprint.characterId` matches the entity id."
+    }
+   ]
+  },
+  {
+   "id": "A-48",
+   "sources": [
+    "S5-16",
+    "S5-17",
+    "S5-07",
+    "S5-08"
+   ],
+   "target": "DESIGN_NOTES.md#Visual direction new bullet",
+   "action": "add",
+   "summary": "Later notes: silhouette budget (TF2 principle, black-silhouette lab view), theme schema roles before the second epoch pack, merged Tier-3 crowd past about a dozen, adaptive DPR.",
+   "conflicts": []
+  },
+  {
+   "id": "A-49",
+   "sources": [
+    "S3-06",
+    "S5-14",
+    "owner decision after slice 5"
+   ],
+   "target": "DESIGN_NOTES.md#section 8 lines 240, 244; config.yaml#lines 31, 36, 130; AGENTS.md#line 56",
+   "action": "rewrite",
+   "summary": "Pause is one domain freeze bit (simulationFrozen), separate from accepting commands. Lab mode (desaturation, free-cam, picking) is a PlaySession interface flag, and free-cam keys are gated on it, not on isPaused().",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "240",
+     "quote": "That pause freezes the room through the existing paused bit and leaves the camera anchored."
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "31",
+     "quote": "Pauses 60Hz kinematics, cognitive pulses, and watch advancement, desaturates the frozen world by 40%"
+    }
+   ]
+  },
+  {
+   "id": "A-50",
+   "sources": [
+    "owner decision after slice 5",
+    "S5-10"
+   ],
+   "target": "DESIGN_NOTES.md#line 244; config.yaml#line 130",
+   "action": "rewrite",
+   "summary": "Reword the 05e clause 'A second pause flag.' to 'no second domain pause flag'.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "244",
+     "quote": "A second pause flag."
+    }
+   ]
+  },
+  {
+   "id": "A-51",
+   "sources": [
+    "S4-01",
+    "owner decision after slice 4"
+   ],
+   "target": "DESIGN_NOTES.md#lines 55, 62; config.yaml#line 33; src/interfaces/README.md#stageLabPanel; AGENTS.md",
+   "action": "rewrite",
+   "summary": "Lab JSON is the source of truth: packs and stages are JSON, loaded and Zod-checked at runtime through validateLaunch, with no emitted TS. The bridge writes only allowlisted, schema-checked files. Until built, the docs state that the stage-lab Save does not persist into the game.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "62",
+     "quote": "persists edits via **\"Save to Disk\"**"
+    },
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "55",
+     "quote": "disk bridge JSON persistence in `src/content/scene/stages/*.json`"
+    }
+   ]
+  },
+  {
+   "id": "A-52",
+   "sources": [
+    "S4-12",
+    "S4-03",
+    "S1-R11",
+    "S4-14",
+    "owner decision after slice 4"
+   ],
+   "target": "config.yaml#lines 60-64; AGENTS.md#line 65; .agents/skills/uplift-debug/SKILL.md#8",
+   "action": "rewrite",
+   "summary": "Telemetry policy: the Act log records what happened; telemetry holds crash, warn, frame spikes and hash checkpoints; decision traces come from replaying the command log with tracing on (log nothing, replay with tracing). The logger never truncates (rotate the previous session into logs/prev/). Wire browser telemetry through the guarded bridge with a crash ring buffer. Honest skill text.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "61",
+     "quote": "MUST be logged to `./logs/current-session.jsonl`"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "62",
+     "quote": "Only the latest session log is retained on new session start"
+    },
+    {
+     "path": "AGENTS.md",
+     "lines": "65",
+     "quote": "Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl`"
+    }
+   ]
+  },
+  {
+   "id": "A-53",
+   "sources": [
+    "S4-02",
+    "S4-03",
+    "owner decision after slice 4"
+   ],
+   "target": "config.yaml#new Hardening directive; AGENTS.md#Section guides (infrastructure); src/infrastructure/AGENTS.md",
+   "action": "add",
+   "summary": "Bridge lock: Origin allow-list, Host check, Content-Type, per-run token, size limits, allowlisted paths with realpath containment, explicit server.cors, http middleware test.",
+   "conflicts": []
+  },
+  {
+   "id": "A-54",
+   "sources": [
+    "S4-15",
+    "S4-16",
+    "owner decision after slice 4"
+   ],
+   "target": "AGENTS.md#Quick Verify lines 9-22; README.md#line 33; config.yaml#lines 160, 203",
+   "action": "rewrite",
+   "summary": "verify runs format, lint, typecheck and vitest in parallel with one PASS/FAIL line per step (keep verify:serial); pre-commit runs verify; arch tests that pin SKILL.md prose and the lint-staged array are deleted; the <5s budget is restated against the measured parallel time.",
+   "conflicts": [
+    {
+     "path": "AGENTS.md",
+     "lines": "15",
+     "quote": "`npm run verify` executes in sequence:"
+    },
+    {
+     "path": "README.md",
+     "lines": "33",
+     "quote": "in sequence (`<5s`)"
+    }
+   ]
+  },
+  {
+   "id": "A-55",
+   "sources": [
+    "S3-01",
+    "S3-02",
+    "S3-03",
+    "S4-10",
+    "owner decision after slice 3"
+   ],
+   "target": "DESIGN_NOTES.md#new section 'State, saves and pack identity'; AGENTS.md#src/domain/AGENTS.md pointer; config.yaml#line 74",
+   "action": "rewrite",
+   "summary": "Slices are frozen on write and shared on read; StateSliceKey gains an optional schema, version and migrate plus a plain-JSON guard; WorldStateCodec owns snapshotVersion, Zod load, migrations and epoch check; saves carry packId and version; decision: one registry per epoch, cameo content via an explicit import list.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "74",
+     "quote": "Custom module state MUST use typed `StateSliceKey<T>` descriptors"
+    }
+   ]
+  },
+  {
+   "id": "A-56",
+   "sources": [
+    "S4-08",
+    "S4-06",
+    "S4-09",
+    "S4-11"
+   ],
+   "target": "AGENTS.md#Layer rules and Quick Verify; src/content/AGENTS.md#recipes; tests/AGENTS.md",
+   "action": "add",
+   "summary": "validateLaunch(pack, stages, visuals) collects every error and runs in PlaySession and pack tests; epoch-agnostic denylist derived from exported packs and moved into tests/architecture; defineModuleKind kind table; docs-truth check that every *Blueprint named in an AGENTS.md exists unless tagged '(planned)'; test fixtures leave the content barrel.",
+   "conflicts": [
+    {
+     "path": "src/content/AGENTS.md",
+     "lines": "1",
+     "quote": "# Agent Guide — Content & Plug-and-Play Modules (`src/content/`)"
+    }
+   ]
+  },
+  {
+   "id": "A-57",
+   "sources": [
+    "S3-10",
+    "S3-11",
+    "S3-12",
+    "S3-15",
+    "S3-05",
+    "S3-18"
+   ],
+   "target": "src/domain/AGENTS.md; src/application/AGENTS.md; DESIGN_NOTES.md#line 72",
+   "action": "rewrite",
+   "summary": "Hardening-batch doc updates: tick phase order commands, watch, materialize, kinematics, cognition, commit, flush; move outcomes (Arrived, Blocked, Interrupted) as data; frame try/catch re-arms rAF; PlaySession.status per call.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "72",
+     "quote": "Every `BehaviorModule` defines `deliberationSeconds`"
+    }
+   ]
+  },
+  {
+   "id": "A-58",
+   "sources": [
+    "02b",
+    "owner amendment after slice 5",
+    "S4-08"
+   ],
+   "target": "openspec/config.yaml#roadmap lines 120-148",
+   "action": "rewrite",
+   "summary": "Reorder to the corrected order: hardening 0a, 0b, 1-7; 05d; 05e; minimal-audio change; StateSlice fix then 05b-1 (clock half, with validateLaunch and the docs-truth pass); effect envelope/Act; Observation; presence; ThreadRuntime etc; 05f; 07 plus TextSourcePort and authoring kit; vertical slice as first pass of 11; 06 and 06a; 05b-2; 08'; 07d, 07e, 07a-c; 05a, 06c, 06b, 09, 09a, 10, rest of 11.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "131",
+     "quote": "5a. 05a-acoustics-and-procedural-web-audio"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "132",
+     "quote": "5b. 05b-campaign-clocks-and-storyteller-director"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "134",
+     "quote": "Depends on 05f [planned — revisable]"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "148",
+     "quote": "11. 11-epoch-1-world-population-and-content-pack"
+    }
+   ]
+  },
+  {
+   "id": "A-59",
+   "sources": [
+    "02b",
+    "S2-01"
+   ],
+   "target": "openspec/config.yaml#roadmap item 5b (line 132)",
+   "action": "rewrite",
+   "summary": "Split 05b into 05b-1 (elapsedWatches, advance_watches, *Ticks to *Watches, timeHorizonConfig, committed time-spend verbs including the watch budget) and 05b-2 (storyteller, envelopes, storylets, pacing lab, tuned against the slice).",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "132",
+     "quote": "4-Clock 50–100h Pacing Hierarchy"
+    }
+   ]
+  },
+  {
+   "id": "A-60",
+   "sources": [
+    "R1",
+    "S1-R1",
+    "02b"
+   ],
+   "target": "openspec/config.yaml#roadmap (new 'validated by' column and slice item before 06); DESIGN_NOTES.md",
+   "action": "add",
+   "summary": "Add a 'validated by' column to the roadmap; the one-thread vertical slice is the first pass of change 11 and is the acceptance gate for 06. It tests the engine and does not replace engine work.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "148",
+     "quote": "Populate Epoch 1 (Feudal) with its full cast of on-stage & off-stage entities"
+    }
+   ]
+  },
+  {
+   "id": "A-61",
+   "sources": [
+    "02b",
+    "S2-04",
+    "S2-06"
+   ],
+   "target": "openspec/config.yaml#roadmap items 7 and 7e (lines 138, 143)",
+   "action": "rewrite",
+   "summary": "07 gains TextSourcePort (authored and pool adapters), LineBrief and gate, freeze-on-show and the authoring kit (generated adapter stubbed); 07e becomes gate evals and depends on 07d.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "138",
+     "quote": "no voice acting. Depends on 05e"
+    }
+   ]
+  },
+  {
+   "id": "A-62",
+   "sources": [
+    "02b",
+    "S2-18",
+    "S2-19"
+   ],
+   "target": "openspec/config.yaml#roadmap item 9 (line 145)",
+   "action": "rewrite",
+   "summary": "09 gains Delta spent on insertion and the emergency fuse; 09a keeps its scope.",
+   "conflicts": [
+    {
+     "path": "openspec/config.yaml",
+     "lines": "145",
+     "quote": "Emergency State set-pieces"
+    }
+   ]
+  },
+  {
+   "id": "A-63",
+   "sources": [
+    "S1-R8",
+    "R8"
+   ],
+   "target": "DESIGN_NOTES.md#new 'Deferred' list",
+   "action": "mark-planned",
+   "summary": "Record onboarding / first-10-minutes design (deferred by owner) and Epoch 1 as definition of done (open) as explicit open items.",
+   "conflicts": []
+  },
+  {
+   "id": "A-64",
+   "sources": [
+    "S1-R11"
+   ],
+   "target": "src/interfaces/README.md#line 22; src/interfaces/AGENTS.md#line 13; DESIGN_NOTES.md#line 218",
+   "action": "rewrite",
+   "summary": "Label the click-to-waypoint binding as dev tooling, not the player path.",
+   "conflicts": [
+    {
+     "path": "DESIGN_NOTES.md",
+     "lines": "214",
+     "quote": "The shipped page click, a waypoint within `1.5` m or a portal prop"
+    }
+   ]
+  },
+  {
+   "id": "A-65",
+   "sources": [
+    "S0",
+    "S4-11"
+   ],
+   "target": "README.md#line 62; AGENTS.md#Section guides",
+   "action": "rewrite",
+   "summary": "Docs truth: fix the TypeScript version contradiction (6.0.3 vs pinned 6.0.2); tag config.yaml 05c [archived] consistently; the 4-6 task rule is stated with the 02 and 05c exceptions or relaxed.",
+   "conflicts": [
+    {
+     "path": "README.md",
+     "lines": "62",
+     "quote": "Official Microsoft TS 6.0.3 JS AST API bridge"
+    },
+    {
+     "path": "openspec/config.yaml",
+     "lines": "206",
+     "quote": "Limit each change to 4-6 atomic tasks achievable within a single session"
+    }
+   ]
+  },
+  {
+   "id": "A-66",
+   "sources": [
+    "S1-R1",
+    "S2-17"
+   ],
+   "target": "AGENTS.md#new 'Section guides' row and root pointers",
+   "action": "add",
+   "summary": "Root AGENTS.md and README.md point at the rules spine, core model and system graph in DESIGN_NOTES.md; no change ids in root files.",
+   "conflicts": []
+  }
+ ],
+ "deletions": [
+  {
+   "path": "AGENTS.md",
+   "lines": "54",
+   "quote": "`locomotionMode` is `waypoint` (default) or `direct`. A direct body takes a steer and walks the floor.",
+   "reason": "05d not built; present tense"
+  },
+  {
+   "path": "AGENTS.md",
+   "lines": "55",
+   "quote": "A prop blocks the oriented footprint of its drawn mesh plus a `0.03` m slop.",
+   "reason": "05d not built (S0)"
+  },
+  {
+   "path": "AGENTS.md",
+   "lines": "56",
+   "quote": "Space selects a same-room target within `0.4` m of its surface and inside `±45°` of facing",
+   "reason": "05e not built (S0)"
+  },
+  {
+   "path": "AGENTS.md",
+   "lines": "57",
+   "quote": "Every AI subject is scored by one offline command, `npm run eval:ai`, from cases under `eval/`.",
+   "reason": "05f not built; no eval:ai script"
+  },
+  {
+   "path": "AGENTS.md",
+   "lines": "58",
+   "quote": "A conversation the player enters, or that a world event opens, advances one chunk at a time on Space.",
+   "reason": "07 not built (S0)"
+  },
+  {
+   "path": "AGENTS.md",
+   "lines": "65",
+   "quote": "Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl`",
+   "reason": "browser game does not feed the pipeline (S0)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "35",
+   "quote": "The focus operative walks the current floor with camera-relative WASD at `walkSpeedMetersPerSec`.",
+   "reason": "05d planned, written as present"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "36",
+   "quote": "Space uses a target within `0.4` m of its surface and inside `±45°` of facing.",
+   "reason": "05e planned, written as present"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "38",
+   "quote": "Space advances any conversation the player enters or a world event opens, one chunk at a time",
+   "reason": "07 planned, written as present"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "43",
+   "quote": "One offline runner, `eval/` via `npm run eval:ai`, for every AI subject.",
+   "reason": "05f planned, written as present"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "53",
+   "quote": "100% local execution after `git clone`, `npm install`, and `npm run setup-models`.",
+   "reason": "no setup-models script exists (S0)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "55",
+   "quote": "Local NLP uses a 3-stage hybrid pipeline:",
+   "reason": "obsolete under P2 (S2-04)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "57",
+   "quote": "Local ONNX Embedding Worker (`@huggingface/transformers` running quantized `Xenova/all-MiniLM-L6-v2`",
+   "reason": "no ONNX worker exists; obsolete under P2"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "58",
+   "quote": "Intent Combiner + Anti-LLM-Speak Period-Voice Composer",
+   "reason": "depends on deleted free-text parser (S2-04)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "84",
+   "quote": "Characters (`CharacterBlueprint` & `VoiceProfile`)",
+   "reason": "VoiceProfile does not exist (S0); mark (planned)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "61",
+   "quote": "MUST be logged to `./logs/current-session.jsonl`",
+   "reason": "logger not fed by the game; also policy replaced (S4-12)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "33",
+   "quote": "`F3` Sound Lab (`PUT /api/audio-patches`), and `F3` Pacing Lab (`PUT /api/pacing-profiles/:profileId`)",
+   "reason": "audio-patches and pacing-profiles routes do not exist (S0)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "43",
+   "quote": "free-text intent cases on `08`",
+   "reason": "change 08 retired (S2-04)"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "144",
+   "quote": "3-stage lexical + Web Worker ONNX free-text parser with full AI reasoning telemetry",
+   "reason": "change 08 obsolete as designed"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "117",
+   "quote": "Hugging Face Transformers (`@huggingface/transformers`): 4.3.2",
+   "reason": "not used by any built code; mark as reserved for the generated TextSourcePort adapter"
+  },
+  {
+   "path": "openspec/config.yaml",
+   "lines": "203",
+   "quote": "no WebGL or 23MB ONNX load required in fast unit tests",
+   "reason": "ONNX load no longer part of the plan"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "26",
+   "quote": "Repeatedly freezing one advisor out causes them to sulk and drop an `omissible` clause from their next briefing",
+   "reason": "07d not built; mark planned"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "65",
+   "quote": "### Lightweight AI & NLP Evaluation Testing Framework (`05f-local-ai-eval-framework`)",
+   "reason": "NLP heading obsolete; runner not built"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "69",
+   "quote": "**Hybrid NLP & ONNX Intent Evals (Change 08)**: Golden dataset of free-text player inputs",
+   "reason": "free text banned by P2; delete bullet"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "235",
+   "quote": "Dialogue wording, interruption, pretexts, and free-text intent stay in their own changes.",
+   "reason": "drift: free-text intent"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "244",
+   "quote": "Free-text intent is the change after that family.",
+   "reason": "drift: free-text intent"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "270",
+   "quote": "Free-text intent is the change after that family: a deeper layer, and Space submits the text there instead of paging.",
+   "reason": "drift: Space submits typed text; contradicts P2"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "295",
+   "quote": "The free-text intent suite.",
+   "reason": "drift: free-text intent"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "300",
+   "quote": "free-text intent (change 08)",
+   "reason": "drift: change 08"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "301",
+   "quote": "the intent dataset",
+   "reason": "drift: intent dataset"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "224",
+   "quote": "WASD moves the focus body across the current room at that body's `walkSpeedMetersPerSec`.",
+   "reason": "section 7 is planned but written as shipped; add (planned) status"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "237",
+   "quote": "Space uses the nearest point of a prop footprint, or of a person's disc, within `0.4` m",
+   "reason": "section 8 is planned but written as shipped"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "299",
+   "quote": "`npm run eval:ai` loads every registered case, rolls it with a fixed seed under `FAST_EVAL_PACING_CONFIG`, and reports pass or fail.",
+   "reason": "05f not built"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "89",
+   "quote": "click **Save Patch to Disk** via the Vite Local Disk Bridge `PUT /api/audio-patches`",
+   "reason": "route does not exist (S0)"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "110",
+   "quote": "**Live `F3` Pacing & Envelope Inspector (`GET`/`PUT /api/pacing-profiles/:profileId`)**",
+   "reason": "route does not exist (S0)"
+  },
+  {
+   "path": "DESIGN_NOTES.md",
+   "lines": "62",
+   "quote": "persists edits via **\"Save to Disk\"**",
+   "reason": "stage-lab saves are never loaded (S4-01); add caveat"
+  },
+  {
+   "path": "README.md",
+   "lines": "85",
+   "quote": "local ONNX Web Worker",
+   "reason": "no ONNX worker exists; obsolete under P2"
+  },
+  {
+   "path": "src/infrastructure/AGENTS.md",
+   "lines": "7",
+   "quote": "All model weights must load from the local `./public/models/` cache after running `npm run setup-models`.",
+   "reason": "setup-models does not exist"
+  },
+  {
+   "path": "tests/AGENTS.md",
+   "lines": "6",
+   "quote": "the 23MB ONNX mo",
+   "reason": "ONNX load no longer planned"
+  },
+  {
+   "path": ".agents/skills/uplift-debug/SKILL.md",
+   "lines": "8",
+   "quote": "trace NPC utility or local ONNX NLP decisions",
+   "reason": "no ONNX NLP decisions exist (S4-14 honest skill text)"
+  }
+ ],
+ "coverage_gaps": [
+  "S1-R8 onboarding / first 10 minutes: deferred by owner, no content to amend (placed only as an open item, A-63)",
+  "R8 Epoch 1 as definition of done with its own ending: owner did not address; no accepted text",
+  "Save policy (S1-R5): undecided by owner; recorded only as an open decision",
+  "GPU profile (slice 5): open; no doc amendment",
+  "R4A1 compiler-API import scanning, RC2 runtime reranker, nano-jev classifier: parked; only a mark-planned note",
+  "S1-R10 system graph content itself is a separate deliverable (raw/S2-system-graph.json); inventory only places it"
+ ]
+}

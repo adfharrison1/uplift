@@ -1,0 +1,92 @@
+[
+ {
+  "id": "S5-11",
+  "claim": "The camera is one volume-selected spring target; there is no capture layer, return blend, player skip, or zoom, so the owner's 'world events capture the camera then return' and 'one further-out zoom' have no seam beyond a raw focusPositionOverride. | WASD is specified relative to the 'active camera volume's settled yaw', so walking across a volume boundary with a different yaw, or a capture/zoom changing the rig, can remap the controls under the player's fingers (the classic fixed-camera cut problem).",
+  "paths": [
+   "DESIGN_NOTES.md:224-224",
+   "DESIGN_NOTES.md:312-312",
+   "src/application/rendering/RenderFrameBuilder.ts:125-125",
+   "src/application/rendering/RenderFrameBuilder.ts:528-528",
+   "src/application/rendering/RenderFrameBuilder.ts:551-551",
+   "src/content/scene/starterHoldStages.ts:70-72"
+  ]
+ },
+ {
+  "id": "S5-12",
+  "claim": "Accessibility is one clamp: reduceMotionAndFlashing is read from the OS media query each frame, only softens the emergency and zenith tilts, is not a user setting, and nothing in the design notes covers text scale, contrast, caption cues for planned audio, hold/toggle, or reading time for expiring ambient lines.",
+  "paths": [
+   "DESIGN_NOTES.md:264-264",
+   "src/interfaces/composition/browserMain.ts:195-195",
+   "src/interfaces/composition/shellDocument.ts:119-119"
+  ]
+ },
+ {
+  "id": "S5-13",
+  "claim": "The inference-trail design (P4) relies on subtle visual tells (mud on a wheel-well, an extra broadsheet, bunting) and sets 'never billboards' as a rule, which excludes players with low vision, colour-vision deficiency, or just a small laptop at 60 FPS and dark chiaroscuro; with no redundant channel the trail can be silently missed.",
+  "paths": [
+   "DESIGN_NOTES.md:207-207",
+   "index.html:13-13"
+  ]
+ },
+ {
+  "id": "S5-14",
+  "claim": "05e's pause menu contradicts the shell's single paused bit: today paused means desaturated plus de-anchored free-cam plus lab, set together in keyDown, and browserMain treats paused as 'debug_free_cam'; 05e needs a pause that freezes without desaturating or freeing the camera while explicitly leaving out 'a second pause flag'.",
+  "paths": [
+   "DESIGN_NOTES.md:240-240",
+   "src/interfaces/composition/browserMain.ts:171-171",
+   "src/interfaces/composition/playInput.ts:151-153"
+  ]
+ },
+ {
+  "id": "S5-15",
+  "claim": "There is no mood-versus-signal rule: the palette is built so everything converges on near-black, and the player operative's own colour is indistinguishable from the iron walls and the shadow background, so P4 cues (who, what carried, what changed) have no reserved visual channel.",
+  "paths": [
+   "DESIGN_NOTES.md:51-51",
+   "src/content/scene/defaultStageContent.ts:38-38",
+   "src/content/scene/starterHoldCharacterVisuals.ts:34-34",
+   "src/interfaces/three/StageKitbashBuilders.ts:53-53"
+  ]
+ },
+ {
+  "id": "S5-16",
+  "claim": "The kitbash figure has only eight tuning knobs and one body mesh (box torso, icosahedron head, no limbs, no gait animation), and the two shipped NPCs already share the same cloak; at the ~11-14 m gameplay camera 40-60 characters will collapse to the same three or four silhouettes.",
+  "paths": [
+   "src/content/scene/defaultStageContent.ts:194-194",
+   "src/content/scene/starterHoldCharacterVisuals.ts:42-42",
+   "src/interfaces/three/StageKitbashBuilders.ts:333-340"
+  ]
+ },
+ {
+  "id": "S5-17",
+  "claim": "The epoch theme schema is a four-material, one-palette struct and resolveCharacterVisualForTheme's palette rebind overwrites every character's colours with the same stone and iron hexes, so applying a new epoch theme erases per-character identity and the 7-era claim is untested.",
+  "paths": [
+   "DESIGN_NOTES.md:56-56",
+   "src/application/rendering/SceneVisualBlueprints.ts:436-441"
+  ]
+ },
+ {
+  "id": "S5-18",
+  "claim": "The diegetic UI split reuses cyan for two jobs: the lace is 'razor-thin cyan-white vector arcs', which read poorly as text, while the debug selection highlight already uses the same cyan (#4fd2ff) on world meshes, so lace-equals-cyan is already spent in the scene.",
+  "paths": [
+   "DESIGN_NOTES.md:248-248",
+   "DESIGN_NOTES.md:53-53",
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:330-330"
+  ]
+ },
+ {
+  "id": "S5-19",
+  "claim": "The shared audibility formula is not yet a predictable gameplay rule: localMask is undefined, there is no player-facing earshot readout, and a purely multiplicative scalar gives the player no threshold to learn, so eavesdropping and stealth will feel arbitrary.",
+  "paths": [
+   "DESIGN_NOTES.md:130-130",
+   "openspec/config.yaml:48-48"
+  ]
+ },
+ {
+  "id": "S5-20",
+  "claim": "Procedural-only audio with no voice acting leaves character carried by nothing in sound, and the plan specs settlement ambience and footsteps richly while NPC identity in audio (babble, blips, instrument motifs) is absent; because audio is also an inference channel, it should not sit late.",
+  "paths": [
+   "DESIGN_NOTES.md:82-82",
+   "openspec/config.yaml:49-49"
+  ]
+ }
+]

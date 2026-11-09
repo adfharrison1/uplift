@@ -1,0 +1,84 @@
+[
+ {
+  "id": "S4-02",
+  "claim": "The disk bridge has no Origin, Content-Type or token check, so any web page the developer has open can fire simple cross-origin POSTs at localhost:5173 and wipe or poison the logs; today PUT/DELETE and DNS rebinding are blocked only by browser preflight and Vite's own host check, not by the bridge.",
+  "paths": [
+   "src/interfaces/vite/localDiskBridgePlugin.ts:166-174",
+   "src/interfaces/vite/localDiskBridgePlugin.ts:417-424",
+   "vite.config.ts:4-4"
+  ]
+ },
+ {
+  "id": "S4-03",
+  "claim": "The disk logger truncates both log files whenever it is constructed or a session is started, and it stamps time on arrival, so wiring browser telemetry (S1-R11) as the logger stands will destroy the crash it exists to record: any dev-server restart or page reload wipes the previous session.",
+  "paths": [
+   "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:207-207",
+   "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:245-247",
+   "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:278-279",
+   "src/interfaces/vite/localDiskBridgePlugin.ts:414-414"
+  ]
+ },
+ {
+  "id": "S4-10",
+  "claim": "Pack identity and composition are unmodelled: epochId is only checked non-empty and never stored, there is no pack id or version, a second pack silently merges into the same flat id space, and there is no override semantics.",
+  "paths": [
+   "src/domain/registries/EpochModuleRegistry.ts:574-578",
+   "src/domain/registries/EpochModuleRegistry.ts:58-61"
+  ]
+ },
+ {
+  "id": "S4-11",
+  "claim": "Section guides instruct agents to use blueprints that do not exist and describe recipes the code cannot do: content AGENTS recipes name VehicleKindBlueprint, TransitRouteBlueprint, TravelVignetteBlueprint, EnRouteEncounterTable, TravelSurfaceCueBlueprint and EpochProfileBlueprint[], and a CharacterVisualBlueprint 'keyed by characterId and lineageId'. | Guides still carry the pre-P2 AI plan and stale pointers: infrastructure AGENTS blesses @huggingface/transformers and tests/AGENTS references a 23MB ONNX model for an intent flow that P2 removed; interfaces/application guides say stage-lab writes persist content ('Stage-lab disk writes use fetch PUT') without saying they are not loaded. | The content barrel ships test fixtures as content: DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT (space 'charnel_stairs') and DEFAULT_HIGHGLASS_CHARACTER_VISUALS are not in the starter pack and are consumed only by tests, so a new author sees three scene files and cannot tell which is the real pack; scene content also imports its schemas from interfaces/three, pulling Three.js into the data layer.",
+  "paths": [
+   "src/content/AGENTS.md:21",
+   "src/content/AGENTS.md:9",
+   "src/content/index.ts:9-13",
+   "src/content/scene/starterHoldStages.ts:9-15",
+   "src/infrastructure/AGENTS.md:5",
+   "src/interfaces/AGENTS.md:15"
+  ]
+ },
+ {
+  "id": "S4-12",
+  "claim": "The rule 'every AI input/output/reasoning trace logs' and the Act ring are the same event stream recorded twice, and the compactor keeps every AI trace and every high-signal category verbatim, so telemetry volume scales with NPC count times evaluations times Observation fan-out, not with anything the developer reads.",
+  "paths": [
+   "AGENTS.md:65-65",
+   "reviews/2026-11-08-root-and-branch/slices/02-systems.md:23-23",
+   "src/domain/telemetry/SessionTelemetryPort.ts:143-146"
+  ]
+ },
+ {
+  "id": "S4-13",
+  "claim": "The 133 tests are mostly real behaviour tests, but they are packed into a few monolithic 'it' blocks (EpochModuleRegistry has 5 cases in 780 lines, 46 expects) built from hand-pasted full-structure fixtures, so the core model and hardening batch will break whole files at once instead of one assertion, and a failure will not say which behaviour regressed. | Several load-bearing behaviours have no test at all, and a few existing assertions test nothing: the bridge middleware that actually runs, the browser frame loop, torn/disk-full logging, and the committed telemetry caps are only checked by restating the constant.",
+  "paths": [
+   "tests/architecture/layer_boundaries.test.ts:425-431",
+   "tests/unit/application/SimulationCoordinator.test.ts:384-384",
+   "tests/unit/domain/EpochModuleRegistry.test.ts:6-6",
+   "tests/unit/infrastructure/NdjsonSessionTelemetry.test.ts:237-237",
+   "tests/unit/interfaces/ChiaroscuroStageRenderer.test.ts:20-20",
+   "tests/unit/interfaces/LocalDiskBridge.test.ts:39-40"
+  ]
+ },
+ {
+  "id": "S4-14",
+  "claim": "Compaction is a synchronous read-parse-rewrite of both whole files inside the Vite request handler, repeats on every batch while the window cannot shrink the file, and the failure paths (disk full, torn append) are untested and lossy; the '100% Preserved Verbatim' claim in the skill is false at the cap. | The uplift-debug skill and logs:query only work as a dump-everything tool over a log nothing feeds: output is unbounded, there is no tail, limit, summary or per-category count, and an empty logs dir silently prints nothing.",
+  "paths": [
+   ".agents/skills/uplift-debug/SKILL.md:17-17",
+   ".agents/skills/uplift-debug/SKILL.md:3-3",
+   "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:286-291",
+   "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts:297-300",
+   "src/infrastructure/telemetry/RollingLogCompactor.ts:329-329",
+   "src/interfaces/cli/queryLogs.ts:186-190",
+   "src/interfaces/vite/localDiskBridgePlugin.ts:356-358"
+  ]
+ },
+ {
+  "id": "S4-18",
+  "claim": "05f is specified as 'one runner for every AI subject' but the accepted core model adds three other test-like artifacts (golden run, evidence-coverage eval, text gates) with no rule for which lives where, so they will overlap on fixtures, harness and thresholds unless the split is fixed before eval/ is created.",
+  "paths": [
+   "openspec/config.yaml:133-133",
+   "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md:105-105",
+   "reviews/2026-11-08-root-and-branch/slices/03-sim-core.md:43-43"
+  ]
+ }
+]

@@ -1,0 +1,45 @@
+{
+"merges":[
+{"into":"docs-spine-and-roadmap","from":["docs-rules-spine","roadmap-yaml"],"why":"Both doc-only, same owner and files; docs ride together, one review."},
+{"into":"process-gates-and-ledger","from":["design-notes-skill-fix-and-agents-truth","review-gates-skill","defect-ledger"],"why":"One process-docs story from slices/06; three audit cycles for text-only changes is pure overhead."},
+{"into":"hx-ops-safety","from":["hx-0a-bridge-lock","hx-0a2-logger-rotate","hx-0b-parallel-verify"],"why":"Three small infra guards, no shared design; one capability: dev tooling cannot lose data or hide failures."},
+{"into":"hx-slice-store","from":["hx-3a-test-builders","hx-3b-slice-store-share-on-read","hx-3c-slice-keys-versioned"],"why":"Builders exist to test the store; keys and store are one spec delta. Keep as tasks inside one change."},
+{"into":"hx-save-integrity","from":["hx-4a-world-state-codec","hx-4b-pack-identity","hx-4c-id-pattern-listslots"],"why":"Codec, pack identity and id check are one save-envelope story with one migration spec."},
+{"into":"hx-reducer-and-frame-safety","from":["hx-5a-reducer-outcomes","hx-5b-pause-split-and-status","hx-5c-frame-guard-lab-flag"],"why":"Outcome, status and frame guard are one error-surfacing capability."},
+{"into":"hx-fixed-step-tick","from":["hx-6a-tick-phases-fixed-step","hx-6a2-interpolation-seam"],"why":"The seam is a task of the fixed step, not a separate capability."},
+{"into":"hx-determinism-harness","from":["hx-6b-state-hash-golden-runscenario","hx-6c-determinism-lint"],"why":"Hash, golden run and lint are one 'determinism is enforced' capability."},
+{"into":"hx-kinematics","from":["hx-7a-kinematics-mode-split","hx-7b-kinematics-outcomes-and-fixes"],"why":"Same module; fixes only make sense with the split."},
+{"into":"pre-05d-renderer-shape","from":["pre-05d-shape-descriptor","pre-05d-renderer-residency"],"why":"Descriptor is consumed only by residency; one verifiable result."},
+{"into":"pre-05b-launch-validation","from":["pre-05b-1a-validate-launch","pre-05b-1b-kind-table-and-refs"],"why":"Validation and its kind/ref tables are one spec."},
+{"into":"pre-05b-pack-source-of-truth","from":["pre-05b-1c-lab-json-loader","pre-05b-1d-section-docs-truth"],"why":"Section docs truth is the docs half of the loader move; docs ride with the feature."},
+{"into":"telemetry-wiring","from":["telemetry-browser-feed-crash-ring","telemetry-cli-and-log-guards"],"why":"Feed, CLI and guards are one observable pipeline."},
+{"into":"cm-act-envelope-and-rolls","from":["cm-act-envelope-ring-commit","cm-rolls-and-stimulus"],"why":"Rolls and stimulus eviction are part of the Act contract and should land as one frozen interface."},
+{"into":"cm-observation-notebook","from":["cm-observation-belief","cm-notebook-model"],"why":"Notebook is the read side of the observation table; one spec delta."},
+{"into":"cm-ledger-and-emergency","from":["cm-resource-ledger","cm-emergency-runtime"],"why":"Emergency runtime is mostly ledger consumption and has no fuse yet; same runtime store pattern."},
+{"into":"05f-eval-and-replay","from":["05f-local-ai-eval-framework","05f-command-log-replay"],"why":"Replay is the eval runner's input; one capability: npm run eval:ai replays a script."},
+{"into":"07-text-port-and-history","from":["07-text-source-port-and-line-gate","07-conversation-history"],"why":"Port, gate and history are one text-source story, still behind the authoring kit."},
+{"into":"05b-2-storylets-and-lab","from":["05b-2-storylets","05b-2-pacing-lab"],"why":"The lab is the only way to verify the grammar; ship as one."},
+{"into":"11-pass-1-slice","from":["11-pass-1-pack-skeleton","11-pass-1-thread-wiring"],"why":"A skeleton with no thread proves nothing; the milestone is 'one thread end to end'. Ledger/end card stays separate."}
+],
+"splits":[
+{"id":"05a-sound-lab-and-audio-engine","into":["05a-audio-engine","05a-sound-lab"],"why":"Engine and authoring lab are different layers and review stories."},
+{"id":"11-rest","into":["11-epoch1-content","11-epoch-ending-and-handoff-hook","11-playtest-and-tuning"],"why":"Untouched, unscoped blob; it is the definition of done and must be scoped before it can be reviewed."},
+{"id":"06-utility-ai-rivals","into":["06-utility-ai","06-rivals-remote-evidence"],"why":"Utility AI is a decision engine; rivals plus remote evidence is a content and propagation story."},
+{"id":"05d-locomotion-footprint-arrival-hold","into":["05d-locomotion-footprint","05d-arrival-hold-readability"],"why":"Four capabilities in one; arrival hold and the readability test are a separately verifiable feel check."}
+],
+"recommended_count":63,
+"milestones":[
+{"name":"M1 Trustworthy foundation","changes":["docs-spine-and-roadmap","process-gates-and-ledger","hx-ops-safety","hx-1-legacy-clamp-seed-scramble","hx-slice-store","hx-save-integrity","hx-reducer-and-frame-safety","hx-fixed-step-tick","hx-determinism-harness","hx-kinematics"],"outcome":"Docs say what is true, the gates exist, saves round-trip, and a golden seeded run hashes identically twice."},
+{"name":"M2 Walkable, usable room","changes":["pre-05d-renderer-shape","05d-input-and-control-frame","05d-locomotion-footprint","05d-arrival-hold-readability","05e-modal-stack-use-and-menu","05e-settings-model","audio-minimal"],"outcome":"Walk a character around a room with footsteps, bump props, press Space to use things, open menus and change settings."},
+{"name":"M3 Core model alive","changes":["pre-05b-launch-validation","pre-05b-pack-source-of-truth","05b-1-watch-clock-and-time-spend","telemetry-wiring","cm-act-envelope-and-rolls","cm-observation-notebook","cm-instrument-profiles-audibility-tells","cm-presence-and-materialize","cm-presence-render-crowd","cm-threads-and-pillars","cm-ledger-and-emergency","cm-diffusion-and-balancing"],"outcome":"Spend watch time, act, and see NPCs, beliefs and pressure shift in a headless run and in a crowd room, with telemetry visible."},
+{"name":"M4 Talk and notebook","changes":["05f-eval-and-replay","07-text-port-and-history","07-authoring-kit","07-dialogue-paging","07-camera-directive-stack","07-bubble-lace-skins-and-tone-blips","07-notebook-presenter"],"outcome":"Hold a paged, menu-driven conversation with bubbles and lace page, then read what you learned in the notebook; eval:ai replays it."},
+{"name":"M5 Vertical slice","changes":["11-pass-1-slice","11-pass-1-ledger-end-card"],"outcome":"Play one Epoch 1 thread from first clue to a stub end card; the go/no-go point for everything after."},
+{"name":"M6 Breadth","changes":["06-*","06a-regard","05b-2-*","08-*","07a-07e","05a-*","06b","06c","09-*","09a","10-*","11-epoch1-content and rest"],"outcome":"Rivals, overview, generated text, advisors, audio lab, Delta/emergency, and crew handoff across epochs, ending in a finished Epoch 1."}
+],
+"risks":[
+"cm-act-envelope-and-rolls: every cm-*, 07, 09 and 06 change consumes the Act contract; a wrong envelope or roll model ripples through 30+ changes. Freeze it only after a throwaway spike with a second consumer (observation) wired in.",
+"hx-fixed-step-tick (6a): tick phases and interpolation touch coordinator, renderer and every reducer ordering; bad phase order breaks determinism goldens and later presence/materialize.",
+"cm-presence-and-materialize: bridges watches to rooms and the renderer; materialize-on-entry mistakes cause pop-in, double NPCs or desync, and 07/11 build on it. Also watch hx-save-integrity as the cheapest-to-get-wrong migration."
+],
+"start_with":"docs-spine-and-roadmap (merged docs-rules-spine plus roadmap-yaml): doc-only, zero code risk, and nearly every other change depends on it; then hx-ops-safety on the same day if time allows."
+}

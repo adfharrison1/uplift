@@ -1,0 +1,94 @@
+[
+ {
+  "id": "S0A-02",
+  "claim": "browserMain boots one SimulationCoordinator with the epoch registry, an in-browser telemetry class and an in-memory save repository defined inside browserMain.ts (not the infrastructure NDJSON/file classes)."
+ },
+ {
+  "id": "S0A-03",
+  "claim": "BrowserSessionTelemetry keeps a capped in-memory array; its compact() is a no-op (void retentionWindowMs)."
+ },
+ {
+  "id": "S0A-05",
+  "claim": "PlaySession.frame steps kinematics then runs the round-robin cognitive scheduler pulse every frame, then builds a render frame for the resident stage."
+ },
+ {
+  "id": "S0A-07",
+  "claim": "Nothing at runtime enqueues NPC stimuli: enqueue_npc_stimulus is defined in the effect schema and reducer but no src caller dispatches it, so the cognitive scheduler has nothing to promote in the browser build."
+ },
+ {
+  "id": "S0A-08",
+  "claim": "The only src dispatchEffects call sites are inside SimulationCoordinator for move_entity_to_waypoint and update_prop_state; all other effect types (pressure, illicit instrument, discovery, emergency, orbital, legacy scar, audio cue, state slice) are dispatched by nothing in src."
+ },
+ {
+  "id": "S0A-09",
+  "claim": "Browser build never calls saveToSlot, loadFromSlot or exportLegacyState; they exist on SimulationCoordinator but have no caller in src outside the coordinator."
+ },
+ {
+  "id": "S0A-10",
+  "claim": "The infrastructure layer is imported only by the CLI log query and the Vite dev-server bridge plugin, never by the browser entry."
+ },
+ {
+  "id": "S0A-13",
+  "claim": "getters for offices, quiet claims, rivals, threads, channels, emergencies and behaviors on EpochModuleRegistry have no callers in src outside the registry; only getOrbitalPass is called (SimulationCoordinator constructor)."
+ },
+ {
+  "id": "S0A-19",
+  "claim": "Keyboard input in the browser is a single keydown listener forwarding to input.keyDown, which handles only F3, backquote and the four arrow keys; there is no WASD, Space, Escape, conversation, menu, interaction, role-pretext or fund verb in src."
+ },
+ {
+  "id": "S0A-24",
+  "claim": "Content registers exactly: 2 spaces, 1 prop, 2 characters; 0 offices, 0 quiet claims, 0 rivals, 0 threads, 0 channels, 0 emergencies, 0 behaviors, and no orbitalPass. The pack has only spaces, props and characters keys."
+ },
+ {
+  "id": "S0A-26",
+  "claim": "With no orbitalPass registered, the coordinator constructor finds undefined from getOrbitalPass, so orbital runtime state is never driven by content in the shipped build."
+ },
+ {
+  "id": "S0A-35",
+  "claim": "Conversations, advisors/lace pages, ambient lines, interactionHold, locomotionMode (direct vs waypoint), proximity use, pretext spending, funds, and the eval runner have no type or code in src; the only advisor trace is a telemetry kind string."
+ },
+ {
+  "id": "S0A-36",
+  "claim": "BehaviorModule has a schema and topological-order getter but there is no behavior content and no caller that runs behaviors."
+ },
+ {
+  "id": "S0B-04",
+  "claim": "ABSENT: root AGENTS.md says `locomotionMode` is `waypoint` or `direct`; the identifier does not occur anywhere in src/ or tests/."
+ },
+ {
+  "id": "S0B-05",
+  "claim": "ABSENT: root AGENTS.md describes `interactionHold` on world state; no such field exists in src/."
+ },
+ {
+  "id": "S0B-06",
+  "claim": "ABSENT: root AGENTS.md states WASD/Space/Escape drive a menu stack and Space uses a target within 0.4 m / +-45 degrees; playInput.ts handles only F3/backquote and ArrowLeft/Right/Up/Down free-cam keys, no Space/Escape/WASD handler."
+ },
+ {
+  "id": "S0B-07",
+  "claim": "ABSENT: AGENTS.md documents a 0.22 m body disc and 0.03 m prop-footprint slop with an arrival hold; no such constants or logic exist in domain/application (0.22 only appears as unrelated listenerThreshold/spinePitch)."
+ },
+ {
+  "id": "S0B-12",
+  "claim": "ABSENT: config documents `GET`/`PUT /api/pacing-profiles/:profileId`, `PacingProfileBlueprint`, `StorytellerPacingDirector`, `SimulationTimeClocks`/`elapsedWatches`; none exist in src/."
+ },
+ {
+  "id": "S0B-14",
+  "claim": "ABSENT in code: `EpochProfileBlueprint[]` (data-driven Epoch ladder) and `EpochTechCeilingBlueprint` are cited as core concepts in AGENTS/content docs but occur only in markdown; no code defines them."
+ },
+ {
+  "id": "S0B-36",
+  "claim": "CONTRADICTED: openspec config requires every change to have 4 to 6 tasks, but archived 02 has 8 completed tasks and 05c has 7."
+ },
+ {
+  "id": "S0B-40",
+  "claim": "7 changes are DELIVERED (archive folders): 01, 01a, 02, 03, 04, 05, 05c. 20 are NOT DELIVERED: 05a, 05b, 05d, 05e, 05f, 06, 06a, 06b, 06c, 07, 07a, 07b, 07c, 07d, 07e, 08, 09, 09a, 10, 11."
+ },
+ {
+  "id": "S0B-44",
+  "claim": "Planned changes 05d, 05e, 05a, 05b, 05f, 06a, 06b, 06c, 07, 07a-07e, 08, 09, 09a, 10, 11 have no openspec/changes folder (no proposal exists); there are zero active changes."
+ },
+ {
+  "id": "S0B-55",
+  "claim": "Post-feat fix volume: 05c, the only change with an interactive page, needed 3 fix commits and 1 perf commit after 4 feat commits versus at most 1 fix commit for each earlier change."
+ }
+]

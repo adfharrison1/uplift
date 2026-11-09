@@ -1,0 +1,93 @@
+[
+ {
+  "id": "S5-01",
+  "claim": "The renderer can only draw entities that have a CharacterVisualBlueprint whose characterId equals the entity id, built once per stage mount; the builder's lineage fallback visual is carried on each pose but never read, so Tier-3 crowd NPCs materialized at runtime get no mesh and the scene graph has no add/remove path.",
+  "paths": [
+   "src/application/rendering/RenderFrameBuilder.ts:687-688",
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:193-196",
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:290-291"
+  ]
+ },
+ {
+  "id": "S5-02",
+  "claim": "Per-frame and per-stage-swap cost scales with the whole world cast, not the room: the builder poses and sorts every entity in every space, the renderer traverses hidden groups, and stage mount builds every character's meshes (measured 266 us/frame builder and 650 us/frame apply at 400 entities, 72 ms synchronous scene build).",
+  "paths": [
+   "src/application/rendering/RenderFrameBuilder.ts:678-680",
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:310-311"
+  ]
+ },
+ {
+  "id": "S5-03",
+  "claim": "An entity id outside /^[a-z0-9][a-z0-9_-]{0,63}$/ makes buildFrame throw (zod parse inside the per-entity loop), and onFrame has no try/catch and schedules requestAnimationFrame last, so one such id freezes the whole page permanently.",
+  "paths": [
+   "src/application/rendering/RenderFrameBuilder.ts:699",
+   "src/application/rendering/SceneVisualBlueprints.ts:14-18",
+   "src/interfaces/composition/browserMain.ts:215-217"
+  ]
+ },
+ {
+  "id": "S5-04",
+  "claim": "There is no interpolation seam: PlaySession steps the sim with the raw rAF dt and buildFrame reads only the current WorldState, so once the hardening batch moves the sim to a fixed 1/60 step the renderer will stutter (0 or 2 steps per frame) unless buildFrame also receives the previous state and an alpha.",
+  "paths": [
+   "src/application/rendering/RenderFrameBuilder.ts:2-2",
+   "src/application/rendering/RenderFrameBuilder.ts:519-520",
+   "src/application/shell/PlaySession.ts:184-185"
+  ]
+ },
+ {
+  "id": "S5-05",
+  "claim": "Mesh shape data is hardcoded in interfaces/three: prop size is two literal boxes (kitbashId is ignored) and character slot geometry is switch statements on feudal ids with generic fallbacks, so 05d's 'footprint of the drawn mesh' rule forces application/domain to read renderer literals, and a new epoch cannot add a headgear or prop shape without editing renderer code. | Props cannot show state or identity: every non-portal prop renders as the same 0.9 m cube regardless of kitbashId, and only door hinge angle varies, so 'a changed prop' (P4) has no renderable vocabulary. | The kitbash vocabulary is a closed, feudal-named switch in interfaces code, so each new motif, garment or prop shape needs a TypeScript edit and rebuild, and unknown ids silently fall back to a generic shape; the F3 lab and the JSON bridge cannot extend it, which undercuts the 'owner and agent enrich collaboratively' loop.",
+  "paths": [
+   "DESIGN_NOTES.md:225",
+   "src/application/rendering/SceneVisualBlueprints.ts:204-204",
+   "src/application/rendering/SceneVisualBlueprints.ts:37-44",
+   "src/interfaces/three/StageKitbashBuilders.ts:168-172",
+   "src/interfaces/three/StageKitbashBuilders.ts:169-171",
+   "src/interfaces/three/StageKitbashBuilders.ts:290-292",
+   "src/interfaces/three/StageKitbashBuilders.ts:292-292"
+  ]
+ },
+ {
+  "id": "S5-06",
+  "claim": "CameraVolume pitchDegrees and yawDegrees are sprung every frame but never reach the Three camera, which is driven only by position, lookAt, roll and fov (orientation really comes from the volume offset), so authors tuning those two fields change nothing.",
+  "paths": [
+   "src/application/rendering/SceneVisualBlueprints.ts:235-236",
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:263-264"
+  ]
+ },
+ {
+  "id": "S5-07",
+  "claim": "Every kitbash part gets its own geometry and its own material (100 characters plus 60 props = 596 meshes, 596 geometries, 596 materials, roughly 4.5 draw calls per character), and shared materials cannot be used as-is because selection highlight writes emissive on the material.",
+  "paths": [
+   "src/interfaces/three/ChiaroscuroStageRenderer.ts:330-332",
+   "src/interfaces/three/StageKitbashBuilders.ts:330-337"
+  ]
+ },
+ {
+  "id": "S5-08",
+  "claim": "The renderer is hard-capped at devicePixelRatio 1 with antialias off, so on the Retina MacBook the toon silhouettes render at half resolution with jagged edges, and the cap is not adaptive to measured frame time.",
+  "paths": [
+   "src/interfaces/composition/browserMain.ts:79-79",
+   "src/interfaces/composition/shellDocument.ts:24-26"
+  ]
+ },
+ {
+  "id": "S5-09",
+  "claim": "playInput is a pointer-click adapter with a single stateless keyDown(key, repeat) entry; it has no keyup, no held-key set, no blur/visibility reset, no edge-vs-level distinction and no action layer, so none of the section-8 key rules (held key after menu closes, opener does not confirm, repeat ignored) can be expressed without a rewrite. | Keyboard layout and focus are unhandled: the handler reads event.key (WASD breaks on AZERTY/Dvorak, and a hand-rolled 'Backquote' alias shows code and key are already mixed), is on window with no preventDefault, and the dev HUD fills the page with focusable buttons, so Space (the 'use' key) will re-click whichever dev button was last pressed.",
+  "paths": [
+   "DESIGN_NOTES.md:238-238",
+   "src/interfaces/composition/browserMain.ts:186-187",
+   "src/interfaces/composition/playInput.ts:146-146",
+   "src/interfaces/composition/playInput.ts:249-251",
+   "src/interfaces/composition/playInput.ts:41-41"
+  ]
+ },
+ {
+  "id": "S5-10",
+  "claim": "The menu grammar overloads keys in ways that need a single press-consumption model: Space is use, confirm, advance and pause-resume with four 'does not also' exceptions; W/A=previous and S/D=next map horizontal keys onto vertical lists; and Escape has a per-context rule (leave without opening pause on that press).",
+  "paths": [
+   "DESIGN_NOTES.md:238-238",
+   "DESIGN_NOTES.md:259-259"
+  ]
+ }
+]
