@@ -1,11 +1,11 @@
 ---
-description: Cite OpenSpec changes only in openspec/ and DESIGN_NOTES.md
+description: Cite OpenSpec changes only in openspec/, DESIGN_NOTES.md and design/
 alwaysApply: true
 ---
 
 # OpenSpec change citations
 
-Name an OpenSpec change only in `openspec/` and `DESIGN_NOTES.md`.
+Name an OpenSpec change only in `openspec/`, `DESIGN_NOTES.md` and `design/`.
 
 Do not cite a change id (`05c-play-shell`), a change number (`Change 06`, `Changes 09 & 09a`), or "this change" in `README.md`, `AGENTS.md`, source, tests, or comments. Describe the module.
 

@@ -2,7 +2,7 @@
 # Seeded from the root-and-branch review change plan (64 changes in 6 milestones, plus parked entries).
 # Order is the intended build order. depends_on is an ordering edge, not always a technical one.
 # status: archived | planned | parked | proposed. The roadmap is a direction with room to add and modify.
-# Change ids are allowed here and in DESIGN_NOTES.md only; AGENTS.md, README.md, src/ and tests/ never cite them.
+# Change ids are allowed here, in DESIGN_NOTES.md and in design/ only; AGENTS.md, README.md, src/ and tests/ never cite them.
 # Original ids of untouched changes keep their meaning (07a, 07b, 07c, 07d, 07e, 06a, 06b, 06c, 09a, 05a).
 # Retired: 08-local-onnx-hybrid-intent (free-text ONNX parser) is replaced by 08a-timing-spike and 08-generated-text-adapter.
 # validated_by lists the later entries that rely on this entry passing.

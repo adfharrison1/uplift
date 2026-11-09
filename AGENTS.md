@@ -4,7 +4,7 @@
 
 ## OpenSpec change citations
 
-Name an OpenSpec change only in `openspec/` and `DESIGN_NOTES.md`. Do not cite a change id (`05c-play-shell`), a change number (`Change 06`, `Changes 09 & 09a`), or "this change" in `README.md`, `AGENTS.md`, source, tests, or comments. Describe the module. Root `AGENTS.md` and root `README.md` may still explain how to run OpenSpec (`/opsx-propose`, `/opsx-apply`, `/opsx-archive`, `npx openspec`). That is the workflow, not a change. The verb "change" (`set_separation_weight`) is not a change id.
+Name an OpenSpec change only in `openspec/`, `DESIGN_NOTES.md` and `design/`. Do not cite a change id (`05c-play-shell`), a change number (`Change 06`, `Changes 09 & 09a`), or "this change" in `README.md`, `AGENTS.md`, source, tests, or comments. Describe the module. Root `AGENTS.md` and root `README.md` may still explain how to run OpenSpec (`/opsx-propose`, `/opsx-apply`, `/opsx-archive`, `npx openspec`). That is the workflow, not a change. The verb "change" (`set_separation_weight`) is not a change id.
 
 ## Quick Verify (Run After Every Task)
 
