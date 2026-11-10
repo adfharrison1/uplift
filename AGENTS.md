@@ -6,6 +6,10 @@
 
 Name an OpenSpec change only in `openspec/`, `DESIGN_NOTES.md` and `design/`. Do not cite a change id (`05c-play-shell`), a change number (`Change 06`, `Changes 09 & 09a`), or "this change" in `README.md`, `AGENTS.md`, source, tests, or comments. Describe the module. Root `AGENTS.md` and root `README.md` may still explain how to run OpenSpec (`/opsx-propose`, `/opsx-apply`, `/opsx-archive`, `npx openspec`). That is the workflow, not a change. The verb "change" (`set_separation_weight`) is not a change id.
 
+## Worktree policy
+
+Use the default worktree (the primary checkout) for this project, including OpenSpec apply. Do not create or switch to an isolated worktree unless the user explicitly requests it. This policy takes precedence over generic worktree-isolation guidance. Check the working tree before editing and preserve unrelated local changes. Keep this policy in the project apply skill when regenerating OpenSpec skills.
+
 ## Quick Verify (Run After Every Task)
 
 ```bash
