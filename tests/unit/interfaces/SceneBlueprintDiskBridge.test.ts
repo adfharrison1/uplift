@@ -377,7 +377,7 @@ describe('Vite Local Disk Bridge /api/scene-blueprints and /api/character-visual
         if (kind === 'occupied') writeFileSync(candidate, 'owned elsewhere');
         else symlinkSync(kind === 'link' ? outside : join(tempDir, 'missing'), candidate);
         const response = request('PUT', root, { temporaryName: () => 'candidate.tmp' });
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(kind === 'occupied' ? 500 : 400);
         expect(readFileSync(target, 'utf8')).toBe(original);
         expect(readFileSync(outside, 'utf8')).toBe('keep');
         expect(existsSync(join(tempDir, 'missing'))).toBe(false);
@@ -445,7 +445,7 @@ describe('Vite Local Disk Bridge /api/scene-blueprints and /api/character-visual
         },
       };
       expect(request('PUT', root, fileOptions, JSON.stringify(asset.replacement)).statusCode).toBe(
-        400,
+        500,
       );
       expect(readFileSync(file, 'utf8')).toBe(original);
       expect(readdirSync(root)).toEqual([`${asset.id}.json`]);

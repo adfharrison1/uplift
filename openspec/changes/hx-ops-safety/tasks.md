@@ -36,7 +36,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 4. Enforce the HTTP boundary and prove end-to-end behavior
 
-- [ ] 4.1 Add the shared guard ahead of body buffering/dispatch, explicit route/method matching, exact loopback provenance and CORS, token/media-type checks, prompt oversized-stream destruction and abort handling; thread configured retention to the logger. Verify: npm exec vitest run tests/unit/interfaces/ followed by npm run build and npm run verify. Commit: fix(bridge): reject unauthorized and oversized HTTP writes.
+- [x] 4.1 Add the shared guard ahead of body buffering/dispatch, explicit route/method matching, exact loopback provenance and CORS, token/media-type checks, prompt oversized-stream destruction and abort handling; thread configured retention to the logger. Verify: npm exec vitest run tests/unit/interfaces/ followed by npm run build and npm run verify. Commit: fix(bridge): reject unauthorized and oversized HTTP writes.
 
   Source files (2): src/interfaces/vite/localDiskBridgePlugin.ts and vite.config.ts.
 

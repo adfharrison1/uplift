@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
-import type { Plugin } from 'vite';
+import type { Connect, CorsOptions, CorsOrigin, Plugin } from 'vite';
 import { z } from 'zod';
 import {
   CharacterVisualBlueprintSchema,
@@ -19,8 +19,79 @@ import {
 } from '../../infrastructure/index.js';
 import {
   createSafeLocalFiles,
+  UnsafeLocalPathError,
   type LocalFileOptions,
 } from '../../infrastructure/persistence/safeLocalFiles.js';
+
+import {
+  TelemetryStorageUnavailableError,
+  type SessionStorageOptions,
+} from '../../infrastructure/telemetry/NdjsonSessionTelemetry.js';
+
+const policyBrand: unique symbol = Symbol('local-bridge-policy');
+interface PolicyState {
+  port: number | undefined;
+  run?: symbol;
+}
+const policyStates = new WeakMap<LocalBridgeAccessPolicy, PolicyState>();
+
+export interface LocalBridgeAccessPolicy {
+  readonly [policyBrand]: true;
+  readonly cors: Readonly<CorsOptions>;
+  readonly allowsOrigin: (origin: string) => boolean;
+  readonly allowsHost: (host: string) => boolean;
+}
+
+/** One immutable policy shared by CORS and the bridge; only server lifecycle binds its port. */
+export function createLocalBridgeAccessPolicy(): LocalBridgeAccessPolicy {
+  const state: PolicyState = { port: undefined };
+  const allowsHost = (host: string): boolean =>
+    state.port !== undefined &&
+    (host === `localhost:${state.port}` || host === `127.0.0.1:${state.port}`);
+  const allowsOrigin = (origin: string): boolean =>
+    origin.startsWith('http://') && allowsHost(origin.slice(7));
+  // Vite types its Node-style callback error as non-nullable; CORS requires null on success.
+  const cors: Readonly<CorsOptions> = Object.freeze({
+    origin: (origin: string | undefined, callback: (error: Error, allow: CorsOrigin) => void) =>
+      callback(null as unknown as Error, origin !== undefined && allowsOrigin(origin)),
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,X-Uplift-Bridge-Token',
+    credentials: false,
+    optionsSuccessStatus: 204,
+  });
+  const policy: LocalBridgeAccessPolicy = Object.freeze({
+    [policyBrand]: true as const,
+    cors,
+    allowsOrigin,
+    allowsHost,
+  });
+  policyStates.set(policy, state);
+  return policy;
+}
+
+class InvalidBridgeRequestError extends Error {}
+
+function errorResponse(statusCode: number): BridgeHttpResponse {
+  const messages: Readonly<Record<number, string>> = {
+    400: 'Invalid bridge request',
+    403: 'Bridge request forbidden',
+    404: 'Bridge resource not found',
+    405: 'Method not allowed',
+    413: 'Bridge payload too large',
+    415: 'JSON content type required',
+    500: 'Bridge storage operation failed',
+    503: 'Bridge storage unavailable',
+  };
+  return { statusCode, body: { error: messages[statusCode] ?? messages[500] } };
+}
+
+function storageErrorResponse(error: unknown): BridgeHttpResponse {
+  if (error instanceof UnsafeLocalPathError)
+    return { statusCode: 400, body: { error: 'Unsafe storage path' } };
+  if (error instanceof InvalidBridgeRequestError) return errorResponse(400);
+  if (error instanceof TelemetryStorageUnavailableError) return errorResponse(503);
+  return errorResponse(500);
+}
 
 export const MAX_BRIDGE_BODY_BYTES = 256 * 1024; // 256 KiB
 
@@ -47,6 +118,7 @@ export const LocalDiskBridgeOptionsSchema = z.object({
   characterVisualsDir: z
     .string()
     .default(() => resolve(process.cwd(), 'src/content/scene/characters')),
+  maxPreviousSessions: z.number().int().positive().default(3),
   maxBodyBytes: z.number().int().positive().default(MAX_BRIDGE_BODY_BYTES),
 });
 export type LocalDiskBridgeOptions = z.input<typeof LocalDiskBridgeOptionsSchema>;
@@ -71,29 +143,30 @@ export interface BridgeHttpResponse {
 function extractSafeSlotIdFromPath(pathname: string): string {
   const rawSegment = pathname.slice('/api/saves/'.length);
   if (rawSegment.includes('%') || rawSegment.includes('/') || rawSegment.includes('\\')) {
-    throw new Error(`Invalid save slot id in URL path: '${rawSegment}'`);
+    throw new InvalidBridgeRequestError(`Invalid save slot id in URL path: '${rawSegment}'`);
   }
-  return validateSaveSlotId(rawSegment);
+  try {
+    return validateSaveSlotId(rawSegment);
+  } catch {
+    throw new InvalidBridgeRequestError();
+  }
 }
 
 function extractSafeAssetIdFromPath(pathname: string, routePrefix: string): string {
   const rawSegment = pathname.slice(routePrefix.length);
   if (rawSegment.includes('%') || rawSegment.includes('/') || rawSegment.includes('\\')) {
-    throw new Error(`Invalid asset id in URL path: '${rawSegment}'`);
+    throw new InvalidBridgeRequestError(`Invalid asset id in URL path: '${rawSegment}'`);
   }
   if (!SAFE_ASSET_ID_PATTERN.test(rawSegment)) {
-    throw new Error(`Invalid asset id '${rawSegment}': must match /^[a-z0-9][a-z0-9_-]{0,63}$/`);
+    throw new InvalidBridgeRequestError(
+      `Invalid asset id '${rawSegment}': must match /^[a-z0-9][a-z0-9_-]{0,63}$/`,
+    );
   }
   return rawSegment;
 }
 
 export function isBridgeApiUrl(url: string): boolean {
-  return (
-    url.startsWith('/api/telemetry') ||
-    url.startsWith('/api/saves') ||
-    url.startsWith('/api/scene-blueprints') ||
-    url.startsWith('/api/character-visuals')
-  );
+  return url === '/api' || url.startsWith('/api/') || url.startsWith('/api?');
 }
 
 /**
@@ -119,10 +192,7 @@ export function handleLocalDiskBridgeRequest(
   const bodyBytes = Math.max(measuredBytes, req.bodyByteLength ?? 0);
 
   if (bodyBytes > maxBodyBytes) {
-    return {
-      statusCode: 413,
-      body: { error: `Payload exceeds maximum size of ${String(maxBodyBytes)} bytes` },
-    };
+    return errorResponse(413);
   }
 
   const pathname = (req.url.split('?')[0] ?? '/').trim();
@@ -132,13 +202,15 @@ export function handleLocalDiskBridgeRequest(
   const characterVisualsDir = visualDirs?.characterVisualsDir ?? defaultDirs.characterVisualsDir;
 
   try {
+    const routeError = checkRoute(pathname, method);
+    if (routeError !== undefined) return routeError;
     if (pathname === '/api/telemetry/session') {
       if (method !== 'POST') {
-        return { statusCode: 405, body: { error: 'Method not allowed' } };
+        return errorResponse(405);
       }
       const parsed = safeParseJsonWithSchema(req.rawBody ?? '', StartSessionRequestSchema);
       if (!parsed.success) {
-        return { statusCode: 400, body: { error: parsed.error.message } };
+        return errorResponse(400);
       }
       telemetry.startNewSession(parsed.data.sessionId);
       return {
@@ -149,11 +221,11 @@ export function handleLocalDiskBridgeRequest(
 
     if (pathname === '/api/telemetry/batch') {
       if (method !== 'POST') {
-        return { statusCode: 405, body: { error: 'Method not allowed' } };
+        return errorResponse(405);
       }
       const parsed = safeParseJsonWithSchema(req.rawBody ?? '', TelemetryBatchRequestSchema);
       if (!parsed.success) {
-        return { statusCode: 400, body: { error: parsed.error.message } };
+        return errorResponse(400);
       }
       const recorded = telemetry.recordBatch(parsed.data.events);
       return {
@@ -164,13 +236,13 @@ export function handleLocalDiskBridgeRequest(
 
     if (pathname === '/api/telemetry/compact') {
       if (method !== 'POST') {
-        return { statusCode: 405, body: { error: 'Method not allowed' } };
+        return errorResponse(405);
       }
       const rawJson =
         req.rawBody !== undefined && req.rawBody.trim().length > 0 ? req.rawBody : '{}';
       const parsed = safeParseJsonWithSchema(rawJson, CompactRequestSchema);
       if (!parsed.success) {
-        return { statusCode: 400, body: { error: parsed.error.message } };
+        return errorResponse(400);
       }
       telemetry.compact(parsed.data.retentionWindowMs);
       return {
@@ -181,7 +253,7 @@ export function handleLocalDiskBridgeRequest(
 
     if (pathname === '/api/saves') {
       if (method !== 'GET') {
-        return { statusCode: 405, body: { error: 'Method not allowed' } };
+        return errorResponse(405);
       }
       return {
         statusCode: 200,
@@ -197,18 +269,16 @@ export function handleLocalDiskBridgeRequest(
           const envelope = saves.loadSlot(slotId);
           return { statusCode: 200, body: { envelope } };
         } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          return {
-            statusCode: msg.includes('does not exist') ? 404 : 400,
-            body: { error: msg },
-          };
+          if (error instanceof Error && error.message === `Save slot '${slotId}' does not exist`)
+            return errorResponse(404);
+          return storageErrorResponse(error);
         }
       }
 
       if (method === 'PUT') {
         const parsed = safeParseJsonWithSchema(req.rawBody ?? '', SaveSlotPutRequestSchema);
         if (!parsed.success) {
-          return { statusCode: 400, body: { error: parsed.error.message } };
+          return errorResponse(400);
         }
         const envelope = saves.saveSlot({
           slotId,
@@ -224,7 +294,7 @@ export function handleLocalDiskBridgeRequest(
         };
       }
 
-      return { statusCode: 405, body: { error: 'Method not allowed' } };
+      return errorResponse(405);
     }
 
     if (pathname.startsWith('/api/scene-blueprints/')) {
@@ -235,23 +305,15 @@ export function handleLocalDiskBridgeRequest(
         const files = createSafeLocalFiles(sceneBlueprintsDir, visualFileOptions);
         const stat = files.stat(fileName);
         if (stat === undefined) {
-          return {
-            statusCode: 404,
-            body: { error: `Scene blueprint '${stageId}' does not exist` },
-          };
+          return errorResponse(404);
         }
         if (stat.size > maxBodyBytes) {
-          return {
-            statusCode: 413,
-            body: {
-              error: `Scene blueprint '${stageId}' exceeds maximum size of ${String(maxBodyBytes)} bytes`,
-            },
-          };
+          return errorResponse(413);
         }
         const raw = files.read(fileName) ?? '';
         const parsed = safeParseJsonWithSchema(raw, StageSceneBlueprintSchema);
         if (!parsed.success) {
-          return { statusCode: 400, body: { error: parsed.error.message } };
+          return errorResponse(400);
         }
         return { statusCode: 200, body: { blueprint: parsed.data } };
       }
@@ -259,15 +321,10 @@ export function handleLocalDiskBridgeRequest(
       if (method === 'PUT') {
         const parsed = safeParseJsonWithSchema(req.rawBody ?? '', StageSceneBlueprintSchema);
         if (!parsed.success) {
-          return { statusCode: 400, body: { error: parsed.error.message } };
+          return errorResponse(400);
         }
         if (parsed.data.stageId !== stageId) {
-          return {
-            statusCode: 400,
-            body: {
-              error: `Payload stageId '${parsed.data.stageId}' does not match URL stageId '${stageId}'`,
-            },
-          };
+          return errorResponse(400);
         }
         const serialized = `${JSON.stringify(parsed.data, null, 2)}\n`;
         createSafeLocalFiles(sceneBlueprintsDir, visualFileOptions).writeAtomic(
@@ -277,7 +334,7 @@ export function handleLocalDiskBridgeRequest(
         return { statusCode: 200, body: { blueprint: parsed.data } };
       }
 
-      return { statusCode: 405, body: { error: 'Method not allowed' } };
+      return errorResponse(405);
     }
 
     if (pathname.startsWith('/api/character-visuals/')) {
@@ -288,23 +345,15 @@ export function handleLocalDiskBridgeRequest(
         const files = createSafeLocalFiles(characterVisualsDir, visualFileOptions);
         const stat = files.stat(fileName);
         if (stat === undefined) {
-          return {
-            statusCode: 404,
-            body: { error: `Character visual '${characterId}' does not exist` },
-          };
+          return errorResponse(404);
         }
         if (stat.size > maxBodyBytes) {
-          return {
-            statusCode: 413,
-            body: {
-              error: `Character visual '${characterId}' exceeds maximum size of ${String(maxBodyBytes)} bytes`,
-            },
-          };
+          return errorResponse(413);
         }
         const raw = files.read(fileName) ?? '';
         const parsed = safeParseJsonWithSchema(raw, CharacterVisualBlueprintSchema);
         if (!parsed.success) {
-          return { statusCode: 400, body: { error: parsed.error.message } };
+          return errorResponse(400);
         }
         return { statusCode: 200, body: { visual: parsed.data } };
       }
@@ -312,15 +361,10 @@ export function handleLocalDiskBridgeRequest(
       if (method === 'PUT') {
         const parsed = safeParseJsonWithSchema(req.rawBody ?? '', CharacterVisualBlueprintSchema);
         if (!parsed.success) {
-          return { statusCode: 400, body: { error: parsed.error.message } };
+          return errorResponse(400);
         }
         if (parsed.data.characterId !== characterId) {
-          return {
-            statusCode: 400,
-            body: {
-              error: `Payload characterId '${parsed.data.characterId}' does not match URL characterId '${characterId}'`,
-            },
-          };
+          return errorResponse(400);
         }
         const serialized = `${JSON.stringify(parsed.data, null, 2)}\n`;
         createSafeLocalFiles(characterVisualsDir, visualFileOptions).writeAtomic(
@@ -330,66 +374,195 @@ export function handleLocalDiskBridgeRequest(
         return { statusCode: 200, body: { visual: parsed.data } };
       }
 
-      return { statusCode: 405, body: { error: 'Method not allowed' } };
+      return errorResponse(405);
     }
 
-    return { statusCode: 404, body: { error: `Unknown API route: ${pathname}` } };
+    return errorResponse(404);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Bad request';
-    return { statusCode: 400, body: { error: message } };
+    return storageErrorResponse(error);
   }
 }
 
+/** Resolve only known paths, validating every ID before any request buffering. */
+function checkRoute(pathname: string, method: string): BridgeHttpResponse | undefined {
+  let methods: readonly string[];
+  if (
+    ['/api/telemetry/session', '/api/telemetry/batch', '/api/telemetry/compact'].includes(pathname)
+  )
+    methods = ['POST'];
+  else if (pathname === '/api/saves') methods = ['GET'];
+  else if (pathname.startsWith('/api/saves/')) {
+    extractSafeSlotIdFromPath(pathname);
+    methods = ['GET', 'PUT', 'DELETE'];
+  } else if (pathname.startsWith('/api/scene-blueprints/')) {
+    extractSafeAssetIdFromPath(pathname, '/api/scene-blueprints/');
+    methods = ['GET', 'PUT'];
+  } else if (pathname.startsWith('/api/character-visuals/')) {
+    extractSafeAssetIdFromPath(pathname, '/api/character-visuals/');
+    methods = ['GET', 'PUT'];
+  } else return errorResponse(404);
+  return methods.includes(method) ? undefined : errorResponse(405);
+}
+
+function headerValues(req: IncomingMessage, name: string): string[] {
+  const values: string[] = [];
+  for (let index = 0; index < req.rawHeaders.length; index += 2) {
+    if (req.rawHeaders[index]?.toLowerCase() === name) values.push(req.rawHeaders[index + 1] ?? '');
+  }
+  return values;
+}
+
+function checkAccess(
+  req: IncomingMessage,
+  policy: LocalBridgeAccessPolicy,
+  token: string,
+): BridgeHttpResponse | undefined {
+  if (policyStates.get(policy)?.port === undefined) return errorResponse(503);
+  const hosts = headerValues(req, 'host');
+  const origins = headerValues(req, 'origin');
+  const sites = headerValues(req, 'sec-fetch-site');
+  if (
+    hosts.length !== 1 ||
+    !policy.allowsHost(hosts[0] ?? '') ||
+    origins.length > 1 ||
+    sites.length > 1
+  )
+    return errorResponse(403);
+  if (
+    origins.length === 1
+      ? !policy.allowsOrigin(origins[0] ?? '')
+      : !['same-origin', 'none'].includes(sites[0] ?? '')
+  )
+    return errorResponse(403);
+  const routeError = checkRoute((req.url ?? '').split('?')[0] ?? '', req.method ?? '');
+  if (routeError !== undefined) return routeError;
+  if (req.method !== 'GET') {
+    const tokens = headerValues(req, 'x-uplift-bridge-token');
+    if (tokens.length !== 1 || tokens[0] !== token) return errorResponse(403);
+    const types = headerValues(req, 'content-type');
+    if (types.length !== 1 || !/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(types[0] ?? ''))
+      return errorResponse(415);
+  }
+  return undefined;
+}
+
+type BodyResult = { readonly rawBody: string; readonly byteLength: number } | undefined;
 function readRequestBody(
   req: IncomingMessage,
+  res: ServerResponse,
   maxBytes: number,
-): Promise<{ readonly rawBody: string; readonly byteLength: number; readonly tooLarge: boolean }> {
-  return new Promise((resolvePromise, rejectPromise) => {
+): Promise<BodyResult> {
+  return new Promise((resolveBody) => {
     const chunks: Buffer[] = [];
     let totalBytes = 0;
-    let tooLarge = false;
-
-    req.on('data', (chunk: Buffer) => {
+    let settled = false;
+    const finish = (result: BodyResult): void => {
+      if (settled) return;
+      settled = true;
+      chunks.length = 0;
+      req.off('data', onData);
+      req.off('end', onEnd);
+      req.off('aborted', onAbort);
+      req.off('close', onAbort);
+      // Keep the error listener until the request is collected: late socket errors are harmless.
+      resolveBody(result);
+    };
+    const onAbort = (): void => finish(undefined);
+    const onEnd = (): void =>
+      finish({ rawBody: Buffer.concat(chunks).toString('utf8'), byteLength: totalBytes });
+    const onData = (chunk: Buffer): void => {
       totalBytes += chunk.byteLength;
       if (totalBytes > maxBytes) {
-        tooLarge = true;
-      } else {
-        chunks.push(chunk);
-      }
-    });
-
-    req.on('end', () => {
-      resolvePromise({
-        rawBody: tooLarge ? '' : Buffer.concat(chunks).toString('utf8'),
-        byteLength: totalBytes,
-        tooLarge,
-      });
-    });
-
-    req.on('error', (err) => {
-      rejectPromise(err);
-    });
+        finish(undefined);
+        sendJsonResponse(res, errorResponse(413));
+        req.destroy();
+      } else chunks.push(chunk);
+    };
+    req.on('data', onData);
+    req.once('end', onEnd);
+    req.once('aborted', onAbort);
+    req.once('close', onAbort);
+    req.on('error', onAbort);
+    if (req.destroyed || req.aborted) finish(undefined);
   });
 }
 
 function sendJsonResponse(res: ServerResponse, response: BridgeHttpResponse): void {
+  if (res.destroyed || res.writableEnded) return;
   res.statusCode = response.statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.end(JSON.stringify(response.body));
 }
 
-/**
- * Vite dev server plugin mounting `/api/telemetry/*`, `/api/saves/*`,
- * `/api/scene-blueprints/*`, and `/api/character-visuals/*` for local disk persistence.
- */
-export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plugin {
-  const { logsDir, savesDir, sceneBlueprintsDir, characterVisualsDir, maxBodyBytes } =
-    LocalDiskBridgeOptionsSchema.parse(options);
+/** Trusted executable dependencies; none can replace the HTTP access guard. */
+export interface LocalDiskBridgeDependencies {
+  readonly fileOptions?: LocalFileOptions;
+  readonly onDiagnostic?: SessionStorageOptions['onDiagnostic'];
+  readonly dispatch?: typeof handleLocalDiskBridgeRequest;
+}
 
+/** Every bridge route enters this guard before body consumption or storage dispatch. */
+export function createLocalDiskBridgeMiddleware(
+  policy: LocalBridgeAccessPolicy,
+  token: string,
+  telemetry: NdjsonSessionTelemetry,
+  saves: FileSaveSlotRepository,
+  options: z.output<typeof LocalDiskBridgeOptionsSchema>,
+  dependencies: LocalDiskBridgeDependencies = {},
+): Connect.NextHandleFunction {
+  return (req, res, next) => {
+    const url = req.url ?? '/';
+    if (!isBridgeApiUrl(url)) {
+      next();
+      return;
+    }
+    try {
+      const rejected = checkAccess(req, policy, token);
+      if (rejected !== undefined) {
+        sendJsonResponse(res, rejected);
+        return;
+      }
+      const length = req.headers['content-length'];
+      if (length !== undefined && Number(length) > options.maxBodyBytes) {
+        res.setHeader('Connection', 'close');
+        sendJsonResponse(res, errorResponse(413));
+        // Let the small error response flush, without waiting for any request body.
+        res.once('finish', () => req.destroy());
+        return;
+      }
+    } catch (error) {
+      sendJsonResponse(res, storageErrorResponse(error));
+      return;
+    }
+    void readRequestBody(req, res, options.maxBodyBytes)
+      .then((body) => {
+        if (body === undefined) return;
+        const result = (dependencies.dispatch ?? handleLocalDiskBridgeRequest)(
+          { method: req.method ?? '', url, rawBody: body.rawBody, bodyByteLength: body.byteLength },
+          telemetry,
+          saves,
+          options.maxBodyBytes,
+          options,
+          dependencies.fileOptions,
+        );
+        sendJsonResponse(res, result);
+      })
+      .catch((error: unknown) => sendJsonResponse(res, storageErrorResponse(error)));
+  };
+}
+
+/** Local TCP development bridge. CORS and middleware share one lifecycle-bound policy. */
+export function localDiskBridgePlugin(
+  options: LocalDiskBridgeOptions = {},
+  policy: LocalBridgeAccessPolicy = createLocalBridgeAccessPolicy(),
+  dependencies: LocalDiskBridgeDependencies = {},
+): Plugin {
+  const parsed = LocalDiskBridgeOptionsSchema.parse(options);
+  const state = policyStates.get(policy);
+  if (state === undefined) throw new Error('Invalid local bridge policy');
   let bridgeToken: string | undefined;
   let telemetry: NdjsonSessionTelemetry | undefined;
   let saves: FileSaveSlotRepository | undefined;
-
   return {
     name: 'uplift-local-disk-bridge',
     apply: 'serve',
@@ -404,54 +577,48 @@ export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plu
       ];
     },
     configureServer(server) {
-      telemetry ??= new NdjsonSessionTelemetry(logsDir);
-      saves ??= new FileSaveSlotRepository(savesDir);
-      bridgeToken = randomBytes(32).toString('hex');
-
-      server.middlewares.use((req, res, next) => {
-        const url = req.url ?? '/';
-        if (!isBridgeApiUrl(url)) {
-          next();
-          return;
-        }
-
-        void readRequestBody(req, maxBodyBytes)
-          .then(({ rawBody, byteLength, tooLarge }) => {
-            if (tooLarge) {
-              sendJsonResponse(res, {
-                statusCode: 413,
-                body: { error: `Payload exceeds maximum size of ${String(maxBodyBytes)} bytes` },
-              });
-              return;
-            }
-            if (telemetry === undefined || saves === undefined) {
-              sendJsonResponse(res, {
-                statusCode: 500,
-                body: { error: 'Bridge repositories not initialized' },
-              });
-              return;
-            }
-            const result = handleLocalDiskBridgeRequest(
-              {
-                method: req.method ?? 'GET',
-                url,
-                rawBody,
-                bodyByteLength: byteLength,
-              },
-              telemetry,
-              saves,
-              maxBodyBytes,
-              { sceneBlueprintsDir, characterVisualsDir },
-            );
-            sendJsonResponse(res, result);
-          })
-          .catch(() => {
-            sendJsonResponse(res, {
-              statusCode: 500,
-              body: { error: 'Internal bridge I/O error' },
-            });
-          });
+      const run = Symbol('bridge-run');
+      state.run = run;
+      state.port = undefined;
+      bridgeToken = undefined;
+      const http = server.httpServer;
+      if (http === null) throw new Error('Local bridge requires a TCP dev server');
+      const bind = (): void => {
+        if (state.run !== run) return;
+        const address = http.address();
+        if (address === null) return;
+        if (typeof address === 'string') throw new Error('Local bridge requires a TCP dev server');
+        state.port = address.port;
+      };
+      // Refuse an already-listening non-TCP server before creating storage.
+      bind();
+      telemetry ??= new NdjsonSessionTelemetry(parsed.logsDir, undefined, undefined, undefined, {
+        ...dependencies.fileOptions,
+        maxPreviousSessions: parsed.maxPreviousSessions,
+        ...(dependencies.onDiagnostic === undefined
+          ? {}
+          : { onDiagnostic: dependencies.onDiagnostic }),
       });
+      saves ??= new FileSaveSlotRepository(parsed.savesDir, dependencies.fileOptions);
+      bridgeToken = randomBytes(32).toString('hex');
+      http.on('listening', bind);
+      http.once('close', () => {
+        if (state.run === run) {
+          state.port = undefined;
+          bridgeToken = undefined;
+        }
+        http.off('listening', bind);
+      });
+      const middleware = createLocalDiskBridgeMiddleware(
+        policy,
+        bridgeToken,
+        telemetry,
+        saves,
+        parsed,
+        dependencies,
+      );
+      // Vite installs CORS before this hook; mount before its HTML fallback rewrites API URLs.
+      server.middlewares.use(middleware);
     },
   };
 }

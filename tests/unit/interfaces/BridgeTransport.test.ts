@@ -57,10 +57,11 @@ describe('dev-page bridge token lifecycle', () => {
         configFile: false,
         root: base,
         logLevel: 'silent',
-        server: { middlewareMode: true, hmr: false, watch: null },
+        server: { host: '127.0.0.1', port: 0, strictPort: true, hmr: false, watch: null },
         optimizeDeps: { noDiscovery: true },
         plugins: [plugin],
       });
+      await server.listen();
       const first = tokenFromHtml(await server.transformIndexHtml('/', html));
       expect(first).toMatch(/^[a-f0-9]{64}$/);
       expect(tokenFromHtml(await server.transformIndexHtml('/', html))).toBe(first);

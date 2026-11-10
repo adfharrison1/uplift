@@ -13,7 +13,7 @@
 ## Current Module Inventory
 
 - `cli/queryLogs.ts` — `parseQueryCliArgs` and `executeLogQuery` CLI runner.
-- `vite/localDiskBridgePlugin.ts` — `handleLocalDiskBridgeRequest`, `isBridgeApiUrl`, and `localDiskBridgePlugin`.
+- `vite/localDiskBridgePlugin.ts` — `createLocalBridgeAccessPolicy`, `createLocalDiskBridgeMiddleware`, `handleLocalDiskBridgeRequest`, `isBridgeApiUrl`, and `localDiskBridgePlugin`.
 - `three/StageKitbashBuilders.ts` — `getSharedChiaroscuroGradientMap`, `createChiaroscuroToonMaterial`, `buildWallMotifGroup`, `buildStagePropGroup`, `buildCharacterKitbashGroup`, and re-exported visual blueprint types/schemas for `src/content/scene/`.
 - `three/ChiaroscuroStageRenderer.ts` — `buildStageSceneGraph`, `applyRenderFrameToScene`, `resolveSemanticIdFromObject`, `findObjectBySemanticId`, and `disposeSceneGraph`.
 - `hud/StageInspectorDomMirror.ts` — `StageInspectorDomMirror`, `InMemoryDomAttributeSink`, `buildInspectableTargetCatalog`, `upsertWallSegmentMotif`, `removeWallSegmentMotif`, `updateStageLight`, `updateCameraVolumeFraming`, `updateEpochVisualTheme`, and `updateCharacterVisualSlot`.
@@ -37,3 +37,11 @@ The dev page receives `meta[name="uplift-bridge-token"]`, generated with local c
 The Save stage control and callable `saveVisual` API keep their void callback contract. Each explicit attempt is sent once, in order; failures are not replayed automatically. A missing token or 403 response requests a page reload, while network and other HTTP errors report a readable failure. Edits stay in memory through failed saves. The transport never renders response bodies, exceptions or token values.
 
 `browserMain` owns a dedicated `data-bridge-save-status` paragraph with `role="status"`, `aria-live="polite"` and `aria-atomic="true"`. Its text changes from Saving to Saved or an error and persists until the next explicit attempt. It is separate from per-frame play status. Sending the token is client behavior; this transport does not enforce server authorization.
+
+## Local HTTP bridge
+
+The dev server binds to `127.0.0.1:5173` with `strictPort`. CORS and the bridge share an immutable policy bound to the actual TCP port, including ephemeral ports in tests. Only exact `localhost:<port>` and `127.0.0.1:<port>` Host values and their `http://` Origins are accepted. With no Origin, `Sec-Fetch-Site` must be `same-origin` or `none`. Forwarded headers cannot grant access. Reads also require this provenance; every POST, PUT and DELETE additionally requires the current `X-Uplift-Bridge-Token` and `application/json` (optional UTF-8 charset). Reload the page after a restart to refresh its token. This protects against browser-origin attacks; it does not authenticate local OS users.
+
+Only telemetry session/batch/compact POSTs, save-list GET, save-slot GET/PUT/DELETE and stage/character GET/PUT routes dispatch. Duplicate security headers, unknown paths and unsupported methods are rejected before body buffering. The 256 KiB default cap counts bytes; excessive declared lengths are rejected immediately, and streams are destroyed on the first excess chunk. Aborted bodies never dispatch. Middleware-only and non-TCP hosting are unsupported; before listening or after close the policy denies access.
+
+Errors expose stable JSON messages: 400 for invalid requests or unsafe storage paths, 403 for denied provenance/token, 404 for missing routes/resources, 405 for unsupported methods, 413 for excess bytes, 415 for non-JSON writes, 500 for storage failures and 503 for unavailable storage. Filesystem details and tokens are never returned. A failed explicit telemetry session start returns 500 and disables batch/compact with 503 until an authorized explicit session retry succeeds. Constructor failure aborts server setup. `maxPreviousSessions` is a positive integer, defaults to three, and controls logger retention independently of request size.

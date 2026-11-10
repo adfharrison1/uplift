@@ -1,11 +1,18 @@
 import { defineConfig } from 'vite';
-import { localDiskBridgePlugin } from './src/interfaces/vite/localDiskBridgePlugin.js';
+import {
+  createLocalBridgeAccessPolicy,
+  localDiskBridgePlugin,
+} from './src/interfaces/vite/localDiskBridgePlugin.js';
 
-export default defineConfig({
-  server: {
-    host: '127.0.0.1',
-    port: 5173,
-    strictPort: true,
-  },
-  plugins: [localDiskBridgePlugin()],
+export default defineConfig(() => {
+  const policy = createLocalBridgeAccessPolicy();
+  return {
+    server: {
+      host: '127.0.0.1',
+      port: 5173,
+      strictPort: true,
+      cors: policy.cors,
+    },
+    plugins: [localDiskBridgePlugin({}, policy)],
+  };
 });
