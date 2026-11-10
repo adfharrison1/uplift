@@ -56,7 +56,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 6. Reconcile delivery evidence and complete cross-cutting review
 
-- [ ] 6.1 Check all scenario-to-test mappings, actual consumer traces, measured timings and shipped documentation; run the six-dimension post-change review, resolve verified findings and record the result. Verify: npm run verify, npm run verify:serial and openspec validate hx-ops-safety --strict. Commit: docs(operations): record verified storage and quality-gate contracts.
+- [x] 6.1 Check all scenario-to-test mappings, actual consumer traces, measured timings and shipped documentation; run the six-dimension post-change review, resolve verified findings and record the result. Verify: npm run verify, npm run verify:serial and openspec validate hx-ops-safety --strict. Commit: docs(operations): record verified storage and quality-gate contracts.
 
   Source/tooling files (0): this is integration and documentation reconciliation, not delayed feature work. Review adversarial/security/failure containment, architecture/specs/docs, performance, testing, logic and design coherence. All six reviewers use "high reasoning, medium-to-high model"; schedule within available concurrency without dropping any review.
 

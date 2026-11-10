@@ -5,10 +5,10 @@
 `src/infrastructure/` provides concrete, 100% local/offline implementations of domain ports:
 
 - **Structured Session Telemetry & Rolling Compaction (`telemetry/`)**:
-  - `NdjsonSessionTelemetry` and `InMemorySessionTelemetry` record every player, NPC, rival operative, orbital, and system event—plus full AI inputs, outputs, reasoning, and omitted `AdvisoryDuel` clauses—to `./logs/current-session.jsonl`.
+  - `NdjsonSessionTelemetry` records supplied events and optional AI reasoning to `./logs/current-session.jsonl`; `InMemorySessionTelemetry` keeps supplied events in memory. These adapters do not automatically connect browser events to disk; the campaign page currently uses its own in-memory telemetry port.
   - Rotates previous active/compacted files byte-for-byte into numbered groups under `logs/prev/`, retaining three completed groups by default (`maxPreviousSessions`). Current queries read only the current files. Enforces a **50 MiB** active log auto-compaction trigger (`DEFAULT_MAX_ACTIVE_LOG_BYTES`) and a **500 MiB** compacted log priority-eviction cap (`DEFAULT_MAX_COMPACTED_LOG_BYTES`) via `RollingLogCompactor`.
 - **Multi-Session Save / Load Repository (`persistence/`)**:
-  - `FileSaveSlotRepository` and `InMemorySaveSlotRepository` persist and restore named session save files in `./saves/<slotId>.json` with shared path confinement, exclusively created temporary files for atomic replacement, and Zod `safeParse` validation.
+  - `FileSaveSlotRepository` persists and restores named session files in `./saves/<slotId>.json` with shared path confinement, exclusively created temporary files for atomic replacement, and Zod `safeParse` validation. `InMemorySaveSlotRepository` stores cloned envelopes in a Map and performs no disk I/O.
 
 ## Current Module Inventory
 

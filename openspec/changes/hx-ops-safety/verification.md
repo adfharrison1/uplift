@@ -116,3 +116,45 @@ ffccf64a8df730099bdeca634a6e6a17f55b788cfbb00411f0c1e41a220d9f42  package-lock.j
 - Hook fixtures execute actual commits in temporary repositories with npm/npx test executables. They prove staged-check failure short-circuits verification, verification failure blocks a commit, a successful gate permits it, and unrelated files never enter the index. Fixture-only Git options disable inherited signing and select the fixture hook directory.
 - Skill checks use the YAML parser and validate required files, matching name/string description metadata and nonempty instructions. Regression cases include changed prose/headings, folded descriptions, inline comments, numeric-leading text, missing metadata and malformed YAML. Existing layer, zero-any, determinism and section-documentation checks are retained.
 - Two independent reviews found and verified fixes for YAML metadata parsing and Windows fixture signal/PATH handling. Both reviewers cleared those fixes before the measurements. Final evidence review is recorded with task delivery.
+
+## Final integration measurement
+
+Measured 2026-11-10T21:29:33Z after the six-dimension review and separate bridge corrections. All twelve final commands exited zero. These results supplement the original task-5 measurements above; they do not replace their recorded revision or test count.
+
+The host, Node/npm, dependency pins, cache preparation and alternating-pair method are unchanged. Review agents were idle. The base was `5e9e9861dd52bf2232ae567377478bcd1d9ec94e` plus the reviewed bridge fix and documentation working tree. Executable and test fingerprints were checked before and after timing. Delivery-only evidence and roadmap text were finalized afterward; measured source/tests remained unchanged.
+
+The final suite has **278 tests**: 8 architecture and 270 unit tests in 28 total files, including 37 real HTTP cases. Both parallel and serial commands cover these same assertions. The final warm parallel median is **34.68% lower** than serial.
+
+| Metric (seconds) | Parallel `verify` | `verify:serial` |
+| --- | ---: | ---: |
+| Cold tool-cache run | 3.062653 | 5.149243 |
+| Warm median, five runs | 2.289819 | 3.505548 |
+| Warm maximum | 2.374736 | 3.670013 |
+
+The parallel commands are below five seconds on this development host; serial cold exceeds five seconds. The reference Intel Mac target and native Windows coverage remain unverified.
+
+| Cache | Pair | Command | Seconds | Exit |
+| --- | ---: | --- | ---: | ---: |
+| cold | 0 | `npm run verify` | 3.062653 | 0 |
+| cold | 0 | `npm run verify:serial` | 5.149243 | 0 |
+| warm | 1 | `npm run verify` | 2.374736 | 0 |
+| warm | 1 | `npm run verify:serial` | 3.453902 | 0 |
+| warm | 2 | `npm run verify:serial` | 3.505548 | 0 |
+| warm | 2 | `npm run verify` | 2.201691 | 0 |
+| warm | 3 | `npm run verify` | 2.152441 | 0 |
+| warm | 3 | `npm run verify:serial` | 3.670013 | 0 |
+| warm | 4 | `npm run verify:serial` | 3.498816 | 0 |
+| warm | 4 | `npm run verify` | 2.289819 | 0 |
+| warm | 5 | `npm run verify` | 2.347000 | 0 |
+| warm | 5 | `npm run verify:serial` | 3.585220 | 0 |
+
+Additional final code fingerprints (tooling/dependency fingerprints above remain unchanged):
+
+```text
+5db4760b556ae9da5da0b1914fc50b471061adecd2d0a77ed43fd00a69f1c649  src/interfaces/vite/localDiskBridgePlugin.ts
+3f65a339590c8c24a19cb7929845e96f665ef9cc5e7b2c24e29ef9e4a41f56f7  tests/unit/interfaces/LocalDiskBridgeHttp.test.ts
+```
+
+`npm run build` and `openspec validate hx-ops-safety --strict` also passed. The production build retains Vite's advisory about a chunk larger than 500 kB. Two independent reviewers cleared the final bridge fix after the fresh-policy, failed-replacement, concurrent and later-generation restart regressions. The final delivery matrix records all 52 delta scenarios and remaining scope limits.
+
+Commit execution note: an attempted `git commit --only` failed the nested temporary-Git fixture because it inherited Git's temporary `GIT_INDEX_FILE`. The approved bridge fix was then committed normally after staging only its files; the full hook passed. Partial-index fixture isolation remains a tooling limitation, distinct from the measured standalone commands and normal commit validation. No hook was bypassed.

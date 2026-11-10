@@ -10,11 +10,13 @@ One owner per duplicated fact. Other files point at the owner and do not restate
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Epoch ladder (default 7-epoch arc)             | The "Epoch ladder and operative rotation" section of this file (no epoch-ladder blueprint exists in code yet) |
 | Dependency versions                            | `package.json` and `.nvmrc` only                                                                            |
-| Verify steps and budget                        | `package.json` scripts; one sentence in the `AGENTS.md` Quick Verify                                        |
+| Verify steps and budget                        | `package.json` scripts and `scripts/verify.mjs`; root `AGENTS.md` Quick Verify; measured delivery evidence under `openspec/`                                        |
 | Layer rules                                    | root `AGENTS.md` plus `tests/architecture`                                                                  |
 | Roadmap order and `depends_on`                 | `openspec/roadmap.yaml`                                                                                     |
 | Review gates                                   | the `uplift-review-gates` skill (planned: process-gates-and-ledger)                                         |
 | Engine counts such as the 7-epoch default arc  | asserted by the docs-truth test against code constants (planned: process-gates-and-ledger)                  |
+| Bridge access policy | "Bridge lock" under Engineering rules; operational contracts in `src/interfaces/README.md` |
+| Session archive/recovery policy | "Telemetry policy" under Engineering rules; recovery procedure in `src/infrastructure/README.md` |
 | Save policy                                    | "State, saves and pack identity" under Engineering rules                                                    |
 | Talk cost                                      | "Loop cycles" in Clock and time                                                                             |
 | Per-feature design detail                      | `design/*.md`, one file per feature, each with a status-index row (the Status index lists them)             |
@@ -34,7 +36,7 @@ Each section is `shipped`, `partial` or `planned`, with the roadmap ids that own
 | --- | --- | --- |
 | Frame and pillars | partial (pillars shipped, in force; the player loop and seed exemplars are planned) | `11-epoch1-content` for the seed exemplars; `11-epoch-ending-and-handoff-hook` for the epoch-end shape (R8) |
 | Rules spine R1 to R8 | partial (rules written here, R8 open; enforcing tests to be written by the owning changes) | `05b-1-watch-clock-and-time-spend`, `cm-act-envelope-and-rolls`, `cm-threads-and-pillars`, `cm-observation-notebook`, `cm-ledger-and-emergency`, `09-emergency-fuse`, `hx-reducer-and-frame-safety`, `09-delta-coupling-and-forecast`, `11-epoch-ending-and-handoff-hook` |
-| Engineering rules | planned (telemetry policy partial) | `hx-ops-safety`, `hx-1-legacy-clamp-seed-scramble`, `hx-slice-store`, `hx-save-integrity`, `hx-fixed-step-tick`, `hx-kinematics`, `hx-reducer-and-frame-safety`, `hx-determinism-harness`, `pre-05b-launch-validation`, `pre-05b-pack-source-of-truth`, `pre-05d-renderer-shape`, `05b-1-watch-clock-and-time-spend`, `05f-eval-and-replay`, `telemetry-wiring` |
+| Engineering rules | partial (bridge lock, session preservation and verification shipped; gameplay hardening and telemetry wiring planned) | `hx-1-legacy-clamp-seed-scramble`, `hx-slice-store`, `hx-save-integrity`, `hx-fixed-step-tick`, `hx-kinematics`, `hx-reducer-and-frame-safety`, `hx-determinism-harness`, `pre-05b-launch-validation`, `pre-05b-pack-source-of-truth`, `pre-05d-renderer-shape`, `05b-1-watch-clock-and-time-spend`, `05f-eval-and-replay`, `telemetry-wiring` |
 | Core model: terminology and epoch-agnostic rule | partial | `10-registry-swap-and-legacy` |
 | Core model: seven primitives | planned | `05b-1-watch-clock-and-time-spend`, `cm-act-envelope-and-rolls`, `cm-observation-notebook`, `cm-presence-and-materialize`, `cm-threads-and-pillars`, `cm-ledger-and-emergency`, `07-text-port-and-history` |
 | Leverage Chain | planned | `cm-threads-and-pillars` |
@@ -124,16 +126,21 @@ Eight architecture-constraining rules, set early so they can guide how the archi
 
 **Standing rule: freeze extension** (planned: pre-05b-launch-validation). No new kind or effect without content that uses it. Settle the clock model before more time-bearing schema. No deletion. An arch test in the kind-table change guards it (see Launch validation, kind table and fixtures), not prose.
 
-### Engineering rules (planned)
+### Engineering rules (partial)
 
-Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append here. They are planned unless a sentence says "today" or "as it is".
+Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append here. The bridge lock, session preservation and verification gate are shipped; later engineering work retains its planned markers.
 
-#### Bridge lock (planned: hx-ops-safety)
+#### Bridge lock (shipped)
 
-The dev-server write routes (`PUT /api/scene-blueprints`, `PUT /api/character-visuals`, the session log and save routes) accept a cross-origin simple POST today (reproduced twice on loopback-only probes). The fix runs first in the whole plan and is independent of everything else.
+Delivered by `hx-ops-safety`. All existing telemetry, save-slot, stage and character API routes pass through one guarded HTTP middleware before body buffering or storage dispatch. It checks exact loopback Host/Origin at the actual listening port, the narrow absent-Origin fetch-metadata fallback, the method/path allowlist, and a current token plus JSON media type on mutations. Vite CORS shares that port-bound policy. Excessive streams are destroyed without waiting for the sender to finish, and storage operations reject symlink redirection through the shared confinement helper. Operational details and error responses live in `src/interfaces/README.md`.
 
-- **One guarded write-route helper**: every lab route reuses it (Stage Lab, Sound Lab `PUT /api/audio-patches`, Pacing Lab `GET`/`PUT /api/pacing-profiles/:profileId`) and none re-implements the checks: an `Origin` allow-list, a `Host` check, `Content-Type`, a per-run token, size limits that destroy the stream, and allowlisted paths with realpath containment.
-- **Explicit `server.cors`** in Vite config. An http middleware test on `127.0.0.1:0` exercises the real middleware, not a mock. The logger rotates the prior session into `logs/prev` instead of truncating it on start.
+The dev page supplies the token to the existing Stage Lab browser transport. Stage and callable character saves persist through HTTP and can be read back through GET; failed saves retain the edit and a readable status. The game still needs the later JSON pack loader to consume saved lab files (see Lab saves). Real tests on `127.0.0.1:0` trace page token → browser transport → disk → GET, and HTTP telemetry → current-log query. This is a browser-origin defense and single-writer storage boundary, not isolation from a hostile process running as the same OS user.
+
+Future Sound Lab `PUT /api/audio-patches` (planned: 05a-sound-lab) and Pacing Lab `GET`/`PUT /api/pacing-profiles/:profileId` (planned: 05b-2-storylets-and-lab) must register through this guard when implemented. Those routes remain planned.
+
+#### Verification (shipped)
+
+Delivered by `hx-ops-safety`. The concurrent verification command and serial fallback cover the same quality checks. Commits run staged formatting/linting followed by full verification, with failures blocking the commit. Skill checks validate structure and YAML metadata rather than prose or model recommendations. The authoritative commands and process behavior live in `package.json`, `scripts/verify.mjs` and root `AGENTS.md`; cold/warm measurements and platform limits are in `openspec/changes/hx-ops-safety/verification.md`. The reference-Mac timing target is distinct from measurements on the development host.
 
 #### Determinism, fixed step and phases (planned)
 
@@ -162,15 +169,15 @@ The dev-server write routes (`PUT /api/scene-blueprints`, `PUT /api/character-vi
 - The docs-truth check first covers root `AGENTS.md` only; the check that every `*Blueprint` named in a section `AGENTS.md` exists lands in `pre-05b-pack-source-of-truth`, after those files are rewritten. Test fixtures leave the content barrel, and the content `AGENTS.md` recipes are rewritten to working steps.
 - **Lab saves**: lab JSON is the source of truth. Packs and stages are JSON, loaded and Zod-checked at runtime through `validateLaunch`, with no emitted TS, and the bridge writes only allowlisted, schema-checked files. Until the loader exists (planned: pre-05b-pack-source-of-truth), a Stage, Sound or Pacing Lab save writes JSON the game does not load: nothing reads `src/content/scene/stages/*.json` at run time.
 
-#### Telemetry policy (partial; planned: telemetry-wiring, hx-ops-safety)
+#### Telemetry policy (partial; planned: telemetry-wiring)
 
-- **As it is today**: the infrastructure NDJSON logger and rolling compactor exist and their caps hold (`50` MiB active, `500` MiB compacted). The browser game does not feed them yet: it keeps an in-memory log. The logger still empties both files at session start (fixed under Bridge lock).
+- **As it is today**: the infrastructure NDJSON logger and rolling compactor exist and their caps hold (`50` MiB active, `500` MiB compacted). The browser game does not feed them yet: it keeps an in-memory log. Session preservation is shipped: construction and explicit starts rotate prior files into numbered groups under `logs/prev/`, with configurable completed-group retention. Failed rotation preserves old bytes at original or pending paths and disables telemetry writes until explicit initialization succeeds. Pending groups are left for manual inspection; see `src/infrastructure/README.md` for the recovery procedure. Current queries remain separate from archives.
 - **Policy** (planned: telemetry-wiring): the Act log records what happened and is the gameplay record. Telemetry holds crash, warn, frame spikes and hash checkpoints. Decision traces come from replaying the scripted command log with tracing on (planned: 05f-eval-and-replay). Log nothing, replay with tracing.
 - **Wiring**: browser telemetry goes through the guarded bridge, with a crash ring buffer flushed on throw. The CLI gains `limit`, `tail` and `count-by` on query, a newline guard and an `ENOSPC` warning. The debug skill text is made honest: no local ONNX decisions exist to trace. Root `AGENTS.md`, the infrastructure guide (it still names `npm run setup-models`, which does not exist), `README.md` and the debug skill carry the old wording (every event logged, a local ONNX worker) and are rewritten in `process-gates-and-ledger` and again when the wiring and the text port ship. `telemetry-wiring` renames or removes the `hybrid_nlp` pipeline value (domain telemetry port, skill `aiReasoning.pipeline` union) and adds a generated-text value when the adapter ships.
 
-#### Tests, replay and allocation (planned)
+#### Tests, replay and allocation (partial)
 
-- **Tests and builders** (planned: hx-slice-store): each test ships with the fix that needs it. Shared builders live in `tests/support` (`makeRegistry`, `makeWorldState`, `makeStageBlueprint`). Monolithic tests are split onto them, and the bridge gets http-level tests. Acceptance lines for frozen inputs, RNG golden values, caps, mid-hop states and dt splits are added to the hardening changes. The `tests/`, `golden/` and `eval/` split is in Local AI eval framework.
+- **Tests and builders** (planned: hx-slice-store): each test ships with the fix that needs it. Shared builders live in `tests/support` (`makeRegistry`, `makeWorldState`, `makeStageBlueprint`). Monolithic tests are split onto them. The bridge already has HTTP-level security and persistence tests (shipped: hx-ops-safety). Acceptance lines for frozen inputs, RNG golden values, caps, mid-hop states and dt splits are added to the hardening changes. The `tests/`, `golden/` and `eval/` split is in Local AI eval framework.
 - **Layer-test blind spots** (planned: hx-determinism-harness): the layer test is to close `import =`, `export *`, barrel files, type-only imports, and enforcement of the content/scene rule. Every new invariant ships with a guarded test. Typed ESLint is later, attached to the first async-port change (the text port). Compiler-API import scanning is parked (`compiler-api-import-scan`).
 - **Scripted command log** (planned: 05f-eval-and-replay): the artifact for golden tests, 05f fixtures and bug repro. It is not the player save format, because a reducer change invalidates a command log. The Act ring is frozen and bounded, and is chunked only if the benchmark at the expected cap fails. Dwell-site slots are later: data on the prop blueprint, with the final metre steered, not a new movement system. The eval-runner change owns the replay-with-tracing tool.
 - **Allocation note**: per-frame allocation waste is a known cost. Decision: do nothing until a room holds `100+` bodies. No work is scheduled.
@@ -260,7 +267,7 @@ Nothing about pacing speed, Epoch count (N), or tension dynamics is hardcoded. E
 4. **`storyletDensityEnvelope`**: injection rate and cooldowns of compositional storylets (Office cases, Writing Desk dilemmas, Rival moves, Romantasy probes, Travel encounters) between spine releases.
 5. **`timeHorizonConfig`**: `campaignLengthMultiplier` (e.g., `0.25x` quick run vs. `1.0x` 50–100 hr campaign), `watchesPerDay`, `epochWatchBudget` and watch costs per activity.
 
-**Live `F3` Pacing and Envelope Inspector** (planned: 05b-2-storylets-and-lab). `GET`/`PUT /api/pacing-profiles/:profileId` do not exist yet and will use the guarded bridge write-route helper (planned: hx-ops-safety). The lab will tweak any envelope control point, duty cycle or time multiplier live, run a `<10ms` headless preview rollout of an Epoch's watch budget to inspect release spacing, and save the profile to disk (see Lab saves in Launch validation, kind table and fixtures). The preview is a projection and never writes `WorldState`. The envelopes are tuned against the end card of the vertical slice (planned: 11-pass-1-ledger-end-card).
+**Live `F3` Pacing and Envelope Inspector** (planned: 05b-2-storylets-and-lab). `GET`/`PUT /api/pacing-profiles/:profileId` do not exist yet and will use the guarded bridge middleware (shipped; see Bridge lock). The lab will tweak any envelope control point, duty cycle or time multiplier live, run a `<10ms` headless preview rollout of an Epoch's watch budget to inspect release spacing, and save the profile to disk (see Lab saves in Launch validation, kind table and fixtures). The preview is a projection and never writes `WorldState`. The envelopes are tuned against the end card of the vertical slice (planned: 11-pass-1-ledger-end-card).
 
 ### Storyteller deck, thread gates and storylets (planned)
 
@@ -570,7 +577,7 @@ No audio graph or `AudioContext` exists today.
   - The backbone owner (chain in The configurable ladder) sets the harmonic signature of the next Epoch's communication notifications (bell partial vs. anvil partial vs. military interval).
 - **Hybrid Web Audio plus Live Sound Lab backdoor** (accepted: revisable):
   - Audio identity is hybrid, so the earlier "zero `.wav`" claim is relaxed. A small CC0 sample set may enter with the audio engine work (`audio-minimal` or the full `05a-audio-engine`); the minimal change is procedural and does not have to ship samples. The base is native browser Web Audio synthesis (oscillator modal banks, FM metallic partials, filtered pink/brown noise, and procedurally generated `ConvolverNode` impulse responses) defined as declarative, Zod-validated `ProceduralAudioPatch` presets (`src/content/audio/patches.json`). No large audio assets live in git.
-  - **Dual customization (agent co-design plus in-game Sound Lab UI)**: sounds can be adapted either by guiding the agent in plain English or via the **in-game `F3` Sound Lab backdoor UI** (audition any cue/bed, drag live sliders for pitch, filter cutoff/Q, envelope attack/decay, noise/tone mix, reverb send, and stealth loudness, and click **Save Patch to Disk**). The Sound Lab is planned (planned: 05a-sound-lab): its `PUT /api/audio-patches` route does not exist yet and will go through the guarded bridge write-route helper (see Bridge lock; planned, built by hx-ops-safety). A saved patch is not read back until the loader exists (see Lab saves in Launch validation, kind table and fixtures).
+  - **Dual customization (agent co-design plus in-game Sound Lab UI)**: sounds can be adapted either by guiding the agent in plain English or via the **in-game `F3` Sound Lab backdoor UI** (audition any cue/bed, drag live sliders for pitch, filter cutoff/Q, envelope attack/decay, noise/tone mix, reverb send, and stealth loudness, and click **Save Patch to Disk**). The Sound Lab is planned (planned: 05a-sound-lab): its `PUT /api/audio-patches` route does not exist yet and will go through the guarded bridge write-route helper (see Bridge lock; middleware shipped, audio route planned). A saved patch is not read back until the loader exists (see Lab saves in Launch validation, kind table and fixtures).
 
 ## Planned features by milestone (planned)
 
@@ -623,6 +630,16 @@ Where each raw note went, one row each. Raw dumps wait in `notes/inbox.md` until
 | A single "further out zoom" for the player to navigate | integrated in part: the single yaw-neutral zoom-out scalar (planned: 05d-input-and-control-frame) | Direct floor locomotion |
 
 The last two rows only ever appeared in the dump, so they stay listed until their changes land.
+
+#### Delivered engineering work (shipped)
+
+| Review finding / planned work | Disposition | Where |
+| --- | --- | --- |
+| Cross-origin bridge writes and unsafe storage paths | shipped by `hx-ops-safety` | Bridge lock; guarded HTTP and confined storage regression suites |
+| Destructive prior-session log startup | shipped by `hx-ops-safety` | Telemetry policy; numbered archives, failure recovery and current-query isolation |
+| Serial verification overhead, incomplete commit gate and skill prose pins | shipped by `hx-ops-safety` | Verification; measured parallel/serial evidence and structural skill checks |
+
+Later engineering rules and browser telemetry wiring remain planned under their existing owners; these deliveries do not mark the wider Engineering rules section complete.
 
 #### Considered and rejected (shipped)
 
