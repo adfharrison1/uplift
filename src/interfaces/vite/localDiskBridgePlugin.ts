@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
@@ -385,14 +386,27 @@ export function localDiskBridgePlugin(options: LocalDiskBridgeOptions = {}): Plu
   const { logsDir, savesDir, sceneBlueprintsDir, characterVisualsDir, maxBodyBytes } =
     LocalDiskBridgeOptionsSchema.parse(options);
 
+  let bridgeToken: string | undefined;
   let telemetry: NdjsonSessionTelemetry | undefined;
   let saves: FileSaveSlotRepository | undefined;
 
   return {
     name: 'uplift-local-disk-bridge',
+    apply: 'serve',
+    transformIndexHtml(_html, context) {
+      if (context.server === undefined || bridgeToken === undefined) return;
+      return [
+        {
+          tag: 'meta',
+          attrs: { name: 'uplift-bridge-token', content: bridgeToken },
+          injectTo: 'head',
+        },
+      ];
+    },
     configureServer(server) {
       telemetry ??= new NdjsonSessionTelemetry(logsDir);
       saves ??= new FileSaveSlotRepository(savesDir);
+      bridgeToken = randomBytes(32).toString('hex');
 
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? '/';

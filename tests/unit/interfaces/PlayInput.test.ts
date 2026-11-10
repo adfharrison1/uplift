@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   EpochVisualThemeSchema,
   PlaySession,
@@ -20,6 +20,8 @@ import {
   InMemorySessionTelemetry,
   NdjsonSessionTelemetry,
 } from '../../../src/infrastructure/index.js';
+import { createBridgeSaveStatus } from '../../../src/interfaces/composition/browserMain.js';
+import { createBridgeSaveTransport } from '../../../src/interfaces/composition/bridgeTransport.js';
 import { createPlayInput } from '../../../src/interfaces/composition/playInput.js';
 import { createStageLab } from '../../../src/interfaces/composition/stageLabPanel.js';
 import {
@@ -472,6 +474,66 @@ describe('play input and the stage lab', () => {
     expect(calls).toBe(0);
   });
 
+  it('retains an accessible save error through frame synchronization and replaces it on explicit retry', async () => {
+    const { coordinator, session } = doorSession();
+    const input = createPlayInput({
+      session,
+      isPaused: () => coordinator.getWorldState().paused,
+      waypointIds: () => ['wp_inside'],
+      entityIds: () => ['char_walker'],
+      readPortalState: () => undefined,
+      raycastFloor: () => null,
+      raycastPortal: () => null,
+      raycastPick: () => null,
+      onPick: () => undefined,
+    });
+    const doc = { createElement: (): FakeNode => fakeNode(doc) };
+    const panel = fakeNode(doc);
+    input.attach(panel as unknown as HTMLElement);
+    const setStatus = createBridgeSaveStatus(panel as unknown as HTMLElement);
+    const status = panel.children.find((node) => node.dataset['bridgeSaveStatus'] !== undefined);
+    if (status === undefined) throw new Error('Missing bridge save status element');
+    expect(status.attributes).toMatchObject({
+      role: 'status',
+      'aria-live': 'polite',
+      'aria-atomic': 'true',
+    });
+    expect(status).not.toBe(panel.children[0]);
+    let succeeds = false;
+    const transport = createBridgeSaveTransport({
+      getToken: () => 'a'.repeat(64),
+      fetch: async () => ({ ok: succeeds, status: succeeds ? 200 : 500 }),
+      setStatus,
+    });
+    const request = {
+      method: 'PUT' as const,
+      url: '/api/scene-blueprints/stage_test',
+      rawBody: '{}',
+    };
+    transport(request);
+    expect(status.textContent).toBe('Saving');
+    await vi.waitFor(() => expect(status.textContent).toMatch(/save failed/i), { interval: 1 });
+    const failure = status.textContent;
+    input.keyDown('F3');
+    input.activateWaypoint('wp_inside');
+    for (let frame = 0; frame < 3; frame += 1) {
+      session.frame(0);
+      input.sync();
+    }
+    expect(status.textContent).toBe(failure);
+    expect(panel.children[0]?.textContent).toBe('paused');
+    succeeds = true;
+    transport(request);
+    expect(status.textContent).toBe('Saving');
+    await vi.waitFor(() => expect(status.textContent).toBe('Saved'), { interval: 1 });
+    input.sync();
+    expect(status.textContent).toBe('Saved');
+    // Status strings are rendered as text, not interpreted markup.
+    setStatus('<img src=x onerror=alert(1)>');
+    expect(status.textContent).toBe('<img src=x onerror=alert(1)>');
+    expect(status.children).toEqual([]);
+  });
+
   it('saves the stage blueprint through the scene-blueprint disk route', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'uplift-play-input-'));
     try {
@@ -551,6 +613,8 @@ interface FakeNode {
     font: string;
   };
   readonly dataset: Record<string, string>;
+  readonly attributes: Record<string, string>;
+  setAttribute: (name: string, value: string) => void;
   textContent: string;
   type: string;
   readonly ownerDocument: { createElement: (tag: string) => FakeNode };
@@ -564,6 +628,10 @@ function fakeNode(doc: { createElement: (tag: string) => FakeNode }): FakeNode {
   const node: FakeNode = {
     style: { position: '', top: '', left: '', color: '', font: '' },
     dataset: {},
+    attributes: {},
+    setAttribute: (name, value) => {
+      node.attributes[name] = value;
+    },
     textContent: '',
     type: '',
     ownerDocument: doc,

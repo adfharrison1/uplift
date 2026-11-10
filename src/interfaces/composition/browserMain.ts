@@ -49,6 +49,7 @@ import {
   disposeSceneGraph,
   resolveSemanticIdFromObject,
 } from '../three/ChiaroscuroStageRenderer.js';
+import { createBridgeSaveTransport, readBridgeToken } from './bridgeTransport.js';
 import { createPlayInput } from './playInput.js';
 import { createResidentPlayLists } from './residentPlayLists.js';
 import {
@@ -66,6 +67,19 @@ export interface CampaignLaunch {
   readonly characterVisuals: ReadonlyArray<CharacterVisualBlueprint>;
   readonly theme: EpochVisualTheme;
   readonly focusEntityId: string;
+}
+
+/** A dedicated live region keeps save results independent of per-frame play status. */
+export function createBridgeSaveStatus(panel: HTMLElement): (message: string) => void {
+  const status = panel.ownerDocument.createElement('p');
+  status.dataset['bridgeSaveStatus'] = '';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  status.setAttribute('aria-atomic', 'true');
+  panel.append(status);
+  return (message): void => {
+    status.textContent = message;
+  };
 }
 
 export function bootCampaignPage(
@@ -132,19 +146,21 @@ export function bootCampaignPage(
       ? elementAttributeSink(stagePanel)
       : new InMemoryDomAttributeSink(),
   );
+  const setSaveStatus =
+    stagePanel instanceof HTMLElement
+      ? createBridgeSaveStatus(stagePanel)
+      : (_message: string): void => undefined;
   const lab = createStageLab({
     mirror,
     isPaused: () => coordinator.getWorldState().paused,
     getStage: () => session.getResidentStage(),
     getVisuals: () => launch.characterVisuals,
     requestPortal: (propId, portalState) => input.requestPortal(propId, portalState),
-    transport: (request) => {
-      void ownerWindow.fetch(request.url, {
-        method: request.method,
-        headers: { 'content-type': 'application/json' },
-        body: request.rawBody,
-      });
-    },
+    transport: createBridgeSaveTransport({
+      getToken: () => readBridgeToken(ownerDocument),
+      fetch: (url, init) => ownerWindow.fetch(url, init),
+      setStatus: setSaveStatus,
+    }),
   });
   let pointer = { x: 0, y: 0 };
   const playLists = createResidentPlayLists({

@@ -26,7 +26,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 3. Supply dev tokens through the real browser save transport
 
-- [ ] 3.1 Generate a per-run token, inject it into dev HTML and route existing stage-lab fetches through a shared token-bearing transport with readable, retained failure status. Verify: npm exec vitest run tests/unit/interfaces/ followed by npm run build and npm run verify. Commit: feat(bridge): authenticate browser save requests with a dev token.
+- [x] 3.1 Generate a per-run token, inject it into dev HTML and route existing stage-lab fetches through a shared token-bearing transport with readable, retained failure status. Verify: npm exec vitest run tests/unit/interfaces/ followed by npm run build and npm run verify. Commit: feat(bridge): authenticate browser save requests with a dev token.
 
   Source files (3): src/interfaces/vite/localDiskBridgePlugin.ts; new src/interfaces/composition/bridgeTransport.ts; src/interfaces/composition/browserMain.ts.
 
