@@ -1,6 +1,6 @@
 # Delivery review
 
-Tasks 1–5 are committed. The owner approved the final bridge corrections and task-6 documentation. The bridge fix is committed; this delivery record completes task 6. Archiving is authorized as the next separate commit; nothing has been pushed.
+All six tasks and the separate bridge fix are committed. At the owner’s request, the four delta specs were synchronized into the main specs and this change was archived on 2026-11-10. Nothing has been pushed.
 
 ## Commit inventory
 
@@ -14,7 +14,7 @@ Tasks 1–5 are committed. The owner approved the final bridge corrections and t
 | Guarded HTTP boundary | `908bb13` |
 | Concurrent checks and commit gate | `5e9e986` |
 | Final bridge lifecycle/error corrections | `255f4dd` |
-| Delivery reconciliation | This documentation commit (owner approved) |
+| Delivery reconciliation | `6dc1ae8` |
 
 ## Observable consumer traces
 
@@ -125,7 +125,7 @@ All six briefs used high reasoning and a medium-to-high model, scheduled within 
 | Performance | No new render-loop work or material allocation concern found. Reviewed task-5 fingerprints and measurements; reference Intel hardware and native Windows remain unmeasured. |
 | Testing | Corroborated missing actual-restart rotation and wrapped-path regression cases. All scenario mappings are recorded above; two independent documentation reviewers confirmed all 52 titles and mappings. |
 | Logic/simulation integrity | Found that actual Vite restart reused the old logger without rotation. Every configuration now constructs a fresh logger. Tests verify repeated actual restarts, archive retention/bytes and fresh query/sequence. Follow-up found the fresh-policy race. |
-| Design fidelity/coherence | Owner pillars, future systems and shipped/planned boundaries preserved. Independent review cleared owner wording, all scenario mappings and shipped/planned boundaries; the roadmap retains proposed status until archive. |
+| Design fidelity/coherence | Owner pillars, future systems and shipped/planned boundaries preserved. Independent review cleared owner wording, all scenario mappings and shipped/planned boundaries; the roadmap now records archived status after synchronization and the directory move. |
 
 Restart investigation also reproduced an old partial request writing into the new current log while Vite constructed its replacement server before closing the old server. A run check after body completion closes the same-policy path; independent follow-up reviews found that a real config factory creates a fresh policy. The restart wrapper now retires the old policy before replacement configuration, serializes concurrent callers through the current server method, and leaves failed replacements denied until explicit retry. Real config-factory regressions cover successful, failed and concurrent replacement lifecycles. Two independent final reviewers cleared the implementation and regressions; the HTTP suite passes all 37 cases. These source corrections belong in the separate bridge fix, never the documentation commit.
 
@@ -140,3 +140,7 @@ Final validation passed: `npm run verify`, `npm run verify:serial`, `npm run bui
 - The debug skill's field schema, supported query flags and save-inspection instructions were checked. Its unconditional “100% Preserved Verbatim” wording overstates compaction: preservation applies during aggregation, while storage-cap eviction can remove records from every priority tier. That wording and existing claims of automatic browser logging/local ONNX decisions are stale; their rewrite is explicitly assigned to `process-gates-and-ledger`, with runtime wiring owned by `telemetry-wiring`. This delivery does not certify those runtime claims or broaden scope to the scheduled documentation rewrite.
 - The 2019 Intel i7 / 16 GB target and native Windows process/hook behavior have not been measured here. Windows command construction is tested with an injected adapter; host-native cancellation is tested on macOS.
 - No AI behavior, simulation reducers, gameplay telemetry wiring, JSON pack loader, Sound Lab or Pacing Lab is delivered by this change.
+
+## Archive validation
+
+All four main specs match the seven MODIFIED and nine ADDED requirement blocks. Existing titles, Purpose sections, unrelated requirements and every prior scenario were preserved. `openspec validate --specs` passed all 14 specifications; warnings concern pre-existing long requirement descriptions. The active change had 6/6 completed tasks before the move, and `.openspec.yaml` is retained in this archive.

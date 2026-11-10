@@ -17,12 +17,44 @@ Provide the In-Game `F3` Stage, Lighting & Character Wardrobe Inspector controll
 - **THEN** the mutator SHALL throw a descriptive validation error while leaving the prior blueprint unmodified
 
 ### Requirement: Vite Local Disk Bridge endpoints for scene blueprints and character visuals
-The Vite Local Disk Bridge (`src/interfaces/vite/localDiskBridgePlugin.ts`) SHALL support `GET /api/scene-blueprints/:stageId`, `PUT /api/scene-blueprints/:stageId`, `GET /api/character-visuals/:characterId`, and `PUT /api/character-visuals/:characterId`, enforcing safe alphanumeric/underscore/hyphen asset IDs, enforcing the `256 KiB` body limit (`413`), validating payloads with `StageSceneBlueprintSchema` and `CharacterVisualBlueprintSchema` (`400` on invalid schema or URL/body ID mismatch), and atomically persisting formatted JSON via temp-file-and-rename while preserving backwards compatibility with `/api/telemetry/*` and `/api/saves/*`.
+
+The Vite Local Disk Bridge SHALL support GET and PUT for /api/scene-blueprints/:stageId and /api/character-visuals/:characterId, enforcing safe alphanumeric/underscore/hyphen asset IDs, the configured body limit (default 256 KiB), schema validation and URL/body ID agreement, and atomic formatted JSON persistence. All routes SHALL obey the shared bridge request and filesystem contracts; existing telemetry and save response schemas SHALL remain compatible.
 
 #### Scenario: Saving and loading valid stage blueprints and character visuals via the Local Disk Bridge
-- **WHEN** `PUT /api/scene-blueprints/stage_alpha` and `PUT /api/character-visuals/char_alpha` are called with valid JSON blueprints, followed by `GET` requests
-- **THEN** both `PUT` and `GET` calls SHALL return `200` with the validated blueprints persisted on disk, and existing `/api/telemetry/*` and `/api/saves/*` routes SHALL continue to operate unchanged
+
+- **WHEN** the local browser transport sends authorized PUT requests with valid stage and character JSON, followed by authorized GET requests
+- **THEN** PUT and GET SHALL return 200, disk JSON and returned payloads SHALL contain the submitted values, and telemetry and save routes SHALL remain usable under the same request guard
 
 #### Scenario: Rejecting path traversal, missing assets, oversized bodies, and invalid schemas on blueprint routes
-- **WHEN** a request uses a path-traversal ID (`../secret`, `%2e%2e`), requests a non-existent blueprint (`GET /api/scene-blueprints/missing_stage`), sends a payload exceeding `256 KiB`, or sends malformed JSON/schema
-- **THEN** missing blueprints SHALL return `404`, oversized payloads SHALL return `413`, and path traversal or invalid schema payloads SHALL return `400`
+
+- **WHEN** an otherwise authorized request uses a traversal or encoded ID, requests a missing blueprint, exceeds the body limit, or submits malformed JSON, schema or mismatched URL/body ID
+- **THEN** missing blueprints SHALL return 404, traversal/schema/ID errors SHALL return 400, and oversized streams SHALL return 413 or close promptly as defined by the shared bridge contract, with no partial writes
+
+#### Scenario: Linked visual asset paths cannot escape their registered directories
+
+- **WHEN** stage or character storage contains a linked root, parent directory, destination or temporary path, including a dangling link
+- **THEN** reads and writes SHALL reject it without following the link or changing outside files
+
+### Requirement: Stage-lab write authorization and failure reporting
+
+The stage-lab transport SHALL read the dev HTML token and attach it with JSON media type to same-origin mutations. Its stage save control and callable character-save API SHALL report missing-token, rejected-request and network failures as retained text in a polite, atomic live status region, without exposing the token or discarding edited state. A failed write SHALL NOT replay automatically.
+
+#### Scenario: Existing lab save obtains authorization from the served page
+
+- **WHEN** the stage save control or existing callable saveVisual API sends a valid edited asset through its browser transport after loading the dev page
+- **THEN** the real middleware SHALL accept the current token and JSON headers and a subsequent GET SHALL return the edited asset from disk
+
+#### Scenario: Restarted server makes an old tab reload before saving
+
+- **WHEN** an old tab saves with a previous-run token or the page has no token
+- **THEN** the HUD SHALL display a text instruction to reload the dev page, no unauthorized write SHALL occur, and the unsaved edit SHALL remain in memory
+
+#### Scenario: Network or storage failure is visible
+
+- **WHEN** an authorized save receives a non-success response or the network request rejects
+- **THEN** the HUD SHALL show the failure in text, retain the edited blueprint and allow an explicit retry without an unhandled rejection or false success
+
+#### Scenario: Failure status survives frame updates and explicit retry replaces it
+
+- **WHEN** a save fails and frame/input synchronization continues, followed later by an explicit save attempt
+- **THEN** the dedicated status text SHALL survive synchronization with role=status, aria-live=polite and aria-atomic=true; the next attempt SHALL replace it with Saving and then Saved or a new error, without modifying the in-memory edit

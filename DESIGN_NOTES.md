@@ -140,7 +140,7 @@ Future Sound Lab `PUT /api/audio-patches` (planned: 05a-sound-lab) and Pacing La
 
 #### Verification (shipped)
 
-Delivered by `hx-ops-safety`. The concurrent verification command and serial fallback cover the same quality checks. Commits run staged formatting/linting followed by full verification, with failures blocking the commit. Skill checks validate structure and YAML metadata rather than prose or model recommendations. The authoritative commands and process behavior live in `package.json`, `scripts/verify.mjs` and root `AGENTS.md`; cold/warm measurements and platform limits are in `openspec/changes/hx-ops-safety/verification.md`. The reference-Mac timing target is distinct from measurements on the development host.
+Delivered by `hx-ops-safety`. The concurrent verification command and serial fallback cover the same quality checks. Commits run staged formatting/linting followed by full verification, with failures blocking the commit. Skill checks validate structure and YAML metadata rather than prose or model recommendations. The authoritative commands and process behavior live in `package.json`, `scripts/verify.mjs` and root `AGENTS.md`; cold/warm measurements and platform limits are in `openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md`. The reference-Mac timing target is distinct from measurements on the development host.
 
 #### Determinism, fixed step and phases (planned)
 

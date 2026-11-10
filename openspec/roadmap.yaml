@@ -76,8 +76,8 @@ entries:
     milestone: M1
     depends_on: ["05c-play-shell"]
     specs_modified: ["multi-session-saves", "stage-inspector", "session-telemetry-and-compaction", "clean-architecture-and-quality-gate"]
-    status: proposed
-    delivery_note: "Delivered-awaiting-archive; implementation, reviews and delivery checks complete and final commits approved. Evidence: openspec/changes/hx-ops-safety/delivery.md and verification.md. Archive state remains derived from openspec/changes/."
+    status: archived
+    delivery_note: "Archived 2026-11-10; all six tasks delivered, reviews cleared and four main specs synchronized. Evidence: openspec/changes/archive/2026-11-10-hx-ops-safety/delivery.md and verification.md. Archive state remains derived from openspec/changes/."
     scope: "Runs first in the whole plan because the bridge CSRF was reproduced and the fix is independent of everything else. One guarded write-route helper (Origin allow-list, Sec-Fetch-Site, Content-Type, per-run token, size cap that destroys the stream, realpath containment) with explicit server.cors and a real http middleware test on 127.0.0.1:0, plus the logger rotating the prior session into logs/prev instead of truncating it (spec delta replaces the requirement that the prior log SHALL be replaced). Then verify runs format, lint, typecheck and vitest in parallel with buffered one-line PASS/FAIL, keeps verify:serial, deletes the prose-pinning arch tests and runs verify in pre-commit, with the unmeasured under-5-seconds clause replaced by a measured budget."
   - id: "docs-spine-and-roadmap"
     title: "Docs: rules spine, system graph, roadmap.yaml"

@@ -32,11 +32,28 @@ The project SHALL compile with TypeScript strict mode flags enabled and SHALL fo
 - **THEN** `npm run test:arch` SHALL fail and report the offending file path and line
 
 ### Requirement: Single-command verification loop
-The project SHALL provide an `npm run verify` script that executes formatting checks, ESLint static analysis, typechecking, architectural/static boundary checks, and unit tests in under 5 seconds without requiring network access, API keys, or WebGL.
+
+The project SHALL provide npm run verify for offline formatting, lint, type and architecture/unit verification. Format, lint, typecheck and one combined Vitest run SHALL execute concurrently with buffered output and one PASS/FAIL summary per step. Any failed or interrupted step SHALL fail the command. An equivalent verify:serial SHALL remain available. Performance SHALL be measured and recorded under the verification timing requirement.
 
 #### Scenario: Post-task verification pass
-- **WHEN** a developer or agent runs `npm run verify` on a valid codebase state
-- **THEN** `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` SHALL all execute in sequence and exit with code 0
+
+- **WHEN** a developer or agent runs npm run verify on a valid codebase
+- **THEN** format:check, lint, typecheck and one test invocation covering both architecture and unit suites SHALL start without awaiting another check, produce four PASS summaries and exit zero
+
+#### Scenario: A failing child still gives a complete diagnostic result
+
+- **WHEN** any check exits nonzero or cannot start
+- **THEN** verification SHALL report that step as FAIL, print its buffered diagnostics without interleaving other steps' output, report every other step's result and exit nonzero
+
+#### Scenario: Interrupted verification leaves no workers running
+
+- **WHEN** verification receives a termination signal
+- **THEN** it SHALL stop and reap its child process trees, mark unfinished steps failed and exit nonzero
+
+#### Scenario: Serial fallback runs the same checks
+
+- **WHEN** npm run verify:serial runs
+- **THEN** it SHALL execute format, lint, type and the same architecture/unit test coverage sequentially and propagate failure; test:arch and test:unit SHALL remain separately callable
 
 ### Requirement: Hierarchical README and AGENTS documentation per codebase section
 The repository SHALL maintain a master `README.md` and `AGENTS.md` at the project root that link to a dedicated `README.md` and `AGENTS.md` inside every major codebase section (`src/domain`, `src/application`, `src/infrastructure`, `src/content`, `src/interfaces`, and `tests`).
@@ -61,8 +78,44 @@ The project SHALL enforce standard TypeScript ESLint rules (`eslint` + `typescri
 - **THEN** `.vscode/settings.json` SHALL configure `editor.formatOnSave: true` and `esbenp.prettier-vscode` as the default formatter
 
 ### Requirement: Husky and lint-staged pre-commit quality hooks
-The project SHALL configure Husky (`husky`) and `lint-staged` so that every `git commit` automatically formats and lints staged files before the commit is recorded.
+
+Every git commit SHALL run lint-staged followed by the full verification gate. Formatting, lint, type, architecture or unit-test failure SHALL abort the commit. The hook SHALL not stage unrelated working-tree files.
 
 #### Scenario: Pre-commit hook runs lint-staged on staged files
-- **WHEN** a developer or agent runs `git commit`
-- **THEN** `.husky/pre-commit` SHALL invoke `npx lint-staged`, running Prettier and ESLint on staged files and aborting the commit if any lint or formatting error remains
+
+- **WHEN** a developer or agent runs git commit
+- **THEN** the hook SHALL run npx lint-staged and, only on success, npm run verify before the commit is recorded
+
+#### Scenario: Full verification failure blocks a commit
+
+- **WHEN** staged formatting passes but typechecking, architecture checks or unit tests fail
+- **THEN** the commit SHALL abort with a nonzero result and the failing check's diagnostics
+
+#### Scenario: Failed staged checks stop the hook
+
+- **WHEN** lint-staged fails
+- **THEN** the hook SHALL abort without reporting successful verification or recording a commit
+
+### Requirement: Recorded verification timing
+
+Verification performance evidence SHALL name the hardware, OS, Node version, dependency state, cache condition and test count. Delivery SHALL record a cold run and five comparable warm runs of parallel and serial verification, reporting warm median and maximum. The warm parallel median SHALL not exceed the serial median. Under five seconds remains the target on the 2019 Intel reference machine, not an unconditional assertion for every host.
+
+#### Scenario: Comparable timings accompany delivery
+
+- **WHEN** the concurrent runner is delivered
+- **THEN** its recorded cold and warm timings SHALL use the same revision and checks as the serial baseline, identify whether the host is the reference machine and flag any missed reference target without a flaky wall-clock unit assertion
+- **AND** the implementation's tracked verification record SHALL contain the commands, raw durations, cache preparation, median/maximum and any unexecuted native-platform coverage
+
+### Requirement: Skill and documentation checks verify structure
+
+Architecture checks SHALL retain root/section documentation presence and links, required project skill files and metadata, and the prohibition on .cursor/skills. They SHALL not depend on exact prose headings, sentences or vendor model names in skill instructions. Clean Architecture, zero-any and determinism enforcement SHALL remain intact.
+
+#### Scenario: Wording edits do not invalidate a structurally valid skill
+
+- **WHEN** a required skill retains valid name/description metadata and nonempty instructions but its headings, wording or model recommendations change
+- **THEN** architecture checks SHALL continue to pass
+
+#### Scenario: Missing or misplaced guidance is still rejected
+
+- **WHEN** required documentation or skill files are missing, root section links are removed, skill metadata is invalid, or .cursor/skills exists
+- **THEN** architecture verification SHALL fail and identify the structural violation
