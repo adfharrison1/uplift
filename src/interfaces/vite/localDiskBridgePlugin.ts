@@ -1,14 +1,5 @@
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
 import { z } from 'zod';
 import {
@@ -25,11 +16,14 @@ import {
   NdjsonSessionTelemetry,
   safeParseJsonWithSchema,
 } from '../../infrastructure/index.js';
+import {
+  createSafeLocalFiles,
+  type LocalFileOptions,
+} from '../../infrastructure/persistence/safeLocalFiles.js';
 
 export const MAX_BRIDGE_BODY_BYTES = 256 * 1024; // 256 KiB
 
 const SAFE_ASSET_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/;
-let atomicWriteCounter = 0;
 
 export const StartSessionRequestSchema = z.object({
   sessionId: z.string().trim().min(1),
@@ -92,35 +86,6 @@ function extractSafeAssetIdFromPath(pathname: string, routePrefix: string): stri
   return rawSegment;
 }
 
-function resolveContainedJsonFilePath(baseDir: string, assetId: string): string {
-  const resolvedBase = resolve(baseDir);
-  const resolvedTarget = resolve(resolvedBase, `${assetId}.json`);
-  const rel = relative(resolvedBase, resolvedTarget);
-  if (rel.startsWith('..') || isAbsolute(rel) || rel.includes('/') || rel.includes('\\')) {
-    throw new Error(`Asset path escapes base directory for id '${assetId}'`);
-  }
-  return resolvedTarget;
-}
-
-function writeJsonFileAtomically(filePath: string, data: unknown): void {
-  const parentDir = resolve(filePath, '..');
-  mkdirSync(parentDir, { recursive: true });
-  atomicWriteCounter += 1;
-  const tempPath = `${filePath}.tmp.${String(process.pid)}.${String(atomicWriteCounter)}`;
-  try {
-    writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
-    renameSync(tempPath, filePath);
-  } finally {
-    if (existsSync(tempPath)) {
-      try {
-        unlinkSync(tempPath);
-      } catch {
-        // Ignore cleanup errors if rename already succeeded
-      }
-    }
-  }
-}
-
 export function isBridgeApiUrl(url: string): boolean {
   return (
     url.startsWith('/api/telemetry') ||
@@ -131,13 +96,15 @@ export function isBridgeApiUrl(url: string): boolean {
 }
 
 /**
- * Pure, deterministic HTTP request handler for:
+ * In-process I/O dispatcher for:
  * - `/api/telemetry/*`
  * - `/api/saves/*`
  * - `/api/scene-blueprints/:stageId`
  * - `/api/character-visuals/:characterId`
  *
  * Uses Zod `safeParseJsonWithSchema` for all JSON-to-TypeScript conversions and validation.
+ * Filesystem dependencies are trusted caller inputs, never request payload fields.
+ * This dispatcher performs disk I/O and is not an HTTP trust boundary.
  */
 export function handleLocalDiskBridgeRequest(
   req: BridgeHttpRequest,
@@ -145,6 +112,7 @@ export function handleLocalDiskBridgeRequest(
   saves: FileSaveSlotRepository,
   maxBodyBytes: number = MAX_BRIDGE_BODY_BYTES,
   visualDirs?: BridgeVisualAssetDirectories,
+  visualFileOptions: LocalFileOptions = {},
 ): BridgeHttpResponse {
   const measuredBytes = req.rawBody !== undefined ? Buffer.byteLength(req.rawBody, 'utf8') : 0;
   const bodyBytes = Math.max(measuredBytes, req.bodyByteLength ?? 0);
@@ -260,16 +228,18 @@ export function handleLocalDiskBridgeRequest(
 
     if (pathname.startsWith('/api/scene-blueprints/')) {
       const stageId = extractSafeAssetIdFromPath(pathname, '/api/scene-blueprints/');
-      const filePath = resolveContainedJsonFilePath(sceneBlueprintsDir, stageId);
+      const fileName = `${stageId}.json`;
 
       if (method === 'GET') {
-        if (!existsSync(filePath)) {
+        const files = createSafeLocalFiles(sceneBlueprintsDir, visualFileOptions);
+        const stat = files.stat(fileName);
+        if (stat === undefined) {
           return {
             statusCode: 404,
             body: { error: `Scene blueprint '${stageId}' does not exist` },
           };
         }
-        if (statSync(filePath).size > maxBodyBytes) {
+        if (stat.size > maxBodyBytes) {
           return {
             statusCode: 413,
             body: {
@@ -277,7 +247,7 @@ export function handleLocalDiskBridgeRequest(
             },
           };
         }
-        const raw = readFileSync(filePath, 'utf8');
+        const raw = files.read(fileName) ?? '';
         const parsed = safeParseJsonWithSchema(raw, StageSceneBlueprintSchema);
         if (!parsed.success) {
           return { statusCode: 400, body: { error: parsed.error.message } };
@@ -298,7 +268,11 @@ export function handleLocalDiskBridgeRequest(
             },
           };
         }
-        writeJsonFileAtomically(filePath, parsed.data);
+        const serialized = `${JSON.stringify(parsed.data, null, 2)}\n`;
+        createSafeLocalFiles(sceneBlueprintsDir, visualFileOptions).writeAtomic(
+          fileName,
+          serialized,
+        );
         return { statusCode: 200, body: { blueprint: parsed.data } };
       }
 
@@ -307,16 +281,18 @@ export function handleLocalDiskBridgeRequest(
 
     if (pathname.startsWith('/api/character-visuals/')) {
       const characterId = extractSafeAssetIdFromPath(pathname, '/api/character-visuals/');
-      const filePath = resolveContainedJsonFilePath(characterVisualsDir, characterId);
+      const fileName = `${characterId}.json`;
 
       if (method === 'GET') {
-        if (!existsSync(filePath)) {
+        const files = createSafeLocalFiles(characterVisualsDir, visualFileOptions);
+        const stat = files.stat(fileName);
+        if (stat === undefined) {
           return {
             statusCode: 404,
             body: { error: `Character visual '${characterId}' does not exist` },
           };
         }
-        if (statSync(filePath).size > maxBodyBytes) {
+        if (stat.size > maxBodyBytes) {
           return {
             statusCode: 413,
             body: {
@@ -324,7 +300,7 @@ export function handleLocalDiskBridgeRequest(
             },
           };
         }
-        const raw = readFileSync(filePath, 'utf8');
+        const raw = files.read(fileName) ?? '';
         const parsed = safeParseJsonWithSchema(raw, CharacterVisualBlueprintSchema);
         if (!parsed.success) {
           return { statusCode: 400, body: { error: parsed.error.message } };
@@ -345,7 +321,11 @@ export function handleLocalDiskBridgeRequest(
             },
           };
         }
-        writeJsonFileAtomically(filePath, parsed.data);
+        const serialized = `${JSON.stringify(parsed.data, null, 2)}\n`;
+        createSafeLocalFiles(characterVisualsDir, visualFileOptions).writeAtomic(
+          fileName,
+          serialized,
+        );
         return { statusCode: 200, body: { visual: parsed.data } };
       }
 

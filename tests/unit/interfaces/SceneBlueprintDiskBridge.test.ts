@@ -1,4 +1,14 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -15,6 +25,10 @@ import {
   isBridgeApiUrl,
   MAX_BRIDGE_BODY_BYTES,
 } from '../../../src/interfaces/index.js';
+import {
+  nodeLocalFileOps,
+  type LocalFileOptions,
+} from '../../../src/infrastructure/persistence/safeLocalFiles.js';
 
 describe('Vite Local Disk Bridge /api/scene-blueprints and /api/character-visuals endpoints', () => {
   let tempDir = '';
@@ -267,5 +281,174 @@ describe('Vite Local Disk Bridge /api/scene-blueprints and /api/character-visual
     // Zero disk files written after all rejected requests
     expect(existsSync(sceneBlueprintsDir)).toBe(false);
     expect(existsSync(characterVisualsDir)).toBe(false);
+  });
+  const character = DEFAULT_HIGHGLASS_CHARACTER_VISUALS.find(
+    (visual) => visual.characterId === 'sorrel',
+  );
+  if (character === undefined) throw new Error('Missing character visual fixture');
+  const assets = [
+    {
+      family: 'stage',
+      prefix: '/api/scene-blueprints/',
+      id: 'stage_charnel_stairs',
+      payload: DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT,
+      replacement: { ...DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT, themeId: 'alternate_theme' },
+      directoryKey: 'sceneBlueprintsDir' as const,
+      responseKey: 'blueprint',
+    },
+    {
+      family: 'character',
+      prefix: '/api/character-visuals/',
+      id: 'sorrel',
+      payload: character,
+      replacement: { ...character, heightScale: 1.75 },
+      directoryKey: 'characterVisualsDir' as const,
+      responseKey: 'visual',
+    },
+  ];
+
+  describe.each(assets)('$family filesystem confinement', (asset) => {
+    const request = (
+      method: string,
+      root: string,
+      fileOptions: LocalFileOptions = {},
+      rawBody = JSON.stringify(asset.payload),
+      maxBytes = MAX_BRIDGE_BODY_BYTES,
+    ) =>
+      handleLocalDiskBridgeRequest(
+        { method, url: `${asset.prefix}${asset.id}`, ...(method === 'PUT' ? { rawBody } : {}) },
+        telemetry,
+        saves,
+        maxBytes,
+        { sceneBlueprintsDir, characterVisualsDir, [asset.directoryKey]: root },
+        fileOptions,
+      );
+
+    it.each([
+      'root',
+      'parent',
+      'destination',
+      'dangling-root',
+      'dangling-parent',
+      'dangling-destination',
+    ])('rejects a %s link on GET and PUT without reading or changing outside files', (position) => {
+      const outside = join(tempDir, 'outside');
+      mkdirSync(outside);
+      const outsideFile = join(outside, `${asset.id}.json`);
+      const original = JSON.stringify(asset.payload);
+      writeFileSync(outsideFile, original);
+      const root = join(tempDir, 'assets');
+      let configuredRoot = root;
+      let linkPath = root;
+      if (position === 'root' || position === 'dangling-root') {
+        symlinkSync(position === 'root' ? outside : join(tempDir, 'missing'), root, 'dir');
+      } else if (position === 'parent' || position === 'dangling-parent') {
+        const parent = join(tempDir, 'linked-parent');
+        linkPath = parent;
+        symlinkSync(position === 'parent' ? outside : join(tempDir, 'missing'), parent, 'dir');
+        configuredRoot = join(parent, 'nested');
+      } else {
+        mkdirSync(root);
+        linkPath = join(root, `${asset.id}.json`);
+        symlinkSync(position === 'destination' ? outsideFile : join(outside, 'missing'), linkPath);
+      }
+      for (const method of ['GET', 'PUT']) {
+        const response = request(method, configuredRoot);
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({ error: 'Unsafe storage path' });
+      }
+      expect(readFileSync(outsideFile, 'utf8')).toBe(original);
+      expect(readdirSync(outside)).toEqual([`${asset.id}.json`]);
+      expect(existsSync(join(tempDir, 'missing'))).toBe(false);
+      expect(lstatSync(linkPath).isSymbolicLink()).toBe(true);
+    });
+
+    it.each(['link', 'dangling-link', 'occupied'])(
+      'preserves a valid saved asset when its temporary candidate is %s',
+      (kind) => {
+        const root = join(tempDir, 'assets');
+        mkdirSync(root);
+        const target = join(root, `${asset.id}.json`);
+        writeFileSync(target, JSON.stringify(asset.payload));
+        const original = readFileSync(target, 'utf8');
+        const outside = join(tempDir, 'sentinel');
+        writeFileSync(outside, 'keep');
+        const candidate = join(root, 'candidate.tmp');
+        if (kind === 'occupied') writeFileSync(candidate, 'owned elsewhere');
+        else symlinkSync(kind === 'link' ? outside : join(tempDir, 'missing'), candidate);
+        const response = request('PUT', root, { temporaryName: () => 'candidate.tmp' });
+        expect(response.statusCode).toBe(400);
+        expect(readFileSync(target, 'utf8')).toBe(original);
+        expect(readFileSync(outside, 'utf8')).toBe('keep');
+        expect(existsSync(join(tempDir, 'missing'))).toBe(false);
+        if (kind === 'occupied') expect(readFileSync(candidate, 'utf8')).toBe('owned elsewhere');
+        else expect(lstatSync(candidate).isSymbolicLink()).toBe(true);
+        expect(request('GET', root).body[asset.responseKey]).toEqual(asset.payload);
+      },
+    );
+
+    it('creates safe missing directories and returns the persisted payload after replacement', () => {
+      const root = join(tempDir, 'absent', 'nested', 'assets');
+      expect(request('GET', root).statusCode).toBe(404);
+      expect(existsSync(join(tempDir, 'absent'))).toBe(false);
+      expect(request('PUT', root).statusCode).toBe(200);
+      const file = join(root, `${asset.id}.json`);
+      expect(readFileSync(file, 'utf8')).toBe(`${JSON.stringify(asset.payload, null, 2)}\n`);
+      // A second PUT replaces the saved values and leaves no temporary artifact.
+      expect(request('PUT', root, {}, JSON.stringify(asset.replacement)).statusCode).toBe(200);
+      expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual(asset.replacement);
+      expect(readdirSync(root)).toEqual([`${asset.id}.json`]);
+      expect(request('GET', root).body[asset.responseKey]).toEqual(
+        JSON.parse(readFileSync(file, 'utf8')),
+      );
+    });
+
+    it('rejects malformed on-disk JSON and directories, and checks byte limits before reading', () => {
+      const root = join(tempDir, 'assets');
+      mkdirSync(root);
+      const target = join(root, `${asset.id}.json`);
+      writeFileSync(target, '{bad_json');
+      expect(request('GET', root).statusCode).toBe(400);
+      writeFileSync(target, '{}');
+      expect(request('GET', root).statusCode).toBe(400);
+      const serialized = JSON.stringify(asset.payload);
+      writeFileSync(target, serialized);
+      const bytes = Buffer.byteLength(serialized, 'utf8');
+      expect(request('GET', root, {}, '', bytes).statusCode).toBe(200);
+      const noRead: LocalFileOptions = {
+        fileOps: {
+          ...nodeLocalFileOps,
+          read: () => {
+            throw new Error('oversized file must not be read');
+          },
+        },
+      };
+      expect(request('GET', root, noRead, '', bytes - 1).statusCode).toBe(413);
+      rmSync(target);
+      mkdirSync(target);
+      expect(request('GET', root).statusCode).toBe(400);
+      expect(request('PUT', root).statusCode).toBe(400);
+      expect(readdirSync(root)).toEqual([`${asset.id}.json`]);
+    });
+
+    it('leaves existing bytes intact and removes its own temporary after replacement fails', () => {
+      const root = join(tempDir, 'assets');
+      expect(request('PUT', root).statusCode).toBe(200);
+      const file = join(root, `${asset.id}.json`);
+      const original = readFileSync(file, 'utf8');
+      const fileOptions: LocalFileOptions = {
+        fileOps: {
+          ...nodeLocalFileOps,
+          rename: () => {
+            throw Object.assign(new Error('injected I/O error'), { code: 'EIO' });
+          },
+        },
+      };
+      expect(request('PUT', root, fileOptions, JSON.stringify(asset.replacement)).statusCode).toBe(
+        400,
+      );
+      expect(readFileSync(file, 'utf8')).toBe(original);
+      expect(readdirSync(root)).toEqual([`${asset.id}.json`]);
+    });
   });
 });

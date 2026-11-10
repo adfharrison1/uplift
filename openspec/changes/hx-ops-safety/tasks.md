@@ -16,7 +16,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 2. Confine existing visual asset routes
 
-- [ ] 2.1 Move stage and character reads/atomic writes onto the shared filesystem helper and preserve URL/schema/size behavior. Verify: npm exec vitest run tests/unit/interfaces/LocalDiskBridge.test.ts tests/unit/interfaces/SceneBlueprintDiskBridge.test.ts followed by npm run verify. Commit: fix(bridge): confine visual asset file operations.
+- [x] 2.1 Move stage and character reads/atomic writes onto the shared filesystem helper and preserve URL/schema/size behavior. Verify: npm exec vitest run tests/unit/interfaces/LocalDiskBridge.test.ts tests/unit/interfaces/SceneBlueprintDiskBridge.test.ts followed by npm run verify. Commit: fix(bridge): confine visual asset file operations.
 
   Source files (1): src/interfaces/vite/localDiskBridgePlugin.ts.
 

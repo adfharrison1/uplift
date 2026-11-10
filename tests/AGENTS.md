@@ -13,3 +13,5 @@
 ## Storage regression tests
 
 Use real isolated directories for confinement and rotation tests. Inject selected failures through `LocalFileOps` while delegating other calls to `nodeLocalFileOps`; use a deterministic temporary-name supplier for collision/link tests. Never globally mock `node:fs`. Check outside sentinels, original/archive byte preservation, fresh current-query isolation and failed-instance write rejection. Cover constructor and explicit-start failures separately at each rotation transition, preserve pending groups across retry, and verify pruning/diagnostic failures leave current logging usable. Default retention is three completed groups; one writer owns each tested root.
+
+For stage and character disk routes, pass trusted `LocalFileOptions` as the dispatcher's sixth argument to inject filesystem faults or a temporary-name supplier. Assert status plus real file readback, unchanged outside sentinels and previous asset preservation; cover GET confinement as well as PUT. Use a read-failure adapter to prove oversized files are rejected before being read. Direct dispatcher tests do not verify the HTTP trust boundary.
