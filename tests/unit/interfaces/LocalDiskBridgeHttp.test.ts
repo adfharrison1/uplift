@@ -21,6 +21,7 @@ import {
 import { Socket } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createServer, type Connect, type Plugin, type ViteDevServer } from 'vite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import configFactory from '../../../vite.config.js';
@@ -136,6 +137,7 @@ async function start(
   base = tempRoot(),
   options: LocalDiskBridgeOptions = {},
   dependencies: LocalDiskBridgeDependencies = {},
+  extraPlugins: Plugin[] = [],
 ) {
   writeFileSync(
     join(base, 'index.html'),
@@ -168,6 +170,7 @@ async function start(
         policy,
         { dispatch, onDiagnostic: () => undefined, ...dependencies },
       ),
+      ...extraPlugins,
     ],
   });
   servers.add(server);
@@ -636,6 +639,284 @@ describe('HTTP stream and storage failure containment', () => {
     await app.close();
     expect(app.policy.allowsOrigin(origin)).toBe(false);
   });
+
+  it('refuses a partial request from the retired server before it can write into the new session', async () => {
+    let configurations = 0;
+    let releaseRequest: (() => void) | undefined;
+    const holdRestart: Plugin = {
+      name: 'observe-bridge-restart',
+      async configureServer() {
+        configurations += 1;
+        if (configurations === 2) {
+          if (releaseRequest === undefined) throw new Error('Missing pending request');
+          releaseRequest();
+          await pendingResponse;
+        }
+      },
+    };
+    const app = await start(undefined, {}, {}, [holdRestart]);
+    let observed: (() => void) | undefined;
+    const received = new Promise<void>((done) => {
+      observed = done;
+    });
+    app.server.httpServer?.once('request', (incoming: IncomingMessage) =>
+      incoming.once('data', () => observed?.()),
+    );
+    const pendingResponse = new Promise<number>((done, reject) => {
+      const request = httpRequest(
+        {
+          hostname: '127.0.0.1',
+          port: app.port,
+          path: '/api/telemetry/batch',
+          method: 'POST',
+          headers: app.headers({ 'transfer-encoding': 'chunked' }),
+          agent: false,
+        },
+        (response) => {
+          response.resume();
+          response.once('end', () => done(response.statusCode ?? 0));
+        },
+      );
+      request.once('error', reject);
+      request.setTimeout(1500, () =>
+        request.destroy(new Error('Restart request did not complete')),
+      );
+      releaseRequest = () => {
+        request.end(`${JSON.stringify([event])}}`);
+      };
+      request.write('{"events":');
+    });
+    await received;
+    await app.server.restart();
+    expect(await pendingResponse).toBe(503);
+    expect(app.dispatch).not.toHaveBeenCalled();
+    expect(executeLogQuery(join(app.base, 'logs'))).toEqual([]);
+    expect(
+      readFileSync(join(app.base, 'logs', 'prev', 'session-0000000000000001', active), 'utf8'),
+    ).toBe('');
+  });
+
+  it('archives each actual Vite restart and keeps current queries separate with retention one', async () => {
+    const app = await start(undefined, { maxPreviousSessions: 1 });
+    for (let run = 1; run <= 3; run += 1) {
+      const address = app.server.httpServer?.address();
+      if (address === null || address === undefined || typeof address === 'string')
+        throw new Error('Missing TCP address');
+      const origin = `http://127.0.0.1:${address.port}`;
+      const html = await (await fetch(origin)).text();
+      const token = html.match(/content="([a-f0-9]{64})"/)?.[1];
+      if (token === undefined) throw new Error('Missing served token');
+      const response = await rawRequest(
+        address.port,
+        '/api/telemetry/batch',
+        'POST',
+        app.headers({ host: `127.0.0.1:${address.port}`, origin, 'x-uplift-bridge-token': token }),
+        JSON.stringify({ events: [{ ...event, worldTick: run }] }),
+      );
+      expect(response.status).toBe(200);
+      const previous = readFileSync(join(app.base, 'logs', active), 'utf8');
+      expect(executeLogQuery(join(app.base, 'logs'))).toMatchObject([
+        { worldTick: run, sequence: 1 },
+      ]);
+      await app.server.restart();
+      expect(executeLogQuery(join(app.base, 'logs'))).toEqual([]);
+      const group = `session-${String(run).padStart(16, '0')}`;
+      expect(readdirSync(join(app.base, 'logs', 'prev'))).toEqual([group]);
+      expect(readFileSync(join(app.base, 'logs', 'prev', group, active), 'utf8')).toBe(previous);
+      expect(readFileSync(join(app.base, 'logs', active), 'utf8')).toBe('');
+    }
+  });
+
+  it.each([
+    ['successful replacement', false, false, false],
+    ['failed replacement and retry', true, false, false],
+    ['concurrent replacements', false, true, false],
+    ['concurrent replacements after an earlier restart', false, true, true],
+  ] as const)(
+    'retires in-flight requests across fresh config policies: %s',
+    async (_scenario, failReplacement, concurrentRestart, earlierRestart) => {
+      const base = tempRoot();
+      const logs = join(base, 'logs');
+      const configFile = join(base, 'vite.config.mjs');
+      const pluginPath = fileURLToPath(
+        new URL('../../../src/interfaces/vite/localDiskBridgePlugin.ts', import.meta.url),
+      );
+      writeFileSync(join(base, 'index.html'), '<html><head></head></html>');
+      writeFileSync(
+        configFile,
+        `import { createLocalBridgeAccessPolicy, localDiskBridgePlugin } from ${JSON.stringify(pluginPath)};
+export default () => {
+  const policy = createLocalBridgeAccessPolicy();
+  return {
+    server: { cors: policy.cors },
+    plugins: [localDiskBridgePlugin(${JSON.stringify({ logsDir: logs, savesDir: join(base, 'saves') })}, policy)],
+  };
+};`,
+      );
+      const initialConfigurations = earlierRestart ? 2 : 1;
+      let configurations = 0;
+      let releaseRequest: (() => void) | undefined;
+      let concurrentStatus: number | undefined;
+      const server = await createServer({
+        configFile,
+        root: base,
+        logLevel: 'silent',
+        server: { host: '127.0.0.1', port: 0, strictPort: true, hmr: false, watch: null },
+        optimizeDeps: { noDiscovery: true },
+        plugins: [
+          {
+            name: 'hold-fresh-config-restart',
+            async configureServer(configuredServer) {
+              servers.add(configuredServer);
+              configurations += 1;
+              if (configurations === initialConfigurations + 2 && concurrentRestart) {
+                concurrentStatus = await probeRetiredRun();
+              }
+              if (configurations !== initialConfigurations + 1) return;
+              if (releaseRequest === undefined) throw new Error('Missing pending request');
+              releaseRequest();
+              await pendingResponse;
+              if (failReplacement) throw new Error('Injected replacement setup failure');
+            },
+          },
+        ],
+      });
+      await server.listen();
+      if (earlierRestart) await server.restart();
+      const address = server.httpServer?.address();
+      if (address === undefined || address === null || typeof address === 'string')
+        throw new Error('Missing TCP address');
+      const origin = `http://127.0.0.1:${address.port}`;
+      const html = await (await fetch(origin)).text();
+      const token = html.match(/content="([a-f0-9]{64})"/)?.[1];
+      if (token === undefined) throw new Error('Missing served token');
+      const headers = {
+        host: `127.0.0.1:${address.port}`,
+        origin,
+        'content-type': 'application/json',
+        'x-uplift-bridge-token': token,
+      };
+      const probeRetiredRun = async (): Promise<number> =>
+        (await rawRequest(address.port, '/api/saves', 'GET', headers)).status;
+      let observed: (() => void) | undefined;
+      const received = new Promise<void>((done) => {
+        observed = done;
+      });
+      server.httpServer?.once('request', (incoming: IncomingMessage) =>
+        incoming.once('data', () => observed?.()),
+      );
+      const pendingResponse = new Promise<number>((done, reject) => {
+        const request = httpRequest(
+          {
+            hostname: '127.0.0.1',
+            port: address.port,
+            path: '/api/telemetry/batch',
+            method: 'POST',
+            headers: { ...headers, 'transfer-encoding': 'chunked' },
+            agent: false,
+          },
+          (response) => {
+            response.resume();
+            response.once('end', () => done(response.statusCode ?? 0));
+          },
+        );
+        request.once('error', reject);
+        request.setTimeout(1500, () => request.destroy(new Error('Restart request timed out')));
+        releaseRequest = () => request.end(`${JSON.stringify([event])}}`);
+        request.write('{"events":');
+      });
+      await received;
+      const restart = server.restart();
+      await Promise.all([restart, ...(concurrentRestart ? [server.restart()] : [])]);
+      expect(configurations).toBe(initialConfigurations + (concurrentRestart ? 2 : 1));
+      if (concurrentRestart) expect(concurrentStatus).toBe(503);
+      expect(await pendingResponse).toBe(503);
+      expect(executeLogQuery(logs)).toEqual([]);
+      expect(
+        readFileSync(
+          join(logs, 'prev', `session-${String(initialConfigurations).padStart(16, '0')}`, active),
+          'utf8',
+        ),
+      ).toBe('');
+      if (failReplacement) {
+        expect((await rawRequest(address.port, '/api/saves', 'GET', headers)).status).toBe(503);
+        await server.restart();
+        expect(configurations).toBe(initialConfigurations + 2);
+      }
+      const renewedHtml = await (await fetch(origin)).text();
+      const renewedToken = renewedHtml.match(/content="([a-f0-9]{64})"/)?.[1];
+      if (renewedToken === undefined) throw new Error('Missing restarted token');
+      expect(renewedToken).not.toBe(token);
+      expect(
+        (
+          await rawRequest(
+            address.port,
+            '/api/telemetry/batch',
+            'POST',
+            { ...headers, 'x-uplift-bridge-token': renewedToken },
+            JSON.stringify({ events: [event] }),
+          )
+        ).status,
+      ).toBe(200);
+      expect(executeLogQuery(logs)).toMatchObject([{ sequence: 1 }]);
+    },
+  );
+
+  it.each(['root', 'parent', 'active', 'compacted', 'prev'] as const)(
+    'rejects unsafe session-start %s paths with 400, disables writes, and permits explicit recovery',
+    async (kind) => {
+      const base = tempRoot();
+      const parent = join(base, 'storage');
+      const logs = join(parent, 'logs');
+      const app = await start(base, { logsDir: logs });
+      expect(
+        (await app.send('/api/telemetry/batch', 'POST', JSON.stringify({ events: [event] })))
+          .status,
+      ).toBe(200);
+      const before = readFileSync(join(logs, active), 'utf8');
+      const sentinel = join(base, 'sentinel');
+      writeFileSync(sentinel, 'keep');
+      const target =
+        kind === 'parent'
+          ? parent
+          : kind === 'root'
+            ? logs
+            : join(
+                logs,
+                kind === 'active'
+                  ? active
+                  : kind === 'compacted'
+                    ? 'current-session.compacted.jsonl'
+                    : 'prev',
+              );
+      const backup = `${target}-backup`;
+      const existed = existsSync(target);
+      if (existed) renameSync(target, backup);
+      symlinkSync(sentinel, target);
+      const snap = snapshot(base, ['storage', 'storage-backup', 'sentinel']);
+      const response = await app.send('/api/telemetry/session', 'POST', '{"sessionId":"blocked"}');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Unsafe storage path' });
+      expect(snapshot(base, ['storage', 'storage-backup', 'sentinel'])).toEqual(snap);
+      expect(
+        (await app.send('/api/telemetry/batch', 'POST', JSON.stringify({ events: [event] })))
+          .status,
+      ).toBe(503);
+      expect((await app.send('/api/telemetry/compact', 'POST')).status).toBe(503);
+      rmSync(target);
+      if (existed) renameSync(backup, target);
+      expect(readFileSync(join(logs, active), 'utf8')).toBe(before);
+      expect(
+        (await app.send('/api/telemetry/session', 'POST', '{"sessionId":"recovered"}')).status,
+      ).toBe(200);
+      expect(
+        (await app.send('/api/telemetry/batch', 'POST', JSON.stringify({ events: [event] })))
+          .status,
+      ).toBe(200);
+      expect(executeLogQuery(logs)).toMatchObject([{ sessionId: 'recovered', sequence: 1 }]);
+      expect(readFileSync(sentinel, 'utf8')).toBe('keep');
+    },
+  );
 
   it('threads retention 1 through repeated starts and rejects previous-run tokens', async () => {
     const base = tempRoot();

@@ -24,6 +24,7 @@ import {
 } from '../../infrastructure/persistence/safeLocalFiles.js';
 
 import {
+  SessionStorageError,
   TelemetryStorageUnavailableError,
   type SessionStorageOptions,
 } from '../../infrastructure/telemetry/NdjsonSessionTelemetry.js';
@@ -86,7 +87,8 @@ function errorResponse(statusCode: number): BridgeHttpResponse {
 }
 
 function storageErrorResponse(error: unknown): BridgeHttpResponse {
-  if (error instanceof UnsafeLocalPathError)
+  const cause = error instanceof SessionStorageError ? error.cause : error;
+  if (cause instanceof UnsafeLocalPathError)
     return { statusCode: 400, body: { error: 'Unsafe storage path' } };
   if (error instanceof InvalidBridgeRequestError) return errorResponse(400);
   if (error instanceof TelemetryStorageUnavailableError) return errorResponse(503);
@@ -510,6 +512,11 @@ export function createLocalDiskBridgeMiddleware(
   options: z.output<typeof LocalDiskBridgeOptionsSchema>,
   dependencies: LocalDiskBridgeDependencies = {},
 ): Connect.NextHandleFunction {
+  const run = policyStates.get(policy)?.run;
+  const currentRun = (): boolean => {
+    const state = policyStates.get(policy);
+    return run !== undefined && state?.run === run && state.port !== undefined;
+  };
   return (req, res, next) => {
     const url = req.url ?? '/';
     if (!isBridgeApiUrl(url)) {
@@ -517,7 +524,7 @@ export function createLocalDiskBridgeMiddleware(
       return;
     }
     try {
-      const rejected = checkAccess(req, policy, token);
+      const rejected = currentRun() ? checkAccess(req, policy, token) : errorResponse(503);
       if (rejected !== undefined) {
         sendJsonResponse(res, rejected);
         return;
@@ -537,6 +544,10 @@ export function createLocalDiskBridgeMiddleware(
     void readRequestBody(req, res, options.maxBodyBytes)
       .then((body) => {
         if (body === undefined) return;
+        if (!currentRun()) {
+          sendJsonResponse(res, errorResponse(503));
+          return;
+        }
         const result = (dependencies.dispatch ?? handleLocalDiskBridgeRequest)(
           { method: req.method ?? '', url, rawBody: body.rawBody, bodyByteLength: body.byteLength },
           telemetry,
@@ -561,7 +572,6 @@ export function localDiskBridgePlugin(
   const state = policyStates.get(policy);
   if (state === undefined) throw new Error('Invalid local bridge policy');
   let bridgeToken: string | undefined;
-  let telemetry: NdjsonSessionTelemetry | undefined;
   let saves: FileSaveSlotRepository | undefined;
   return {
     name: 'uplift-local-disk-bridge',
@@ -592,21 +602,48 @@ export function localDiskBridgePlugin(
       };
       // Refuse an already-listening non-TCP server before creating storage.
       bind();
-      telemetry ??= new NdjsonSessionTelemetry(parsed.logsDir, undefined, undefined, undefined, {
-        ...dependencies.fileOptions,
-        maxPreviousSessions: parsed.maxPreviousSessions,
-        ...(dependencies.onDiagnostic === undefined
-          ? {}
-          : { onDiagnostic: dependencies.onDiagnostic }),
-      });
+      const telemetry = new NdjsonSessionTelemetry(
+        parsed.logsDir,
+        undefined,
+        undefined,
+        undefined,
+        {
+          ...dependencies.fileOptions,
+          maxPreviousSessions: parsed.maxPreviousSessions,
+          ...(dependencies.onDiagnostic === undefined
+            ? {}
+            : { onDiagnostic: dependencies.onDiagnostic }),
+        },
+      );
       saves ??= new FileSaveSlotRepository(parsed.savesDir, dependencies.fileOptions);
       bridgeToken = randomBytes(32).toString('hex');
-      http.on('listening', bind);
-      http.once('close', () => {
+      const retire = (): void => {
         if (state.run === run) {
+          delete state.run;
           state.port = undefined;
           bridgeToken = undefined;
         }
+      };
+      const restart = server.restart;
+      let restarting: Promise<void> | undefined;
+      server.restart = async (forceOptimize): Promise<void> => {
+        // Vite builds the replacement before closing this server, possibly with a new policy.
+        // Queue concurrent calls outside Vite's internal loop so every run is retired first.
+        if (restarting !== undefined) {
+          await restarting;
+          return server.restart(forceOptimize);
+        }
+        retire();
+        restarting = restart.call(server, forceOptimize);
+        try {
+          await restarting;
+        } finally {
+          restarting = undefined;
+        }
+      };
+      http.on('listening', bind);
+      http.once('close', () => {
+        retire();
         http.off('listening', bind);
       });
       const middleware = createLocalDiskBridgeMiddleware(

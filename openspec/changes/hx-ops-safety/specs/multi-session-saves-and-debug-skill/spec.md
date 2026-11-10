@@ -152,7 +152,7 @@ The bridge SHALL keep error responses in its existing JSON error field, use stab
 
 #### Scenario: Failed session initialization permits explicit recovery
 
-- **WHEN** an authorized new-session request fails during rotation
+- **WHEN** an authorized new-session request fails during rotation because of an I/O error rather than an unsafe-path rejection
 - **THEN** it SHALL receive 500; later telemetry batch/compact requests SHALL receive 503 without writes until an authorized new-session retry succeeds; none of these responses SHALL expose filesystem paths or tokens
 
 #### Scenario: Filesystem exceptions are redacted
