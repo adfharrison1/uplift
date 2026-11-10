@@ -9,3 +9,7 @@
 5. **Pre-Commit Verification**: Always run `npm run verify` (`format:check`, `lint`, `typecheck`, `test:arch`, `test:unit`) before committing any task.
 6. **Content exemplars stay in content**: A headless content test may register a pack on `SimulationCoordinator` and step it with `FAST_EVAL_PACING_CONFIG`. Do not copy that pack's space, character, or prop ids into `src/domain/` or `src/application/`.
 7. **AI evals stay on their own command**: Cases for any AI subject live under `eval/` and run with `npm run eval:ai`. Do not put them in `tests/unit/` or on `npm run verify`.
+
+## Storage regression tests
+
+Use real isolated directories for confinement and rotation tests. Inject selected failures through `LocalFileOps` while delegating other calls to `nodeLocalFileOps`; use a deterministic temporary-name supplier for collision/link tests. Never globally mock `node:fs`. Check outside sentinels, original/archive byte preservation, fresh current-query isolation and failed-instance write rejection. Cover constructor and explicit-start failures separately at each rotation transition, preserve pending groups across retry, and verify pruning/diagnostic failures leave current logging usable. Default retention is three completed groups; one writer owns each tested root.

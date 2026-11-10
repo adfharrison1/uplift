@@ -1,12 +1,11 @@
-import {
-  appendFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  writeFileSync,
-} from 'node:fs';
 import { join } from 'node:path';
+import {
+  createSafeLocalFiles,
+  localFileErrorCode,
+  UnsafeLocalPathError,
+  type LocalFileOptions,
+  type SafeLocalFiles,
+} from '../persistence/safeLocalFiles.js';
 import type { z } from 'zod';
 import {
   type SessionTelemetryPort,
@@ -28,6 +27,37 @@ import {
 
 export const ACTIVE_SESSION_LOG_FILENAME = 'current-session.jsonl';
 export const COMPACTED_SESSION_LOG_FILENAME = 'current-session.compacted.jsonl';
+
+export interface SessionStorageDiagnostic {
+  readonly operation: 'rotation' | 'prune' | 'archive';
+  readonly path: string;
+  readonly code: string;
+}
+
+export interface SessionStorageOptions extends LocalFileOptions {
+  readonly maxPreviousSessions?: number;
+  readonly onDiagnostic?: (diagnostic: SessionStorageDiagnostic) => void;
+}
+
+export class SessionStorageError extends Error {
+  public constructor(cause: unknown) {
+    super('Session storage operation failed', { cause });
+    this.name = 'SessionStorageError';
+  }
+}
+
+export class TelemetryStorageUnavailableError extends Error {
+  public constructor() {
+    super('Telemetry storage unavailable');
+    this.name = 'TelemetryStorageUnavailableError';
+  }
+}
+
+interface ArchiveGroup {
+  readonly name: string;
+  readonly sequence: number;
+  readonly pending: boolean;
+}
 
 /**
  * Runtime wall-clock provider for infrastructure telemetry stamping.
@@ -180,7 +210,10 @@ export class InMemorySessionTelemetry implements SessionTelemetryPort {
  * - `<logsDir>/current-session.compacted.jsonl` (capped at `maxCompactedLogBytes`, default 500 MiB)
  */
 export class NdjsonSessionTelemetry implements SessionTelemetryPort {
-  private readonly logsDir: string;
+  private readonly files: SafeLocalFiles;
+  private readonly maxPreviousSessions: number;
+  private readonly onDiagnostic: (diagnostic: SessionStorageDiagnostic) => void;
+  private available = false;
   private readonly activeLogPath: string;
   private readonly compactedLogPath: string;
   private readonly budget: TelemetryStorageBudget;
@@ -194,8 +227,26 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     initialSessionId = 'session-default',
     clock: TelemetryClock = systemTelemetryClock(),
     budget: Partial<TelemetryStorageBudget> = {},
+    options: SessionStorageOptions = {},
   ) {
-    this.logsDir = logsDir;
+    this.maxPreviousSessions = options.maxPreviousSessions ?? 3;
+    if (
+      !Number.isFinite(this.maxPreviousSessions) ||
+      !Number.isInteger(this.maxPreviousSessions) ||
+      this.maxPreviousSessions < 1
+    ) {
+      throw new RangeError('maxPreviousSessions must be a positive finite integer');
+    }
+    this.onDiagnostic =
+      options.onDiagnostic ??
+      ((diagnostic) => {
+        process.stderr.write(`${JSON.stringify(diagnostic)}\n`);
+      });
+    try {
+      this.files = createSafeLocalFiles(logsDir, options);
+    } catch (error) {
+      throw new SessionStorageError(error);
+    }
     this.activeLogPath = join(logsDir, ACTIVE_SESSION_LOG_FILENAME);
     this.compactedLogPath = join(logsDir, COMPACTED_SESSION_LOG_FILENAME);
     this.budget = {
@@ -227,24 +278,46 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     this.clock = clock;
   }
 
-  /**
-   * Starts a new play session and purges previous session logs on disk so only the latest session is kept.
-   */
+  /** Preserve old files before publishing new metadata; pending groups require manual recovery. */
   public startNewSession(sessionId: string, clock?: TelemetryClock): void {
-    const trimmed = sessionId.trim();
-    if (trimmed.length === 0) {
-      throw new Error('sessionId must be a non-empty string');
+    this.available = false;
+    let recoveryPath = '.';
+    try {
+      const trimmed = sessionId.trim();
+      if (trimmed.length === 0) throw new Error('sessionId must be a non-empty string');
+      const oldFiles = [ACTIVE_SESSION_LOG_FILENAME, COMPACTED_SESSION_LOG_FILENAME].filter(
+        (name) => {
+          const stat = this.files.stat(name);
+          if (stat !== undefined && !stat.isFile()) throw new UnsafeLocalPathError();
+          return stat !== undefined;
+        },
+      );
+      const groups = this.archiveGroups();
+      let pending: string | undefined;
+      let completed: string | undefined;
+      if (oldFiles.length > 0) {
+        const highest = groups.reduce((max, group) => Math.max(max, group.sequence), 0);
+        if (highest >= Number.MAX_SAFE_INTEGER) throw new RangeError('Archive sequence exhausted');
+        completed = `prev/session-${String(highest + 1).padStart(16, '0')}`;
+        pending = `${completed}.pending`;
+        recoveryPath = pending;
+        this.files.ensureDirectory('prev');
+        this.files.ensureDirectory(pending, true);
+        for (const name of oldFiles) this.files.move(name, `${pending}/${name}`);
+      }
+      this.files.createFile(ACTIVE_SESSION_LOG_FILENAME);
+      this.files.createFile(COMPACTED_SESSION_LOG_FILENAME);
+      if (pending !== undefined && completed !== undefined) this.files.move(pending, completed);
+      this.sessionId = trimmed;
+      if (clock !== undefined) this.clock = clock;
+      this.sequence = 0;
+      this.activeLogBytes = 0;
+      this.available = true;
+    } catch (error) {
+      this.diagnose('rotation', recoveryPath, error);
+      throw new SessionStorageError(error);
     }
-    this.sessionId = trimmed;
-    if (clock !== undefined) {
-      this.clock = clock;
-    }
-    this.sequence = 0;
-    this.activeLogBytes = 0;
-
-    mkdirSync(this.logsDir, { recursive: true });
-    this.writeAtomic(this.activeLogPath, '');
-    this.writeAtomic(this.compactedLogPath, '');
+    this.prunePreviousSessions();
   }
 
   public record(event: TelemetryEventInput): TelemetryEntry {
@@ -261,6 +334,7 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
    * if `current-session.jsonl` exceeds `maxActiveLogBytes` (default 50 MiB).
    */
   public recordBatch(events: ReadonlyArray<TelemetryEventInput>): ReadonlyArray<TelemetryEntry> {
+    this.requireAvailable();
     if (events.length === 0) {
       return [];
     }
@@ -269,12 +343,12 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     const lines: string[] = [];
 
     for (const validated of validatedEvents) {
-      this.sequence += 1;
+      const sequence = this.sequence + entries.length + 1;
       const entry: TelemetryEntry = {
         ...validated,
         recordType: 'event',
         sessionId: this.sessionId,
-        sequence: this.sequence,
+        sequence,
         timestampIso: this.clock.nowIso(),
         elapsedSessionMs: this.clock.elapsedSessionMs(),
       };
@@ -283,7 +357,8 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
     }
 
     const payload = lines.join('');
-    appendFileSync(this.activeLogPath, payload, 'utf8');
+    this.files.append(ACTIVE_SESSION_LOG_FILENAME, payload);
+    this.sequence += entries.length;
     this.activeLogBytes += Buffer.byteLength(payload, 'utf8');
 
     if (this.activeLogBytes > this.budget.maxActiveLogBytes) {
@@ -294,10 +369,11 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
   }
 
   public compact(retentionWindowMs: number = this.budget.defaultRetentionWindowMs): void {
-    const activeRecords = this.readFileRecords(this.activeLogPath).filter(
+    this.requireAvailable();
+    const activeRecords = this.readFileRecords(ACTIVE_SESSION_LOG_FILENAME).filter(
       (r): r is TelemetryEntry => r.recordType === 'event',
     );
-    const existingCompacted = this.readFileRecords(this.compactedLogPath);
+    const existingCompacted = this.readFileRecords(COMPACTED_SESSION_LOG_FILENAME);
 
     const result = compactTelemetryWindow(
       activeRecords,
@@ -315,29 +391,90 @@ export class NdjsonSessionTelemetry implements SessionTelemetryPort {
         ? `${result.retainedActiveEntries.map((r) => JSON.stringify(r)).join('\n')}\n`
         : '';
 
-    this.writeAtomic(this.compactedLogPath, compactedText);
-    this.writeAtomic(this.activeLogPath, activeText);
+    this.files.writeAtomic(COMPACTED_SESSION_LOG_FILENAME, compactedText);
+    this.files.writeAtomic(ACTIVE_SESSION_LOG_FILENAME, activeText);
     this.activeLogBytes = Buffer.byteLength(activeText, 'utf8');
   }
 
   public query(filter?: TelemetryQueryFilter): ReadonlyArray<TelemetryStreamRecord> {
-    const compacted = this.readFileRecords(this.compactedLogPath);
-    const active = this.readFileRecords(this.activeLogPath);
+    const compacted = this.readFileRecords(COMPACTED_SESSION_LOG_FILENAME);
+    const active = this.readFileRecords(ACTIVE_SESSION_LOG_FILENAME);
     const combined = sortTelemetryRecords([...compacted, ...active]);
     return combined.filter((record) => matchesTelemetryFilter(record, filter));
   }
 
-  private readFileRecords(filePath: string): ReadonlyArray<TelemetryStreamRecord> {
-    if (!existsSync(filePath)) {
-      return [];
-    }
-    const raw = readFileSync(filePath, 'utf8');
-    return parseNdjsonLines(raw);
+  private requireAvailable(): void {
+    if (!this.available) throw new TelemetryStorageUnavailableError();
   }
 
-  private writeAtomic(targetPath: string, content: string): void {
-    const tmpPath = `${targetPath}.tmp`;
-    writeFileSync(tmpPath, content, 'utf8');
-    renameSync(tmpPath, targetPath);
+  private readFileRecords(path: string): ReadonlyArray<TelemetryStreamRecord> {
+    const raw = this.files.read(path);
+    return raw === undefined ? [] : parseNdjsonLines(raw);
+  }
+
+  private archiveGroups(): ArchiveGroup[] {
+    const groups: ArchiveGroup[] = [];
+    for (const name of this.files.list('prev')) {
+      const match = /^session-(\d{16})(\.pending)?$/.exec(name);
+      if (match === null) continue;
+      const sequence = Number(match[1]);
+      if (!Number.isSafeInteger(sequence) || sequence < 1) {
+        this.diagnose('archive', 'prev', new RangeError('Invalid archive sequence'));
+        continue;
+      }
+      groups.push({ name, sequence, pending: match[2] !== undefined });
+    }
+    return groups.sort((a, b) => a.sequence - b.sequence);
+  }
+
+  private prunePreviousSessions(): void {
+    try {
+      const completed: ArchiveGroup[] = [];
+      for (const group of this.archiveGroups()) {
+        if (group.pending) continue;
+        const path = `prev/${group.name}`;
+        try {
+          const stat = this.files.stat(path);
+          if (stat === undefined || !stat.isDirectory()) throw new UnsafeLocalPathError();
+          // Inspect every child before removing anything; leave foreign contents and links alone.
+          for (const name of this.files.list(path)) {
+            if (name !== ACTIVE_SESSION_LOG_FILENAME && name !== COMPACTED_SESSION_LOG_FILENAME)
+              throw new UnsafeLocalPathError();
+            if (this.files.stat(`${path}/${name}`)?.isFile() !== true)
+              throw new UnsafeLocalPathError();
+          }
+          completed.push(group);
+        } catch (error) {
+          this.diagnose('archive', path, error);
+        }
+      }
+      for (const group of completed.slice(
+        0,
+        Math.max(0, completed.length - this.maxPreviousSessions),
+      )) {
+        const path = `prev/${group.name}`;
+        try {
+          this.files.removeFile(`${path}/${ACTIVE_SESSION_LOG_FILENAME}`);
+          this.files.removeFile(`${path}/${COMPACTED_SESSION_LOG_FILENAME}`);
+          this.files.removeDirectory(path);
+        } catch (error) {
+          this.diagnose('prune', path, error);
+        }
+      }
+    } catch (error) {
+      this.diagnose('prune', 'prev', error);
+    }
+  }
+
+  private diagnose(
+    operation: SessionStorageDiagnostic['operation'],
+    path: string,
+    error: unknown,
+  ): void {
+    try {
+      this.onDiagnostic({ operation, path, code: localFileErrorCode(error) });
+    } catch {
+      /* Diagnostics cannot disable current logging or discard recoverable files. */
+    }
   }
 }

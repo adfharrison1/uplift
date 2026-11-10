@@ -1,16 +1,4 @@
 import {
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  realpathSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
-import { isAbsolute, relative, resolve } from 'node:path';
-import {
   SAVE_SLOT_SCHEMA_VERSION,
   type SaveSlotEnvelope,
   SaveSlotEnvelopeSchema,
@@ -21,6 +9,12 @@ import {
   SeededRandom,
   validateSaveSlotId,
 } from '../../domain/index.js';
+import {
+  createSafeLocalFiles,
+  UnsafeLocalPathError,
+  type LocalFileOptions,
+  type SafeLocalFiles,
+} from './safeLocalFiles.js';
 import { safeParseJsonWithSchema } from '../telemetry/NdjsonSessionTelemetry.js';
 
 function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
@@ -101,10 +95,12 @@ export class InMemorySaveSlotRepository implements SaveSlotRepositoryPort {
  */
 export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
   private readonly savesDir: string;
+  private readonly files: SafeLocalFiles;
 
-  public constructor(savesDir: string) {
+  public constructor(savesDir: string, options: LocalFileOptions = {}) {
     this.savesDir = savesDir;
-    mkdirSync(this.savesDir, { recursive: true });
+    this.files = createSafeLocalFiles(savesDir, options);
+    this.files.ensureDirectory();
   }
 
   public getSavesDir(): string {
@@ -113,24 +109,19 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
 
   public saveSlot(input: SaveSlotWriteInput): SaveSlotEnvelope {
     const envelope = buildValidatedEnvelope(input);
-    const targetPath = this.resolveSafeSlotPath(envelope.slotId);
-    const tmpPath = `${targetPath}.tmp`;
-
     const serialized = `${JSON.stringify(envelope, null, 2)}\n`;
-    writeFileSync(tmpPath, serialized, 'utf8');
-    renameSync(tmpPath, targetPath);
+    this.files.writeAtomic(`${envelope.slotId}.json`, serialized);
 
     return envelope;
   }
 
   public loadSlot(slotId: string): SaveSlotEnvelope {
     const safeId = validateSaveSlotId(slotId);
-    const targetPath = this.resolveSafeSlotPath(safeId);
-    if (!existsSync(targetPath)) {
+    const raw = this.files.read(`${safeId}.json`);
+    if (raw === undefined) {
       throw new Error(`Save slot '${safeId}' does not exist`);
     }
 
-    const raw = readFileSync(targetPath, 'utf8');
     const result = safeParseJsonWithSchema(raw, SaveSlotEnvelopeSchema);
     if (!result.success || result.data.slotId !== safeId) {
       throw new Error(
@@ -143,10 +134,7 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
   }
 
   public listSlots(): ReadonlyArray<SaveSlotMetadata> {
-    if (!existsSync(this.savesDir)) {
-      return [];
-    }
-    const entries = readdirSync(this.savesDir);
+    const entries = this.files.list();
     const metadataList: SaveSlotMetadata[] = [];
 
     for (const fileName of entries) {
@@ -157,7 +145,8 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
       try {
         const envelope = this.loadSlot(candidateSlotId);
         metadataList.push(toMetadata(envelope));
-      } catch {
+      } catch (error) {
+        if (error instanceof UnsafeLocalPathError) throw error;
         // Isolate corrupted files during directory listing so valid sessions remain accessible
       }
     }
@@ -167,35 +156,6 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
 
   public deleteSlot(slotId: string): boolean {
     const safeId = validateSaveSlotId(slotId);
-    const targetPath = this.resolveSafeSlotPath(safeId);
-    if (!existsSync(targetPath)) {
-      return false;
-    }
-    unlinkSync(targetPath);
-    return true;
-  }
-
-  private resolveSafeSlotPath(slotId: string): string {
-    const safeId = validateSaveSlotId(slotId);
-    mkdirSync(this.savesDir, { recursive: true });
-    const realRoot = realpathSync(this.savesDir);
-    const resolvedTarget = resolve(realRoot, `${safeId}.json`);
-    const rel = relative(realRoot, resolvedTarget);
-
-    if (rel.startsWith('..') || isAbsolute(rel)) {
-      throw new Error(`Save slot path escaped saves root: '${slotId}'`);
-    }
-    if (existsSync(resolvedTarget)) {
-      const stat = lstatSync(resolvedTarget);
-      if (stat.isSymbolicLink()) {
-        throw new Error(`Save slot '${safeId}' is a symbolic link and was refused`);
-      }
-      const realTarget = realpathSync(resolvedTarget);
-      const realRel = relative(realRoot, realTarget);
-      if (realRel.startsWith('..') || isAbsolute(realRel)) {
-        throw new Error(`Save slot path escaped saves root: '${slotId}'`);
-      }
-    }
-    return resolvedTarget;
+    return this.files.removeFile(`${safeId}.json`);
   }
 }

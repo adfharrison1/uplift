@@ -6,7 +6,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 1. Preserve diagnostics and confine infrastructure storage
 
-- [ ] 1.1 Add shared safe local filesystem operations; migrate save read/write/list/delete and telemetry read/append/compact paths; replace destructive logger initialization with bounded previous-session rotation and fail-closed partial-failure handling. Verify: npm exec vitest run tests/unit/infrastructure/ followed by npm run verify. Commit: fix(storage): preserve session logs and confine local file operations.
+- [x] 1.1 Add shared safe local filesystem operations; migrate save read/write/list/delete and telemetry read/append/compact paths; replace destructive logger initialization with bounded previous-session rotation and fail-closed partial-failure handling. Verify: npm exec vitest run tests/unit/infrastructure/ followed by npm run verify. Commit: fix(storage): preserve session logs and confine local file operations.
 
   Source files (3): new src/infrastructure/persistence/safeLocalFiles.ts, src/infrastructure/persistence/FileSaveSlotRepository.ts, src/infrastructure/telemetry/NdjsonSessionTelemetry.ts.
 

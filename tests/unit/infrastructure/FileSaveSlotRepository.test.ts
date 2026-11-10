@@ -1,4 +1,12 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -134,6 +142,56 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
         stateSlices: {},
       }),
     ).toThrow(RangeError);
+  });
+
+  it('rejects a linked root before writing through it', () => {
+    const linkedRoot = join(tempSavesDir, 'linked');
+    symlinkSync(tempSavesDir, linkedRoot, 'dir');
+    expect(() => new FileSaveSlotRepository(linkedRoot)).toThrow();
+  });
+
+  it('refuses dangling slot links without creating the outside target', () => {
+    const repo = new FileSaveSlotRepository(tempSavesDir);
+    symlinkSync(join(tempSavesDir, 'missing'), join(tempSavesDir, 'linked.json'));
+    expect(() =>
+      repo.saveSlot({
+        slotId: 'linked',
+        epochId: 'epoch',
+        worldTick: 0,
+        rngState: 1,
+        stateSlices: {},
+      }),
+    ).toThrow();
+    expect(() => readFileSync(join(tempSavesDir, 'missing'))).toThrow();
+  });
+
+  it('preserves a saved snapshot when a chosen temporary filename is linked or occupied', () => {
+    const original = new FileSaveSlotRepository(tempSavesDir);
+    const input = { slotId: 'slot', epochId: 'test', worldTick: 1, rngState: 1, stateSlices: {} };
+    original.saveSlot(input);
+    const bytes = readFileSync(join(tempSavesDir, 'slot.json'), 'utf8');
+    writeFileSync(join(tempSavesDir, 'outside'), 'sentinel');
+    symlinkSync(join(tempSavesDir, 'outside'), join(tempSavesDir, 'candidate.tmp'));
+    const repo = new FileSaveSlotRepository(tempSavesDir, { temporaryName: () => 'candidate.tmp' });
+    expect(() => repo.saveSlot({ ...input, worldTick: 2 })).toThrow();
+    expect(readFileSync(join(tempSavesDir, 'outside'), 'utf8')).toBe('sentinel');
+    expect(readFileSync(join(tempSavesDir, 'slot.json'), 'utf8')).toBe(bytes);
+    expect(repo.loadSlot('slot').worldTick).toBe(1);
+  });
+
+  it('rejects linked slot reads/deletes and a replaced root on listing', () => {
+    const root = join(tempSavesDir, 'storage');
+    const repo = new FileSaveSlotRepository(root);
+    writeFileSync(join(tempSavesDir, 'sentinel'), 'keep');
+    symlinkSync(join(tempSavesDir, 'sentinel'), join(root, 'linked.json'));
+    expect(() => repo.loadSlot('linked')).toThrow();
+    expect(() => repo.deleteSlot('linked')).toThrow();
+    expect(() => repo.listSlots()).toThrow(/Unsafe storage path/);
+    renameSync(root, join(tempSavesDir, 'original'));
+    symlinkSync(tempSavesDir, root, 'dir');
+    expect(() => repo.listSlots()).toThrow();
+    expect(readFileSync(join(tempSavesDir, 'sentinel'), 'utf8')).toBe('keep');
+    expect(readdirSync(join(tempSavesDir, 'original'))).toEqual(['linked.json']);
   });
 
   it('provides matching behavior in InMemorySaveSlotRepository', () => {
