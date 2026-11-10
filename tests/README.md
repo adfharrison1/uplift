@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`tests/` verifies architectural integrity, deterministic domain behavior, application simulation and rendering frame coordination, infrastructure persistence/telemetry, interface CLI/HTTP/Three.js/HUD adapters, plug-and-play content contracts, and headless multi-tick simulation stability in under 3 seconds as part of `npm run verify` (`format:check` -> `lint` -> `typecheck` -> `test:arch` -> `test:unit`).
+`tests/` verifies architectural integrity, deterministic domain behavior, application simulation and rendering frame coordination, infrastructure persistence/telemetry, interface CLI/HTTP/Three.js/HUD adapters, plug-and-play content contracts, and headless multi-tick simulation stability in under 3 seconds as part of `npm run verify` (format, lint, typecheck and one combined architecture/unit Vitest run concurrently; `verify:serial` retains the sequential fallback).
 
 AI subject cases are not a tier under `tests/`. They live in `eval/` and run with `npm run eval:ai`, outside `npm run verify`.
 
@@ -22,3 +22,7 @@ Visual asset dispatcher tests exercise both stage and character GET/PUT against 
 `LocalDiskBridgeHttp.test.ts` mounts the actual Vite plugin on `127.0.0.1:0`, retrieves the served token and sends stage/character edits through the browser helper to disk and HTTP readback. It also exercises telemetry and save CRUD, configured retention, initialization failure/retry, provenance/token/media-type rejection, duplicate headers, CORS, byte limits, no-end overflow, observed client aborts and filesystem links. Rejection checks include a dispatch spy and storage snapshots after legitimate startup rotation. Policy tests cover unbound/closed/restarted servers and the normal config's shared 5173 policy without reserving that port.
 
 These tests need permission to open local sockets, including during `npm run verify`. All servers and temporary roots are cleaned up. Node does not supply browser provenance automatically: test adapters add Host/Origin or fetch metadata explicitly; the production browser helper itself supplies the token and JSON headers. Direct dispatcher tests remain storage/schema coverage only.
+
+`tests/unit/tooling/VerifyRunner.test.ts` checks concurrent process startup, grouped output, failure/spawn-error propagation, output overflow, signal cleanup of real parents and grandchildren, and Windows taskkill command construction through an injected adapter. It uses small fixtures rather than recursively running verification. Hook fixtures execute real temporary Git commits with controlled npm/npx responses and verify that failures block commits without staging unrelated files. Native signal behavior is exercised on the current POSIX host; Windows command-construction coverage does not establish native Windows process behavior.
+
+Architecture skill checks validate metadata and nonempty instructions while accepting prose/headings/model changes. Required files, the forbidden `.cursor/skills` location, section documentation and links, inward dependencies, zero-any and deterministic simulation rules remain enforced.

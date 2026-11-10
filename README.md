@@ -28,24 +28,27 @@ npm run verify
 
 ### Available NPM Scripts
 
-| Command                | Description                                                                                                      |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `npm run verify`       | Runs `format:check`, `lint`, `typecheck`, `test:arch`, and `test:unit` in sequence (`<5s`)                       |
-| `npm run format`       | Formats repository files with Prettier (`prettier --write .`)                                                    |
-| `npm run format:check` | Verifies Prettier formatting across all files (`prettier --check .`)                                             |
-| `npm run lint`         | Runs ESLint flat config (`eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs`)                   |
-| `npm run lint:fix`     | Runs ESLint with automatic fixes                                                                                 |
-| `npm run typecheck`    | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)                     |
-| `npm run test:arch`    | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs             |
-| `npm run test:unit`    | Runs fast deterministic unit tests in Node/Vitest (`<3s`)                                                        |
-| `npm run logs:query`   | Queries active (`current-session.jsonl`) and compacted session logs by level, actor, tick, or AI                 |
-| `npm run dev`          | Starts the local Vite server (`/api/telemetry`, `/api/saves`, `/api/scene-blueprints`, `/api/character-visuals`) |
-| `npm run build`        | Typechecks and builds the local bundle                                                                           |
+| Command                 | Description                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`        | Runs format, lint, types and one combined architecture/unit test process concurrently; prints four PASS/FAIL summaries |
+| `npm run verify:serial` | Runs the same checks sequentially, keeping separate architecture and unit test commands                                |
+| `npm run format`        | Formats repository files with Prettier (`prettier --write .`)                                                          |
+| `npm run format:check`  | Verifies Prettier formatting across all files (`prettier --check .`)                                                   |
+| `npm run lint`          | Runs ESLint flat config (`eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs scripts/verify.mjs`)      |
+| `npm run lint:fix`      | Runs ESLint with automatic fixes                                                                                       |
+| `npm run typecheck`     | Strict native TypeScript 7.0.2 compiler check (`tsc --noEmit`, zero implicit/explicit `any`)                           |
+| `npm run test:arch`     | Enforces Clean Architecture layer boundaries, zero-`any`, determinism, and hierarchical section docs                   |
+| `npm run test:unit`     | Runs fast deterministic unit tests in Node/Vitest (`<3s`)                                                              |
+| `npm run logs:query`    | Queries active (`current-session.jsonl`) and compacted session logs by level, actor, tick, or AI                       |
+| `npm run dev`           | Starts the local Vite server (`/api/telemetry`, `/api/saves`, `/api/scene-blueprints`, `/api/character-visuals`)       |
+| `npm run build`         | Typechecks and builds the local bundle                                                                                 |
+
+Verification buffers each check’s output and prints failure diagnostics together. Output over 1 MiB per check fails that check and stops its process tree. Interrupts stop all check trees, escalating after 500 ms. The under-five-second target applies to the 2019 Intel reference Mac; actual timings depend on host and cache state. The test suite needs permission to open ephemeral loopback sockets.
 
 ### Editor Format-on-Save & Pre-Commit Hooks
 
 - **Format on Save**: `.vscode/settings.json` enables `editor.formatOnSave` with Prettier (`esbenp.prettier-vscode`) and ESLint fix-on-save (`dbaeumer.vscode-eslint`).
-- **Pre-Commit Hook**: `.husky/pre-commit` runs `npx lint-staged`, automatically formatting and linting staged files before every `git commit`.
+- **Pre-Commit Hook**: `.husky/pre-commit` runs `npx lint-staged`, automatically formatting and linting staged files, then runs `npm run verify`. Either failure aborts the commit; unrelated files are not staged.
 
 ---
 
@@ -64,10 +67,11 @@ Every dependency installed when cloning this repository is explicitly pinned:
 | **`typescript-eslint`**      | `8.72.1`                             | Strict & stylistic TypeScript ESLint rules                                                                                           |
 | **`eslint-config-prettier`** | `10.1.8`                             | Disables formatting rules that conflict with Prettier                                                                                |
 | **`prettier`**               | `3.9.10`                             | Automated code formatting                                                                                                            |
-| **`husky` + `lint-staged`**  | `9.1.7` / `17.6.0`                   | Pre-commit formatting and linting on staged files                                                                                    |
+| **`husky` + `lint-staged`**  | `9.1.7` / `17.6.0`                   | Staged formatting/linting followed by full verification                                                                              |
 | **`zod`**                    | `4.6.7`                              | Schema validation and `safeParse` JSON-to-TypeScript parsing across telemetry, save slots, and HTTP bridges                          |
 | **`vite`**                   | `8.3.5`                              | Local dev server and bundler                                                                                                         |
 | **`vitest`**                 | `5.0.5`                              | Fast unit, architecture, and headless simulation test runner                                                                         |
+| **`yaml`**                   | `2.9.1`                              | YAML frontmatter parsing in skill architecture checks (development only)                                                             |
 | **`@types/node`**            | `24.19.2`                            | Node.js type definitions for build and test scripts                                                                                  |
 | **`three`**                  | `0.186.1` (`@types/three` `0.186.0`) | 3D WebGL rendering for 3rd-person fixed-orientation tracking camera                                                                  |
 

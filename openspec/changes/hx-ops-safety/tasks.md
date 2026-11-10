@@ -46,7 +46,7 @@ For every task: run its Verify command and npm run verify; obtain two independen
 
 ## 5. Parallelize verification and strengthen the commit gate
 
-- [ ] 5.1 Add the concurrent verification runner and serial fallback, enforce full verification after lint-staged, and replace only skill prose/model-name assertions with structural checks. Verify: npm exec vitest run tests/unit/tooling/VerifyRunner.test.ts tests/architecture/ followed by npm run verify and npm run verify:serial. Commit: build(verify): run checks concurrently and enforce the commit gate.
+- [x] 5.1 Add the concurrent verification runner and serial fallback, enforce full verification after lint-staged, and replace only skill prose/model-name assertions with structural checks. Verify: npm exec vitest run tests/unit/tooling/VerifyRunner.test.ts tests/architecture/ followed by npm run verify and npm run verify:serial. Commit: build(verify): run checks concurrently and enforce the commit gate.
 
   Source/tooling files (3): new scripts/verify.mjs, package.json and .husky/pre-commit.
 

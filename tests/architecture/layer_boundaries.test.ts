@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { parseDocument } from 'yaml';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../..');
 const SRC_ROOT = join(REPO_ROOT, 'src');
@@ -223,6 +224,27 @@ export function findLayerImportViolations(relFilePath: string, source: string): 
   return violations;
 }
 
+/** Check required scalar frontmatter fields and instructions, independent of prose or model choices. */
+function skillStructureIssues(content: string, expectedName: string): string[] {
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/.exec(content);
+  if (frontmatter === null) return ['Missing or unterminated frontmatter'];
+  const document = parseDocument(frontmatter[1] ?? '');
+  if (document.errors.length > 0) return ['Invalid YAML frontmatter'];
+  const metadata: unknown = document.toJS();
+  if (typeof metadata !== 'object' || metadata === null || Array.isArray(metadata))
+    return ['Invalid metadata mapping'];
+  const issues: string[] = [];
+  if (!('name' in metadata) || metadata.name !== expectedName) issues.push('Invalid skill name');
+  if (
+    !('description' in metadata) ||
+    typeof metadata.description !== 'string' ||
+    !metadata.description.trim()
+  )
+    issues.push('Missing or invalid description');
+  if (!(frontmatter[2] ?? '').trim()) issues.push('Missing skill instructions');
+  return issues;
+}
+
 describe('Clean Architecture & Code Quality Guardrails', () => {
   it('enforces inward layer boundaries across all files in src/', () => {
     const srcFiles = collectTypeScriptFiles(SRC_ROOT);
@@ -392,42 +414,40 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
     expect(tsStagedCommands).toEqual(['eslint --fix', 'prettier --write']);
   });
 
-  it('verifies .agents/skills/uplift-debug/SKILL.md exists, forbids .cursor/skills, and documents log querying, compaction, save slots, and trace-and-fix workflow', () => {
-    const forbiddenCursorSkillsDir = join(REPO_ROOT, '.cursor/skills');
+  it('requires project skills in .agents and forbids .cursor/skills', () => {
     expect(
-      existsSync(forbiddenCursorSkillsDir),
-      'Skills must live in .agents/skills, never in .cursor/skills',
+      existsSync(join(REPO_ROOT, '.cursor/skills')),
+      'Skills must live in .agents/skills',
     ).toBe(false);
-
-    const skillPath = join(REPO_ROOT, '.agents/skills/uplift-debug/SKILL.md');
-    expect(existsSync(skillPath)).toBe(true);
-
-    const skillContent = readFileSync(skillPath, 'utf8');
-    expect(skillContent).toContain('name: uplift-debug');
-    expect(skillContent).toContain('current-session.jsonl');
-    expect(skillContent).toContain('current-session.compacted.jsonl');
-    expect(skillContent).toContain('npm run logs:query');
-    expect(skillContent).toContain('./saves/');
-    expect(skillContent).toContain('Trace-and-Fix Debugging Workflow');
+    for (const name of ['uplift-debug', 'uplift-design-notes']) {
+      const path = join(REPO_ROOT, '.agents/skills', name, 'SKILL.md');
+      expect(existsSync(path), `Missing ${path}`).toBe(true);
+      expect(skillStructureIssues(readFileSync(path, 'utf8'), name), path).toEqual([]);
+    }
   });
 
-  it('verifies .agents/skills/uplift-design-notes/SKILL.md documents topic breakdown, three-agent research, integration, and final assessment', () => {
-    const skillPath = join(REPO_ROOT, '.agents/skills/uplift-design-notes/SKILL.md');
-    expect(existsSync(skillPath)).toBe(true);
-
-    const skillContent = readFileSync(skillPath, 'utf8');
-    expect(skillContent).toContain('name: uplift-design-notes');
-    expect(skillContent).toContain('## 1. Topic breakdown');
-    expect(skillContent).toContain('## 2. Three-agent research');
-    expect(skillContent).toContain('Game design and precedents');
-    expect(skillContent).toContain('Codebase and architecture fit');
-    expect(skillContent).toContain('Pacing, hardware, and coherence');
-    expect(skillContent).toContain('composer-2.5-fast');
-    expect(skillContent).toContain('grok-4.7-high-fast');
-    expect(skillContent).toContain('## 3. Integration');
-    expect(skillContent).toContain('DESIGN_NOTES.md');
-    expect(skillContent).toContain('openspec/config.yaml');
-    expect(skillContent).toContain('## 4. Final assessment');
-    expect(skillContent).toContain('Wait for approval before editing any living doc.');
+  it('accepts revised instructions and headings while rejecting invalid skill metadata or empty instructions', () => {
+    const examples = [
+      '---\nname: test-skill\ndescription: "Valid description" # comment\n---\nInstructions.',
+      '---\nname: test-skill\ndescription: 2026 simulation guidance\n---\nInstructions.',
+      '---\nname: test-skill\ndescription: A revised purpose.\n---\n# A new heading\nUse a different model and workflow.',
+      '---\nname: "test-skill"\ndescription: >-\n  A multiline description\n  with revised wording.\n---\nDifferent instructions.',
+    ];
+    for (const text of examples) expect(skillStructureIssues(text, 'test-skill')).toEqual([]);
+    for (const text of [
+      '---\nname: test-skill\ndescription: # no description\n---\nInstructions',
+      '---\nname: test-skill\ndescription: Text: invalid nested mapping\n---\nInstructions',
+      'No frontmatter',
+      '---\nname: test-skill\ndescription: incomplete',
+      '---\nname: wrong-skill\ndescription: Text\n---\nInstructions',
+      '---\nname: test-skill\ndescription: ""\n---\nInstructions',
+      '---\nname: test-skill\ndescription: >-\n  \n---\nInstructions',
+      '---\nname: test-skill\ndescription: null\n---\nInstructions',
+      '---\nname: test-skill\ndescription: [invalid]\n---\nInstructions',
+      '---\nname: test-skill\ndescription: "unterminated\n---\nInstructions',
+      '---\nname: test-skill\nname: test-skill\ndescription: Text\n---\nInstructions',
+      '---\nname: test-skill\ndescription: Text\n---\n  ',
+    ])
+      expect(skillStructureIssues(text, 'test-skill').length, text).toBeGreaterThan(0);
   });
 });

@@ -16,13 +16,16 @@ Use the default worktree (the primary checkout) for this project, including Open
 npm run verify
 ```
 
-`npm run verify` executes in sequence:
+`npm run verify` uses `scripts/verify.mjs` to start four checks concurrently:
 
-1. `npm run format:check` (`prettier --check .`)
-2. `npm run lint` (`eslint src tests vitest.config.ts vite.config.ts eslint.config.mjs`)
+1. `npm run format:check` (Prettier)
+2. `npm run lint` (source, tests, Vite/ESLint config and the verification runner)
 3. `npm run typecheck` (`tsc --noEmit` via native TypeScript 7.0.2)
-4. `npm run test:arch` (Clean Architecture inward dependency, zero-`any`, `Math.random` ban, and section doc checks)
-5. `npm run test:unit` (Fast deterministic unit, registry contract, and headless simulation tests in `<3s`)
+4. `npm test` (one Vitest run covering architecture and unit suites, excluding `eval/`)
+
+Each step prints one PASS/FAIL line; failure output stays grouped by step. The runner waits for every check, caps captured output at 1 MiB per check and fails on overflow. SIGINT/SIGTERM terminate each check's process tree with forced escalation after 500 ms. `npm run verify:serial` retains the sequential format/lint/type/architecture/unit chain; `test:arch` and `test:unit` remain separately callable. The reference-Mac target remains under five seconds; use recorded measurements, not a wall-clock unit assertion. HTTP tests require local loopback socket access.
+
+Every commit runs `npx lint-staged` followed by full verification. Either failure blocks the commit; the hook never adds unrelated files to the index.
 
 ## Clean Architecture Layer Rules (Enforced by `tests/architecture/layer_boundaries.test.ts`)
 
