@@ -8,8 +8,15 @@ describe('SeededRandom', () => {
     [2, 0xb4421bbb],
     [42, 0x3805ea2c],
   ])('mixes fresh seed %i to the pinned initial state', (seed, initialState) => {
-    expect(new SeededRandom(seed).getState()).toBe(initialState);
-    expect(new SeededRandom(seed).nextUint32()).toBe(new SeededRandom(seed).nextUint32());
+    const first = new SeededRandom(seed);
+    const second = new SeededRandom(seed);
+
+    expect(first.getState()).toBe(initialState);
+    expect(second.getState()).toBe(initialState);
+    expect(Array.from({ length: 16 }, () => first.nextUint32())).toEqual(
+      Array.from({ length: 16 }, () => second.nextUint32()),
+    );
+    expect(first.getState()).toBe(second.getState());
   });
 
   it('normalizes wrapped and negative seeds before mixing', () => {

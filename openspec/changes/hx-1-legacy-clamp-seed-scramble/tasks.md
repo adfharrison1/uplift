@@ -18,7 +18,7 @@ Each numbered checkbox is one owner-approved, green Conventional Commit. After e
 
 The six independent delivery reviews identified four bounded corrections. The two stale design-status references share one status-drift fix; the omitted adjacent-seed intent is a separate no-loss fix. Each checkbox below receives its own targeted/full verification, two independent task reviews and owner-approved commit before closing evidence.
 
-- [ ] 4.1 Make the saved epoch differ from the live epoch in the coordinator low-load warning test, and assert both `load_slot` and `legacy_drive_clamped` records use the restored epoch and tick. **Verify:** `npx vitest run tests/unit/application/SimulationCoordinator.test.ts`, `npm run verify`, `npm run defects -- reconcile --check`. **Commit:** `test(application): distinguish restored epoch in legacy load warnings`.
+- [x] 4.1 Make the saved epoch differ from the live epoch in the coordinator low-load warning test, and assert both `load_slot` and `legacy_drive_clamped` records use the restored epoch and tick. **Verify:** `npx vitest run tests/unit/application/SimulationCoordinator.test.ts`, `npm run verify`, `npm run defects -- reconcile --check`. **Commit:** `test(application): distinguish restored epoch in legacy load warnings`.
 
 - [ ] 4.2 For each pinned fresh seed `0`, `1`, `2` and `42`, assert identical multi-draw sequences from repeated construction in `SeededRandom.test.ts`, retaining exact initial-state and mixed-zero vectors. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`. **Commit:** `test(domain): pin repeated draws for adjacent seeds`.
 
