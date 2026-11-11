@@ -602,6 +602,11 @@ describe('SimulationCoordinator legacy clamp consumers', () => {
     coordinator.getRng().nextUint32();
     const saved = coordinator.saveToSlot('slot_low_clamp');
     const expectedNextDraw = SeededRandom.fromState(saved.rngState).nextUint32();
+    const restoredEpochId = 'epoch_from_saved_slot';
+    const savedWorld = saved.stateSlices['__upliftWorldStateSnapshot'];
+    if (typeof savedWorld !== 'object' || savedWorld === null) {
+      throw new Error('Saved slot is missing its world snapshot');
+    }
     const lowLegacy = legacyWithMutations([
       {
         lineageId: 'lineage_alpha',
@@ -611,7 +616,15 @@ describe('SimulationCoordinator legacy clamp consumers', () => {
         delta: -0.75,
       },
     ]);
-    saveRepository.saveSlot({ ...saved, legacyState: legacyStateToRecord(lowLegacy) });
+    saveRepository.saveSlot({
+      ...saved,
+      epochId: restoredEpochId,
+      stateSlices: {
+        ...saved.stateSlices,
+        __upliftWorldStateSnapshot: { ...savedWorld, epochId: restoredEpochId },
+      },
+      legacyState: legacyStateToRecord(lowLegacy),
+    });
     coordinator.getRng().nextUint32();
     coordinator.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
       advanceTick: true,
@@ -620,6 +633,7 @@ describe('SimulationCoordinator legacy clamp consumers', () => {
 
     const restored = coordinator.loadFromSlot('slot_low_clamp');
 
+    expect(restored.epochId).toBe(restoredEpochId);
     expect(restored.worldTick).toBe(saved.worldTick);
     expect(restored.entities['char_alpha']?.drives['secrecy']).toBe(0.4);
     expect(coordinator.getResolvedCharacters()[0]?.drives['secrecy']).toBe(0);
@@ -634,11 +648,11 @@ describe('SimulationCoordinator legacy clamp consumers', () => {
     ]);
     expect(coordinator.getRng().nextUint32()).toBe(expectedNextDraw);
     expect(telemetry.query({ action: 'load_slot' })).toMatchObject([
-      { worldTick: saved.worldTick },
+      { epochId: restoredEpochId, worldTick: saved.worldTick },
     ]);
     expect(telemetry.query({ level: 'warn', action: 'legacy_drive_clamped' })).toMatchObject([
       {
-        epochId: 'epoch_sim_test',
+        epochId: restoredEpochId,
         worldTick: saved.worldTick,
         category: 'legacy',
         inputs: {

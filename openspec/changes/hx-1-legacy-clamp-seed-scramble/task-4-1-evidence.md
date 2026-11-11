@@ -1,0 +1,9 @@
+# Task 4.1 evidence — restored epoch in load telemetry
+
+Status: implemented and independently reviewed; awaiting owner approval before commit. Task 4.1 remains unchecked. The uncommitted Task 3 checkbox records commit `444f7aa`.
+
+The delivery adversarial and testing reviews found `CLOSE-G6-01`: the low-load test used the same live and saved epoch, so a warning stamped with the old epoch could pass. The test now stores a valid slot whose envelope and world snapshot both use `epoch_from_saved_slot`, while the live coordinator remains at `epoch_sim_test` and tick 1. It checks restored world epoch/tick and real `InMemorySessionTelemetry.query()` readback of both `load_slot` and `legacy_drive_clamped` at the saved epoch/tick.
+
+Two controlled source mutations were run separately and restored with `finally`: making either warning or `load_slot` use `epoch_sim_test` made the targeted test fail (exit 1, expected `epoch_from_saved_slot`, received `epoch_sim_test`). No routine log was tracked. The restored focused suite passed 16/16, Vitest 162 ms, command wall time 0.49 s. `npm run verify` passed format 1,501 ms, lint 1,660 ms, typecheck 659 ms and tests 16,874 ms; command wall time 17.10 s on this host. `git diff --check` passed. Reference-Mac timing is unverified.
+
+G1/G6: the slot read → prepared restored world → both port records → query assertions now distinguishes live from restored metadata. G2: envelope and snapshot epoch IDs are changed together, keeping a valid fixture. G3: test-only change adds no runtime cost. G4: each stale-event mutation fails independently while normal load remains usable. G5: `CLOSE-G6-01` is fixed and both independent task reviewers accepted it; the existing defect ledger remains at 53 active/22 resolved pending closing transitions. Documentation integrity: only the OpenSpec task plan was extended to eight bounded tasks, with no owner design wording, navigation or roadmap edit.
