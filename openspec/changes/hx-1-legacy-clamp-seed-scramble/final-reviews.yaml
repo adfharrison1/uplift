@@ -1,0 +1,57 @@
+schema_version: 1
+change_id: hx-1-legacy-clamp-seed-scramble
+reviews:
+  - dimension: adversarial
+    reviewer: /root/hx1_close_adversarial
+    brief: G2 malformed inputs, G4 load and telemetry failure containment, restored epoch
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
+  - dimension: architecture-adherence
+    reviewer: /root/hx1_close_architecture
+    brief: Inward imports, pure resolver, spec and shipped-guide coherence
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
+  - dimension: performance
+    reviewer: /root/hx1_close_performance
+    brief: G3 startup and load cost, allocations and reference-Mac limits
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
+  - dimension: testing
+    reviewer: /root/hx1_close_testing_independent
+    brief: G6 sixteen scenarios, real telemetry consumer and deterministic tests
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
+  - dimension: logic-integrity
+    reviewer: /root/hx1_close_logic_independent
+    brief: Bitwise RNG and ordered legacy logic, state invariants and nextInt finding
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
+  - dimension: design-coherence
+    reviewer: /root/hx1_close_design_independent
+    brief: Owner wording, no-loss, status index, roadmap and future integration
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: task-5-reviews.md
+      sha256: e858b1e2e5b6e98de2f6d852acdb6fc983f8581f8671541b105a2d1a1aed4d73
