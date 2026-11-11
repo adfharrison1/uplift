@@ -4,7 +4,7 @@ Each numbered checkbox is one owner-approved, green Conventional Commit. After e
 
 ## 1. Mix fresh RNG seeds
 
-- [ ] 1.1 Implement one-shot `splitmix32` initialization in `src/domain/core/SeededRandom.ts` while restoring `fromState` from raw internal state; add four golden vectors, invalid and wrapped/negative seeds, mixed-zero seed `0x61c88647` → fallback `0x6d2b79f5`, and mid-stream continuation in `tests/unit/domain/SeededRandom.test.ts`; update `src/domain/README.md` and `src/domain/AGENTS.md`. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`, and exact initial-state/fallback vectors. **Commit:** `fix(domain): scramble fresh rng seeds without remixing saves`.
+- [x] 1.1 Implement one-shot `splitmix32` initialization in `src/domain/core/SeededRandom.ts` while restoring `fromState` from raw internal state; add four golden vectors, invalid and wrapped/negative seeds, mixed-zero seed `0x61c88647` → fallback `0x6d2b79f5`, and mid-stream continuation in `tests/unit/domain/SeededRandom.test.ts`; update `src/domain/README.md` and `src/domain/AGENTS.md`. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`, and exact initial-state/fallback vectors. **Commit:** `fix(domain): scramble fresh rng seeds without remixing saves`.
 
 ## 2. Resolve runtime legacy drives without mutating input
 

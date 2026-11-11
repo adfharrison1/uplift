@@ -238,22 +238,27 @@ function applyArithmeticStrategy(current: number, mutation: LineageMutation): nu
   }
 }
 
-/**
- * Applies ordered, composable `LineageMutation` rules from `legacyState` to successor
- * `CharacterBlueprint` definitions matching `lineageId`.
- *
- * - Rejects multiple `override` mutations targeting the same `(lineageId, target)`.
- * - Rejects mutations targeting unknown drive keys or unknown inertia pillar IDs.
- * - Enforces final drive bounds `[0, 1]` and inertia pillar weights `>= 0`.
- * - Leaves unrelated lineages completely untouched.
- */
-export function applyLegacyToCharacterBlueprints(
+export interface LegacyDriveClampNote {
+  readonly lineageId: string;
+  readonly characterId: string;
+  readonly driveKey: string;
+  readonly unclampedValue: number;
+  readonly clampedValue: number;
+}
+
+export interface RuntimeLegacyCharacterResolution {
+  readonly characters: ReadonlyArray<CharacterBlueprint>;
+  readonly clampNotes: ReadonlyArray<LegacyDriveClampNote>;
+}
+
+function resolveLegacyCharacterBlueprints(
   blueprints: ReadonlyArray<CharacterBlueprint>,
   legacyState: CivilizationLegacyState,
-): ReadonlyArray<CharacterBlueprint> {
+  policy: 'strict' | 'runtime',
+): RuntimeLegacyCharacterResolution {
   const validatedLegacy = CivilizationLegacyStateSchema.parse(legacyState);
   if (validatedLegacy.lineageMutations.length === 0) {
-    return [...blueprints];
+    return { characters: [...blueprints], clampNotes: [] };
   }
 
   const mutationsByLineage = new Map<string, LineageMutation[]>();
@@ -284,7 +289,8 @@ export function applyLegacyToCharacterBlueprints(
     }
   }
 
-  return blueprints.map((blueprint) => {
+  const clampNotes: LegacyDriveClampNote[] = [];
+  const characters = blueprints.map((blueprint) => {
     const mutations = mutationsByLineage.get(blueprint.lineageId);
     if (mutations === undefined || mutations.length === 0) {
       return blueprint;
@@ -307,7 +313,13 @@ export function applyLegacyToCharacterBlueprints(
             `LineageMutation from scar '${mutation.sourceScarId}' targets unknown drive '${driveKey}' on lineage '${blueprint.lineageId}'`,
           );
         }
-        nextDrives[driveKey] = applyArithmeticStrategy(currentVal, mutation);
+        const nextValue = applyArithmeticStrategy(currentVal, mutation);
+        if (!Number.isFinite(nextValue)) {
+          throw new Error(
+            `LineageMutation non-finite arithmetic on lineage '${blueprint.lineageId}' drive '${driveKey}' from scar '${mutation.sourceScarId}'`,
+          );
+        }
+        nextDrives[driveKey] = nextValue;
       } else {
         const pillarId = mutation.target.pillarId;
         const pillarIndex = nextPillars.findIndex((p) => p.id === pillarId);
@@ -317,18 +329,40 @@ export function applyLegacyToCharacterBlueprints(
             `LineageMutation from scar '${mutation.sourceScarId}' targets unknown inertiaPillar '${pillarId}' on lineage '${blueprint.lineageId}'`,
           );
         }
+        const nextWeight = applyArithmeticStrategy(pillar.weight, mutation);
+        if (!Number.isFinite(nextWeight)) {
+          throw new Error(
+            `LineageMutation non-finite arithmetic on lineage '${blueprint.lineageId}' pillar '${pillarId}' from scar '${mutation.sourceScarId}'`,
+          );
+        }
         nextPillars[pillarIndex] = {
           ...pillar,
-          weight: applyArithmeticStrategy(pillar.weight, mutation),
+          weight: nextWeight,
         };
       }
     }
 
     for (const [driveKey, finalVal] of Object.entries(nextDrives)) {
-      if (!Number.isFinite(finalVal) || finalVal < 0 || finalVal > 1) {
+      if (!Number.isFinite(finalVal)) {
         throw new Error(
           `LineageMutation out of bounds on lineage '${blueprint.lineageId}' drive '${driveKey}': final value ${String(finalVal)} must be in [0, 1]`,
         );
+      }
+      if (finalVal < 0 || finalVal > 1) {
+        if (policy === 'strict') {
+          throw new Error(
+            `LineageMutation out of bounds on lineage '${blueprint.lineageId}' drive '${driveKey}': final value ${String(finalVal)} must be in [0, 1]`,
+          );
+        }
+        const clampedValue = Math.max(0, Math.min(1, finalVal));
+        nextDrives[driveKey] = clampedValue;
+        clampNotes.push({
+          lineageId: blueprint.lineageId,
+          characterId: blueprint.id,
+          driveKey,
+          unclampedValue: finalVal,
+          clampedValue,
+        });
       }
     }
 
@@ -346,4 +380,21 @@ export function applyLegacyToCharacterBlueprints(
       inertiaPillars: nextPillars,
     });
   });
+  return { characters, clampNotes };
+}
+
+/** Applies ordered lineage mutations and rejects out-of-range authoring results. */
+export function applyLegacyToCharacterBlueprints(
+  blueprints: ReadonlyArray<CharacterBlueprint>,
+  legacyState: CivilizationLegacyState,
+): ReadonlyArray<CharacterBlueprint> {
+  return resolveLegacyCharacterBlueprints(blueprints, legacyState, 'strict').characters;
+}
+
+/** Saturates finite final runtime drives and returns deterministic diagnostics. */
+export function resolveRuntimeLegacyCharacterBlueprints(
+  blueprints: ReadonlyArray<CharacterBlueprint>,
+  legacyState: CivilizationLegacyState,
+): RuntimeLegacyCharacterResolution {
+  return resolveLegacyCharacterBlueprints(blueprints, legacyState, 'runtime');
 }

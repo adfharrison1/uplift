@@ -9,7 +9,7 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 3. **Zero DOM / WebGL Globals**: Never reference `window`, `document`, `HTMLCanvasElement`, or `WebGLRenderingContext`.
 4. **Deterministic Execution Only**: `Math.random()`, `Date.now()`, `performance.now()`, and `new Date()` are strictly banned (enforced by both ESLint `no-restricted-syntax` and `tests/architecture/layer_boundaries.test.ts`). Accept an injected `SeededRandom` for randomness; telemetry timestamps come through `TelemetryClock`. Domain code must not construct runtime clocks.
    Fresh `SeededRandom` numeric seeds pass through one `splitmix32` step; `fromState` restores a validated non-zero internal word directly so saved streams continue exactly.
-5. **Immutable State & Pure Reducers**: `WorldState`, `applyWorldEffects`, `stepKinematics`, `applyLegacyToCharacterBlueprints`, and `StateSliceStore` updates must return new instances without mutating inputs in place.
+5. **Immutable State & Pure Reducers**: `WorldState`, `applyWorldEffects`, `stepKinematics`, `applyLegacyToCharacterBlueprints`, `resolveRuntimeLegacyCharacterBlueprints`, and `StateSliceStore` updates must return new instances without mutating inputs in place.
 6. **Zero `any` & Zod v4 Conventions**: Both implicit and explicit `any` are forbidden. Derive TypeScript types via `z.infer<typeof Schema>` and remember that `z.number()` in Zod v4 is finite by default (do not call deprecated `.finite()`).
 
 ## Adding New Domain Primitives or Contracts
@@ -22,6 +22,10 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 ## Registry and reducer status
 
 Preserve the exact schema vocabularies and orbital reducer rules recorded in this section's README. Distinguish data acceptance and callable reducer behavior from a content pack or gameplay consumer; do not remove working reducer contracts when correcting planned-feature claims.
+
+## Legacy mutation policy
+
+Keep the strict authoring mutator and pure runtime resolver on one ordered mutation path. Reject conflicting overrides, unknown targets, malformed intervals and non-finite arithmetic at each step, even if a later mutation could mask the error. Only the runtime resolver saturates finite final drives to `[0, 1]`; return deterministic notes as data, with no telemetry dependency in domain. Preserve frozen inputs and unrelated blueprints.
 
 ## Waypoint steering
 

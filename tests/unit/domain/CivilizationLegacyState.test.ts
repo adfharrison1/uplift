@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   applyLegacyToCharacterBlueprints,
   type CharacterBlueprint,
+  type CivilizationLegacyState,
   civilizationLegacyFromRecordedScars,
   createCivilizationLegacyState,
   legacyStateToRecord,
+  type LineageMutation,
   parseLegacyState,
   recordScarInLegacyState,
+  resolveRuntimeLegacyCharacterBlueprints,
   SAVE_SLOT_SCHEMA_VERSION,
   SaveSlotEnvelopeSchema,
 } from '../../../src/domain/index.js';
@@ -34,6 +37,15 @@ function makeBlueprint(
     ],
     ...overrides,
   };
+}
+
+function makeLegacy(lineageMutations: ReadonlyArray<LineageMutation>): CivilizationLegacyState {
+  return createCivilizationLegacyState({
+    sourceEpochId: 'epoch_1',
+    materialScars: [],
+    veilScars: [],
+    lineageMutations,
+  });
 }
 
 describe('Dual-Ledger CivilizationLegacyState and applyLegacyToCharacterBlueprints', () => {
@@ -403,5 +415,268 @@ describe('Dual-Ledger CivilizationLegacyState and applyLegacyToCharacterBlueprin
 
     // Input blueprint was never mutated across all throwing invocations
     expect(charAlpha).toEqual(snapshotAlpha);
+  });
+});
+
+describe('runtime legacy character resolution', () => {
+  it('saturates finite high and low final drives once per character and drive', () => {
+    const alpha = makeBlueprint('char_alpha', 'lineage_alpha', {
+      drives: { curiosity: 0.5, secrecy: 0.5 },
+    });
+    const alpha2 = makeBlueprint('char_alpha_2', 'lineage_alpha', {
+      drives: { curiosity: 0.5, secrecy: 0.5 },
+    });
+    const beta = makeBlueprint('char_beta', 'lineage_beta');
+    const legacy = makeLegacy([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_high',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'add',
+        delta: 0.75,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_low',
+        target: { kind: 'drive', key: 'secrecy' },
+        strategy: 'add',
+        delta: -0.75,
+      },
+    ]);
+
+    const result = resolveRuntimeLegacyCharacterBlueprints([alpha, alpha2, beta], legacy);
+
+    expect(result.characters[0]?.drives).toEqual({ curiosity: 1, secrecy: 0 });
+    expect(result.characters[1]?.drives).toEqual({ curiosity: 1, secrecy: 0 });
+    expect(result.characters[2]).toBe(beta);
+    expect(result.clampNotes).toEqual([
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha',
+        driveKey: 'curiosity',
+        unclampedValue: 1.25,
+        clampedValue: 1,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha',
+        driveKey: 'secrecy',
+        unclampedValue: -0.25,
+        clampedValue: 0,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha_2',
+        driveKey: 'curiosity',
+        unclampedValue: 1.25,
+        clampedValue: 1,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha_2',
+        driveKey: 'secrecy',
+        unclampedValue: -0.25,
+        clampedValue: 0,
+      },
+    ]);
+    expect(() => applyLegacyToCharacterBlueprints([alpha], legacy)).toThrow(/out of bounds/);
+  });
+
+  it('produces deterministic saturation notes from two same-sign adds without mutating frozen inputs', () => {
+    const original = makeBlueprint('char_frozen', 'lineage_alpha', {
+      drives: { curiosity: 0.5, secrecy: 0.5 },
+    });
+    const alpha = Object.freeze({
+      ...original,
+      drives: Object.freeze({ ...original.drives }),
+      inertiaPillars: Object.freeze(
+        original.inertiaPillars.map((pillar) => Object.freeze({ ...pillar })),
+      ),
+    });
+    const legacy = makeLegacy([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_a',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'add',
+        delta: 0.25,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_b',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'add',
+        delta: 0.5,
+      },
+    ]);
+    for (const mutation of legacy.lineageMutations) {
+      Object.freeze(mutation.target);
+      Object.freeze(mutation);
+    }
+    Object.freeze(legacy.materialScars);
+    Object.freeze(legacy.veilScars);
+    Object.freeze(legacy.lineageMutations);
+    Object.freeze(legacy);
+    const blueprintBefore = structuredClone(alpha);
+    const legacyBefore = structuredClone(legacy);
+
+    const first = resolveRuntimeLegacyCharacterBlueprints([alpha], legacy);
+    const second = resolveRuntimeLegacyCharacterBlueprints([alpha], legacy);
+
+    expect(first).toEqual(second);
+    expect(first.characters[0]).not.toBe(alpha);
+    expect(first.characters[0]?.drives['curiosity']).toBe(1);
+    expect(first.clampNotes).toEqual([
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_frozen',
+        driveKey: 'curiosity',
+        unclampedValue: 1.25,
+        clampedValue: 1,
+      },
+    ]);
+    expect(alpha).toEqual(blueprintBefore);
+    expect(legacy).toEqual(legacyBefore);
+  });
+
+  it('leaves boundary and later-explicitly-clamped drives in range without notes', () => {
+    const alpha = makeBlueprint('char_alpha', 'lineage_alpha');
+    const legacy = makeLegacy([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_high',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'add',
+        delta: 0.8,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_clamp',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'clamp',
+        min: 0,
+        max: 1,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_zero',
+        target: { kind: 'drive', key: 'secrecy' },
+        strategy: 'override',
+        value: 0,
+      },
+    ]);
+
+    const result = resolveRuntimeLegacyCharacterBlueprints([alpha], legacy);
+
+    expect(result.characters[0]?.drives).toEqual({ curiosity: 1, secrecy: 0 });
+    expect(result.clampNotes).toEqual([]);
+  });
+
+  it('rejects conflicts, unknown targets and invalid clamp intervals before returning characters', () => {
+    const alpha = makeBlueprint('char_alpha', 'lineage_alpha');
+    const override = {
+      lineageId: 'lineage_alpha',
+      sourceScarId: 'scar_a',
+      target: { kind: 'drive', key: 'curiosity' },
+      strategy: 'override',
+      value: 0.2,
+    } as const;
+    const conflicts = makeLegacy([override, { ...override, sourceScarId: 'scar_b', value: 0.8 }]);
+    const unknownDrive = makeLegacy([{ ...override, target: { kind: 'drive', key: 'toString' } }]);
+    const unknownPillar = makeLegacy([
+      { ...override, target: { kind: 'inertia_weight', pillarId: 'missing' } },
+    ]);
+    const invalidClamp = {
+      ...makeLegacy([]),
+      lineageMutations: [
+        {
+          lineageId: 'lineage_alpha',
+          sourceScarId: 'scar_bad',
+          target: { kind: 'drive', key: 'curiosity' },
+          strategy: 'clamp',
+          min: 0.8,
+          max: 0.2,
+        },
+      ],
+    } as CivilizationLegacyState;
+    const snapshot = structuredClone(alpha);
+
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], conflicts)).toThrow(
+      /Conflicting override/,
+    );
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], unknownDrive)).toThrow(
+      /unknown drive/,
+    );
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], unknownPillar)).toThrow(
+      /unknown inertiaPillar/,
+    );
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], invalidClamp)).toThrow(
+      /clamp min must be <= max/,
+    );
+    expect(alpha).toEqual(snapshot);
+  });
+
+  it('rejects intermediate non-finite drive and pillar arithmetic even if later repaired', () => {
+    const alpha = makeBlueprint('char_alpha', 'lineage_alpha');
+    const driveThenClamp = makeLegacy([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_max',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'override',
+        value: Number.MAX_VALUE,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_overflow',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'add',
+        delta: Number.MAX_VALUE,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_clamp',
+        target: { kind: 'drive', key: 'curiosity' },
+        strategy: 'clamp',
+        min: 0,
+        max: 1,
+      },
+    ]);
+    const pillarThenOverride = makeLegacy([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_first',
+        target: { kind: 'inertia_weight', pillarId: 'pillar_doc' },
+        strategy: 'add',
+        delta: Number.MAX_VALUE,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_overflow',
+        target: { kind: 'inertia_weight', pillarId: 'pillar_doc' },
+        strategy: 'add',
+        delta: Number.MAX_VALUE,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_override',
+        target: { kind: 'inertia_weight', pillarId: 'pillar_doc' },
+        strategy: 'override',
+        value: 0.5,
+      },
+    ]);
+    const snapshot = structuredClone(alpha);
+
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], driveThenClamp)).toThrow(
+      /non-finite/,
+    );
+    expect(() => resolveRuntimeLegacyCharacterBlueprints([alpha], pillarThenOverride)).toThrow(
+      /non-finite/,
+    );
+    expect(() => applyLegacyToCharacterBlueprints([alpha], driveThenClamp)).toThrow(/non-finite/);
+    expect(() => applyLegacyToCharacterBlueprints([alpha], pillarThenOverride)).toThrow(
+      /non-finite/,
+    );
+    expect(alpha).toEqual(snapshot);
   });
 });

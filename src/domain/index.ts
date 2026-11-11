@@ -163,6 +163,7 @@ export {
   type InheritedScar,
   InheritedScarSchema,
   legacyStateToRecord,
+  type LegacyDriveClampNote,
   type LineageMutation,
   LineageMutationSchema,
   type LineageMutationTarget,
@@ -170,4 +171,6 @@ export {
   parseLegacyState,
   type RecordedLegacyScarInput,
   recordScarInLegacyState,
+  resolveRuntimeLegacyCharacterBlueprints,
+  type RuntimeLegacyCharacterResolution,
 } from './legacy/CivilizationLegacyState.js';
