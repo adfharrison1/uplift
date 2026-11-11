@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { MAX_FRAME_DT_SECONDS, SimulationCoordinator } from '../../../src/application/index.js';
 import {
   createCivilizationLegacyState,
+  type CivilizationLegacyState,
   DEFAULT_GAMEPLAY_PACING_CONFIG,
   EpochModuleRegistry,
   FAST_EVAL_PACING_CONFIG,
+  legacyStateToRecord,
+  type LineageMutation,
   SeededRandom,
   type TelemetryClock,
+  type TelemetryEntry,
+  type TelemetryEventInput,
 } from '../../../src/domain/index.js';
 import {
   InMemorySaveSlotRepository,
@@ -24,6 +29,37 @@ function createClock(): TelemetryClock {
       return elapsed;
     },
   };
+}
+
+function legacyWithMutations(
+  lineageMutations: ReadonlyArray<LineageMutation>,
+): CivilizationLegacyState {
+  return createCivilizationLegacyState({
+    sourceEpochId: 'epoch_0',
+    materialScars: [],
+    veilScars: [],
+    lineageMutations,
+  });
+}
+
+class FaultingLegacyTelemetry extends InMemorySessionTelemetry {
+  public readonly failedWarningAttempts = new Set<number>();
+  public warningAttempts = 0;
+  public failNextLoadRecord = false;
+
+  public override record(event: TelemetryEventInput): TelemetryEntry {
+    if (event.action === 'legacy_drive_clamped') {
+      this.warningAttempts += 1;
+      if (this.failedWarningAttempts.has(this.warningAttempts)) {
+        throw new Error(`warning write ${String(this.warningAttempts)} failed`);
+      }
+    }
+    if (event.action === 'load_slot' && this.failNextLoadRecord) {
+      this.failNextLoadRecord = false;
+      throw new Error('load_slot record failed');
+    }
+    return super.record(event);
+  }
 }
 
 function buildTestRegistry(): EpochModuleRegistry {
@@ -495,6 +531,420 @@ describe('SimulationCoordinator', () => {
     expect(exportedLegacy.veilScars[0]?.scarId).toBe('scar_epoch1_veil');
     expect(exportedLegacy.lineageMutations).toHaveLength(1);
     expect(exportedLegacy.communicationsBackboneControllerId).toBe('office_alpha');
+  });
+});
+
+describe('SimulationCoordinator legacy clamp consumers', () => {
+  const driveTarget = { kind: 'drive', key: 'curiosity' } as const;
+  const highLegacy = legacyWithMutations([
+    {
+      lineageId: 'lineage_alpha',
+      sourceScarId: 'scar_high',
+      target: driveTarget,
+      strategy: 'add',
+      delta: 0.75,
+    },
+  ]);
+
+  it('starts with saturated entities, resolved blueprints, immutable notes and queryable startup warnings', () => {
+    const telemetry = new InMemorySessionTelemetry('session_startup_clamp', createClock());
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository: new InMemorySaveSlotRepository(),
+      clock: createClock(),
+      legacyState: highLegacy,
+    });
+
+    expect(coordinator.getWorldState().entities['char_alpha']?.drives['curiosity']).toBe(1);
+    expect(coordinator.getResolvedCharacters()[0]?.drives['curiosity']).toBe(1);
+    expect(coordinator.getLegacyClampNotes()).toEqual([
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha',
+        driveKey: 'curiosity',
+        unclampedValue: 1.25,
+        clampedValue: 1,
+      },
+    ]);
+    expect(Object.isFrozen(coordinator.getLegacyClampNotes())).toBe(true);
+    expect(Object.isFrozen(coordinator.getLegacyClampNotes()[0])).toBe(true);
+    expect(telemetry.query({ level: 'warn', action: 'legacy_drive_clamped' })).toMatchObject([
+      {
+        epochId: 'epoch_sim_test',
+        worldTick: 0,
+        category: 'legacy',
+        actorId: 'char_alpha',
+        inputs: {
+          lineageId: 'lineage_alpha',
+          characterId: 'char_alpha',
+          driveKey: 'curiosity',
+          unclampedValue: 1.25,
+          clampedValue: 1,
+          resolutionPhase: 'startup',
+        },
+      },
+    ]);
+  });
+
+  it('loads a low-clamp blueprint while retaining the saved world and raw RNG continuation', () => {
+    const telemetry = new InMemorySessionTelemetry('session_load_clamp', createClock());
+    const saveRepository = new InMemorySaveSlotRepository();
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      rng: new SeededRandom(42),
+    });
+    coordinator.getRng().nextUint32();
+    const saved = coordinator.saveToSlot('slot_low_clamp');
+    const expectedNextDraw = SeededRandom.fromState(saved.rngState).nextUint32();
+    const lowLegacy = legacyWithMutations([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_low',
+        target: { kind: 'drive', key: 'secrecy' },
+        strategy: 'add',
+        delta: -0.75,
+      },
+    ]);
+    saveRepository.saveSlot({ ...saved, legacyState: legacyStateToRecord(lowLegacy) });
+    coordinator.getRng().nextUint32();
+    coordinator.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+      advanceTick: true,
+    });
+    expect(coordinator.getWorldState().worldTick).toBe(1);
+
+    const restored = coordinator.loadFromSlot('slot_low_clamp');
+
+    expect(restored.worldTick).toBe(saved.worldTick);
+    expect(restored.entities['char_alpha']?.drives['secrecy']).toBe(0.4);
+    expect(coordinator.getResolvedCharacters()[0]?.drives['secrecy']).toBe(0);
+    expect(coordinator.getLegacyClampNotes()).toEqual([
+      {
+        lineageId: 'lineage_alpha',
+        characterId: 'char_alpha',
+        driveKey: 'secrecy',
+        unclampedValue: -0.35,
+        clampedValue: 0,
+      },
+    ]);
+    expect(coordinator.getRng().nextUint32()).toBe(expectedNextDraw);
+    expect(telemetry.query({ action: 'load_slot' })).toMatchObject([
+      { worldTick: saved.worldTick },
+    ]);
+    expect(telemetry.query({ level: 'warn', action: 'legacy_drive_clamped' })).toMatchObject([
+      {
+        epochId: 'epoch_sim_test',
+        worldTick: saved.worldTick,
+        category: 'legacy',
+        inputs: {
+          lineageId: 'lineage_alpha',
+          characterId: 'char_alpha',
+          driveKey: 'secrecy',
+          unclampedValue: -0.35,
+          clampedValue: 0,
+          resolutionPhase: 'load',
+          slotId: 'slot_low_clamp',
+        },
+        message: expect.stringMatching(/blueprint/),
+      },
+    ]);
+  });
+
+  it('emits no clamp warning for a finite final drive returned to range by an explicit clamp', () => {
+    const telemetry = new InMemorySessionTelemetry('session_no_clamp', createClock());
+    const saveRepository = new InMemorySaveSlotRepository();
+    const inRangeLegacy = legacyWithMutations([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_high',
+        target: driveTarget,
+        strategy: 'add',
+        delta: 0.75,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_bound',
+        target: driveTarget,
+        strategy: 'clamp',
+        min: 0,
+        max: 1,
+      },
+    ]);
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      legacyState: inRangeLegacy,
+    });
+
+    expect(coordinator.getWorldState().entities['char_alpha']?.drives['curiosity']).toBe(1);
+    expect(coordinator.getLegacyClampNotes()).toEqual([]);
+    coordinator.saveToSlot('slot_in_range');
+    coordinator.loadFromSlot('slot_in_range');
+    expect(coordinator.getLegacyClampNotes()).toEqual([]);
+    expect(telemetry.query({ level: 'warn', action: 'legacy_drive_clamped' })).toEqual([]);
+  });
+
+  it('replaces startup clamp notes with an empty latest load result', () => {
+    const telemetry = new InMemorySessionTelemetry('session_latest_notes', createClock());
+    const saveRepository = new InMemorySaveSlotRepository();
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      legacyState: highLegacy,
+    });
+    expect(coordinator.getLegacyClampNotes()).toHaveLength(1);
+    const saved = coordinator.saveToSlot('slot_latest_notes');
+    const inRangeLegacy = legacyWithMutations([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_in_range',
+        target: driveTarget,
+        strategy: 'add',
+        delta: 0.25,
+      },
+    ]);
+    saveRepository.saveSlot({ ...saved, legacyState: legacyStateToRecord(inRangeLegacy) });
+
+    coordinator.loadFromSlot('slot_latest_notes');
+
+    expect(coordinator.getLegacyClampNotes()).toEqual([]);
+    expect(coordinator.getResolvedCharacters()[0]?.drives['curiosity']).toBe(0.75);
+    expect(coordinator.getWorldState().entities['char_alpha']?.drives['curiosity']).toBe(1);
+    expect(telemetry.query({ level: 'warn', action: 'legacy_drive_clamped' })).toHaveLength(1);
+  });
+
+  it('leaves every prior coordinator field intact for each invalid load', () => {
+    const telemetry = new InMemorySessionTelemetry('session_invalid_load', createClock());
+    const saveRepository = new InMemorySaveSlotRepository();
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      rng: new SeededRandom(99),
+      legacyState: highLegacy,
+    });
+    const saved = coordinator.saveToSlot('slot_base_valid');
+    const base = { lineageId: 'lineage_alpha', sourceScarId: 'scar_invalid' } as const;
+    const override = { ...base, target: driveTarget, strategy: 'override', value: 0.25 } as const;
+    const invalidCases: ReadonlyArray<{
+      readonly name: string;
+      readonly legacyState: Readonly<Record<string, unknown>>;
+      readonly expected: RegExp;
+    }> = [
+      {
+        name: 'conflict',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([override, { ...override, sourceScarId: 'scar_second' }]),
+        ),
+        expected: /Conflicting override/,
+      },
+      {
+        name: 'drive',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([{ ...override, target: { kind: 'drive', key: 'toString' } }]),
+        ),
+        expected: /unknown drive/,
+      },
+      {
+        name: 'pillar',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([
+            { ...override, target: { kind: 'inertia_weight', pillarId: 'missing' } },
+          ]),
+        ),
+        expected: /unknown inertiaPillar/,
+      },
+      {
+        name: 'interval',
+        legacyState: {
+          ...legacyWithMutations([]),
+          lineageMutations: [{ ...base, target: driveTarget, strategy: 'clamp', min: 1, max: 0 }],
+        },
+        expected: /clamp min must be <= max/,
+      },
+      {
+        name: 'drive_overflow',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([
+            { ...base, target: driveTarget, strategy: 'override', value: Number.MAX_VALUE },
+            { ...base, target: driveTarget, strategy: 'add', delta: Number.MAX_VALUE },
+            { ...base, target: driveTarget, strategy: 'clamp', min: 0, max: 1 },
+          ]),
+        ),
+        expected: /non-finite/,
+      },
+      {
+        name: 'pillar_overflow',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([
+            {
+              ...base,
+              target: { kind: 'inertia_weight', pillarId: 'pillar_1' },
+              strategy: 'add',
+              delta: Number.MAX_VALUE,
+            },
+            {
+              ...base,
+              target: { kind: 'inertia_weight', pillarId: 'pillar_1' },
+              strategy: 'add',
+              delta: Number.MAX_VALUE,
+            },
+            {
+              ...base,
+              target: { kind: 'inertia_weight', pillarId: 'pillar_1' },
+              strategy: 'override',
+              value: 0.5,
+            },
+          ]),
+        ),
+        expected: /non-finite/,
+      },
+      {
+        name: 'negative_pillar',
+        legacyState: legacyStateToRecord(
+          legacyWithMutations([
+            {
+              ...base,
+              target: { kind: 'inertia_weight', pillarId: 'pillar_1' },
+              strategy: 'add',
+              delta: -1,
+            },
+          ]),
+        ),
+        expected: /out of bounds/,
+      },
+    ];
+    const priorState = coordinator.getWorldState();
+    const priorRng = coordinator.getRng();
+    const priorRngWord = priorRng.getState();
+    const priorCharacters = coordinator.getResolvedCharacters();
+    const priorNotes = coordinator.getLegacyClampNotes();
+    const priorLegacy = coordinator.exportLegacyState();
+
+    for (const [index, invalid] of invalidCases.entries()) {
+      const slotId = `invalid_${String(index)}`;
+      saveRepository.saveSlot({ ...saved, slotId, legacyState: invalid.legacyState });
+      expect(() => coordinator.loadFromSlot(slotId), invalid.name).toThrow(invalid.expected);
+      expect(coordinator.getWorldState(), invalid.name).toBe(priorState);
+      expect(coordinator.getRng(), invalid.name).toBe(priorRng);
+      expect(coordinator.getRng().getState(), invalid.name).toBe(priorRngWord);
+      expect(coordinator.getResolvedCharacters(), invalid.name).toBe(priorCharacters);
+      expect(coordinator.getLegacyClampNotes(), invalid.name).toBe(priorNotes);
+      expect(coordinator.exportLegacyState(), invalid.name).toEqual(priorLegacy);
+    }
+    expect(telemetry.query({ action: 'load_slot' })).toHaveLength(0);
+  });
+
+  it('continues after first and later clamp-warning writes fail while retaining notes', () => {
+    const telemetry = new FaultingLegacyTelemetry('session_warning_faults', createClock());
+    telemetry.failedWarningAttempts.add(1);
+    telemetry.failedWarningAttempts.add(4);
+    const saveRepository = new InMemorySaveSlotRepository();
+    const twoClamps = legacyWithMutations([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_high',
+        target: driveTarget,
+        strategy: 'add',
+        delta: 0.75,
+      },
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_low',
+        target: { kind: 'drive', key: 'secrecy' },
+        strategy: 'add',
+        delta: -0.75,
+      },
+    ]);
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      legacyState: twoClamps,
+    });
+
+    expect(coordinator.getWorldState().entities['char_alpha']?.drives).toEqual({
+      curiosity: 1,
+      secrecy: 0,
+    });
+    expect(coordinator.getLegacyClampNotes()).toHaveLength(2);
+    expect(telemetry.warningAttempts).toBe(2);
+    expect(telemetry.query({ action: 'legacy_drive_clamped' })).toHaveLength(1);
+
+    coordinator.saveToSlot('slot_warning_faults');
+    expect(() => coordinator.loadFromSlot('slot_warning_faults')).not.toThrow();
+    expect(coordinator.getLegacyClampNotes()).toHaveLength(2);
+    expect(telemetry.warningAttempts).toBe(4);
+    expect(telemetry.query({ action: 'legacy_drive_clamped' })).toHaveLength(2);
+    expect(telemetry.query({ action: 'load_slot' })).toHaveLength(1);
+  });
+
+  it('keeps prior world, RNG, legacy, characters and notes when load_slot recording fails, then retries', () => {
+    const telemetry = new FaultingLegacyTelemetry('session_load_record_fault', createClock());
+    const saveRepository = new InMemorySaveSlotRepository();
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: buildTestRegistry(),
+      telemetry,
+      saveRepository,
+      clock: createClock(),
+      rng: new SeededRandom(71),
+      legacyState: highLegacy,
+    });
+    const saved = coordinator.saveToSlot('slot_retry');
+    const lowLegacy = legacyWithMutations([
+      {
+        lineageId: 'lineage_alpha',
+        sourceScarId: 'scar_low',
+        target: { kind: 'drive', key: 'secrecy' },
+        strategy: 'add',
+        delta: -0.75,
+      },
+    ]);
+    saveRepository.saveSlot({ ...saved, legacyState: legacyStateToRecord(lowLegacy) });
+    coordinator.getRng().nextUint32();
+    coordinator.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+      advanceTick: true,
+    });
+    const priorState = coordinator.getWorldState();
+    const priorRng = coordinator.getRng();
+    const priorRngWord = priorRng.getState();
+    const priorCharacters = coordinator.getResolvedCharacters();
+    const priorNotes = coordinator.getLegacyClampNotes();
+    const priorLegacy = coordinator.exportLegacyState();
+    telemetry.failNextLoadRecord = true;
+
+    expect(() => coordinator.loadFromSlot('slot_retry')).toThrow(/load_slot record failed/);
+    expect(coordinator.getWorldState()).toBe(priorState);
+    expect(coordinator.getRng()).toBe(priorRng);
+    expect(coordinator.getRng().getState()).toBe(priorRngWord);
+    expect(coordinator.getResolvedCharacters()).toBe(priorCharacters);
+    expect(coordinator.getLegacyClampNotes()).toBe(priorNotes);
+    expect(coordinator.exportLegacyState()).toEqual(priorLegacy);
+    expect(telemetry.query({ action: 'legacy_drive_clamped' })).toHaveLength(1);
+
+    const restored = coordinator.loadFromSlot('slot_retry');
+    expect(restored.worldTick).toBe(saved.worldTick);
+    expect(coordinator.getRng().getState()).toBe(saved.rngState);
+    expect(coordinator.getResolvedCharacters()[0]?.drives['secrecy']).toBe(0);
+    expect(coordinator.getLegacyClampNotes()[0]?.driveKey).toBe('secrecy');
+    expect(telemetry.query({ action: 'load_slot' })).toHaveLength(1);
+    expect(telemetry.query({ action: 'legacy_drive_clamped' })).toHaveLength(2);
   });
 });
 

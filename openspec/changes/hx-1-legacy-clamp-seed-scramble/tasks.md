@@ -8,7 +8,7 @@ Each numbered checkbox is one owner-approved, green Conventional Commit. After e
 
 ## 2. Resolve runtime legacy drives without mutating input
 
-- [ ] 2.1 Add a pure runtime legacy resolver and clamp diagnostics in `src/domain/legacy/CivilizationLegacyState.ts`, sharing ordered mutation logic with strict `applyLegacyToCharacterBlueprints`; export the runtime API from `src/domain/index.ts`; test high/low/final-in-range values, frozen inputs, strict authoring throws, conflicts, unknown targets, invalid clamp intervals, and intermediate non-finite arithmetic followed by clamp or override in `tests/unit/domain/CivilizationLegacyState.test.ts`; update the paired domain guides. **Verify:** `npx vitest run tests/unit/domain/CivilizationLegacyState.test.ts`, `npm run verify`, and unchanged input snapshots. **Commit:** `fix(domain): resolve legacy drive overflow with pure diagnostics`.
+- [x] 2.1 Add a pure runtime legacy resolver and clamp diagnostics in `src/domain/legacy/CivilizationLegacyState.ts`, sharing ordered mutation logic with strict `applyLegacyToCharacterBlueprints`; export the runtime API from `src/domain/index.ts`; test high/low/final-in-range values, frozen inputs, strict authoring throws, conflicts, unknown targets, invalid clamp intervals, and intermediate non-finite arithmetic followed by clamp or override in `tests/unit/domain/CivilizationLegacyState.test.ts`; update the paired domain guides. **Verify:** `npx vitest run tests/unit/domain/CivilizationLegacyState.test.ts`, `npm run verify`, and unchanged input snapshots. **Commit:** `fix(domain): resolve legacy drive overflow with pure diagnostics`.
 
 ## 3. Surface runtime clamps at the coordinator
 

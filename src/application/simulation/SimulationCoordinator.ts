@@ -9,7 +9,6 @@
  * Depends strictly inward on `src/domain/index.js`.
  */
 import {
-  applyLegacyToCharacterBlueprints,
   applyWorldEffects,
   type CharacterBlueprint,
   type CivilizationLegacyState,
@@ -21,6 +20,7 @@ import {
   type InheritedScar,
   type KinematicsStepResult,
   legacyStateToRecord,
+  type LegacyDriveClampNote,
   type LineageMutation,
   parseLegacyState,
   type PendingStimulus,
@@ -30,6 +30,7 @@ import {
   type PropSimulationState,
   type SaveSlotEnvelope,
   type SaveSlotRepositoryPort,
+  resolveRuntimeLegacyCharacterBlueprints,
   SeededRandom,
   type SessionTelemetryPort,
   type SimulationPacingConfig,
@@ -165,6 +166,12 @@ function buildInitialEntities(
   return entities;
 }
 
+function freezeLegacyClampNotes(
+  notes: ReadonlyArray<LegacyDriveClampNote>,
+): ReadonlyArray<LegacyDriveClampNote> {
+  return Object.freeze(notes.map((note) => Object.freeze({ ...note })));
+}
+
 function buildInitialProps(registry: EpochModuleRegistry): Record<string, PropSimulationState> {
   const props: Record<string, PropSimulationState> = {};
   for (const prop of registry.getAllProps()) {
@@ -251,6 +258,7 @@ export class SimulationCoordinator {
   private readonly clock: TelemetryClock;
   private rng: SeededRandom;
   private resolvedCharacters: ReadonlyArray<CharacterBlueprint>;
+  private legacyClampNotes: ReadonlyArray<LegacyDriveClampNote>;
   private inheritedLegacyState: CivilizationLegacyState | undefined;
   private state: WorldState;
   private readonly spaces: ReadonlyArray<SpaceNodeBlueprint>;
@@ -278,10 +286,12 @@ export class SimulationCoordinator {
     this.inheritedLegacyState = options.legacyState;
 
     const baseCharacters = this.registry.getAllCharacters();
-    this.resolvedCharacters =
+    const initialResolution =
       options.legacyState !== undefined
-        ? applyLegacyToCharacterBlueprints(baseCharacters, options.legacyState)
-        : [...baseCharacters];
+        ? resolveRuntimeLegacyCharacterBlueprints(baseCharacters, options.legacyState)
+        : { characters: [...baseCharacters], clampNotes: [] };
+    this.resolvedCharacters = initialResolution.characters;
+    this.legacyClampNotes = freezeLegacyClampNotes(initialResolution.clampNotes);
 
     const entities = buildInitialEntities(this.registry, this.resolvedCharacters);
     const props = buildInitialProps(this.registry);
@@ -294,6 +304,12 @@ export class SimulationCoordinator {
       pacingConfig: options.pacingConfig ?? DEFAULT_GAMEPLAY_PACING_CONFIG,
       maxOrbitalDelta: orbitalBlueprint?.maxDelta ?? 100,
     });
+    this.recordLegacyClampWarnings(
+      this.legacyClampNotes,
+      'startup',
+      this.state.epochId,
+      this.state.worldTick,
+    );
   }
 
   public getWorldState(): WorldState {
@@ -319,6 +335,39 @@ export class SimulationCoordinator {
 
   public getResolvedCharacters(): ReadonlyArray<CharacterBlueprint> {
     return this.resolvedCharacters;
+  }
+
+  public getLegacyClampNotes(): ReadonlyArray<LegacyDriveClampNote> {
+    return this.legacyClampNotes;
+  }
+
+  private recordLegacyClampWarnings(
+    notes: ReadonlyArray<LegacyDriveClampNote>,
+    resolutionPhase: 'startup' | 'load',
+    epochId: string,
+    worldTick: number,
+    slotId?: string,
+  ): void {
+    for (const note of notes) {
+      try {
+        this.telemetry.record({
+          epochId,
+          worldTick,
+          level: 'warn',
+          category: 'legacy',
+          actorId: note.characterId,
+          action: 'legacy_drive_clamped',
+          inputs: {
+            ...note,
+            resolutionPhase,
+            ...(slotId !== undefined ? { slotId } : {}),
+          },
+          message: `Resolved legacy blueprint drive '${note.driveKey}' for character '${note.characterId}' from ${String(note.unclampedValue)} to ${String(note.clampedValue)} during ${resolutionPhase}`,
+        });
+      } catch {
+        // The immutable note remains available, and later warnings are attempted.
+      }
+    }
   }
 
   public getRng(): SeededRandom {
@@ -809,10 +858,11 @@ export class SimulationCoordinator {
     });
 
     const baseCharacters = this.registry.getAllCharacters();
-    const nextResolvedCharacters =
+    const nextResolution =
       nextLegacy !== undefined
-        ? applyLegacyToCharacterBlueprints(baseCharacters, nextLegacy)
-        : [...baseCharacters];
+        ? resolveRuntimeLegacyCharacterBlueprints(baseCharacters, nextLegacy)
+        : { characters: [...baseCharacters], clampNotes: [] };
+    const nextClampNotes = freezeLegacyClampNotes(nextResolution.clampNotes);
 
     const nextState: WorldState = {
       epochId: rawWorldSnapshot.epochId,
@@ -832,21 +882,29 @@ export class SimulationCoordinator {
       stateSlices: StateSliceStore.fromSnapshot(customSlicesRecord),
     };
 
-    this.rng = nextRng;
-    this.inheritedLegacyState = nextLegacy;
-    this.resolvedCharacters = nextResolvedCharacters;
-    this.state = nextState;
-
     this.telemetry.record({
-      epochId: this.state.epochId,
-      worldTick: this.state.worldTick,
+      epochId: nextState.epochId,
+      worldTick: nextState.worldTick,
       level: 'info',
       category: 'persistence',
       actorId: 'system',
       action: 'load_slot',
       inputs: { slotId: envelope.slotId },
-      message: `Loaded simulation state from slot '${envelope.slotId}' at tick ${String(this.state.worldTick)}`,
+      message: `Loaded simulation state from slot '${envelope.slotId}' at tick ${String(nextState.worldTick)}`,
     });
+
+    this.rng = nextRng;
+    this.inheritedLegacyState = nextLegacy;
+    this.resolvedCharacters = nextResolution.characters;
+    this.legacyClampNotes = nextClampNotes;
+    this.state = nextState;
+    this.recordLegacyClampWarnings(
+      nextClampNotes,
+      'load',
+      nextState.epochId,
+      nextState.worldTick,
+      envelope.slotId,
+    );
 
     return this.state;
   }
