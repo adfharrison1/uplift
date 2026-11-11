@@ -7,7 +7,7 @@ description: Use when proposing, implementing, reviewing or preparing to archive
 
 Apply this contract alongside the selected OpenSpec workflow. Preserve its planning boundary, CLI-controlled states, and owner approval before each task commit. Use the default checkout; inspect `git status --short` and preserve unrelated edits. Do not isolate work without the owner's request.
 
-Read [delivery procedure](references/delivery.md) for the current checkpoint. When editing docs, also execute [document integrity](references/document-integrity.md). Periodic whole-project reviews use [root-and-branch-review](../root-and-branch-review/SKILL.md).
+Read [delivery procedure](references/delivery.md) for the current checkpoint and its compact evidence package. Review counts do not require separate files per reviewer or test run. When editing docs, also execute [document integrity](references/document-integrity.md). Periodic whole-project reviews use [root-and-branch-review](../root-and-branch-review/SKILL.md).
 
 ## Delivery contract
 

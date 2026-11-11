@@ -18,6 +18,7 @@ import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 import { parseDocument, stringify as yamlStringify } from 'yaml';
 import { z } from 'zod';
+import { buildSpecProof, proofEngine } from './archive-spec-proof.mjs';
 
 const stringify = (value) => yamlStringify(value, { aliasDuplicateObjects: false });
 const ID = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/, 'unsafe ID');
@@ -753,6 +754,10 @@ const receiptSchema = z
     records: z.array(entrySchema),
     resolved: z.array(entrySchema),
     retained_evidence: z.array(locatorSchema).optional(),
+    spec_sync: z
+      .object({ engine: z.literal(proofEngine), targets: z.record(z.string(), hash.nullable()) })
+      .strict()
+      .optional(),
     preimages: z
       .object({ ledger: z.string(), roadmap: z.string(), files: z.record(z.string(), hash) })
       .strict(),
@@ -849,6 +854,11 @@ export function validateReceipt(value, checkEvidence = () => undefined) {
   }
   for (const path of Object.keys(receipt.preimages.files))
     check(pathSchema, path, 'receipt preimage path');
+  if (
+    receipt.spec_sync &&
+    !same(Object.keys(receipt.spec_sync.targets).sort(), specTargets(receipt))
+  )
+    fail('SPEC_SYNC', 'receipt sync outcome coverage differs from retained delta specs');
   if (!same(receipt.targets, targetsFor(ledger, roadmap, receipt.change_id, receipt.records)))
     fail('RECEIPT', 'receipt target conflict');
   const expected = receipt.state === 'finalized' ? receipt.records.map(resolvedEntry) : [];
@@ -880,6 +890,7 @@ function receiptPath(inventory, id) {
   return `${changePath(inventory, id)}/defect-resolution.yaml`;
 }
 export function readReceipts(root, inventory) {
+  const journal = readJournal(root);
   const referenceChecker = createReferenceChecker(root, inventory);
   const checkEvidence = evidenceChecker(root, inventory, referenceChecker);
   const result = [];
@@ -905,6 +916,8 @@ export function readReceipts(root, inventory) {
       }
     }
     if (!inventory.active.includes(item.receipt.change_id)) {
+      if (item.receipt.state === 'prepared' || journal?.change_id === item.receipt.change_id)
+        checkSpecOutcomes(root, item.receipt);
       const originalPrefix = `openspec/changes/${item.receipt.change_id}/`;
       const archivedPath = changePath(inventory, item.receipt.change_id);
       for (const [original, expected] of Object.entries(item.receipt.preimages.files)) {
@@ -1064,6 +1077,35 @@ function snapshotFiles(root, paths) {
   paths.forEach(visit);
   return result;
 }
+function specTargets(receipt) {
+  const prefix = `openspec/changes/${receipt.change_id}/specs/`;
+  return Object.keys(receipt.preimages.files)
+    .filter((path) => {
+      if (!path.startsWith(prefix)) return false;
+      const parts = path.slice(prefix.length).split('/');
+      return (
+        parts.length > 1 && parts.at(-1) === 'spec.md' && !parts.some((p) => p.startsWith('.'))
+      );
+    })
+    .map((path) => `openspec/specs/${path.slice(prefix.length)}`)
+    .sort();
+}
+function checkSpecOutcomes(root, receipt) {
+  if (!receipt.spec_sync && specTargets(receipt).length)
+    fail(
+      'SPEC_SYNC',
+      'pending archive has no retained sync outcome proof; inspect before recovery',
+    );
+  for (const [path, expected] of Object.entries(receipt.spec_sync?.targets ?? {})) {
+    const target = safePath(root, path);
+    const actual = existsSync(target) ? digest(readFileSync(target)) : null;
+    if (actual !== expected)
+      fail(
+        'SPEC_SYNC',
+        `sync outcome missing or changed: ${path}; preserve the pending transaction and inspect/restore the intended CLI output before recovery; never rearchive the moved change`,
+      );
+  }
+}
 function preMoveCheck(root, project, receipt) {
   if (
     !project.inventory.active.includes(receipt.change_id) ||
@@ -1117,6 +1159,7 @@ export function prepareArchive(root, id, options = {}) {
             ),
           }
         : {}),
+      spec_sync: { engine: proofEngine, targets: {} },
       preimages: {
         ledger: project.ledgerBytes,
         roadmap: project.roadmapBytes,
@@ -1124,7 +1167,15 @@ export function prepareArchive(root, id, options = {}) {
       },
       targets: targetsFor(project.ledger, project.roadmap, id, records),
     };
+    receipt.spec_sync = {
+      engine: proofEngine,
+      targets: specTargets(receipt).length
+        ? (options.buildSpecProof ?? buildSpecProof)(root, id)
+        : {},
+    };
     validateReceipt(receipt);
+    // Builder work is read-only, but its inputs must still match the durable snapshot.
+    preMoveCheck(root, readProject(root), receipt);
     const referenceChecker = createReferenceChecker(root, project.inventory);
     for (const reference of receipt.retained_evidence ?? []) referenceChecker(reference);
     atomicWrite(root, path, stringify(receipt), null);
@@ -1178,6 +1229,17 @@ export function resumeArchive(root, id, options = {}) {
     )
       return repairArchive(root, id, { lock: false });
     preMoveCheck(root, state.project, state.item.receipt);
+    if (specTargets(state.item.receipt).length) {
+      if (
+        !state.item.receipt.spec_sync ||
+        !same(
+          (options.buildSpecProof ?? buildSpecProof)(root, id),
+          state.item.receipt.spec_sync.targets,
+        )
+      )
+        fail('SPEC_SYNC', 'prepared sync outcome proof differs from the supported CLI builder');
+      preMoveCheck(root, readProject(root), state.item.receipt);
+    }
     checkProject(state.project);
     if (!state.journal) atomicWrite(root, JOURNAL, stringify(journalFor(state.item.receipt)), null);
     return state.item.receipt;

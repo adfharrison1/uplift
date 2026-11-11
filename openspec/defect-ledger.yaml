@@ -1,5 +1,5 @@
 schema_version: 1
-revision: 150
+revision: 182
 legacy_archives:
   - 2026-10-29-01-clean-scaffold-and-verify
   - 2026-11-05-01a-eslint-prettier-and-hooks
@@ -8544,6 +8544,2175 @@ entries:
           blocker: null
           revisit_when: null
           parked_reason: null
+  - id: T5-V1
+    summary: Archive fixture template copy fails and publishes an incomplete cached
+      directory
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T5-V1
+        description: Retained first failure is ENOENT during cpSync(root,template);
+          subsequent66 archive fixture failures consume the incomplete template.
+      - path: tests/unit/tooling/ArchiveChange.test.ts
+        anchor: template = mkdtempSync
+        description: Template cache becomes visible before recursive copy completes;
+          failed initialization remains eligible for later fixture clones.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T5-V1
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Archive fixture template copy fails and publishes an incomplete cached
+            directory
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T5-V1
+              description: Retained first failure is ENOENT during cpSync(root,template);
+                subsequent66 archive fixture failures consume the incomplete
+                template.
+            - path: tests/unit/tooling/ArchiveChange.test.ts
+              anchor: template = mkdtempSync
+              description: Template cache becomes visible before recursive copy completes;
+                failed initialization remains eligible for later fixture clones.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T5-V1
+        sequence: 2
+        operation: transition
+        reason: First complete stack localizes failure to fixture template copy;
+          original implementer investigating native copy and cache publication
+          with controlled probes
+        before:
+          summary: Archive fixture template copy fails and publishes an incomplete cached
+            directory
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T5-V1
+              description: Retained first failure is ENOENT during cpSync(root,template);
+                subsequent66 archive fixture failures consume the incomplete
+                template.
+            - path: tests/unit/tooling/ArchiveChange.test.ts
+              anchor: template = mkdtempSync
+              description: Template cache becomes visible before recursive copy completes;
+                failed initialization remains eligible for later fixture clones.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Archive fixture template copy fails and publishes an incomplete cached
+            directory
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T5-V1
+              description: Retained first failure is ENOENT during cpSync(root,template);
+                subsequent66 archive fixture failures consume the incomplete
+                template.
+            - path: tests/unit/tooling/ArchiveChange.test.ts
+              anchor: template = mkdtempSync
+              description: Template cache becomes visible before recursive copy completes;
+                failed initialization remains eligible for later fixture clones.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T5-V1
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Archive fixture template copy fails and publishes an incomplete cached
+            directory
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T5-V1
+              description: Retained first failure is ENOENT during cpSync(root,template);
+                subsequent66 archive fixture failures consume the incomplete
+                template.
+            - path: tests/unit/tooling/ArchiveChange.test.ts
+              anchor: template = mkdtempSync
+              description: Template cache becomes visible before recursive copy completes;
+                failed initialization remains eligible for later fixture clones.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Archive fixture template copy fails and publishes an incomplete cached
+            directory
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T5-V1
+              description: Retained first failure is ENOENT during cpSync(root,template);
+                subsequent66 archive fixture failures consume the incomplete
+                template.
+            - path: tests/unit/tooling/ArchiveChange.test.ts
+              anchor: template = mkdtempSync
+              description: Template cache becomes visible before recursive copy completes;
+                failed initialization remains eligible for later fixture clones.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C1
+    summary: Verification process fixture reads PID JSON before publication completes
+    source:
+      - path: tests/unit/tooling/VerifyRunner.test.ts
+        anchor: existsSync(pidPath)
+        description: Grandchild creates PID file with writeFileSync while parent waits
+          only for path existence, then parses possibly empty contents; cleanup
+          repeats unsafe read and can obscure the first error.
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T6-C1
+        description: Owner-approved task checkbox amend failed in
+          VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C1
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Verification process fixture reads PID JSON before publication
+            completes
+          source:
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: existsSync(pidPath)
+              description: Grandchild creates PID file with writeFileSync while parent waits
+                only for path existence, then parses possibly empty contents;
+                cleanup repeats unsafe read and can obscure the first error.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C1
+              description: Owner-approved task checkbox amend failed in
+                VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C1
+        sequence: 2
+        operation: transition
+        reason: Confirmed incomplete PID publication in retained hook failure;
+          correcting fixture with deterministic regression
+        before:
+          summary: Verification process fixture reads PID JSON before publication
+            completes
+          source:
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: existsSync(pidPath)
+              description: Grandchild creates PID file with writeFileSync while parent waits
+                only for path existence, then parses possibly empty contents;
+                cleanup repeats unsafe read and can obscure the first error.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C1
+              description: Owner-approved task checkbox amend failed in
+                VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Verification process fixture reads PID JSON before publication
+            completes
+          source:
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: existsSync(pidPath)
+              description: Grandchild creates PID file with writeFileSync while parent waits
+                only for path existence, then parses possibly empty contents;
+                cleanup repeats unsafe read and can obscure the first error.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C1
+              description: Owner-approved task checkbox amend failed in
+                VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C1
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Verification process fixture reads PID JSON before publication
+            completes
+          source:
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: existsSync(pidPath)
+              description: Grandchild creates PID file with writeFileSync while parent waits
+                only for path existence, then parses possibly empty contents;
+                cleanup repeats unsafe read and can obscure the first error.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C1
+              description: Owner-approved task checkbox amend failed in
+                VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Verification process fixture reads PID JSON before publication
+            completes
+          source:
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: existsSync(pidPath)
+              description: Grandchild creates PID file with writeFileSync while parent waits
+                only for path existence, then parses possibly empty contents;
+                cleanup repeats unsafe read and can obscure the first error.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C1
+              description: Owner-approved task checkbox amend failed in
+                VerifyRunner.test.ts225; full suite otherwise passed448 tests.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C2
+    summary: Documentation reference checker accepts invalid schema values, members
+      and CLI claims
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C2
+        description: "Controller extracted actual helpers: unrelated field/value pairs,
+          nonexistent class members and partial option names pass."
+      - path: tests/architecture/docs_truth.test.ts
+        anchor: referenceIssues
+        description: "Controller extracted actual helpers: unrelated field/value pairs,
+          nonexistent class members and partial option names pass."
+    severity: major
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C2
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Documentation reference checker accepts invalid schema values, members
+            and CLI claims
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C2
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: referenceIssues
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C2
+        sequence: 2
+        operation: transition
+        reason: Independent review finding confirmed by controller source inspection and
+          retained probes; correcting within task6 enforcement scope
+        before:
+          summary: Documentation reference checker accepts invalid schema values, members
+            and CLI claims
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C2
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: referenceIssues
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation reference checker accepts invalid schema values, members
+            and CLI claims
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C2
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: referenceIssues
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C2
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Documentation reference checker accepts invalid schema values, members
+            and CLI claims
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C2
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: referenceIssues
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation reference checker accepts invalid schema values, members
+            and CLI claims
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C2
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: referenceIssues
+              description: "Controller extracted actual helpers: unrelated field/value pairs,
+                nonexistent class members and partial option names pass."
+          severity: major
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C3
+    summary: Documentation numeric checker misses README and decimal or unit variants
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C3
+        description: Live numeric caller only checks AGENTS; actual helper accepts
+          incorrect1.5MiB due to decimal splitting.
+      - path: tests/architecture/docs_truth.test.ts
+        anchor: numericIssues
+        description: Live numeric caller only checks AGENTS; actual helper accepts
+          incorrect1.5MiB due to decimal splitting.
+    severity: major
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C3
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Documentation numeric checker misses README and decimal or unit
+            variants
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C3
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: numericIssues
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C3
+        sequence: 2
+        operation: transition
+        reason: Independent review finding confirmed by controller source inspection and
+          retained probes; correcting within task6 enforcement scope
+        before:
+          summary: Documentation numeric checker misses README and decimal or unit
+            variants
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C3
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: numericIssues
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation numeric checker misses README and decimal or unit
+            variants
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C3
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: numericIssues
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C3
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Documentation numeric checker misses README and decimal or unit
+            variants
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C3
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: numericIssues
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation numeric checker misses README and decimal or unit
+            variants
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C3
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: numericIssues
+              description: Live numeric caller only checks AGENTS; actual helper accepts
+                incorrect1.5MiB due to decimal splitting.
+          severity: major
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C4
+    summary: Planned-reference parser silently skips IDs after conjunctions and tails
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C4
+        description: Actual helper accepts planned valid and bogus when only valid
+          exists in roadmap.
+      - path: tests/architecture/docs_truth.test.ts
+        anchor: indexIssues
+        description: Actual helper accepts planned valid and bogus when only valid
+          exists in roadmap.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C4
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Planned-reference parser silently skips IDs after conjunctions and
+            tails
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C4
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: indexIssues
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C4
+        sequence: 2
+        operation: transition
+        reason: Independent review finding confirmed by controller source inspection and
+          retained probes; correcting within task6 enforcement scope
+        before:
+          summary: Planned-reference parser silently skips IDs after conjunctions and
+            tails
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C4
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: indexIssues
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Planned-reference parser silently skips IDs after conjunctions and
+            tails
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C4
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: indexIssues
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C4
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Planned-reference parser silently skips IDs after conjunctions and
+            tails
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C4
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: indexIssues
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Planned-reference parser silently skips IDs after conjunctions and
+            tails
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C4
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: indexIssues
+              description: Actual helper accepts planned valid and bogus when only valid
+                exists in roadmap.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C5
+    summary: Documentation negative fixtures depend on nonempty live ledger and
+      archived rows
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C5
+        description: Live architecture test throws missing ledger fixture or missing
+          archived owner fixture for otherwise valid empty states.
+      - path: tests/architecture/docs_truth.test.ts
+        anchor: missing ledger fixture
+        description: Live architecture test throws missing ledger fixture or missing
+          archived owner fixture for otherwise valid empty states.
+    severity: major
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C5
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Documentation negative fixtures depend on nonempty live ledger and
+            archived rows
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C5
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: missing ledger fixture
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C5
+        sequence: 2
+        operation: transition
+        reason: Independent review finding confirmed by controller source inspection and
+          retained probes; correcting within task6 enforcement scope
+        before:
+          summary: Documentation negative fixtures depend on nonempty live ledger and
+            archived rows
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C5
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: missing ledger fixture
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation negative fixtures depend on nonempty live ledger and
+            archived rows
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C5
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: missing ledger fixture
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C5
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Documentation negative fixtures depend on nonempty live ledger and
+            archived rows
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C5
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: missing ledger fixture
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation negative fixtures depend on nonempty live ledger and
+            archived rows
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C5
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: missing ledger fixture
+              description: Live architecture test throws missing ledger fixture or missing
+                archived owner fixture for otherwise valid empty states.
+          severity: major
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C6
+    summary: Verification fixture cleanup leaves worker descendants alive before PID
+      readiness
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C6
+        description: When readiness times out before PID publication, cleanup kills only
+          driver and does not cancel its managed worker tree.
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T6-C6
+        description: Controlled no-publication regression confirms worker and grandchild
+          survive direct driver kill; independent guard reaps them after
+          assertion.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C6
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Verification fixture cleanup leaves worker descendants alive before PID
+            readiness
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C6
+              description: When readiness times out before PID publication, cleanup kills only
+                driver and does not cancel its managed worker tree.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C6
+              description: Controlled no-publication regression confirms worker and grandchild
+                survive direct driver kill; independent guard reaps them after
+                assertion.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C6
+        sequence: 2
+        operation: transition
+        reason: Controlled readiness-timeout regression reproduces surviving worker and
+          grandchild; fixing teardown through managed cancellation
+        before:
+          summary: Verification fixture cleanup leaves worker descendants alive before PID
+            readiness
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C6
+              description: When readiness times out before PID publication, cleanup kills only
+                driver and does not cancel its managed worker tree.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C6
+              description: Controlled no-publication regression confirms worker and grandchild
+                survive direct driver kill; independent guard reaps them after
+                assertion.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Verification fixture cleanup leaves worker descendants alive before PID
+            readiness
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C6
+              description: When readiness times out before PID publication, cleanup kills only
+                driver and does not cancel its managed worker tree.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C6
+              description: Controlled no-publication regression confirms worker and grandchild
+                survive direct driver kill; independent guard reaps them after
+                assertion.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C6
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Verification fixture cleanup leaves worker descendants alive before PID
+            readiness
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C6
+              description: When readiness times out before PID publication, cleanup kills only
+                driver and does not cancel its managed worker tree.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C6
+              description: Controlled no-publication regression confirms worker and grandchild
+                survive direct driver kill; independent guard reaps them after
+                assertion.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Verification fixture cleanup leaves worker descendants alive before PID
+            readiness
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C6
+              description: When readiness times out before PID publication, cleanup kills only
+                driver and does not cancel its managed worker tree.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C6
+              description: Controlled no-publication regression confirms worker and grandchild
+                survive direct driver kill; independent guard reaps them after
+                assertion.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C7
+    summary: Documentation verification repeatedly inventories directories and
+      rereads source bytes
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C7
+        description: Root-reference and citation checks repeatedly enumerate source
+          trees and reread source, contrary to the planned bounded shared
+          inventory; no claim this explains overall timing budget.
+      - path: tests/architecture/docs_truth.test.ts
+        anchor: projectSource
+        description: Live suite separately scans src/scripts/tests for sourceFiles,
+          projectSource, path lookup and citation documents.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/closing_performance
+          brief: Inventory reuse and tooling costs with explicit hardware limits
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/closing_architecture
+          brief: Final architecture, spec, test and documentation correction review
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C7
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Documentation verification repeatedly inventories directories and
+            rereads source bytes
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C7
+              description: Root-reference and citation checks repeatedly enumerate source
+                trees and reread source, contrary to the planned bounded shared
+                inventory; no claim this explains overall timing budget.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: projectSource
+              description: Live suite separately scans src/scripts/tests for sourceFiles,
+                projectSource, path lookup and citation documents.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C7
+        sequence: 2
+        operation: transition
+        reason: Performance review and controller confirm repeated inventory/read work;
+          applying planned per-suite bounded snapshot reuse without
+          cross-process caching
+        before:
+          summary: Documentation verification repeatedly inventories directories and
+            rereads source bytes
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C7
+              description: Root-reference and citation checks repeatedly enumerate source
+                trees and reread source, contrary to the planned bounded shared
+                inventory; no claim this explains overall timing budget.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: projectSource
+              description: Live suite separately scans src/scripts/tests for sourceFiles,
+                projectSource, path lookup and citation documents.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation verification repeatedly inventories directories and
+            rereads source bytes
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C7
+              description: Root-reference and citation checks repeatedly enumerate source
+                trees and reread source, contrary to the planned bounded shared
+                inventory; no claim this explains overall timing budget.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: projectSource
+              description: Live suite separately scans src/scripts/tests for sourceFiles,
+                projectSource, path lookup and citation documents.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C7
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Documentation verification repeatedly inventories directories and
+            rereads source bytes
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C7
+              description: Root-reference and citation checks repeatedly enumerate source
+                trees and reread source, contrary to the planned bounded shared
+                inventory; no claim this explains overall timing budget.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: projectSource
+              description: Live suite separately scans src/scripts/tests for sourceFiles,
+                projectSource, path lookup and citation documents.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Documentation verification repeatedly inventories directories and
+            rereads source bytes
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C7
+              description: Root-reference and citation checks repeatedly enumerate source
+                trees and reread source, contrary to the planned bounded shared
+                inventory; no claim this explains overall timing budget.
+            - path: tests/architecture/docs_truth.test.ts
+              anchor: projectSource
+              description: Live suite separately scans src/scripts/tests for sourceFiles,
+                projectSource, path lookup and citation documents.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/closing_performance
+                brief: Inventory reuse and tooling costs with explicit hardware limits
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/closing_architecture
+                brief: Final architecture, spec, test and documentation correction review
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C8
+    summary: Archive recovery can resolve defects after the CLI rolled back required
+      main-spec synchronization
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+        anchor: T6-C8
+        description: Installed CLI can restore spec preimages then fail moving archive
+          back; shared repair validates moved originals but does not prove
+          main-spec outcomes.
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T6-C8
+        description: "Controller real-CLI synthetic fixture then injected rollback:
+          direct repair resolves owned D-1 and clean reconciliation while
+          required synchronized main spec is absent."
+      - path: scripts/project-status.mjs
+        anchor: repairArchive
+        description: Moved-directory/receipt preimages suffice for finalization without
+          persisted proof of required main-spec synchronization.
+    severity: major
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/closing_adversarial_bytes
+          brief: Final adversarial recovery, raw-byte integrity and cleanup
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/closing_architecture
+          brief: Final architecture, spec, test and documentation correction review
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/closing_testing
+          brief: Final proof consumer and delayed-readiness regression coverage
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C8
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Archive recovery can resolve defects after the CLI rolled back required
+            main-spec synchronization
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C8
+              description: Installed CLI can restore spec preimages then fail moving archive
+                back; shared repair validates moved originals but does not prove
+                main-spec outcomes.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C8
+              description: "Controller real-CLI synthetic fixture then injected rollback:
+                direct repair resolves owned D-1 and clean reconciliation while
+                required synchronized main spec is absent."
+            - path: scripts/project-status.mjs
+              anchor: repairArchive
+              description: Moved-directory/receipt preimages suffice for finalization without
+                persisted proof of required main-spec synchronization.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C8
+        sequence: 2
+        operation: transition
+        reason: Controller actual-CLI consumer probe confirms invalid resolution after
+          simulated spec rollback with moved change; adding fail-closed
+          synchronization proof to recovery
+        before:
+          summary: Archive recovery can resolve defects after the CLI rolled back required
+            main-spec synchronization
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C8
+              description: Installed CLI can restore spec preimages then fail moving archive
+                back; shared repair validates moved originals but does not prove
+                main-spec outcomes.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C8
+              description: "Controller real-CLI synthetic fixture then injected rollback:
+                direct repair resolves owned D-1 and clean reconciliation while
+                required synchronized main spec is absent."
+            - path: scripts/project-status.mjs
+              anchor: repairArchive
+              description: Moved-directory/receipt preimages suffice for finalization without
+                persisted proof of required main-spec synchronization.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Archive recovery can resolve defects after the CLI rolled back required
+            main-spec synchronization
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C8
+              description: Installed CLI can restore spec preimages then fail moving archive
+                back; shared repair validates moved originals but does not prove
+                main-spec outcomes.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C8
+              description: "Controller real-CLI synthetic fixture then injected rollback:
+                direct repair resolves owned D-1 and clean reconciliation while
+                required synchronized main spec is absent."
+            - path: scripts/project-status.mjs
+              anchor: repairArchive
+              description: Moved-directory/receipt preimages suffice for finalization without
+                persisted proof of required main-spec synchronization.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C8
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Archive recovery can resolve defects after the CLI rolled back required
+            main-spec synchronization
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C8
+              description: Installed CLI can restore spec preimages then fail moving archive
+                back; shared repair validates moved originals but does not prove
+                main-spec outcomes.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C8
+              description: "Controller real-CLI synthetic fixture then injected rollback:
+                direct repair resolves owned D-1 and clean reconciliation while
+                required synchronized main spec is absent."
+            - path: scripts/project-status.mjs
+              anchor: repairArchive
+              description: Moved-directory/receipt preimages suffice for finalization without
+                persisted proof of required main-spec synchronization.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Archive recovery can resolve defects after the CLI rolled back required
+            main-spec synchronization
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-reviews.md
+              anchor: T6-C8
+              description: Installed CLI can restore spec preimages then fail moving archive
+                back; shared repair validates moved originals but does not prove
+                main-spec outcomes.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C8
+              description: "Controller real-CLI synthetic fixture then injected rollback:
+                direct repair resolves owned D-1 and clean reconciliation while
+                required synchronized main spec is absent."
+            - path: scripts/project-status.mjs
+              anchor: repairArchive
+              description: Moved-directory/receipt preimages suffice for finalization without
+                persisted proof of required main-spec synchronization.
+          severity: major
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/closing_adversarial_bytes
+                brief: Final adversarial recovery, raw-byte integrity and cleanup
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/closing_architecture
+                brief: Final architecture, spec, test and documentation correction review
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/closing_testing
+                brief: Final proof consumer and delayed-readiness regression coverage
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+  - id: T6-C9
+    summary: Parallel-start fixture fails correct concurrency when worker readiness
+      exceeds its child-local deadline
+    source:
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T6-C9
+        description: Final verification failed the rendezvous assertion under concurrent
+          load; production runner source was unchanged.
+      - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+        anchor: T6-C9
+        description: Controlled 900 ms readiness delay makes the existing 700 ms child
+          timeout fail all four concurrently launched checks.
+    severity: minor
+    status: verified
+    fixing_change: process-gates-and-ledger
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/closing_architecture
+          brief: Final architecture, spec, test and documentation correction review
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/closing_testing
+          brief: Final proof consumer and delayed-readiness regression coverage
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+    blocker: null
+    revisit_when: null
+    parked_reason: null
+    revision: 3
+    history:
+      - identity:
+          id: T6-C9
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Parallel-start fixture fails correct concurrency when worker readiness
+            exceeds its child-local deadline
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Final verification failed the rendezvous assertion under concurrent
+                load; production runner source was unchanged.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Controlled 900 ms readiness delay makes the existing 700 ms child
+                timeout fail all four concurrently launched checks.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C9
+        sequence: 2
+        operation: transition
+        reason: Controlled delayed-readiness failure; use rendezvous with parent
+          cancellation watchdog instead of child-local startup deadline
+        before:
+          summary: Parallel-start fixture fails correct concurrency when worker readiness
+            exceeds its child-local deadline
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Final verification failed the rendezvous assertion under concurrent
+                load; production runner source was unchanged.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Controlled 900 ms readiness delay makes the existing 700 ms child
+                timeout fail all four concurrently launched checks.
+          severity: minor
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Parallel-start fixture fails correct concurrency when worker readiness
+            exceeds its child-local deadline
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Final verification failed the rendezvous assertion under concurrent
+                load; production runner source was unchanged.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Controlled 900 ms readiness delay makes the existing 700 ms child
+                timeout fail all four concurrently launched checks.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: T6-C9
+        sequence: 3
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Parallel-start fixture fails correct concurrency when worker readiness
+            exceeds its child-local deadline
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Final verification failed the rendezvous assertion under concurrent
+                load; production runner source was unchanged.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Controlled 900 ms readiness delay makes the existing 700 ms child
+                timeout fail all four concurrently launched checks.
+          severity: minor
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Parallel-start fixture fails correct concurrency when worker readiness
+            exceeds its child-local deadline
+          source:
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Final verification failed the rendezvous assertion under concurrent
+                load; production runner source was unchanged.
+            - path: openspec/changes/process-gates-and-ledger/task-6-evidence.md
+              anchor: T6-C9
+              description: Controlled 900 ms readiness delay makes the existing 700 ms child
+                timeout fail all four concurrently launched checks.
+          severity: minor
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/closing_architecture
+                brief: Final architecture, spec, test and documentation correction review
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/closing_testing
+                brief: Final proof consumer and delayed-readiness regression coverage
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+          blocker: null
+          revisit_when: null
+          parked_reason: null
   - id: TOOL-GIT-FIXTURE-INDEX
     summary: Inherited Git environment makes nested fixtures use the parent index
     source:
@@ -8572,13 +10741,51 @@ entries:
           index. Exact source excerpts supersede earlier descriptive/imprecise
           code anchors; accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: process-gates-and-ledger
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: process-gates-and-ledger
+        relative_path: task-6-evidence.md
+        sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      tests:
+        - command: npm run verify
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+        - command: npm run verify:serial
+          outcome: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-evidence.md
+            sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+      reviews:
+        - reviewer: /root/task6_correctness
+          brief: Correctness, boundaries, fixture containment and scoped correction
+            rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+        - reviewer: /root/task6_contracts
+          brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+          disposition: passed
+          locator:
+            kind: change
+            change_id: process-gates-and-ledger
+            relative_path: task-6-reviews.md
+            sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: TOOL-GIT-FIXTURE-INDEX
@@ -8674,6 +10881,200 @@ entries:
           status: open
           fixing_change: process-gates-and-ledger
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: TOOL-GIT-FIXTURE-INDEX
+        sequence: 3
+        operation: transition
+        reason: Implementing planned nested fixture Git environment isolation and
+          foreign-index sentinel regression
+        before:
+          summary: Inherited Git environment makes nested fixtures use the parent index
+          source:
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: TOOL-GIT-FIXTURE-INDEX
+              description: Inherited Git environment makes nested fixtures use the parent
+                index
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: hook fixture env spreads process.env into nested git
+              description: Inherited Git environment makes nested fixtures use the parent
+                index; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: openspec/changes/process-gates-and-ledger/task-4-seed-audit.md
+              anchor: Expected parity
+              description: "Controller assigns major: inherited parent index undermines
+                isolated tests and risks caller Git state; historical severity
+                was unspecified."
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: GIT_INDEX_FILE
+              description: Authoritative accepted provenance for TOOL-GIT-FIXTURE-INDEX. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: "L286: env: { ...process.env, PATH:
+                `${bin}${delimiter}${process.env.PATH ?? ''}`, TRACE: trace },"
+              description: Inherited Git environment makes nested fixtures use the parent
+                index. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Inherited Git environment makes nested fixtures use the parent index
+          source:
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: TOOL-GIT-FIXTURE-INDEX
+              description: Inherited Git environment makes nested fixtures use the parent
+                index
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: hook fixture env spreads process.env into nested git
+              description: Inherited Git environment makes nested fixtures use the parent
+                index; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: openspec/changes/process-gates-and-ledger/task-4-seed-audit.md
+              anchor: Expected parity
+              description: "Controller assigns major: inherited parent index undermines
+                isolated tests and risks caller Git state; historical severity
+                was unspecified."
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: GIT_INDEX_FILE
+              description: Authoritative accepted provenance for TOOL-GIT-FIXTURE-INDEX. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: "L286: env: { ...process.env, PATH:
+                `${bin}${delimiter}${process.env.PATH ?? ''}`, TRACE: trace },"
+              description: Inherited Git environment makes nested fixtures use the parent
+                index. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: TOOL-GIT-FIXTURE-INDEX
+        sequence: 4
+        operation: transition
+        reason: Staged immutable fix bindings, passing full and serial verification, and
+          independent scoped reviews confirm the correction
+        before:
+          summary: Inherited Git environment makes nested fixtures use the parent index
+          source:
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: TOOL-GIT-FIXTURE-INDEX
+              description: Inherited Git environment makes nested fixtures use the parent
+                index
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: hook fixture env spreads process.env into nested git
+              description: Inherited Git environment makes nested fixtures use the parent
+                index; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: openspec/changes/process-gates-and-ledger/task-4-seed-audit.md
+              anchor: Expected parity
+              description: "Controller assigns major: inherited parent index undermines
+                isolated tests and risks caller Git state; historical severity
+                was unspecified."
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: GIT_INDEX_FILE
+              description: Authoritative accepted provenance for TOOL-GIT-FIXTURE-INDEX. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: "L286: env: { ...process.env, PATH:
+                `${bin}${delimiter}${process.env.PATH ?? ''}`, TRACE: trace },"
+              description: Inherited Git environment makes nested fixtures use the parent
+                index. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: process-gates-and-ledger
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Inherited Git environment makes nested fixtures use the parent index
+          source:
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: TOOL-GIT-FIXTURE-INDEX
+              description: Inherited Git environment makes nested fixtures use the parent
+                index
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: hook fixture env spreads process.env into nested git
+              description: Inherited Git environment makes nested fixtures use the parent
+                index; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: openspec/changes/process-gates-and-ledger/task-4-seed-audit.md
+              anchor: Expected parity
+              description: "Controller assigns major: inherited parent index undermines
+                isolated tests and risks caller Git state; historical severity
+                was unspecified."
+            - path: openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md
+              anchor: GIT_INDEX_FILE
+              description: Authoritative accepted provenance for TOOL-GIT-FIXTURE-INDEX. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/tooling/VerifyRunner.test.ts
+              anchor: "L286: env: { ...process.env, PATH:
+                `${bin}${delimiter}${process.env.PATH ?? ''}`, TRACE: trace },"
+              description: Inherited Git environment makes nested fixtures use the parent
+                index. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: process-gates-and-ledger
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: process-gates-and-ledger
+              relative_path: task-6-evidence.md
+              sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            tests:
+              - command: npm run verify
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+              - command: npm run verify:serial
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-evidence.md
+                  sha256: 0e87fac787b5b7130701d25446fc70e0c316f15bed5db09a4cb20be0a6aaec2e
+            reviews:
+              - reviewer: /root/task6_correctness
+                brief: Correctness, boundaries, fixture containment and scoped correction
+                  rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+              - reviewer: /root/task6_contracts
+                brief: Architecture, contextual claims, fixture isolation and scoped rechecks
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: process-gates-and-ledger
+                  relative_path: task-6-reviews.md
+                  sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
           blocker: null
           revisit_when: null
           parked_reason: null

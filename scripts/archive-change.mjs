@@ -303,16 +303,18 @@ export function execute(root, args, options = {}) {
     if (!hasReceipt && mode === '--resume') fail('RECOVERY', 'no prepared receipt to resume');
     try {
       const checked = preflight(root, id, run, mode === '--resume');
-      if (mode === '--resume') resumeArchive(root, id, { lock: false });
+      if (mode === '--resume')
+        resumeArchive(root, id, { lock: false, buildSpecProof: options.buildSpecProof });
       else
         prepareArchive(root, id, {
           lock: false,
           onStep: options.onStep,
           retainedEvidence: checked.retainedEvidence,
+          buildSpecProof: options.buildSpecProof,
         });
       rootsAndStatus(root, id, run);
       archiveDestination(root, id);
-      resumeArchive(root, id, { lock: false });
+      resumeArchive(root, id, { lock: false, buildSpecProof: options.buildSpecProof });
       let result;
       try {
         result = run(['archive', id, '--yes', '--json'], root);

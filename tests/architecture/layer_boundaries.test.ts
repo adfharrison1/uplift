@@ -419,7 +419,12 @@ describe('Clean Architecture & Code Quality Guardrails', () => {
       existsSync(join(REPO_ROOT, '.cursor/skills')),
       'Skills must live in .agents/skills',
     ).toBe(false);
-    for (const name of ['uplift-debug', 'uplift-design-notes']) {
+    const names = readdirSync(join(REPO_ROOT, '.agents/skills'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+    for (const required of ['uplift-debug', 'uplift-design-notes'])
+      expect(names).toContain(required);
+    for (const name of names) {
       const path = join(REPO_ROOT, '.agents/skills', name, 'SKILL.md');
       expect(existsSync(path), `Missing ${path}`).toBe(true);
       expect(skillStructureIssues(readFileSync(path, 'utf8'), name), path).toEqual([]);

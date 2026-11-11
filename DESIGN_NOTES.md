@@ -13,8 +13,8 @@ One owner per duplicated fact. Other files point at the owner and do not restate
 | Verify steps and budget                     | `package.json` scripts and `scripts/verify.mjs`; root `AGENTS.md` Quick Verify; measured delivery evidence under `openspec/`                    |
 | Layer rules                                 | root `AGENTS.md` plus `tests/architecture`                                                                                                      |
 | Roadmap order and `depends_on`              | `openspec/roadmap.yaml`                                                                                                                         |
-| Review gates                                | the `uplift-review-gates` skill and root README command guide (review gates, roadmap/defect/archive tooling shipped; docs-truth checks remain planned in process-gates-and-ledger)                                            |
-| Implementation numeric facts                | Source constants; docs-truth checks are planned in process-gates-and-ledger. The seven-epoch default is design content, not an engine constant. |
+| Review gates                                | the `uplift-review-gates` skill and root README command guide (review gates, roadmap/defect/archive tooling and documentation truth checks shipped)                                            |
+| Implementation numeric facts                | Source constants and documentation truth checks. The seven-epoch default is design content, not an engine constant. |
 | Bridge access policy                        | "Bridge lock" under Engineering rules; operational contracts in `src/interfaces/README.md`                                                      |
 | Session archive/recovery policy             | "Telemetry policy" under Engineering rules; recovery procedure in `src/infrastructure/README.md`                                                |
 | Save policy                                 | "State, saves and pack identity" under Engineering rules                                                                                        |
@@ -166,7 +166,7 @@ Delivered by `hx-ops-safety`. The concurrent verification command and serial fal
 
 - `validateLaunch(pack, stages, visuals)` collects every error with ids and file hints, and runs in `PlaySession` and in pack tests. Shape validation before it uses an interim loader check (planned: pre-05d-renderer-shape) that `validateLaunch` then absorbs.
 - The epoch-agnostic denylist is derived from the exported packs and moved into `tests/architecture`, replacing the hand-typed list. `defineModuleKind` replaces the closed 11-kind registry, with a ref table. The freeze-extension guard lives here: an arch test fails a new kind or effect that no content uses.
-- The docs-truth check first covers root `AGENTS.md` only; the check that every `*Blueprint` named in a section `AGENTS.md` exists lands in `pre-05b-pack-source-of-truth`, after those files are rewritten. Test fixtures leave the content barrel, and the content `AGENTS.md` recipes are rewritten to working steps.
+- The shipped documentation truth check covers root guides; the check that every `*Blueprint` named in a section `AGENTS.md` exists lands in `pre-05b-pack-source-of-truth`, after those files are rewritten. Test fixtures leave the content barrel, and the content `AGENTS.md` recipes are rewritten to working steps.
 - **Lab saves**: lab JSON is the source of truth. Packs and stages are JSON, loaded and Zod-checked at runtime through `validateLaunch`, with no emitted TS, and the bridge writes only allowlisted, schema-checked files. Until the loader exists (planned: pre-05b-pack-source-of-truth), a Stage, Sound or Pacing Lab save writes JSON the game does not load: nothing reads `src/content/scene/stages/*.json` at run time.
 
 #### Telemetry policy (partial; planned: telemetry-wiring)

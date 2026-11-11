@@ -29,7 +29,11 @@ interface ArchiveModule {
   execute(
     root: string,
     args: string[],
-    options?: { runCli?: Runner; onStep?: (step: string) => void },
+    options?: {
+      runCli?: Runner;
+      onStep?: (step: string) => void;
+      buildSpecProof?: (root: string, id: string) => Record<string, string | null>;
+    },
   ): Data;
 }
 interface StatusModule {
@@ -61,7 +65,8 @@ function git(root: string, ...args: string[]): string {
   const env = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')),
   );
-  return execFileSync('git', args, {
+  // Detached automatic maintenance can remove objects/maintenance.lock during a fixture copy.
+  return execFileSync('git', ['-c', 'maintenance.auto=false', ...args], {
     cwd: root,
     env,
     encoding: 'utf8',
@@ -80,7 +85,7 @@ let template: string | undefined;
 afterAll(() => {
   if (template) rmSync(template, { recursive: true, force: true });
 });
-function fixture(): string {
+function fixture(copyTemplate: typeof cpSync = cpSync): string {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'uplift-archive-')));
   roots.push(root);
   if (template) {
@@ -145,8 +150,14 @@ function fixture(): string {
     '-qm',
     'fixture',
   );
-  template = mkdtempSync(join(tmpdir(), 'uplift-archive-template-'));
-  cpSync(root, template, { recursive: true });
+  const candidate = mkdtempSync(join(tmpdir(), 'uplift-archive-template-'));
+  try {
+    copyTemplate(root, candidate, { recursive: true });
+    template = candidate;
+  } catch (error) {
+    rmSync(candidate, { recursive: true, force: true });
+    throw error;
+  }
   return root;
 }
 function moved(root: string): void {
@@ -1063,4 +1074,290 @@ it('a later reconciliation observes removed Git tracking instead of reusing an e
   expect(() => s.execute(root, ['defects', 'reconcile', '--check'])).toThrow(/must be tracked/);
   git(root, 'add', '--', 'openspec/changes/archive/2026-01-02-alpha/reviews/testing.md');
   expect(s.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+});
+
+it('keeps future archive fixtures usable when a template copy fails', async () => {
+  const m = await api();
+  const previous = template;
+  template = undefined;
+  let candidate: string | undefined;
+  try {
+    expect(() =>
+      fixture((_source, target) => {
+        candidate = String(target);
+        put(candidate, 'partial.txt', 'partial copy');
+        throw new Error('injected template copy failure');
+      }),
+    ).toThrow(/injected template copy failure/);
+    if (candidate === undefined) throw new Error('copy was not attempted');
+    expect(existsSync(candidate)).toBe(false);
+    const root = fixture();
+    expect(m.execute(root, ['alpha'], { runCli: runner(root).run })).toMatchObject({
+      state: 'finalized',
+    });
+  } finally {
+    if (template && template !== previous) rmSync(template, { recursive: true, force: true });
+    template = previous;
+  }
+});
+
+it.each([false, true])(
+  'refuses shared recovery when a moved archive has rolled-back main specs (owned defect=%s)',
+  async (owned) => {
+    const m = await api();
+    const s = await statusApi();
+    const root = fixture();
+    if (owned) verifiedDefect(s, root);
+    const main =
+      '# Fixture Specification\n\n## Purpose\n\nRetain the existing fixture capability while validating archive recovery outcomes.\n\n## Requirements\n\n### Requirement: Existing\nThe system SHALL retain the original behavior.\n\n#### Scenario: Original operation\n- **WHEN** original work runs\n- **THEN** it succeeds\n';
+    const delta =
+      '## ADDED Requirements\n\n### Requirement: New behavior\nThe system SHALL expose the new behavior.\n\n#### Scenario: New operation\n- **WHEN** new work runs\n- **THEN** it succeeds\n';
+    const cli = fixtureDelta(root, delta, main);
+    const runCli: Runner = (args, cwd) => {
+      const result = cli.run(args, cwd);
+      return args[0] === 'archive'
+        ? { ...result, status: 1, stderr: 'spec rollback succeeded; archive move-back failed' }
+        : result;
+    };
+    expect(() =>
+      m.execute(root, ['alpha'], {
+        runCli,
+        buildSpecProof: () => ({
+          'openspec/specs/fixture/spec.md': createHash('sha256')
+            .update(main + delta)
+            .digest('hex'),
+        }),
+      }),
+    ).toThrow(/repair/);
+    expect(() =>
+      s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']),
+    ).toThrow(/SPEC|sync|outcome/i);
+    expect(() => s.execute(root, ['defects', 'reconcile', '--check'])).toThrow(
+      /SPEC|sync|outcome/i,
+    );
+    expect(() => s.execute(root, ['defects', 'list', '--include-resolved'])).toThrow(
+      /SPEC|sync|outcome/i,
+    );
+    expect(receipt(root, true)['state']).toBe('prepared');
+    const ledger = parse(readFileSync(join(root, 'openspec/defect-ledger.yaml'), 'utf8')) as {
+      entries: Data[];
+    };
+    expect(ledger.entries).toHaveLength(owned ? 1 : 0);
+    if (owned)
+      expect(ledger.entries[0]).toMatchObject({ id: 'D-1', status: 'verified', revision: 3 });
+    expect(readFileSync(join(root, 'openspec/specs/fixture/spec.md'), 'utf8')).toBe(main);
+    expect(existsSync(join(root, 'openspec/archive-transaction.yaml'))).toBe(true);
+  },
+);
+
+describe('durable main-spec sync proof', () => {
+  const target = 'openspec/specs/fixture/spec.md';
+  const delta =
+    '## ADDED Requirements\n\n### Requirement: New behavior\nThe system SHALL expose new behavior.\n\n#### Scenario: New operation\n- **WHEN** work runs\n- **THEN** it succeeds\n';
+  const main = '# Main\n\n## Requirements\n\n### Requirement: Existing\nOld body\n';
+  const synced = `${main}\n${delta}`;
+  const buildSpecProof = (): Record<string, string | null> => ({
+    [target]: createHash('sha256').update(synced).digest('hex'),
+  });
+
+  it.each([
+    'prepared-receipt-written',
+    'journal-written',
+    'ledger-written',
+    'roadmap-written',
+    'finalized-receipt-written',
+    'journal-removed',
+  ])('recovers a proven sync after %s without repeating the CLI archive', async (step) => {
+    const m = await api();
+    const s = await statusApi();
+    const root = fixture();
+    verifiedDefect(s, root);
+    const cli = fixtureDelta(root, delta, main);
+    const runCli: Runner = (args, cwd) => {
+      if (args[0] === 'archive') put(root, target, synced);
+      return cli.run(args, cwd);
+    };
+    expect(() =>
+      m.execute(root, ['alpha'], {
+        runCli,
+        buildSpecProof,
+        onStep: (current) => {
+          if (current === step) throw new Error(`injected ${step}`);
+        },
+      }),
+    ).toThrow(/injected/);
+    m.execute(root, ['alpha', '--resume'], { runCli, buildSpecProof });
+    expect(cli.calls.filter((args) => args[0] === 'archive')).toHaveLength(1);
+    expect(s.execute(root, ['defects', 'list', '--include-resolved'])['entries']).toMatchObject([
+      { id: 'D-1', status: 'resolved', revision: 4 },
+    ]);
+    expect(s.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+    // Historical receipts must not freeze a capability against subsequent work.
+    put(root, target, `${synced}\nLater legitimate spec change\n`);
+    s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']);
+    expect(s.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+  });
+
+  it('rejects changed outcomes after the finalized receipt but before journal cleanup', async () => {
+    const m = await api();
+    const s = await statusApi();
+    const root = fixture();
+    const cli = fixtureDelta(root, delta, main);
+    expect(() =>
+      m.execute(root, ['alpha'], {
+        buildSpecProof,
+        runCli: (args, cwd) => {
+          if (args[0] === 'archive') put(root, target, synced);
+          return cli.run(args, cwd);
+        },
+        onStep: (step) => {
+          if (step === 'finalized-receipt-written') {
+            put(root, target, main);
+            throw new Error('injected rollback');
+          }
+        },
+      }),
+    ).toThrow(/injected/);
+    expect(receipt(root, true)['state']).toBe('finalized');
+    expect(() => s.execute(root, ['defects', 'list', '--include-resolved'])).toThrow(/SPEC_SYNC/);
+    expect(() =>
+      s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']),
+    ).toThrow(/SPEC_SYNC/);
+    put(root, target, synced);
+    s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']);
+    expect(s.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+  });
+
+  it.each(['partial', 'missing-proof', 'retirement'])(
+    'rejects %s sync through direct consumers',
+    async (mode) => {
+      const m = await api();
+      const s = await statusApi();
+      const root = fixture();
+      const cli = fixtureDelta(root, delta, main);
+      const second = 'openspec/specs/nested/other/spec.md';
+      if (mode === 'partial') put(root, 'openspec/changes/alpha/specs/nested/other/spec.md', delta);
+      expect(() =>
+        m.execute(root, ['alpha'], {
+          buildSpecProof: () => ({
+            [target]: mode === 'retirement' ? null : (buildSpecProof()[target] ?? null),
+            ...(mode === 'partial'
+              ? { [second]: createHash('sha256').update(synced).digest('hex') }
+              : {}),
+          }),
+          runCli: (args, cwd) => {
+            if (args[0] === 'archive' && mode !== 'retirement') put(root, target, synced);
+            const result = cli.run(args, cwd);
+            return args[0] === 'archive' ? { ...result, status: 1 } : result;
+          },
+        }),
+      ).toThrow(/repair/);
+      if (mode === 'missing-proof') {
+        const saved = receipt(root, true);
+        delete saved['spec_sync'];
+        put(
+          root,
+          'openspec/changes/archive/2026-01-02-alpha/defect-resolution.yaml',
+          stringify(saved),
+        );
+      }
+      for (const args of [
+        ['defects', 'reconcile', '--repair', '--change', 'alpha'],
+        ['defects', 'reconcile', '--check'],
+        ['defects', 'list', '--include-resolved'],
+      ])
+        expect(() => s.execute(root, args)).toThrow(/SPEC_SYNC/);
+      expect(receipt(root, true)['state']).toBe('prepared');
+    },
+  );
+
+  it.each(['missing', 'extra', 'changed-input', 'unsupported'])(
+    'rejects %s builder proof before preparing',
+    async (mode) => {
+      const m = await api();
+      const root = fixture();
+      const cli = fixtureDelta(root, delta, main);
+      expect(() =>
+        m.execute(root, ['alpha'], {
+          runCli: cli.run,
+          buildSpecProof: () => {
+            if (mode === 'unsupported') throw new Error('SPEC_SYNC Unsupported builder');
+            if (mode === 'changed-input') put(root, target, 'External edit during builder');
+            if (mode === 'missing') return {};
+            return {
+              ...buildSpecProof(),
+              ...(mode === 'extra' ? { 'openspec/specs/unrelated/spec.md': null } : {}),
+            };
+          },
+        }),
+      ).toThrow(/SPEC_SYNC|preimage conflict/);
+      noPreparation(root);
+      expect(cli.calls.some((args) => args[0] === 'archive')).toBe(false);
+    },
+  );
+
+  it('rechecks builder compatibility on pre-move resume', async () => {
+    const m = await api();
+    const root = fixture();
+    const cli = fixtureDelta(root, delta, main);
+    expect(() =>
+      m.execute(root, ['alpha'], {
+        runCli: cli.run,
+        buildSpecProof,
+        onStep: (step) => {
+          if (step === 'journal-written') throw new Error('injected stop');
+        },
+      }),
+    ).toThrow(/injected/);
+    const before = readFileSync(
+      join(root, 'openspec/changes/alpha/defect-resolution.yaml'),
+      'utf8',
+    );
+    expect(() =>
+      m.execute(root, ['alpha', '--resume'], {
+        runCli: cli.run,
+        buildSpecProof: () => {
+          throw new Error('SPEC_SYNC Unsupported builder');
+        },
+      }),
+    ).toThrow(/Unsupported builder/);
+    expect(readFileSync(join(root, 'openspec/changes/alpha/defect-resolution.yaml'), 'utf8')).toBe(
+      before,
+    );
+    expect(cli.calls.some((args) => args[0] === 'archive')).toBe(false);
+  });
+
+  it('rejects different raw spec bytes that decode to the same replacement character', async () => {
+    const m = await api();
+    const s = await statusApi();
+    const root = fixture();
+    verifiedDefect(s, root);
+    const cli = fixtureDelta(root, delta, main);
+    const intended = `${synced}\uFFFD`;
+    expect(() =>
+      m.execute(root, ['alpha'], {
+        buildSpecProof: () => ({
+          [target]: createHash('sha256').update(intended).digest('hex'),
+        }),
+        runCli: (args, cwd) => {
+          if (args[0] === 'archive') put(root, target, intended);
+          const result = cli.run(args, cwd);
+          return args[0] === 'archive' ? { ...result, status: 1 } : result;
+        },
+      }),
+    ).toThrow(/repair/);
+    writeFileSync(join(root, target), Buffer.concat([Buffer.from(synced), Buffer.from([0xff])]));
+    expect(readFileSync(join(root, target), 'utf8')).toBe(intended);
+    expect(() =>
+      s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']),
+    ).toThrow(/SPEC_SYNC/);
+    const ledger = parse(readFileSync(join(root, 'openspec/defect-ledger.yaml'), 'utf8')) as {
+      entries: Data[];
+    };
+    expect(ledger.entries).toMatchObject([{ id: 'D-1', status: 'verified', revision: 3 }]);
+    expect(receipt(root, true)['state']).toBe('prepared');
+    put(root, target, intended);
+    s.execute(root, ['defects', 'reconcile', '--repair', '--change', 'alpha']);
+    expect(s.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+  });
 });

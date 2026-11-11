@@ -58,7 +58,8 @@ function git(root: string, ...args: string[]): string {
   const env = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')),
   );
-  return execFileSync('git', args, {
+  // Detached automatic maintenance can remove objects/maintenance.lock during a fixture copy.
+  return execFileSync('git', ['-c', 'maintenance.auto=false', ...args], {
     cwd: root,
     env,
     encoding: 'utf8',
@@ -83,7 +84,7 @@ function inventory(active: string[] = [], archives: string[] = []): Data {
   return { active, archives };
 }
 let template: string | undefined;
-function fixture(): string {
+function fixture(copyTemplate: typeof cpSync = cpSync): string {
   const root = mkdtempSync(join(tmpdir(), 'uplift-status-'));
   roots.push(root);
   if (template && existsSync(template)) {
@@ -114,8 +115,14 @@ function fixture(): string {
     '-qm',
     'fixture',
   );
-  template = mkdtempSync(join(tmpdir(), 'uplift-status-template-'));
-  cpSync(root, template, { recursive: true });
+  const candidate = mkdtempSync(join(tmpdir(), 'uplift-status-template-'));
+  try {
+    copyTemplate(root, candidate, { recursive: true });
+    template = candidate;
+  } catch (error) {
+    rmSync(candidate, { recursive: true, force: true });
+    throw error;
+  }
   return root;
 }
 afterAll(() => {
@@ -937,4 +944,27 @@ describe('review boundary completeness', () => {
     put(root, 'openspec/roadmap.yaml', stringify(graph));
     expect(() => command(m, root, ['roadmap'])).toThrow('change locator');
   });
+});
+
+it('keeps future status fixtures usable when a template copy fails', async () => {
+  const m = await api();
+  const previous = template;
+  template = undefined;
+  let candidate: string | undefined;
+  try {
+    expect(() =>
+      fixture((_source, target) => {
+        candidate = String(target);
+        put(candidate, 'partial.txt', 'partial copy');
+        throw new Error('injected template copy failure');
+      }),
+    ).toThrow(/injected template copy failure/);
+    if (candidate === undefined) throw new Error('copy was not attempted');
+    expect(existsSync(candidate)).toBe(false);
+    const root = fixture();
+    expect(m.execute(root, ['defects', 'reconcile', '--check'])).toMatchObject({ ok: true });
+  } finally {
+    if (template && template !== previous) rmSync(template, { recursive: true, force: true });
+    template = previous;
+  }
 });

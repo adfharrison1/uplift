@@ -33,6 +33,14 @@ Dispatch the following independent briefs with **high reasoning, medium-to-high 
 
 Independently verify the reports; record disagreements and all dispositions. Record unplanned fixes in the closing review task, deliver any approved fixes atomically, and rerun `npm run verify`. Finish G5 reconciliation and G6 coverage before approval. A missing consumer or unrun manual check is not verified. Follow the archive workflow's owner checkpoint; this skill grants no archive permission.
 
+## Compact evidence package
+
+The default tracked package is **one task evidence report and one review record**, reusing any required change-wide scenario matrix and review manifest. The task report contains scope, finding IDs and dispositions, commands with observed outcomes/counts, relevant measurements, fix references and limits. The review record preserves each independent reviewer’s identity, brief, findings, disagreements and final disposition in separate sections; multiple manifest entries may reference that same file. Review counts count independent judgments, not files.
+
+Keep routine stdout/stderr, intermediate retries, full CLI response dumps, draft reports and one-off diagnostic scripts in ignored scratch space or temporary storage. Summarize the meaningful failure, cause and regression in the task report. If an essential failure cannot be explained by that summary and a maintained regression test, retain one minimal reproducer or excerpt and state why it is needed. Do not create a tracked transcript per command or rename executable probes as `.txt` to retain them. Reuse the ledger's structured history instead of duplicating full command responses; use commit references or one small binding table rather than repeated hash inventories.
+
+Consolidate and review the package **before staging evidence, recording digests or transitioning defects to verified**. Freeze referenced reports; later substantive work uses a concise supplement, not copies of earlier reports or repeated green logs. Committed evidence and history stay intact. Owner-requested consolidation of uncommitted evidence must preserve findings, independent judgments and operation order, rebuild affected uncommitted references through checked commands, and pass reconciliation before old files are removed.
+
 ## Persistent findings and bootstrap G5
 
 Keep stable finding IDs and retained repository evidence. Each finding record includes:

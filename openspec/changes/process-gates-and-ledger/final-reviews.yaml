@@ -1,0 +1,61 @@
+schema_version: 1
+change_id: process-gates-and-ledger
+reviews:
+  - dimension: adversarial
+    reviewer: /root/closing_adversarial_bytes
+    brief: G2/G4 malformed inputs, recovery and exact-byte outcomes
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+  - dimension: architecture-adherence
+    reviewer: /root/closing_architecture
+    brief: Architecture, spec/type adherence, scoped docs fidelity and task
+      correction review
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+  - dimension: performance
+    reviewer: /root/closing_performance
+    brief: G3 tooling cost, inventory reuse, host measurements and
+      reference-hardware limits
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+  - dimension: testing
+    reviewer: /root/closing_testing
+    brief: G6 consumer coverage, deterministic fixtures, actual CLI versus injected
+      boundaries
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+  - dimension: logic-integrity
+    reviewer: /root/closing_logic
+    brief: State/receipt invariants, exact-byte and rendezvous logic
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
+  - dimension: design-coherence
+    reviewer: /root/closing_design
+    brief: Design authority, no-loss/status coherence, budgets and unchanged
+      inbox/roadmap
+    disposition: passed
+    locator:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: task-6-reviews.md
+      sha256: c3a2791cc7530a0953a4b92d3d4df71de96c634d62201321f53f29af071fdb75
