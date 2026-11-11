@@ -1,0 +1,11 @@
+# Task 4.3 evidence — shipped legacy status references
+
+Status: implemented and independently reviewed; awaiting owner approval before commit. The Task 4.2 checkbox now records commit `be9a95b`.
+
+`DESIGN_NOTES.md` now includes shipped seed scrambling and runtime legacy drive saturation in the Engineering rules introduction. The Operative rotation cross-reference has the exact `(shipped)` marker required inside a planned section and confines the clamp to runtime resolution; strict authoring still throws. The configurable ladder, crew handoff, inter-epoch maturation, accumulation and source-scar validation remain planned. No code or shipped-guide capability changed.
+
+Document-integrity map: the original Engineering introduction's security-first placement, future-rule ordering and shipped bridge/session/verification status remain in the same paragraph; two shipped facts were added. The original Operative rotation clamp sentence remains in place, qualified by its runtime context and strict-authoring exception. No paragraph, owner exemplar, number or identifier was cut or moved. The status index already marks Engineering rules partial with seed scrambling and saturation shipped, and Epoch rotation partial; no index edit is needed. The Where-facts-live table, roadmap owners and dispositions remain accurate and unchanged. `DESIGN_NOTES.md` grew from 17,251 to 17,265 words (+14), within its accepted aspirational-budget exception.
+
+`npm run verify` passed after review correction: format 1,081 ms, lint 1,327 ms, typecheck 602 ms and tests 16,369 ms, with loopback access for existing HTTP tests. `npm run roadmap:next -- --json` reported this change active, no next or blocked item; `npm run defects -- reconcile --check` passed with 53 active and 22 resolved. `git diff --check` passed. Reference-Mac timing remains unmeasured.
+
+G1/G6: the two stale status references now point to the shipped runtime contract and preserve the planned operative consumer; actual clamp and seed behavior was verified in earlier tasks. G2–G4: documentation-only change, no runtime boundary, hot-path or failure behavior change. G5: both reviewers independently found the same exact-marker issue, which was corrected and rechecked with no remaining finding.

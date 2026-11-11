@@ -20,7 +20,7 @@ The six independent delivery reviews identified four bounded corrections. The tw
 
 - [x] 4.1 Make the saved epoch differ from the live epoch in the coordinator low-load warning test, and assert both `load_slot` and `legacy_drive_clamped` records use the restored epoch and tick. **Verify:** `npx vitest run tests/unit/application/SimulationCoordinator.test.ts`, `npm run verify`, `npm run defects -- reconcile --check`. **Commit:** `test(application): distinguish restored epoch in legacy load warnings`.
 
-- [ ] 4.2 For each pinned fresh seed `0`, `1`, `2` and `42`, assert identical multi-draw sequences from repeated construction in `SeededRandom.test.ts`, retaining exact initial-state and mixed-zero vectors. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`. **Commit:** `test(domain): pin repeated draws for adjacent seeds`.
+- [x] 4.2 For each pinned fresh seed `0`, `1`, `2` and `42`, assert identical multi-draw sequences from repeated construction in `SeededRandom.test.ts`, retaining exact initial-state and mixed-zero vectors. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`. **Commit:** `test(domain): pin repeated draws for adjacent seeds`.
 
 - [ ] 4.3 Correct the stale shipped/planned status references in the `DESIGN_NOTES.md` Engineering rules introduction and Operative rotation cross-reference, preserving later planned systems and owner wording. **Verify:** `npm run verify`, document-integrity no-loss review and status-index/roadmap checks. **Commit:** `docs(design): align shipped legacy status references`.
 

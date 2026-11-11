@@ -128,7 +128,7 @@ Eight architecture-constraining rules, set early so they can guide how the archi
 
 ### Engineering rules (partial)
 
-Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append here. The bridge lock, session preservation and verification gate are shipped; later engineering work retains its planned markers.
+Rules that bind how the code is built, kept here so the security record is the first of them. Later engineering rules append here. The bridge lock, session preservation, verification gate, seed scrambling and runtime legacy drive saturation are shipped; later engineering work retains its planned markers.
 
 #### Bridge lock (shipped)
 
@@ -312,7 +312,7 @@ Detail: `design/epoch-ladder-skins-and-rotation.md` (the skins table and the per
 - **Kinship (`kin_claim`) versus starting afresh (`fresh_start`)**: `kin_claim` unlocks warm `respect`/`obligation`/`trust` edges and fast-track Office access but inherits the predecessor's `betrayed` grudges, rival targeting profile and `coverPersecutionRisk`; `fresh_start` gives a clean personal slate (`0` inherited grudges/persecution).
 - **Ceilings** (`EpochTechCeilingBlueprint`, `maxMaturationStepPerTransition = 1`): every `EpochProfileBlueprint` enforces `maxTechTierForEpoch`, and `runInterEpochMaturation` advances at most 1 rung per transition. Surplus progress becomes compressed maturation time and institutional readiness; pushing faster than `absorptionCapacity` triggers future-shock backlash, labor riots, Dual-Use Ceiling wars or `coverPersecutionRisk`.
 - **Extraction stills**: the `ExtractionStillFrameBuilder` renders a 4-beat chiaroscuro still sequence on the existing kitbash renderer, parameterized by the operative's deeds, Office, wardrobe and scars.
-- **Legacy clamp**: a legacy mutation clamps instead of throwing (see Legacy clamp in State, saves and pack identity).
+- **Legacy clamp (shipped)**: a legacy mutation clamps instead of throwing during runtime resolution; strict authoring still throws (see Legacy clamp in State, saves and pack identity).
 
 Detail: `design/epoch-ladder-skins-and-rotation.md` (the skins table, continuity, traces, kinship, ceilings and the four stills).
 
