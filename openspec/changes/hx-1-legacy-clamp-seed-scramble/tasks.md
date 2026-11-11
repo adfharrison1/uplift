@@ -16,7 +16,7 @@ Each numbered checkbox is one owner-approved, green Conventional Commit. After e
 
 ## 4. Closing review corrections
 
-The six independent delivery reviews identified four bounded corrections. The two stale design-status references share one status-drift fix; the omitted adjacent-seed intent is a separate no-loss fix. Each checkbox below receives its own targeted/full verification, two independent task reviews and owner-approved commit before closing evidence.
+The initial delivery reviews identified four bounded corrections. The two stale design-status references share one status-drift fix; the omitted adjacent-seed intent is a separate no-loss fix. A context-free closing design recheck identified one further status-index owner citation to remove. The change now has nine tasks; Task 4.5 remains in the same small design-document scope, and splitting it from the change would leave the current change named as owner of already shipped work. Each checkbox below receives its own targeted/full verification, two independent task reviews and owner-approved commit before closing evidence.
 
 - [x] 4.1 Make the saved epoch differ from the live epoch in the coordinator low-load warning test, and assert both `load_slot` and `legacy_drive_clamped` records use the restored epoch and tick. **Verify:** `npx vitest run tests/unit/application/SimulationCoordinator.test.ts`, `npm run verify`, `npm run defects -- reconcile --check`. **Commit:** `test(application): distinguish restored epoch in legacy load warnings`.
 
@@ -24,7 +24,9 @@ The six independent delivery reviews identified four bounded corrections. The tw
 
 - [x] 4.3 Correct the stale shipped/planned status references in the `DESIGN_NOTES.md` Engineering rules introduction and Operative rotation cross-reference, preserving later planned systems and owner wording. **Verify:** `npm run verify`, document-integrity no-loss review and status-index/roadmap checks. **Commit:** `docs(design): align shipped legacy status references`.
 
-- [ ] 4.4 Restore the adjacent-seed separation intent in the `DESIGN_NOTES.md` seed paragraph without claiming statistical independence or changing the shipped algorithm. **Verify:** `npm run verify` and document-integrity no-loss review. **Commit:** `docs(design): retain adjacent-seed intent`.
+- [x] 4.4 Restore the adjacent-seed separation intent in the `DESIGN_NOTES.md` seed paragraph without claiming statistical independence or changing the shipped algorithm. **Verify:** `npm run verify` and document-integrity no-loss review. **Commit:** `docs(design): retain adjacent-seed intent`.
+
+- [ ] 4.5 Remove this change's id from the `DESIGN_NOTES.md` Engineering rules status-index column for unshipped owners, retaining the shipped summary and every later planned owner. **Verify:** `npm run verify`, status-index/roadmap check and document-integrity no-loss review. **Commit:** `docs(design): correct engineering status ownership`.
 
 ## 5. Closing review and defect evidence
 
