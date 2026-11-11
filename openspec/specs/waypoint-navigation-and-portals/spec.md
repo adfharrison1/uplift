@@ -6,7 +6,19 @@ Plan deterministic waypoint routes that cross a portal only while it is passable
 ## Requirements
 
 ### Requirement: Deterministic waypoint path planning with portal gates
-The domain layer SHALL plan a route with `planWaypointPath` from a current waypoint to a destination waypoint. Within a space, neighbor lists on `WaypointBlueprint` SHALL be undirected edges, and a listed neighbor SHALL count even when only one waypoint declares it. A space in which every neighbor list is empty or omitted SHALL use a single undirected chain in declaration order. A space in which any waypoint declares a neighbor SHALL use only those explicit edges, and registration SHALL have rejected any waypoint in that space whose undirected degree is 0. A portal prop that sets both target ids SHALL add one undirected edge between its waypoint and `portalTargetWaypointId` only when that prop's runtime `portalState` is `open` or `ajar`. `closed` and `barred` SHALL remove both directions. A portal with `portalState` and no target ids SHALL add no edge. Search SHALL be breadth-first and SHALL expand each waypoint's neighbors in ascending waypoint-id order. The returned path SHALL omit the start waypoint and include the destination as `WaypointTarget` entries.
+The domain layer SHALL plan a deterministic route with `planWaypointPath` from a current waypoint to a destination waypoint, using undirected waypoint edges, runtime portal gates, and breadth-first search.
+
+#### Scenario: Authored neighbor edges and fallback chain
+- **WHEN** the planner determines intra-space edges for a route
+- **THEN** The domain layer SHALL plan a route with `planWaypointPath` from a current waypoint to a destination waypoint. Within a space, neighbor lists on `WaypointBlueprint` SHALL be undirected edges, and a listed neighbor SHALL count even when only one waypoint declares it. A space in which every neighbor list is empty or omitted SHALL use a single undirected chain in declaration order. A space in which any waypoint declares a neighbor SHALL use only those explicit edges, and registration SHALL have rejected any waypoint in that space whose undirected degree is 0.
+
+#### Scenario: Runtime portal edge gates
+- **WHEN** a route considers a portal prop
+- **THEN** A portal prop that sets both target ids SHALL add one undirected edge between its waypoint and `portalTargetWaypointId` only when that prop's runtime `portalState` is `open` or `ajar`. `closed` and `barred` SHALL remove both directions. A portal with `portalState` and no target ids SHALL add no edge.
+
+#### Scenario: Deterministic search and path endpoints
+- **WHEN** the planner searches and returns a route
+- **THEN** Search SHALL be breadth-first and SHALL expand each waypoint's neighbors in ascending waypoint-id order. The returned path SHALL omit the start waypoint and include the destination as `WaypointTarget` entries.
 
 #### Scenario: Open portal connects two spaces
 - **WHEN** a yard waypoint chains to a door waypoint and the door's `portalState` is `open` toward a chambers waypoint
@@ -40,7 +52,23 @@ The domain layer SHALL plan a route with `planWaypointPath` from a current waypo
 - **THEN** truncation SHALL keep the near-side waypoint and remove the far-side waypoint and any targets after it
 
 ### Requirement: Coordinator move request does not mutate on failure
-`SimulationCoordinator.requestWaypointMove(entityId, destinationWaypointId)` SHALL dispatch only `move_entity_to_waypoint` when planning returns `path`. The existing reducer SHALL set `cognitivePhase` to `moving` unless the entity is already `deliberating`, in which case the path SHALL be stored and the phase SHALL stay `deliberating`. `already_there` SHALL succeed with no dispatch. `blocked`, `unknown_waypoint`, `unknown_entity`, and `paused` SHALL leave `WorldState` unchanged. `requestSetPortalState(propId, portalState)` SHALL dispatch the existing `update_prop_state` effect, and SHALL leave state unchanged with `unknown_prop` when the prop id is absent. `stepFrame` SHALL truncate active paths against current portal states, including the hop from the entity's current waypoint, before `stepKinematics` whenever the frame is not paused.
+`SimulationCoordinator` SHALL dispatch waypoint and portal effects only for successful requests, preserve state on failures, and revalidate active paths against portal states before unpaused kinematics.
+
+#### Scenario: Successful move dispatch and cognitive phase
+- **WHEN** planning returns `path`
+- **THEN** `SimulationCoordinator.requestWaypointMove(entityId, destinationWaypointId)` SHALL dispatch only `move_entity_to_waypoint` when planning returns `path`. The existing reducer SHALL set `cognitivePhase` to `moving` unless the entity is already `deliberating`, in which case the path SHALL be stored and the phase SHALL stay `deliberating`.
+
+#### Scenario: No-op success and failure immutability
+- **WHEN** `requestWaypointMove` returns `already_there` or a failure status
+- **THEN** `already_there` SHALL succeed with no dispatch. `blocked`, `unknown_waypoint`, `unknown_entity`, and `paused` SHALL leave `WorldState` unchanged.
+
+#### Scenario: Portal update dispatch and unknown props
+- **WHEN** `requestSetPortalState(propId, portalState)` is called
+- **THEN** `requestSetPortalState(propId, portalState)` SHALL dispatch the existing `update_prop_state` effect, and SHALL leave state unchanged with `unknown_prop` when the prop id is absent.
+
+#### Scenario: Active path truncation precedes movement
+- **WHEN** an unpaused frame is stepped
+- **THEN** `stepFrame` SHALL truncate active paths against current portal states, including the hop from the entity's current waypoint, before `stepKinematics` whenever the frame is not paused.
 
 #### Scenario: Unknown entity and paused request preserve state
 - **WHEN** `requestWaypointMove` is called with an `entityId` absent from `WorldState`, or while `WorldState.paused` is true

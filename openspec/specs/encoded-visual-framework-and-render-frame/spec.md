@@ -6,7 +6,23 @@ Provide pure TypeScript + Zod v4 schemas for the 3-Layer Encoded Visual Authorin
 ## Requirements
 
 ### Requirement: 3-Layer Encoded Visual Blueprints and deterministic semanticId addressing
-The application rendering layer SHALL define epoch-agnostic Zod-validated schemas for `EpochVisualTheme` (material hex palettes, `#1a1f28` shadow tint, `#c4a574` torch warm tint, `ambientIntensity`, non-zero `keyLightDirection`, `keyLightIntensity`, desaturation, grime, and fog), `StageSceneBlueprint` (`stageId`, `spaceId`, `themeId`, room footprint, `floorSemanticId`, compass `wallSegments` with `thicknessMeters`/`recessMeters`/`offsetAlongWallMeters` and open-identifier `WallMotifInstance[]` with `offsetX`/`offsetY`/`spacingMeters`/`columns`, `props` `StagePropVisualBlueprint[]` with `isPortal`, `lights`, and `CameraVolumeBlueprint[]` with `priority`), and `CharacterVisualBlueprint` (`characterId`, `lineageId`, posture `heightScale`/`shoulderWidth`/`spinePitchRadians`/`gaitStyle`, open-identifier garment/prop slots, grime levels, and optional `droneDisguise`), and SHALL enforce deterministic `semanticId` formatting (`<spaceId>.<wall|alcove>.<compass>.<segmentId>`, `<segmentSemanticId>.motif.<motifId>`, `<spaceId>.floor`, `<spaceId>.prop.<propId>`, `<spaceId>.light.<lightId>`, `npc.<characterId>`, `npc.<characterId>.part.<slot>`) with zero Three.js or DOM imports in `src/application/`.
+The application rendering layer SHALL define epoch-agnostic Zod-validated schemas for `EpochVisualTheme`, `StageSceneBlueprint`, and `CharacterVisualBlueprint`, and SHALL enforce deterministic `semanticId` formatting with zero Three.js or DOM imports in `src/application/`.
+
+#### Scenario: Visual theme schema fields
+- **WHEN** the application defines the visual theme schema
+- **THEN** It SHALL define `EpochVisualTheme` (material hex palettes, `#1a1f28` shadow tint, `#c4a574` torch warm tint, `ambientIntensity`, non-zero `keyLightDirection`, `keyLightIntensity`, desaturation, grime, and fog).
+
+#### Scenario: Stage schema fields
+- **WHEN** the application defines the stage schema
+- **THEN** It SHALL define `StageSceneBlueprint` (`stageId`, `spaceId`, `themeId`, room footprint, `floorSemanticId`, compass `wallSegments` with `thicknessMeters`/`recessMeters`/`offsetAlongWallMeters` and open-identifier `WallMotifInstance[]` with `offsetX`/`offsetY`/`spacingMeters`/`columns`, `props` `StagePropVisualBlueprint[]` with `isPortal`, `lights`, and `CameraVolumeBlueprint[]` with `priority`).
+
+#### Scenario: Character schema fields
+- **WHEN** the application defines the character schema
+- **THEN** It SHALL define `CharacterVisualBlueprint` (`characterId`, `lineageId`, posture `heightScale`/`shoulderWidth`/`spinePitchRadians`/`gaitStyle`, open-identifier garment/prop slots, grime levels, and optional `droneDisguise`).
+
+#### Scenario: Semantic address formats
+- **WHEN** the application formats semantic addresses
+- **THEN** It SHALL enforce deterministic `semanticId` formatting (`<spaceId>.<wall|alcove>.<compass>.<segmentId>`, `<segmentSemanticId>.motif.<motifId>`, `<spaceId>.floor`, `<spaceId>.prop.<propId>`, `<spaceId>.light.<lightId>`, `npc.<characterId>`, `npc.<characterId>.part.<slot>`) with zero Three.js or DOM imports in `src/application/`.
 
 #### Scenario: Parsing valid 3-layer visual blueprints and formatting deterministic semanticIds
 - **WHEN** valid `EpochVisualTheme`, `StageSceneBlueprint`, and `CharacterVisualBlueprint` objects are parsed and `formatWallSegmentSemanticId` / `formatCharacterPartSemanticId` are invoked
@@ -21,7 +37,23 @@ The application rendering layer SHALL define epoch-agnostic Zod-validated schema
 - **THEN** it SHALL preserve the character's posture (`heightScale`, `shoulderWidth`, `spinePitchRadians`, `gaitStyle`) and garment/prop slots while rebinding theme-linked palette defaults when requested, without importing any 3D schema into `src/domain/`
 
 ### Requirement: Volume-aware 3rd-person tracking camera, critically damped spring blending, and F3 De-Anchored Free-Cam
-`RenderFrameBuilder` SHALL select the active `CameraVolumeBlueprint` containing the tracked target position (choosing highest `priority`, then smallest AABB volume on overlap, and falling back to the first volume for the space), smooth camera position, look-at target, pitch, yaw, and FOV across volume transitions via a critically damped spring (clamping `dtSeconds` to `[0, 0.25]` for stability), apply Emergency (`+1.5°` roll, `-2.0°` pitch, `1.35x` fog density) and orbital `zenith` `activeBurn` (`-1.5°` pitch) modifiers unless `reduceMotionAndFlashing` is enabled, and switch to `cameraMode: 'debug_free_cam'` with `freeCamOffset` and a `+0.40` desaturation boost when `debugMode` and `cameraDeAnchored` are active.
+`RenderFrameBuilder` SHALL select a camera volume for the tracked target, blend camera transitions with a critically damped spring, honor reduced motion for emergency and burn modifiers, and support de-anchored debug free-cam.
+
+#### Scenario: Camera containment priority and fallback
+- **WHEN** `RenderFrameBuilder` selects an active camera volume
+- **THEN** It SHALL select the active `CameraVolumeBlueprint` containing the tracked target position (choosing highest `priority`, then smallest AABB volume on overlap, and falling back to the first volume for the space).
+
+#### Scenario: Camera spring fields and delta clamp
+- **WHEN** the camera transitions between volumes
+- **THEN** It SHALL smooth camera position, look-at target, pitch, yaw, and FOV across volume transitions via a critically damped spring (clamping `dtSeconds` to `[0, 0.25]` for stability).
+
+#### Scenario: Emergency and burn modifier values
+- **WHEN** Emergency or orbital `zenith` `activeBurn` modifiers are evaluated
+- **THEN** It SHALL apply Emergency (`+1.5°` roll, `-2.0°` pitch, `1.35x` fog density) and orbital `zenith` `activeBurn` (`-1.5°` pitch) modifiers unless `reduceMotionAndFlashing` is enabled.
+
+#### Scenario: De-anchored debug camera settings
+- **WHEN** `debugMode` and `cameraDeAnchored` are active
+- **THEN** It SHALL switch to `cameraMode: 'debug_free_cam'` with `freeCamOffset` and a `+0.40` desaturation boost.
 
 #### Scenario: Smooth critically damped spring transition and overlapping camera volume priority
 - **WHEN** the tracked entity moves from an outer courtyard `CameraVolumeBlueprint` (`priority: 0`) into a nested interior `CameraVolumeBlueprint` (`priority: 10`) across successive `dtSeconds` frames

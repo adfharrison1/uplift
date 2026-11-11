@@ -6,14 +6,54 @@ Keep embodied moving entities from occupying the same ground point, using a dete
 ## Requirements
 
 ### Requirement: 2D spatial hash excludes off-stage entities
-`SpatialHashGrid` SHALL partition embodied entity positions on the XZ plane into `2` meter cells. `stepKinematics(state, dtSeconds, spaceKinds?)` SHALL accept an optional space-kind directory and SHALL rebuild the grid once per call from input positions of entities whose space kind is not `off_stage_region`. When `spaceKinds` is omitted, every entity SHALL be treated as embodied. A radius query of `0.75` meters SHALL read the 3×3 cells around the point and SHALL return matching entity ids in ascending id order. Entities in an `off_stage_region` SHALL still advance any assigned waypoint path and SHALL NOT be inserted into the grid. `SimulationCoordinator.stepFrame` SHALL pass a directory built from `EpochModuleRegistry.getAllSpaces()`.
+`SpatialHashGrid` SHALL partition embodied entity positions on the XZ plane into `2` meter cells for deterministic neighbor queries, excluding off-stage entities while preserving their path movement.
+
+#### Scenario: Grid construction and optional directory
+- **WHEN** `stepKinematics(state, dtSeconds, spaceKinds?)` is called
+- **THEN** `SpatialHashGrid` SHALL partition embodied entity positions on the XZ plane into `2` meter cells. `stepKinematics(state, dtSeconds, spaceKinds?)` SHALL accept an optional space-kind directory and SHALL rebuild the grid once per call from input positions of entities whose space kind is not `off_stage_region`. When `spaceKinds` is omitted, every entity SHALL be treated as embodied.
+
+#### Scenario: Deterministic local query
+- **WHEN** a radius query of `0.75` meters is made
+- **THEN** A radius query of `0.75` meters SHALL read the 3×3 cells around the point and SHALL return matching entity ids in ascending id order.
+
+#### Scenario: Off-stage path movement
+- **WHEN** an entity in an `off_stage_region` has an assigned waypoint path
+- **THEN** Entities in an `off_stage_region` SHALL still advance any assigned waypoint path and SHALL NOT be inserted into the grid.
+
+#### Scenario: Coordinator space-kind directory
+- **WHEN** the coordinator steps the world
+- **THEN** `SimulationCoordinator.stepFrame` SHALL pass a directory built from `EpochModuleRegistry.getAllSpaces()`.
 
 #### Scenario: Off-stage entity is absent from proximity results
 - **WHEN** one entity stands in an `indoor_room` and another stands in an `off_stage_region` within `0.75` meters on XZ
 - **THEN** a query at the indoor entity SHALL NOT include the off-stage entity id, and the off-stage entity SHALL have advanced along its assigned path
 
 ### Requirement: Same-space separation preserves exact waypoint snaps
-While `stepKinematics` advances entities in `cognitivePhase === 'moving'`, it SHALL apply an XZ separation offset against other embodied entities in the same `spaceId` whose start-of-step XZ distance is within `0.75` meters. Offsets SHALL be computed from positions at the start of the step and then applied. Displacement length SHALL be at most `separationWeight * min(0.15 * dtSeconds, 0.25 * xzDistanceRemainingToCurrentTarget)` meters, where `separationWeight` is the mover's own weight in `0..1` and an omitted weight SHALL mean `1`. Neighbors SHALL count as bodies to avoid at any weight. A mover whose weight is `0` SHALL take no separation displacement. The offset SHALL NOT increase XZ distance to the current target. It SHALL be applied only on the partial-move branch, so a position already written as the target coordinate SHALL stay exact. Y SHALL be unchanged. When XZ distance remaining is `<= 0.05` meters, separation SHALL be zero and the entity SHALL snap to that target's exact coordinates, emitting the existing `WaypointArrivalEvent`. Entities in different `spaceId`s SHALL NOT separate. Idle entities SHALL NOT separate from each other. Two identical calls with the same input state SHALL produce the same positions. A single moving entity SHALL follow the same positions as path integration without neighbors. Pause, zero `dtSeconds`, and negative or non-finite `dtSeconds` SHALL keep the existing freeze and `RangeError` behavior. This displacement SHALL NOT read `reduceMotionAndFlashing` and SHALL NOT add camera motion.
+`stepKinematics` SHALL apply bounded same-space XZ separation during movement while preserving exact waypoint snaps, deterministic integration, and existing freeze and error behavior.
+
+#### Scenario: Start-of-step neighbor positions
+- **WHEN** `stepKinematics` advances moving entities
+- **THEN** While `stepKinematics` advances entities in `cognitivePhase === 'moving'`, it SHALL apply an XZ separation offset against other embodied entities in the same `spaceId` whose start-of-step XZ distance is within `0.75` meters. Offsets SHALL be computed from positions at the start of the step and then applied.
+
+#### Scenario: Personal separation weight and displacement cap
+- **WHEN** a moving entity has nearby embodied neighbors
+- **THEN** Displacement length SHALL be at most `separationWeight * min(0.15 * dtSeconds, 0.25 * xzDistanceRemainingToCurrentTarget)` meters, where `separationWeight` is the mover's own weight in `0..1` and an omitted weight SHALL mean `1`. Neighbors SHALL count as bodies to avoid at any weight. A mover whose weight is `0` SHALL take no separation displacement.
+
+#### Scenario: Target distance and exact arrivals
+- **WHEN** separation is computed during path integration
+- **THEN** The offset SHALL NOT increase XZ distance to the current target. It SHALL be applied only on the partial-move branch, so a position already written as the target coordinate SHALL stay exact. Y SHALL be unchanged. When XZ distance remaining is `<= 0.05` meters, separation SHALL be zero and the entity SHALL snap to that target's exact coordinates, emitting the existing `WaypointArrivalEvent`.
+
+#### Scenario: Space isolation and idle pairs
+- **WHEN** entities are in different spaces or are idle
+- **THEN** Entities in different `spaceId`s SHALL NOT separate. Idle entities SHALL NOT separate from each other.
+
+#### Scenario: Repeatability and lone movement
+- **WHEN** the same input is repeated or a single entity moves
+- **THEN** Two identical calls with the same input state SHALL produce the same positions. A single moving entity SHALL follow the same positions as path integration without neighbors.
+
+#### Scenario: Freeze errors and motion settings
+- **WHEN** `stepKinematics` is called with any pause, delta, or motion setting
+- **THEN** Pause, zero `dtSeconds`, and negative or non-finite `dtSeconds` SHALL keep the existing freeze and `RangeError` behavior. This displacement SHALL NOT read `reduceMotionAndFlashing` and SHALL NOT add camera motion.
 
 #### Scenario: Two walkers in one room separate without swapping order dependence
 - **WHEN** two `moving` entities with `separationWeight` `1` (or omitted) in the same `indoor_room` start `0.4` meters apart on XZ and `stepKinematics` runs one `1/60` second frame

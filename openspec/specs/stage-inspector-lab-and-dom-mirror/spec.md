@@ -6,7 +6,15 @@ Provide the In-Game `F3` Stage, Lighting & Character Wardrobe Inspector controll
 ## Requirements
 
 ### Requirement: Agent DOM Mirror and live F3 Stage/Wardrobe Inspector state mutators
-`StageInspectorDomMirror` (`src/interfaces/hud/StageInspectorDomMirror.ts`) SHALL mirror `AgentDomMirrorState` onto a target container's DOM attributes (`data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, `data-camera-mode`) and onto `globalThis.__UPLIFT_STAGE_INSPECTOR__` (including a structured scene-inspector target list), and SHALL provide pure, schema-validated live mutation helpers to add/update wall `motifs[]` on a targeted `semanticId`, adjust light intensity/color/falloff, update camera volume pitch/FOV, and tweak character posture, garments, held props, and grime levels.
+`StageInspectorDomMirror` (`src/interfaces/hud/StageInspectorDomMirror.ts`) SHALL mirror `AgentDomMirrorState` for agents and provide pure, schema-validated live stage and wardrobe mutation helpers.
+
+#### Scenario: DOM attributes and structured inspector mirror
+- **WHEN** `StageInspectorDomMirror` mirrors `AgentDomMirrorState`
+- **THEN** `StageInspectorDomMirror` (`src/interfaces/hud/StageInspectorDomMirror.ts`) SHALL mirror `AgentDomMirrorState` onto a target container's DOM attributes (`data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, `data-camera-mode`) and onto `globalThis.__UPLIFT_STAGE_INSPECTOR__` (including a structured scene-inspector target list).
+
+#### Scenario: Schema-validated stage and wardrobe edits
+- **WHEN** live stage or wardrobe edits are requested
+- **THEN** `StageInspectorDomMirror` SHALL provide pure, schema-validated live mutation helpers to add/update wall `motifs[]` on a targeted `semanticId`, adjust light intensity/color/falloff, update camera volume pitch/FOV, and tweak character posture, garments, held props, and grime levels.
 
 #### Scenario: Mirroring hovered/selected semanticId to DOM attributes and mutating stage and character blueprints
 - **WHEN** the user or test selects `charnel_stairs.wall.north.seg_02` in `StageInspectorDomMirror` and applies live edits to wall `motifs[]`, light intensity, camera volume FOV, and character `headgear`

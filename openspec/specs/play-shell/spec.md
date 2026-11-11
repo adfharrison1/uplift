@@ -6,7 +6,19 @@ The campaign has one browser page. It loads whichever pack is registered, steps 
 ## Requirements
 
 ### Requirement: Single campaign page
-The interfaces layer SHALL boot one browser page with one canvas and one `WebGLRenderer`. That page SHALL be the only surface on which the player sees or interacts with the game. Any later stage, body, cabin, still, lab panel, or player-facing control SHALL load into this page. The repository SHALL have one HTML entry. Domain and application SHALL NOT import the DOM, Three.js, or a content pack. The page SHALL be driven by a launch payload of a stage directory keyed by `spaceId`, character visuals, a visual theme, and a focus entity id. The session type SHALL NOT contain exemplar place or character ids. The first wired launch SHALL be the proving-slice pack, which is the only embodied content that exists today.
+The interfaces layer SHALL boot the campaign in one browser page with one canvas and one `WebGLRenderer`, using a pack-independent launch payload.
+
+#### Scenario: Only campaign surface and entry
+- **WHEN** the campaign or any later player-facing surface is loaded
+- **THEN** The interfaces layer SHALL boot one browser page with one canvas and one `WebGLRenderer`. That page SHALL be the only surface on which the player sees or interacts with the game. Any later stage, body, cabin, still, lab panel, or player-facing control SHALL load into this page. The repository SHALL have one HTML entry.
+
+#### Scenario: Pack-independent launch contract
+- **WHEN** the page and session are defined
+- **THEN** Domain and application SHALL NOT import the DOM, Three.js, or a content pack. The page SHALL be driven by a launch payload of a stage directory keyed by `spaceId`, character visuals, a visual theme, and a focus entity id. The session type SHALL NOT contain exemplar place or character ids.
+
+#### Scenario: Initial proving content
+- **WHEN** the first wired launch is selected
+- **THEN** The first wired launch SHALL be the proving-slice pack, which is the only embodied content that exists today.
 
 #### Scenario: A second pack can drive the same session
 - **WHEN** a headless `PlaySession` is constructed with a launch payload whose only space id is `space_other` and whose focus entity starts in that space
@@ -36,7 +48,23 @@ The page SHALL stack three layers in this order: the viewport, a diegetic layer,
 - **THEN** the registry SHALL reject the second registration and the first panel SHALL remain mounted
 
 ### Requirement: One frame loop
-Each animation frame SHALL call `stepFrame` once with the raw frame delta and then `pulseCognitiveScheduler`. The loop SHALL NOT call `stepFrame` more than once per frame. While the simulation is unpaused and the focus entity's `spaceId` has a registered stage, the session SHALL build one render frame for that stage and the renderer SHALL apply it. When the focus entity's `spaceId` changes and the launch directory contains that space, the shell SHALL finish `disposeSceneGraph` on the resident stage before building the next stage. When the directory does not contain that space, the shell SHALL leave the resident stage mounted. The loop SHALL NOT advance `elapsedWatches`, open an `AudioContext`, or inject a storylet. The renderer pixel ratio SHALL be capped at `1`.
+Each animation frame SHALL call `stepFrame` once with the raw frame delta and then `pulseCognitiveScheduler`, rendering the registered focus stage while unpaused and safely replacing resident stages.
+
+#### Scenario: Frame stepping order and count
+- **WHEN** an animation frame runs
+- **THEN** Each animation frame SHALL call `stepFrame` once with the raw frame delta and then `pulseCognitiveScheduler`. The loop SHALL NOT call `stepFrame` more than once per frame.
+
+#### Scenario: Registered stage rendering
+- **WHEN** the simulation is unpaused and the focus space has a registered stage
+- **THEN** While the simulation is unpaused and the focus entity's `spaceId` has a registered stage, the session SHALL build one render frame for that stage and the renderer SHALL apply it.
+
+#### Scenario: Resident stage replacement and retention
+- **WHEN** the focus entity changes space
+- **THEN** When the focus entity's `spaceId` changes and the launch directory contains that space, the shell SHALL finish `disposeSceneGraph` on the resident stage before building the next stage. When the directory does not contain that space, the shell SHALL leave the resident stage mounted.
+
+#### Scenario: Frame-loop exclusions and pixel ratio
+- **WHEN** the frame loop and renderer run
+- **THEN** The loop SHALL NOT advance `elapsedWatches`, open an `AudioContext`, or inject a storylet. The renderer pixel ratio SHALL be capped at `1`.
 
 #### Scenario: An open door swaps the resident stage
 - **WHEN** the focus entity is in the chambers and a move to the yard gate is requested through an open door and enough frames elapse to arrive
@@ -59,7 +87,23 @@ Each animation frame SHALL call `stepFrame` once with the raw frame delta and th
 - **THEN** the renderer pixel ratio SHALL be `1`
 
 ### Requirement: Play input stays on authored targets
-Unpaused input SHALL be able to issue `requestWaypointMove` for the focus entity to an authored waypoint in the active space, and `requestSetPortalState` for a portal prop. A floor click SHALL select the nearest waypoint in the active space only when the hit is within `1.5` meters of that waypoint on XZ. A farther floor click SHALL NOT move the entity. The dev HUD SHALL list every waypoint in the active space as a command that issues the same move. The waypoint status (`path`, `already_there`, `blocked`, `unknown_waypoint`, `unknown_entity`, `paused`) or the portal status (`updated`, `unknown_prop`, `paused`) SHALL be shown as text. A waypoint command SHALL call `requestWaypointMove` while paused and while unpaused. While paused, that call returns `paused` and SHALL NOT dispatch. Floor and portal raycasts SHALL run only while unpaused. `F3` and backtick SHALL toggle pause and de-anchor the camera. Free-cam SHALL change `freeCamOffset` and SHALL NOT write an entity position.
+The shell SHALL route play input through authored waypoint and portal requests, display their statuses as text, and keep pause and free-cam controls separate from entity positions.
+
+#### Scenario: Authored movement and portal requests
+- **WHEN** input is unpaused
+- **THEN** Unpaused input SHALL be able to issue `requestWaypointMove` for the focus entity to an authored waypoint in the active space, and `requestSetPortalState` for a portal prop. A floor click SHALL select the nearest waypoint in the active space only when the hit is within `1.5` meters of that waypoint on XZ. A farther floor click SHALL NOT move the entity.
+
+#### Scenario: Waypoint commands and status vocabulary
+- **WHEN** the dev HUD presents movement and portal controls
+- **THEN** The dev HUD SHALL list every waypoint in the active space as a command that issues the same move. The waypoint status (`path`, `already_there`, `blocked`, `unknown_waypoint`, `unknown_entity`, `paused`) or the portal status (`updated`, `unknown_prop`, `paused`) SHALL be shown as text.
+
+#### Scenario: Paused commands and raycast gating
+- **WHEN** waypoint commands or raycasts are handled
+- **THEN** A waypoint command SHALL call `requestWaypointMove` while paused and while unpaused. While paused, that call returns `paused` and SHALL NOT dispatch. Floor and portal raycasts SHALL run only while unpaused.
+
+#### Scenario: Pause and free-cam controls
+- **WHEN** pause or free-cam input is handled
+- **THEN** `F3` and backtick SHALL toggle pause and de-anchor the camera. Free-cam SHALL change `freeCamOffset` and SHALL NOT write an entity position.
 
 #### Scenario: A barred door does not change space
 - **WHEN** the chambers door is barred and the focus entity requests the yard gate
@@ -101,7 +145,15 @@ When the focus entity's `spaceId` has no stage in the launch directory, the sess
 - **THEN** the resident stage SHALL be unchanged and the visible status SHALL be `missing_stage`
 
 ### Requirement: Dev HUD stage lab
-While paused, picking a `semanticId` SHALL update `data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, `data-camera-mode`, and `globalThis.__UPLIFT_STAGE_INSPECTOR__`. The stage panel SHALL be able to save the selected stage blueprint or character visual through the existing disk-bridge routes. The dev HUD SHALL also be able to set the focus entity to any entity in the current world. Changing focus to an entity in another registered space SHALL swap the resident stage.
+The dev HUD stage lab SHALL mirror paused selections, save selected blueprints through the disk bridge, and allow focus changes across registered spaces.
+
+#### Scenario: Paused selection mirror fields
+- **WHEN** a `semanticId` is picked while paused
+- **THEN** While paused, picking a `semanticId` SHALL update `data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, `data-camera-mode`, and `globalThis.__UPLIFT_STAGE_INSPECTOR__`.
+
+#### Scenario: Stage lab persistence and focus
+- **WHEN** the stage panel saves or the dev HUD changes focus
+- **THEN** The stage panel SHALL be able to save the selected stage blueprint or character visual through the existing disk-bridge routes. The dev HUD SHALL also be able to set the focus entity to any entity in the current world. Changing focus to an entity in another registered space SHALL swap the resident stage.
 
 #### Scenario: A paused pick mirrors the inspector
 - **WHEN** the simulation is paused and a `semanticId` is picked
@@ -127,7 +179,27 @@ The renderer SHALL create an entity mesh only when a `CharacterVisualBlueprint.c
 - **THEN** `char_player_operative` and `char_yard_walker` SHALL each resolve a `CharacterVisualBlueprint` with that same `characterId`
 
 ### Requirement: A stage is drawn in its space frame
-The floor footprint SHALL be the walkable rectangle in the space's local frame. The space origin SHALL be the center of that space's waypoint positions on X and Z, with Y at 0. Entity positions and stage prop positions SHALL subtract that origin before they are placed on the stage. The floor, the walls, the lights, and the camera volume SHALL stay centered on the stage. A floor click SHALL add the origin before it is compared with waypoints, and SHALL NOT move the focus entity when that entity is not in the drawn space. The camera SHALL follow the focus entity only while that entity is in the drawn space, and SHALL look at the stage center otherwise. Waypoint Y SHALL be kept. A waypoint whose local XZ lies outside the footprint SHALL reject the launch and SHALL NOT change `WorldState`. The renderer SHALL NOT be given a room width or an entity id in order to place the floor. The dev HUD focus list SHALL list entities in the focus entity's space. `setFocusEntity` SHALL still accept an entity in another registered space.
+The shell SHALL draw each stage in its space-local frame, preserving world coordinates for movement, validating waypoint containment, and handling focus outside the drawn space.
+
+#### Scenario: Space origin and local placement
+- **WHEN** a stage is placed in its space frame
+- **THEN** The floor footprint SHALL be the walkable rectangle in the space's local frame. The space origin SHALL be the center of that space's waypoint positions on X and Z, with Y at 0. Entity positions and stage prop positions SHALL subtract that origin before they are placed on the stage. The floor, the walls, the lights, and the camera volume SHALL stay centered on the stage. Waypoint Y SHALL be kept.
+
+#### Scenario: Floor hit and camera coordinate handling
+- **WHEN** a floor click or camera follow is processed
+- **THEN** A floor click SHALL add the origin before it is compared with waypoints, and SHALL NOT move the focus entity when that entity is not in the drawn space. The camera SHALL follow the focus entity only while that entity is in the drawn space, and SHALL look at the stage center otherwise.
+
+#### Scenario: Waypoint footprint validation
+- **WHEN** a launch is validated
+- **THEN** A waypoint whose local XZ lies outside the footprint SHALL reject the launch and SHALL NOT change `WorldState`.
+
+#### Scenario: Floor placement independence
+- **WHEN** the renderer places the floor
+- **THEN** The renderer SHALL NOT be given a room width or an entity id in order to place the floor.
+
+#### Scenario: Focus list and cross-space selection
+- **WHEN** the dev HUD lists or selects focus entities
+- **THEN** The dev HUD focus list SHALL list entities in the focus entity's space. `setFocusEntity` SHALL still accept an entity in another registered space.
 
 #### Scenario: The chambers hearth sits on the authored floor
 - **WHEN** the proving-slice chambers stage is launched

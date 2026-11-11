@@ -6,7 +6,19 @@ Provide an immutable `WorldState`, a pure deterministic `WorldEffect` reducer, a
 ## Requirements
 
 ### Requirement: Continuous 60Hz kinematics step and arrival events
-The simulation domain SHALL advance entity positions and yaw rotations continuously along their assigned waypoint paths in `stepKinematics(state, dtSeconds, spaceKinds?)` at realistic walking speeds (`m/s` and `rad/s`), snapping to exact waypoint coordinates and emitting `WaypointArrivalEvent`s in path order when reached, rejecting negative or non-finite `dtSeconds` with `RangeError`, and leaving spatial state unchanged when `dtSeconds === 0` or `state.paused === true`. While advancing an entity in `cognitivePhase === 'moving'`, `stepKinematics` SHALL additionally apply same-space XZ separation against other embodied entities within `0.75` meters, computed from start-of-step positions, capped at `separationWeight * min(0.15 * dtSeconds, 0.25 * xzDistanceRemainingToCurrentTarget)` meters using the mover's own weight (`0..1`, omitted means `1`), without increasing XZ distance to the current target, and with separation forced to zero when that XZ distance is `<= 0.05` meters or the mover's weight is `0`, so a packed group keeps its authored spacing and the arrival snap stays exact. `stepKinematics` SHALL accept an optional space-kind directory; entities whose space kind is `off_stage_region` SHALL still follow assigned paths and SHALL be excluded from separation, and when the directory is omitted every entity SHALL be treated as embodied.
+The simulation domain SHALL advance entity positions and yaw continuously along assigned waypoint paths in `stepKinematics(state, dtSeconds, spaceKinds?)`, with exact ordered arrivals, bounded same-space separation, and unchanged freeze and invalid-delta behavior.
+
+#### Scenario: Continuous integration and delta handling
+- **WHEN** `stepKinematics` receives a simulation state and `dtSeconds`
+- **THEN** The simulation domain SHALL advance entity positions and yaw rotations continuously along their assigned waypoint paths in `stepKinematics(state, dtSeconds, spaceKinds?)` at realistic walking speeds (`m/s` and `rad/s`), snapping to exact waypoint coordinates and emitting `WaypointArrivalEvent`s in path order when reached, rejecting negative or non-finite `dtSeconds` with `RangeError`, and leaving spatial state unchanged when `dtSeconds === 0` or `state.paused === true`.
+
+#### Scenario: Bounded separation during movement
+- **WHEN** an entity advances in `cognitivePhase === 'moving'`
+- **THEN** While advancing an entity in `cognitivePhase === 'moving'`, `stepKinematics` SHALL additionally apply same-space XZ separation against other embodied entities within `0.75` meters, computed from start-of-step positions, capped at `separationWeight * min(0.15 * dtSeconds, 0.25 * xzDistanceRemainingToCurrentTarget)` meters using the mover's own weight (`0..1`, omitted means `1`), without increasing XZ distance to the current target, and with separation forced to zero when that XZ distance is `<= 0.05` meters or the mover's weight is `0`, so a packed group keeps its authored spacing and the arrival snap stays exact.
+
+#### Scenario: Optional space-kind directory
+- **WHEN** `stepKinematics` receives or omits the space-kind directory
+- **THEN** `stepKinematics` SHALL accept an optional space-kind directory; entities whose space kind is `off_stage_region` SHALL still follow assigned paths and SHALL be excluded from separation, and when the directory is omitted every entity SHALL be treated as embodied.
 
 #### Scenario: Continuous movement, exact snap, and multi-waypoint arrival events
 - **WHEN** an entity at `[0, 0, 0]` is assigned a path to `[1.4, 0, 0]` at `walkSpeedMetersPerSec: 1.4` and `stepKinematics` is called across 60 frames of `1/60s` (or a single multi-waypoint step)
@@ -21,14 +33,34 @@ The simulation domain SHALL advance entity positions and yaw rotations continuou
 - **THEN** the pair's XZ distance SHALL increase under a deterministic offset cap, and the lone entity's stepped positions SHALL match path integration with no lateral offset
 
 ### Requirement: Pure deterministic WorldEffect reducer
-The simulation domain SHALL apply discrete `WorldEffect` commands via a pure function `applyWorldEffects(state, effects)` that returns `{ state, appliedEffects }` without mutating the prior state snapshot, covering pressure stocks (`subsistence_pressure`, `production_pressure`, `elite_prestige_pressure`), the 4 discovery layers (`null` when unnoticed, or `'noticed' | 'assayed' | 'attributed' | 'theorized'`), inertia pillars, emergency states (compounding each character's `emergencyVice` drive), orbital pass phases (`zenith | horizon | occluded`) and `Slingshot` / `Burn` Delta spend, audio cue emissions (`emit_audio_cue` targeting the `groundside` or `lace` bus), and Dual-Ledger legacy scars.
+The simulation domain SHALL apply discrete `WorldEffect` commands via a pure function `applyWorldEffects(state, effects)` that returns `{ state, appliedEffects }` without mutating the prior state snapshot.
+
+#### Scenario: Societal and character effects
+- **WHEN** pressure, discovery, inertia, or emergency effects are applied
+- **THEN** The reducer SHALL cover pressure stocks (`subsistence_pressure`, `production_pressure`, `elite_prestige_pressure`), the 4 discovery layers (`null` when unnoticed, or `'noticed' | 'assayed' | 'attributed' | 'theorized'`), inertia pillars, and emergency states (compounding each character's `emergencyVice` drive).
+
+#### Scenario: Orbital audio and legacy effects
+- **WHEN** orbital, audio, or legacy effects are applied
+- **THEN** The reducer SHALL cover orbital pass phases (`zenith | horizon | occluded`) and `Slingshot` / `Burn` Delta spend, audio cue emissions (`emit_audio_cue` targeting the `groundside` or `lace` bus), and Dual-Ledger legacy scars.
 
 #### Scenario: Immutable application of world effects across pressure stocks, inertia pillars, emergencies, audio cues, and orbital delta
 - **WHEN** `applyWorldEffects` processes effects adjusting a societal pressure stock, advancing the discovery layer, collapsing an NPC `InertiaPillar`, triggering an `EmergencyState` and compounding `emergencyVice` drives, emitting an audio cue, or spending orbital `Delta` for a `Slingshot` or `Burn`
 - **THEN** the returned `WorldState` SHALL reflect the updated values clamped to valid bounds while the input `WorldState` remains completely unmodified
 
 ### Requirement: Human-paced NPC cognitive phases, anti-thundering-herd cascade dampening, and fast-eval pacing override
-The simulation engine SHALL pace NPC progression through explicit cognitive phases (`idle`, `deliberating`, `moving`, `performing_dwell`, `cooldown`, `awaiting_trigger` — transitioning from `moving` to `performing_dwell` on terminal waypoint arrival), SHALL dampen NPC-to-NPC stimulus cascades via exponential hop backoff (`cascadeHopCount` capped by `maxAutonomousCascadeHops` and un-gated via `release_external_trigger`) and a staggered round-robin token-bucket evaluation cap (`maxCognitiveEvaluationsPerPulse = 1` advancing `cognitiveRoundRobinCursor`) under `DEFAULT_GAMEPLAY_PACING_CONFIG`, and SHALL provide a configurable `SimulationPacingConfig` (`FAST_EVAL_PACING_CONFIG`) that waterfalls zero-duration phases in a single pass so automated tests and AI evals execute in milliseconds.
+The simulation engine SHALL pace NPC progression through explicit cognitive phases, dampen autonomous stimulus cascades, and provide configurable gameplay and fast-eval pacing.
+
+#### Scenario: Explicit phases and terminal arrival
+- **WHEN** the engine advances NPC cognition
+- **THEN** It SHALL use explicit cognitive phases (`idle`, `deliberating`, `moving`, `performing_dwell`, `cooldown`, `awaiting_trigger` — transitioning from `moving` to `performing_dwell` on terminal waypoint arrival).
+
+#### Scenario: Gameplay cascade and evaluation limits
+- **WHEN** the engine uses `DEFAULT_GAMEPLAY_PACING_CONFIG`
+- **THEN** It SHALL dampen NPC-to-NPC stimulus cascades via exponential hop backoff (`cascadeHopCount` capped by `maxAutonomousCascadeHops` and un-gated via `release_external_trigger`) and a staggered round-robin token-bucket evaluation cap (`maxCognitiveEvaluationsPerPulse = 1` advancing `cognitiveRoundRobinCursor`).
+
+#### Scenario: Fast-eval waterfall
+- **WHEN** automated tests or AI evals use fast-eval pacing
+- **THEN** The engine SHALL provide a configurable `SimulationPacingConfig` (`FAST_EVAL_PACING_CONFIG`) that waterfalls zero-duration phases in a single pass so automated tests and AI evals execute in milliseconds.
 
 #### Scenario: Human-paced deliberation, dwell, and awaiting-trigger pause
 - **WHEN** an entity enters `deliberating` or `performing_dwell` with `phaseRemainingSeconds: 10` (or `awaiting_trigger` when a behavior requires a player/external trigger) under `DEFAULT_GAMEPLAY_PACING_CONFIG`
