@@ -52,6 +52,16 @@ Verification buffers each check’s output and prints failure diagnostics togeth
 
 ---
 
+## Review workflows
+
+[Delivery review gates](.agents/skills/uplift-review-gates/SKILL.md) define proposal, per-task and final independent reviews, consumer evidence, task sizing and document integrity. [Periodic root-and-branch review](.agents/skills/root-and-branch-review/SKILL.md) covers the whole project through baseline inspection, blind challenges, owner decisions and approved amendment batches. The [project skill index](AGENTS.md#project-skills) links all workflows. Claude can use `/root-and-branch-review` through the tracked skill symlink.
+
+The portable quotechecker checks full source quotations and marks command evidence for human verification without executing commands. Its Python regression suite is separate from ordinary Node verification:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/tooling -p 'test_quotecheck.py'
+```
+
 ## Pinned Dependency & Security Manifest (Verified 2026-10-29)
 
 Every dependency installed when cloning this repository is explicitly pinned:

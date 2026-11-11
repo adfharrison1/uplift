@@ -12,6 +12,8 @@ metadata:
 
 Propose a new change - create the change and generate all artifacts in one step.
 
+**Uplift proposal gate:** Read [uplift-review-gates](../uplift-review-gates/SKILL.md) when drafting and before presenting the artifacts. Use its current size rule and consumer-ending scenario requirements. Obtain three independent proposal audits, verify and record every finding disposition, and run strict OpenSpec validation before owner review. Preserve the planning-only boundary below: proposal approval does not start implementation; wait for the subsequent apply request. Preserve this signpost when regenerating the skill.
+
 **Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.
 
 I'll create a change with the artifacts your schema defines. With the default spec-driven schema that is:

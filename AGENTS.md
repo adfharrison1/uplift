@@ -86,6 +86,21 @@ Root `README.md` and `AGENTS.md` provide high-level project instructions and poi
 | **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS 3rd-person tracking renderer, Debug Inspector, HUD, composition root                     |
 | **Test Suites**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests        |
 
+## Project skills
+
+Use the linked skill for the current workflow. The delivery-gates skill is authoritative for review procedures, task sizing and model-agnostic briefs; the legacy review summary below retains the existing review axes until its documentation consolidation. Preserve its 3/2/6 independent review counts and owner checkpoints.
+
+- [uplift-review-gates](.agents/skills/uplift-review-gates/SKILL.md): proposal, task and delivery review, G1–G6 evidence, task sizing and document integrity.
+- [root-and-branch-review](.agents/skills/root-and-branch-review/SKILL.md): periodic deep review of delivered code, design and roadmap; also available through the Claude skill symlink.
+- [uplift-debug](.agents/skills/uplift-debug/SKILL.md): inspect telemetry and simulation traces.
+- [uplift-design-notes](.agents/skills/uplift-design-notes/SKILL.md): assess a raw design dump or new mechanic.
+- [openspec-propose](.agents/skills/openspec-propose/SKILL.md): generate planning artifacts, then stop for review.
+- [openspec-apply-change](.agents/skills/openspec-apply-change/SKILL.md): implement approved tasks in the default checkout with per-task approval.
+- [openspec-update-change](.agents/skills/openspec-update-change/SKILL.md): revise existing planning artifacts without editing code.
+- [openspec-explore](.agents/skills/openspec-explore/SKILL.md): investigate ideas and requirements before implementation.
+- [openspec-sync-specs](.agents/skills/openspec-sync-specs/SKILL.md): sync delta specs without archiving.
+- [openspec-archive-change](.agents/skills/openspec-archive-change/SKILL.md): archive delivered work after its review gates.
+
 ## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 6-Subagent Review
 
 We use **OpenSpec (`opsx`)** across the living atomic change roadmap in `openspec/config.yaml`. `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents—before proposing any new change, always check `DESIGN_NOTES.md` for new notes or intermediate changes, and keep all engine parameters, camera settings, and module registries data-driven so design and config changes can be made at any time without structural rework.
