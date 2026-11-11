@@ -10,7 +10,7 @@ Six atomic commits, ordered from workflow contracts through shared tooling to ar
 
 ## 2. Design-note integrity and honest debugging guidance
 
-- [ ] 2.1 Rewrite uplift-design-notes for the current document system, approval/disposition checkpoints, three topic perspectives and two fidelity/coherence reviewers; correct uplift-debug against the shipped telemetry/query/compactor behavior. Exercise the rewrite on the real zoom inbox note, recognizing existing coverage and preserving unapproved inputs. Verify: deliver the exercise's canonical-home/index/disposition/no-loss record, have both reviewers check it, and run `npm run verify`. Commit: `fix(skills): preserve design decisions and describe shipped telemetry`.
+- [x] 2.1 Rewrite uplift-design-notes for the current document system, approval/disposition checkpoints, three topic perspectives and two fidelity/coherence reviewers; correct uplift-debug against the shipped telemetry/query/compactor behavior. Exercise the rewrite on the real zoom inbox note, recognizing existing coverage and preserving unapproved inputs. Verify: deliver the exercise's canonical-home/index/disposition/no-loss record, have both reviewers check it, and run `npm run verify`. Commit: `fix(skills): preserve design decisions and describe shipped telemetry`.
 
   Primary files: the two existing SKILL.md files. Related DESIGN_NOTES, design index, inbox and roadmap changes require the approved disposition; never invent a new design decision or edit AGENTS through this workflow. Record budget checks and any inspected-but-unchanged index entry.
 

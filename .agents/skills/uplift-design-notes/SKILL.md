@@ -1,87 +1,57 @@
 ---
 name: uplift-design-notes
-description: >-
-  Break a raw Uplift design-note dump into topics, research each topic with
-  three parallel subagents (game design, codebase fit, pacing and hardware),
-  and after approval integrate it into DESIGN_NOTES.md, openspec/config.yaml,
-  and AGENTS.md, then run a coherence assessment. Use when the user pastes
-  design notes, says design note dump, topic assessment, or asks to record a
-  new mechanic into the living roadmap.
+description: Use when the owner supplies raw Uplift design notes, requests a topic assessment, or asks to record a mechanic or process notes already in the design inbox.
 ---
 
-# Uplift Design Notes (`uplift-design-notes`)
+# Uplift design notes
 
-Use this skill when the user drops a raw design-note dump, asks to assess notes already in `DESIGN_NOTES.md`, or asks to record a new mechanic into the living roadmap. Process **one topic per cycle**. This skill writes living docs. It does not run `/opsx-propose` and it does not commit unless the user asks.
+Process one topic per cycle, preserving the owner's words and one canonical statement per concept. This workflow researches and integrates design; it does not implement gameplay, generate OpenSpec proposals, commit, or write AGENTS guides.
 
-## Standing constraints
+Use [uplift-review-gates](../uplift-review-gates/SKILL.md) and its [document integrity procedure](../uplift-review-gates/references/document-integrity.md). Read that procedure before editing living documents. Its task sizing and capability-based reviewer briefs supersede older fixed task counts and vendor model names.
 
-Read these before splitting topics, and repeat the ones that bind the current topic inside every subagent prompt:
+## Locate and research
 
-- `Epoch` and `Era` are synonymous. Schemas use `epochId`.
-- The campaign ladder is an ordered `EpochProfileBlueprint[]` (`N >= 1`, final entry `isTerminalEpoch: true`). The 7-epoch arc is the default content ladder, never an engine constant.
-- Names of people, ships, drones, places, and threads are seed exemplars. Engine ids for the advisors are `advisor_integral` and `advisor_particular`.
-- `src/domain/` and `src/application/` stay epoch-agnostic: no feudal hardcoding, no `three`, no `Math.random()`, no `Date.now()`.
-- Target hardware is a 2019 Intel Core i7, 16GB RAM, 60 FPS, 100% local, zero API keys.
-- A new mechanic becomes its own roadmap change when folding it into an existing change would bloat that change. Letter the id (`06c`) and name its dependencies.
-- Subagent model: `composer-2.5-fast` or `grok-4.7-high-fast`. Prefer the highest-reasoning of those two that is available. If the user names another listed model, use that. If a slug is rejected, retry the other allowed slug or do the pass yourself and say which model was unavailable. Do not substitute an unlisted model.
+1. Inspect `git status --short`; use the default checkout and preserve unrelated work. Read `notes/inbox.md`, `DESIGN_NOTES.md` (pillars, rules spine, status index, Where facts live and dispositions), `design/README.md`, relevant feature files, and `openspec/roadmap.yaml`. Config context is a summary, not the roadmap authority. Read source and scoped guides when checking shipped behavior.
+2. Capture a newly pasted dump verbatim in `notes/inbox.md`, retaining its provenance and existing inbox content; intake records the input, not an approved design decision. Keep raw notes intact while processing. Split the dump into mechanic clusters, keeping coupled ideas together. Present each topic's gist, likely existing canonical home, roadmap fit and conflicts. Research the topic the owner selects; if already selected, proceed without asking again.
+3. Research unfamiliar names before interpreting them; verify external claims against primary sources. Compare each note against existing decisions first. Existing coverage calls for verification and a disposition, not another design section. Raise conflicts with pillars or the rules spine to the owner.
+4. Obtain **three independent research perspectives**, with read-only briefs stating **high reasoning, medium-to-high model**, exact raw wording, relevant accepted constraints and evidence paths. Use available models meeting that capability; limited slots mean waves, never fewer perspectives or author self-review.
 
-## 1. Topic breakdown
+| Perspective                    | Required assessment                                                                                                                                |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Game design and precedents     | Playable loop, precedents, duration, failure modes and what to take or leave.                                                                      |
+| Codebase and architecture fit  | Actual shipped contracts and consumers, epoch-agnostic layer placement, reuse, roadmap dependencies and a task split using the delivery size rule. |
+| Pacing, hardware and coherence | Economy/storyteller budget, exploits, anti-over-acceleration, accepted decisions and local 2019 Intel i7 / 16 GB / 60 FPS cost.                    |
 
-1. Read `DESIGN_NOTES.md`, the context block and planned change sequence in `openspec/config.yaml`, and the registry list in root `AGENTS.md`.
-2. Separate the user's raw dump from sections already under **Solidified Design Decisions**. Leave the raw dump in the file until the user asks to remove it.
-3. Split the dump into topics. One topic is one mechanic cluster that could become one OpenSpec change (or a deliberate fold into an existing change). Keep coupled ideas together (a state machine and its scheduler). Split ideas that would blow the 4–6 task budget.
-4. Present a numbered topic list: one-sentence gist, likely change id or "fold into `<existing-id>`", and any obvious clash with a solidified decision.
-5. Stop. Research the topic the user names. If they already named it in the same message, start there.
+Include constraints that bind the topic: Epoch and Era are synonymous (`epochId`); the intended ladder is data-driven, never a fixed engine count; content names are exemplars; domain/application remain epoch-agnostic; local operation uses no external runtime APIs. Distinguish intended contracts from shipped code.
 
-## 2. Three-agent research
+Check research claims against cited evidence. Present a concrete synthesis: loop and contracts, canonical placement, roadmap fit/dependencies/non-goals, alternatives requiring owner judgment, and each raw paragraph's proposed disposition. **Owner approval of that interpretation and disposition precedes living-document edits.** Incorporate stipulations verbatim. Reuse explicit approval already given for the same scope; research completion is not approval.
 
-Launch **three** `generalPurpose` subagents in **one** message. Each prompt must include the topic text, the standing constraints, "do not edit files", and a request for a concrete recommendation under ~1200 words.
+## Integrate approved dispositions
 
-| Agent                           | Brief                                                                                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Game design and precedents      | What similar games do, what to take, what to leave, and a playable loop with duration and failure modes.                                                |
-| Codebase and architecture fit   | Read the current registries, reducers, rendering, and roadmap. Name new contracts, layer placement, reuse of shipped systems, and 4–6 inward-out tasks. |
-| Pacing, hardware, and coherence | Watch economy, storyteller budget, anti-over-acceleration, 2019-Mac cost, exploits, and clashes with solidified decisions.                              |
+| Disposition                      | Action                                                                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accepted new or revised design   | Edit the existing system home in DESIGN_NOTES or its indexed feature file; retain owner wording/exemplars verbatim. Mark planned work with resolvable roadmap references. |
+| Already covered                  | Verify the canonical text, status and existing disposition; record them as checked/unchanged. Add no duplicate decision or roadmap item.                                  |
+| Rejected or deferred             | Retain the reason, owner ruling and revisit condition where applicable in dispositions; do not silently drop the idea.                                                    |
+| Failed, undecided or unprocessed | Preserve original inbox text intact; record the unresolved question without presenting it as a decision.                                                                  |
 
-When they return, check their claims against the files they cite. Present one synthesis to the user:
+For every edit check the **status index, Where-facts-live table, roadmap and disposition row**. Update affected entries; explicitly record why inspected entries remain unchanged. Every new feature file needs a status-index row; `design/README.md` is a navigation index and is exempt. Keep roadmap ordering/dependencies coherent. Update config context only when its summary needs correction, with pointers rather than duplicated design. Never add planned capabilities to root or scoped AGENTS; shipped guidance belongs to the implementation delivering them.
 
-- Recommended loop and epoch-agnostic contracts (content skins stay in `src/content/`)
-- Where it sits on the roadmap, with dependencies and non-goals
-- The forks only the user can decide
+Before moves or cuts, map every old paragraph/block to its retained home, merged canonical statement or explicitly superseded owner decision. Preserve unique numbers, identifiers, exemplars and wording; leave pointers from old homes. Obtain independent fidelity/no-loss and coherence reviews **before** restructuring or cutting config context. Keep accepted content edits separate from structural work.
 
-**Wait for approval before editing any living doc.** A stipulation in the approval is part of the decision. Fold it into the synthesis before writing.
+Remove only the exact inbox material whose interpretation, disposition **and removal** have applicable owner approval, whose canonical/rejection/deferral record is complete, and whose required reviews pass. Before removal, retain the exact owner wording and provenance in a durable disposition or evidence home; a paraphrased design summary is not a verbatim record. Preserve adjacent and unresolved raw text byte-for-byte. Existing coverage alone is not removal approval. Re-running the workflow must reuse existing decisions and disposition rows.
 
-## 3. Integration
+## Verify integrity and assess the batch
 
-After approval, update the living docs so a later agent can implement the decision without the chat transcript.
+Obtain **two independent reviewers**, each with **high reasoning, medium-to-high model**, exact owner text, before/after documents and the integrity record:
 
-1. `DESIGN_NOTES.md` — add a numbered solidified section: why, player-facing loop, epoch-agnostic contracts, default-ladder content skins marked as exemplars, and the user's stipulations.
-2. `openspec/config.yaml` — add a context bullet and a planned-sequence line (`<id> — <one sentence> [planned — revisable]`). Keep change order equal to dependency order.
-3. Root `AGENTS.md` — add a registry bullet when the decision names a new system.
-4. Section `README.md` / `AGENTS.md` — update only the guide that would otherwise describe the wrong inventory or recipe.
+- **Fidelity/no-loss:** meaning, verbatim exemplars/stipulations, all raw paragraphs accounted for, no-loss mapping and approval/removal boundaries.
+- **Coherence:** system placement, one canonical statement, pillars/rules spine, shipped/planned status, resolving navigation/roadmap/dispositions, budgets and untouched sections.
 
-Writing rules while you edit:
+These are additional to topic research and final assessment. During delivery they may be included in the two task-review briefs if both receive the necessary evidence and remain independent. Verify findings and correct confirmed in-scope issues before the applicable owner checkpoint.
 
-- Engine text stays free of era names. Era names appear only as default-ladder content skins.
-- Reuse an existing contract (`StageSceneBlueprint`, `StoryletTemplate`, `WorldEffect`, `SeededRandom`, `StateSliceKey`) before inventing a parallel one.
-- Do not delete the user's raw notes unless they ask.
-- Do not create `proposal.md`, `design.md`, or `tasks.md`.
-- Run `npm run verify` after the edit.
+Record pre/post whitespace-delimited word counts: root AGENTS targets about 900 and must not exceed **1,050**; config context stays **below 1,500**. DESIGN_NOTES' roughly **14,000** target is aspirational; preserve its accepted larger baseline. Report existing budget debt without claiming compliance. Use focused indexed feature files for overflow; the engineering split remains deferred until the first milestone is delivered. Do not cut owner exemplars to meet a target.
 
-## 4. Final assessment
+After a batch, or on request, retain the **three independent final-assessment perspectives**: terminology (Epoch/Era, exemplar versus engine IDs, time vocabulary); roadmap (duplicates, dependencies and delivery sizing); code versus docs (claims checked against actual schemas, consumers and tests). Use the same capability briefs and wave rule. Present verified contradictions and concrete proposed fixes; owner approval precedes new coherence edits. Preserve rejected findings and reasons.
 
-Run this after a batch of topics is recorded, or when the user asks whether the docs still agree. Launch **three** subagents in one message, same model rule, "do not edit files":
-
-| Agent            | Brief                                                                                                                      |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Terminology      | `Epoch`/`Era`, locked epoch counts, exemplar names used as engine ids, advisor ids, `*Tick` fields that should be watches. |
-| Roadmap          | Duplicate systems, change ids that depend on work scheduled after them, changes too large for 4–6 tasks.                   |
-| Code versus docs | Solidified claims that contradict shipped schemas, layer rules, or tests. Read the files.                                  |
-
-Verify every finding against the cited file. Present a short contradiction list and the exact edit you would make. Apply those edits only after the user approves, then run `npm run verify`.
-
-## Pause points
-
-- After the topic list, unless the user already named the topic.
-- After the synthesis, before any living-doc edit.
-- After the final-assessment list, before applying coherence fixes.
+Run `npm run verify` after edits. Keep a concise retained record: raw anchors and approval scope, canonical homes/status, every index/roadmap/disposition check including unchanged entries, no-loss map, budget measurements, reviewer findings/dispositions and verification results. Never claim unavailable evidence passed. Hand the reviewed result back for the applicable owner checkpoint; do not start a proposal or commit automatically.
