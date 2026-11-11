@@ -200,6 +200,7 @@ entries:
       - hx-ops-safety
     specs_modified:
       - deterministic-simulation-primitives
+      - dual-ledger-civilization-legacy
     status: planned
     scope: "Clamps legacy mutations to [0,1] with a telemetry note (the throw stays
       in an authoring-time contract test) and adds a splitmix32 seed scramble
