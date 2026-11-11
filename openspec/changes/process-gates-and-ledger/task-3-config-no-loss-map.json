@@ -1,0 +1,3014 @@
+{
+  "source_commit": "c0251a0",
+  "source_sha256": "f4e3b65dd7fe7ece5af18d6ec37d367d122a808449c0158f82d108caa0197d55",
+  "source_snapshot": "task-3-config-before.txt",
+  "draft_root": "/tmp/uplift-task3-stage",
+  "status": "round 1 corrections prepared; awaiting independent pre-cut rechecks",
+  "rows": [
+    {
+      "id": "C001",
+      "group": "Project: Uplift (personal immersive simulation game to share locally with friends \u2014 not a commercial cloud product).",
+      "source_anchor": "Project: Uplift (personal immersive simulation game to share locally with friends \u2014 not a commercial cloud product).",
+      "source_text": "  Project: Uplift (personal immersive simulation game to share locally with friends \u2014 not a commercial cloud product).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pillars (shipped)"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Project: Uplift"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Personal/local scope retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C002",
+      "group": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_anchor": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_text": "  Concept, Setting & Multi-Epoch Continuity:",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Epoch ladder and operative rotation (partial)"
+        }
+      ],
+      "disposition": "navigation",
+      "notes": "Heading mapped to canonical system.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C003",
+      "group": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_anchor": "- Inspired by Iain M. Banks' Culture novels (*Inversions*, *Matter*, *Use of Weapons* / Special Circumstances), Fred Saberhagen's *Brother Assassin*, and Strugatsky's *Hard to Be a God*.",
+      "source_text": "  - Inspired by Iain M. Banks' Culture novels (*Inversions*, *Matter*, *Use of Weapons* / Special Circumstances), Fred Saberhagen's *Brother Assassin*, and Strugatsky's *Hard to Be a God*.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Frame and pillars (partial)"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Inspirations include"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Inspirations retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C004",
+      "group": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_anchor": "- **Terminology (`Epoch === Era`) & Data-Driven $N$-Epoch Ladder (`EpochProfileBlueprint[]`)**:",
+      "source_text": "  - **Terminology (`Epoch === Era`) & Data-Driven $N$-Epoch Ladder (`EpochProfileBlueprint[]`)**:\n      Throughout Uplift, **`Epoch` and `Era` are 100% synonymous** (`Epoch 1 === Era 1`; code and schemas use `epochId`). The **7-Epoch / 7-Era Grand Civilizational Arc** below is the **default data-driven campaign ladder** ($N \\ge 1$, where the final entry has `isTerminalEpoch: true`), **never a hardcoded engine constant** \u2014 Epochs can be added, removed, split, or reordered in content configuration at any time:\n      1. **Epoch 1 (Era 1) \u2014 Feudal** (*Highglass Hold*: feudal court, guilds, Synod orthodoxy, horse couriers, naked-eye omens, Witch-Hunt Inquisition)\n      2. **Epoch 2 (Era 2) \u2014 Renaissance** (printing charters, optical lenses, merchant banking houses, humanist inquiry vs. dogmatic rifts)\n      3. **Epoch 3 (Era 3) \u2014 Pre-Industrial / Colonial** (chartered trading companies, optical semaphore & post networks, navigational observatories, mercantilist resource wars)\n      4. **Epoch 4 (Era 4) \u2014 Industrial / WWI-Equivalent** (steam/coal/rail, telegraph wires, mass conscription, factory labor vs. capital, industrial/chemical warfare dual-use ceilings)\n      5. **Epoch 5 (Era 5) \u2014 Cold-War-Era Equivalent** (ideological blocs, radio/television/CRT, nuclear/strategic deterrence dual-use ceilings, intelligence agencies & black-sites)\n      6. **Epoch 6 (Era 6) \u2014 Computer-Age** (global digital networks, email/cloned ledger hashes, algorithmic surveillance, corporate/state information monopolies)\n      7. **Epoch 7 (Era 7) \u2014 Space-Age / First-Contact (`isTerminalEpoch: true`)** (orbital telemetry/satellites, indigenous planetary defense capable of deflecting the Intersecting Comet, culminating in First Contact readiness)",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### The configurable ladder (planned)"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Default ladder skins"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "All seven rung exemplars and terminal/data-driven N constraints remain design, not engine constants.",
+      "identifiers_and_literals": [
+        "Epoch === Era",
+        "EpochProfileBlueprint[]",
+        "Epoch",
+        "Era",
+        "Epoch 1 === Era 1",
+        "epochId",
+        "isTerminalEpoch: true"
+      ],
+      "numeric_fragments": ["100%", "1", "7", "2", "3", "4", "5", "6"]
+    },
+    {
+      "id": "C005",
+      "group": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_anchor": "- The player is a covert Special Circumstances operative implanted into a developing civilization, with **a new playable operative per Epoch** accompanied by two Culture advisor roles who argue inside the neural lace (`AdvisoryDuel`, where a frozen-out advisor sulks and withholds `omissible` briefing clauses) with callsigns/identities and personality traits (`humor`, `patience`, `riskTolerance`, `primness`, `omissionSulkThreshold`) rolled or selected within bounded ranges per Epoch:",
+      "source_text": "  - The player is a covert Special Circumstances operative implanted into a developing civilization, with **a new playable operative per Epoch** accompanied by two Culture advisor roles who argue inside the neural lace (`AdvisoryDuel`, where a frozen-out advisor sulks and withholds `omissible` briefing clauses) with callsigns/identities and personality traits (`humor`, `patience`, `riskTolerance`, `primness`, `omissionSulkThreshold`) rolled or selected within bounded ranges per Epoch:\n      1. The orbiting Ship Mind (`advisor_integral`, e.g. seed exemplar *\"The Ending\"*): consequentialist of **The Integral** (area under the curve of lives across generations, non-round probabilities like `0.73`).\n      2. The groundside Companion Drone (`advisor_particular`, e.g. seed exemplar *\"The Lamp\"*): fierce deontologist of **The Particular** (single bodies, hygiene, room smell scored 1-5), forced into an era-appropriate physical disguise (`droneDisguise`) randomly chosen from a curated pool of 3-6 era-appropriate items per Epoch (Feudal reliquary lamp/lantern -> Renaissance astrolabe/chronometer -> Colonial sextant/barometer -> Industrial brass theodolite/telegraph ticker -> Cold-War field-radio/dosimeter -> Computer-Age diagnostic terminal -> Space-Age telemetry drone).\n      *(Note: Specific character, ship, drone, and location names in `DESIGN_NOTES.md` are non-exhaustive seed exemplars establishing tone and writing quality; content scales to 500+ characters, multiple regions, and large pools of threads and storylets.)*",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### The Culture advisory pair (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Seed exemplars and tone benchmarks (planned)"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Default ladder skins"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Integral/Particular prose, 0.73, 1\u20135, 3\u20136, personality keys, disguise examples and 500+ retained.",
+      "identifiers_and_literals": [
+        "AdvisoryDuel",
+        "omissible",
+        "humor",
+        "patience",
+        "riskTolerance",
+        "primness",
+        "omissionSulkThreshold",
+        "advisor_integral",
+        "0.73",
+        "advisor_particular",
+        "droneDisguise",
+        "DESIGN_NOTES.md"
+      ],
+      "numeric_fragments": ["1", "0.73", "2", "1-5", "3-6", "500+"]
+    },
+    {
+      "id": "C006",
+      "group": "Concept, Setting & Multi-Epoch Continuity:",
+      "source_anchor": "- **Uplift-Compressed Generational Flow & Anti-Over-Acceleration Ceilings (`EpochTechCeilingBlueprint`)**:",
+      "source_text": "  - **Uplift-Compressed Generational Flow & Anti-Over-Acceleration Ceilings (`EpochTechCeilingBlueprint`)**:\n      Your covert Uplift presence compresses 600\u2013800 years of natural history into **generational intervals (`15\u201330 years` between operatives: `4\u20136 years` of post-climax work before extraction + `11\u201324 years` before the next operative lands, totaling `~110\u2013200 in-world years` across a 7-Epoch run)** so surviving `youth`/`prime` NPCs from Epoch $k$ are still alive as `prime`/`elder` in adjacent Epoch $k+1$ (`youth -> prime -> elder -> succeeded_by_heir`) and personally remember your predecessor while living through rapid civilizational transformation.\n      Strict per-Epoch ceilings (`maxTechTierForEpoch`, `maxMaturationStepPerTransition = 1`, and societal `absorptionCapacity`) guarantee that mechanics compress the *time between Epochs* to match our pacing design without ever skipping an Epoch rung or breaking an Epoch's internal coherence.\n      Advancing triggers a 4-panel procedural chiaroscuro **Extraction & Reunion Still Sequence**, runs `runInterEpochMaturation`, exports a `CivilizationLegacyState` snapshot with **Dual Legacy Ledgers** (**Material Scars** vs **Veil Scars**), grafts visible/uncoverable **Predecessor Traces** onto `semanticId` stage walls/props, unlocks expanded landing choices, and lets the new operative choose between **Claiming Kinship (`kin_claim`)** or **Starting Afresh (`fresh_start`)**.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### The configurable ladder (planned)"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Adjacent-epoch living NPC continuity"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Anti-over-acceleration ceilings"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Extraction stills"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "600\u2013800, 15\u201330, 4\u20136, 11\u201324, ~110\u2013200, one-rung ceiling, scars/traces and kin/fresh exemplars preserved.",
+      "identifiers_and_literals": [
+        "EpochTechCeilingBlueprint",
+        "15\u201330 years",
+        "4\u20136 years",
+        "11\u201324 years",
+        "~110\u2013200 in-world years",
+        "youth",
+        "prime",
+        "elder",
+        "youth -> prime -> elder -> succeeded_by_heir",
+        "maxTechTierForEpoch",
+        "maxMaturationStepPerTransition = 1",
+        "absorptionCapacity",
+        "runInterEpochMaturation",
+        "CivilizationLegacyState",
+        "semanticId",
+        "kin_claim",
+        "fresh_start"
+      ],
+      "numeric_fragments": [
+        "600\u2013800",
+        "15\u201330",
+        "4\u20136",
+        "11\u201324",
+        "~110\u2013200",
+        "7",
+        "1",
+        "4"
+      ]
+    },
+    {
+      "id": "C007",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_text": "  Visual Style, Camera & Diegetic UI Architecture:",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Visual and UI direction (partial)"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Default ladder skins"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C008",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- 3rd-Person Fixed-Orientation Tracking Camera (*Final Fantasy VII* / *Disco Elysium* / *Inside* style): volume-aware (`CameraVolumeBlueprint`) critically damped spring transitions between wide outdoor courtyards, doorway chokes, and cramped interiors, with subtle camera tilts for Emergency States and Orbital Zenith passes.",
+      "source_text": "  - 3rd-Person Fixed-Orientation Tracking Camera (*Final Fantasy VII* / *Disco Elysium* / *Inside* style): volume-aware (`CameraVolumeBlueprint`) critically damped spring transitions between wide outdoor courtyards, doorway chokes, and cramped interiors, with subtle camera tilts for Emergency States and Orbital Zenith passes.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Visual and UI direction (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs. F1: exact camera exemplar trio restored in Visual and UI direction.",
+      "identifiers_and_literals": ["CameraVolumeBlueprint"],
+      "numeric_fragments": ["3"]
+    },
+    {
+      "id": "C009",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- Dark, serious \"stage-paint chiaroscuro\" visual style at 60 FPS on a 2019 Intel Mac: stepped 3-band toon/chiaroscuro lighting with `#1a1f28` blue-gray shadows, `-30%` desaturated stone/mud/iron palettes, warm `#c4a574` torch/forge pools, exponential weather/emergency fog, and alpha-cone god-rays.",
+      "source_text": "  - Dark, serious \"stage-paint chiaroscuro\" visual style at 60 FPS on a 2019 Intel Mac: stepped 3-band toon/chiaroscuro lighting with `#1a1f28` blue-gray shadows, `-30%` desaturated stone/mud/iron palettes, warm `#c4a574` torch/forge pools, exponential weather/emergency fog, and alpha-cone god-rays.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Visual and UI direction (partial)"
+        },
+        {
+          "path": "src/interfaces/README.md",
+          "anchor": "featuring a shared 3-band stepped toon gradient"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs. Exact three-band count remains in interfaces README renderer inventory.",
+      "identifiers_and_literals": ["#1a1f28", "-30%", "#c4a574"],
+      "numeric_fragments": ["60", "2019", "3", "1", "8", "30%", "74"]
+    },
+    {
+      "id": "C010",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Diegetic UI Bifurcation**: Tactile era-appropriate surface (Epoch 1: parchment broadsheets, wax seals, linen maps; evolving across Epochs to printed pamphlets, colonial gazettes, telegraph tape, Cold-War dossiers/CRT, computer terminals, and space-age telemetry consoles) contrasted against the **Sub-Retinal Culture Neural Lace** (clean geometric vector arcs, inertia pillar rings, orbital pass windows, and rival spoof indicators).",
+      "source_text": "  - **Diegetic UI Bifurcation**: Tactile era-appropriate surface (Epoch 1: parchment broadsheets, wax seals, linen maps; evolving across Epochs to printed pamphlets, colonial gazettes, telegraph tape, Cold-War dossiers/CRT, computer terminals, and space-age telemetry consoles) contrasted against the **Sub-Retinal Culture Neural Lace** (clean geometric vector arcs, inertia pillar rings, orbital pass windows, and rival spoof indicators).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Visual and UI direction (partial)"
+        },
+        {
+          "path": "design/epoch-ladder-skins-and-rotation.md",
+          "anchor": "## Default ladder skins"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["1"]
+    },
+    {
+      "id": "C011",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **In-Game Debug Mode (`F3` / backtick), Stage/Wardrobe Labs (Sound Lab planned) & Agent DOM Mirror**:",
+      "source_text": "  - **In-Game Debug Mode (`F3` / backtick), Stage/Wardrobe Labs (Sound Lab planned) & Agent DOM Mirror**:\n      Pauses 60Hz kinematics, cognitive pulses, and watch advancement (planned: 05b-1-watch-clock-and-time-spend), desaturates the frozen world by 40%, morphs the audio bus into a frozen room-tone grain + 1 Hz lace pulse (planned: 05a-audio-engine), de-anchors the camera for free movement, and renders floating state inspector cards over targeted NPCs/props/surfaces. Planned: lab mode becomes a `PlaySession` flag that also holds the single domain freeze bit (time freezes, effects still reduce and return outcomes), and free-cam keys are gated on lab mode, not on `isPaused()` (planned: hx-reducer-and-frame-safety).\n      Every 3D wall segment, floor, prop, light, and character part carries a deterministic **`semanticId`** (`charnel_stairs.wall.north.seg_02`, `npc.sorrel.part.headgear`) built from the 3-Layer Encoded Visual Framework (`SceneVisualBlueprints.ts`: `EpochVisualTheme` + `StageSceneBlueprint` + `CharacterVisualBlueprint`, starter constants in `defaultStageContent.ts`, and parametric builders in `StageKitbashBuilders.ts` & `ChiaroscuroStageRenderer.ts`).\n      `StageInspectorDomMirror` mirrors `data-active-space-id`, `data-hovered-semantic-id`, `data-selected-semantic-id`, `data-debug-paused`, `data-camera-mode`, and `globalThis.__UPLIFT_STAGE_INSPECTOR__` so the AI agent can directly inspect the live DOM and take screenshots via `cursor-ide-browser`, and the `F3` Stage/Wardrobe Lab (`GET`/`PUT /api/scene-blueprints/:stageId`, `GET`/`PUT /api/character-visuals/:characterId`) persist live UI tweaks back to `src/content/`. The `F3` Sound Lab (`PUT /api/audio-patches`, planned: 05a-sound-lab) and the `F3` Pacing Lab (`PUT /api/pacing-profiles/:profileId`, planned: 05b-2-storylets-and-lab) will do the same through the guarded bridge write-route helper (planned, built by hx-ops-safety).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Visual authoring framework and F3 labs (shipped)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Audio (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pacing profiles and curve envelopes (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Rules spine R1 to R8 (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [
+        "F3",
+        "PlaySession",
+        "isPaused()",
+        "semanticId",
+        "charnel_stairs.wall.north.seg_02",
+        "npc.sorrel.part.headgear",
+        "SceneVisualBlueprints.ts",
+        "EpochVisualTheme",
+        "StageSceneBlueprint",
+        "CharacterVisualBlueprint",
+        "defaultStageContent.ts",
+        "StageKitbashBuilders.ts",
+        "ChiaroscuroStageRenderer.ts",
+        "StageInspectorDomMirror",
+        "data-active-space-id",
+        "data-hovered-semantic-id",
+        "data-selected-semantic-id",
+        "data-debug-paused",
+        "data-camera-mode",
+        "globalThis.__UPLIFT_STAGE_INSPECTOR__",
+        "cursor-ide-browser",
+        "GET",
+        "PUT /api/scene-blueprints/:stageId",
+        "PUT /api/character-visuals/:characterId",
+        "src/content/",
+        "PUT /api/audio-patches",
+        "PUT /api/pacing-profiles/:profileId"
+      ],
+      "numeric_fragments": ["60Hz", "05", "1", "40%", "3", "02", "2"]
+    },
+    {
+      "id": "C012",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Play shell (`05c-play-shell`)**: The single browser page in `src/interfaces/composition/` for the whole campaign. It loads whichever pack is registered, steps the coordinator once per frame, sends waypoint and portal requests, swaps the resident stage when the focus entity changes space, and hosts the F3 stage lab. The proving slice is the first pack it can load. Anything the player must see or interact with, at any point, loads into this page: stages, bodies, cabins, stills, labs, and player-facing controls. The F3 Sound Lab (`05a-sound-lab`, planned), the F3 Pacing Lab (`05b-2-storylets-and-lab`, planned), and travel cabins (`06c`) are later loads, not new pages. Diegetic parchment and the neural lace stay a later player-facing surface on the same page. A character is drawn only when `CharacterVisualBlueprint.characterId` matches the entity id. Until the pack loader exists, an F3 stage-lab save writes JSON the game does not load. Lab JSON is planned to become the source of truth, checked at runtime through `validateLaunch` (planned: pre-05b-pack-source-of-truth).",
+      "source_text": "  - **Play shell (`05c-play-shell`)**: The single browser page in `src/interfaces/composition/` for the whole campaign. It loads whichever pack is registered, steps the coordinator once per frame, sends waypoint and portal requests, swaps the resident stage when the focus entity changes space, and hosts the F3 stage lab. The proving slice is the first pack it can load. Anything the player must see or interact with, at any point, loads into this page: stages, bodies, cabins, stills, labs, and player-facing controls. The F3 Sound Lab (`05a-sound-lab`, planned), the F3 Pacing Lab (`05b-2-storylets-and-lab`, planned), and travel cabins (`06c`) are later loads, not new pages. Diegetic parchment and the neural lace stay a later player-facing surface on the same page. A character is drawn only when `CharacterVisualBlueprint.characterId` matches the entity id. Until the pack loader exists, an F3 stage-lab save writes JSON the game does not load. Lab JSON is planned to become the source of truth, checked at runtime through `validateLaunch` (planned: pre-05b-pack-source-of-truth).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Play shell (shipped)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [
+        "05c-play-shell",
+        "src/interfaces/composition/",
+        "05a-sound-lab",
+        "05b-2-storylets-and-lab",
+        "06c",
+        "CharacterVisualBlueprint.characterId",
+        "validateLaunch"
+      ],
+      "numeric_fragments": ["05", "2", "06"]
+    },
+    {
+      "id": "C013",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Direct floor locomotion (planned: 05d-input-and-control-frame, 05d-locomotion-footprint, 05d-arrival-hold-readability)**: The focus operative will walk the current floor with camera-relative WASD at `walkSpeedMetersPerSec`. The body radius will be `0.22` m. Props will block the oriented footprint of their drawn mesh plus `0.03` m. An `open` or `ajar` portal will hop within `0.5` m of the near waypoint when steer aims at the far side. Only the player's disc will hold an NPC short of an arrival: an ambient line at about `6` s, a slide at about `12` s. That line will not open a conversation. NPCs stay on waypoint paths. Depends on `05` and `05c`. [planned - revisable]",
+      "source_text": "  - **Direct floor locomotion (planned: 05d-input-and-control-frame, 05d-locomotion-footprint, 05d-arrival-hold-readability)**: The focus operative will walk the current floor with camera-relative WASD at `walkSpeedMetersPerSec`. The body radius will be `0.22` m. Props will block the oriented footprint of their drawn mesh plus `0.03` m. An `open` or `ajar` portal will hop within `0.5` m of the near waypoint when steer aims at the far side. Only the player's disc will hold an NPC short of an arrival: an ambient line at about `6` s, a slide at about `12` s. That line will not open a conversation. NPCs stay on waypoint paths. Depends on `05` and `05c`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Direct floor locomotion (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [
+        "walkSpeedMetersPerSec",
+        "0.22",
+        "0.03",
+        "open",
+        "ajar",
+        "0.5",
+        "6",
+        "12",
+        "05",
+        "05c"
+      ],
+      "numeric_fragments": ["05", "0.22", "0.03", "0.5", "6", "12"]
+    },
+    {
+      "id": "C014",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Proximity use (planned: 05e-modal-stack-use-and-menu)**: Space will use a target within `0.4` m of its surface and inside `\u00b145\u00b0` of facing. The candidate closest to straight ahead will win. W and S will move a menu vertically, Space will confirm and Escape will go back (A and D alias in vertical lists and own left and right in horizontal rows; arrow keys are a second binding set), the top modal layer will consume every Space and Escape press in the frame it happens, and the body will stand still while one is open. Player pause will freeze the room and leave the camera anchored. Other menus will not pause the room. `interactionHold` on `WorldState` will stop the held person or prop so later dialogue can keep that hold. Depends on `05c` and `05d`. [planned - revisable]",
+      "source_text": "  - **Proximity use (planned: 05e-modal-stack-use-and-menu)**: Space will use a target within `0.4` m of its surface and inside `\u00b145\u00b0` of facing. The candidate closest to straight ahead will win. W and S will move a menu vertically, Space will confirm and Escape will go back (A and D alias in vertical lists and own left and right in horizontal rows; arrow keys are a second binding set), the top modal layer will consume every Space and Escape press in the frame it happens, and the body will stand still while one is open. Player pause will freeze the room and leave the camera anchored. Other menus will not pause the room. `interactionHold` on `WorldState` will stop the held person or prop so later dialogue can keep that hold. Depends on `05c` and `05d`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Proximity use and menus (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [
+        "0.4",
+        "\u00b145\u00b0",
+        "interactionHold",
+        "WorldState",
+        "05c",
+        "05d"
+      ],
+      "numeric_fragments": ["05", "0.4", "45"]
+    },
+    {
+      "id": "C015",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Conversation text bubbles (planned: 07-bubble-lace-skins-and-tone-blips)**: An NPC conversation will be a diegetic text bubble. An advisor conversation will be lace text. There is no voice acting. A per-NPC tone blip timed to each text page is a pitch and timbre signature, not speech. \"Voice\" in `07e-voice-register-evals` is a written register. The `05a` buses stay non-speech. [planned - revisable]",
+      "source_text": "  - **Conversation text bubbles (planned: 07-bubble-lace-skins-and-tone-blips)**: An NPC conversation will be a diegetic text bubble. An advisor conversation will be lace text. There is no voice acting. A per-NPC tone blip timed to each text page is a pitch and timbre signature, not speech. \"Voice\" in `07e-voice-register-evals` is a written register. The `05a` buses stay non-speech. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Bubbles, lace page and tone blips (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["07e-voice-register-evals", "05a"],
+      "numeric_fragments": ["07", "05"]
+    },
+    {
+      "id": "C016",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Conversation paging and ambient lines (planned: 07-dialogue-paging)**: Space will advance any conversation the player enters or a world event opens, one chunk at a time (at most two lines, about `120` characters). A response will be a WASD choice menu confirmed with Space, and the talk then continues or finishes. Ambient lines will be short text on speakers the player has not entered: overheard exchanges, exclamations, and the impatient beat. They will expire, take no input, and not lock the player. Each conversation will charge the fractional time-spend verb that `05b-1-watch-clock-and-time-spend` owns. Depends on `05e` for the menu stack. The impatient trigger is emitted by `05d`. [planned - revisable]",
+      "source_text": "  - **Conversation paging and ambient lines (planned: 07-dialogue-paging)**: Space will advance any conversation the player enters or a world event opens, one chunk at a time (at most two lines, about `120` characters). A response will be a WASD choice menu confirmed with Space, and the talk then continues or finishes. Ambient lines will be short text on speakers the player has not entered: overheard exchanges, exclamations, and the impatient beat. They will expire, take no input, and not lock the player. Each conversation will charge the fractional time-spend verb that `05b-1-watch-clock-and-time-spend` owns. Depends on `05e` for the menu stack. The impatient trigger is emitted by `05d`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Conversation paging and ambient lines (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["120", "05b-1-watch-clock-and-time-spend", "05e", "05d"],
+      "numeric_fragments": ["07", "120", "05", "1"]
+    },
+    {
+      "id": "C017",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Dialogue interruption (planned: 07a-dialogue-interruption)**: The player will be able to cut a live conversation. Shown chunks will stay in `ConversationHistory`. The unread tail will not fire. Depends on `07`. [planned - revisable]",
+      "source_text": "  - **Dialogue interruption (planned: 07a-dialogue-interruption)**: The player will be able to cut a live conversation. Shown chunks will stay in `ConversationHistory`. The unread tail will not fire. Depends on `07`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Interruption, pretext and fund choices (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["ConversationHistory", "07"],
+      "numeric_fragments": ["07"]
+    },
+    {
+      "id": "C018",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Role pretext choices (planned: 07b-role-pretext-choices)**: A conversation choice row will be able to spend a held role pretext and dispatch that row's effect. Depends on `07` and the office pretext registry. [planned - revisable]",
+      "source_text": "  - **Role pretext choices (planned: 07b-role-pretext-choices)**: A conversation choice row will be able to spend a held role pretext and dispatch that row's effect. Depends on `07` and the office pretext registry. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Interruption, pretext and fund choices (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["07"],
+      "numeric_fragments": ["07"]
+    },
+    {
+      "id": "C019",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Fund spending choices (planned: 07c-fund-spending-choices)**: A conversation choice row will be able to spend a fund and dispatch that row's effect. Depends on `07` and the fund instruments. [planned - revisable]",
+      "source_text": "  - **Fund spending choices (planned: 07c-fund-spending-choices)**: A conversation choice row will be able to spend a fund and dispatch that row's effect. Depends on `07` and the fund instruments. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Interruption, pretext and fund choices (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["07"],
+      "numeric_fragments": ["07"]
+    },
+    {
+      "id": "C020",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Advisory duel omission (planned: 07d-advisory-duel-omission)**: Freezing out `advisor_integral` or `advisor_particular` will make that advisor sulk and drop an `omissible` clause. The lace page stays `07`. Depends on `07`. [planned - revisable]",
+      "source_text": "  - **Advisory duel omission (planned: 07d-advisory-duel-omission)**: Freezing out `advisor_integral` or `advisor_particular` will make that advisor sulk and drop an `omissible` clause. The lace page stays `07`. Depends on `07`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Advisor omission (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["advisor_integral", "advisor_particular", "omissible", "07"],
+      "numeric_fragments": ["07"]
+    },
+    {
+      "id": "C021",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Local AI eval framework (planned: 05f-eval-and-replay)**: One offline runner, `eval/` via `npm run eval:ai`, will score every AI subject. A case will be a fixture, a fixed seed, a fast-eval rollout, and assertions. The command stays outside `npm run verify`. The first case rolls the shipped headless simulation. Utility and rival cases register on `06`, and written-register cases on `07e`. The text-pipeline gate and generation suites register once the text port exists (`07-text-port-and-history`, `08-generated-text-adapter`). Depends on archived `03` and `05`. [planned - revisable]",
+      "source_text": "  - **Local AI eval framework (planned: 05f-eval-and-replay)**: One offline runner, `eval/` via `npm run eval:ai`, will score every AI subject. A case will be a fixture, a fixed seed, a fast-eval rollout, and assertions. The command stays outside `npm run verify`. The first case rolls the shipped headless simulation. Utility and rival cases register on `06`, and written-register cases on `07e`. The text-pipeline gate and generation suites register once the text port exists (`07-text-port-and-history`, `08-generated-text-adapter`). Depends on archived `03` and `05`. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Local AI eval framework (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": [
+        "eval/",
+        "npm run eval:ai",
+        "npm run verify",
+        "06",
+        "07e",
+        "07-text-port-and-history",
+        "08-generated-text-adapter",
+        "03",
+        "05"
+      ],
+      "numeric_fragments": ["05", "06", "07", "08", "03"]
+    },
+    {
+      "id": "C022",
+      "group": "Visual Style, Camera & Diegetic UI Architecture:",
+      "source_anchor": "- **Voice-register evals (planned: 07e-voice-register-evals)**: A suite on the `05f` runner: golden fixtures for banned lemmas, cadence, and clause omission. Depends on `05f`, `07`, and `07d`. \"Voice\" is a written register. [planned - revisable]",
+      "source_text": "  - **Voice-register evals (planned: 07e-voice-register-evals)**: A suite on the `05f` runner: golden fixtures for banned lemmas, cadence, and clause omission. Depends on `05f`, `07`, and `07d`. \"Voice\" is a written register. [planned - revisable]",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Local AI eval framework (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Detailed numbers, controls, aliases and planned owners remain at these anchors. Bridge helper is now shipped; audio/pacing routes remain planned. Short old change aliases resolve to full roadmap IDs.",
+      "identifiers_and_literals": ["05f", "07", "07d"],
+      "numeric_fragments": ["07", "05"]
+    },
+    {
+      "id": "C023",
+      "group": "Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "source_anchor": "Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "source_text": "  Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Audio (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Two buses, 12 dB/174 Hz, formula, three tiers, CC0 allowance, patch path and planned lab retained; guarded bridge helper is shipped.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["05"]
+    },
+    {
+      "id": "C024",
+      "group": "Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "source_anchor": "- **Two-Bus Split**: Wet, room-convolved **Groundside Bus** (environmental beds, surface-aware footsteps, portal occlusion, *The Lamp's* physical bronze chain) vs. bone-dry **Sub-Retinal Culture Neural Lace Bus** (non-speech cues for `advisor_integral` and `advisor_particular`: 12 dB clause-omission dropouts, 174 Hz `zenith` carrier, `occluded` bit-drops, and `Burn` sky-omen harmonic leaks). Advisor lines are lace text, not the conversation bubble and not this bus.",
+      "source_text": "  - **Two-Bus Split**: Wet, room-convolved **Groundside Bus** (environmental beds, surface-aware footsteps, portal occlusion, *The Lamp's* physical bronze chain) vs. bone-dry **Sub-Retinal Culture Neural Lace Bus** (non-speech cues for `advisor_integral` and `advisor_particular`: 12 dB clause-omission dropouts, 174 Hz `zenith` carrier, `occluded` bit-drops, and `Burn` sky-omen harmonic leaks). Advisor lines are lace text, not the conversation bubble and not this bus.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Audio (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Two buses, 12 dB/174 Hz, formula, three tiers, CC0 allowance, patch path and planned lab retained; guarded bridge helper is shipped.",
+      "identifiers_and_literals": [
+        "advisor_integral",
+        "advisor_particular",
+        "zenith",
+        "occluded",
+        "Burn"
+      ],
+      "numeric_fragments": ["12", "174"]
+    },
+    {
+      "id": "C025",
+      "group": "Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "source_anchor": "- **Shared Audibility & Stealth Formula**: `audibility = loudness * distanceFalloff(earshotRadiusMeters) * portalTransmission(open|ajar|closed|barred) * (1 - localMask)` governs both player mix and NPC/Rival eavesdropping. It maps to three diegetic tiers (silent, murmur, clear), never a meter, with one owner (planned: cm-instrument-profiles-audibility-tells) and a provisional table in the minimal audio change (planned: audio-minimal).",
+      "source_text": "  - **Shared Audibility & Stealth Formula**: `audibility = loudness * distanceFalloff(earshotRadiusMeters) * portalTransmission(open|ajar|closed|barred) * (1 - localMask)` governs both player mix and NPC/Rival eavesdropping. It maps to three diegetic tiers (silent, murmur, clear), never a meter, with one owner (planned: cm-instrument-profiles-audibility-tells) and a provisional table in the minimal audio change (planned: audio-minimal).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Audio (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Two buses, 12 dB/174 Hz, formula, three tiers, CC0 allowance, patch path and planned lab retained; guarded bridge helper is shipped.",
+      "identifiers_and_literals": [
+        "audibility = loudness * distanceFalloff(earshotRadiusMeters) * portalTransmission(open|ajar|closed|barred) * (1 - localMask)"
+      ],
+      "numeric_fragments": ["1"]
+    },
+    {
+      "id": "C026",
+      "group": "Sound Design, Gameplay Acoustics & Procedural Web Audio (planned: 05a-audio-engine, audio-minimal):",
+      "source_anchor": "- **Hybrid Web Audio API + Live Sound Lab**: No large `.wav` assets in git; the base is native Web Audio synthesis from Zod-validated `ProceduralAudioPatch` presets (`src/content/audio/patches.json`), with a small CC0 sample set allowed once the audio engine work lands (planned: audio-minimal or 05a-audio-engine), editable both by agent prompts and (planned: 05a-sound-lab) via the `F3` Sound Lab Backdoor UI (`PUT /api/audio-patches`, through the guarded bridge write-route helper, planned, built by hx-ops-safety).",
+      "source_text": "  - **Hybrid Web Audio API + Live Sound Lab**: No large `.wav` assets in git; the base is native Web Audio synthesis from Zod-validated `ProceduralAudioPatch` presets (`src/content/audio/patches.json`), with a small CC0 sample set allowed once the audio engine work lands (planned: audio-minimal or 05a-audio-engine), editable both by agent prompts and (planned: 05a-sound-lab) via the `F3` Sound Lab Backdoor UI (`PUT /api/audio-patches`, through the guarded bridge write-route helper, planned, built by hx-ops-safety).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "## Audio (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Two buses, 12 dB/174 Hz, formula, three tiers, CC0 allowance, patch path and planned lab retained; guarded bridge helper is shipped.",
+      "identifiers_and_literals": [
+        ".wav",
+        "ProceduralAudioPatch",
+        "src/content/audio/patches.json",
+        "F3",
+        "PUT /api/audio-patches"
+      ],
+      "numeric_fragments": ["05"]
+    },
+    {
+      "id": "C027",
+      "group": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_anchor": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_text": "  Hardware & Local-Only Constraints (non-negotiable):",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Target: 2019"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Hardware Target & Zero-API-Key Guarantee"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Local, cross-platform and target hardware constraints retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C028",
+      "group": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_anchor": "- Target baseline hardware: 2019 Intel Core i7 MacBook Pro, 16GB RAM (macOS / cross-platform browser & desktop).",
+      "source_text": "  - Target baseline hardware: 2019 Intel Core i7 MacBook Pro, 16GB RAM (macOS / cross-platform browser & desktop).",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Target: 2019"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Hardware Target & Zero-API-Key Guarantee"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Local, cross-platform and target hardware constraints retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["2019", "16"]
+    },
+    {
+      "id": "C029",
+      "group": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_anchor": "- 100% local execution after `git clone` and `npm install`. A local model cache under `./public/models/` is planned for the text-generation worker and is gated on the timing spike (planned: 08a-timing-spike).",
+      "source_text": "  - 100% local execution after `git clone` and `npm install`. A local model cache under `./public/models/` is planned for the text-generation worker and is gated on the timing spike (planned: 08a-timing-spike).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Text pipeline (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pillars (shipped)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "P2 no-free-text, large generated share, gated worker/cache, tell post-pass, lexical tier and grounding retained as plans.",
+      "identifiers_and_literals": ["git clone", "npm install", "./public/models/"],
+      "numeric_fragments": ["100%", "08"]
+    },
+    {
+      "id": "C030",
+      "group": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_anchor": "- ZERO external API keys, ZERO paid tokens, and ZERO cloud LLM/inference calls in runtime or tests.",
+      "source_text": "  - ZERO external API keys, ZERO paid tokens, and ZERO cloud LLM/inference calls in runtime or tests.",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Target: 2019"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Hardware Target & Zero-API-Key Guarantee"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Local, cross-platform and target hardware constraints retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C031",
+      "group": "Hardware & Local-Only Constraints (non-negotiable):",
+      "source_anchor": "- There is no free-text player input (P2). A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring. Text is produced behind `TextSourcePort`, with a `LineBrief` and a three-tier gate (lexical, grounding, tell compliance) (planned: 08a-timing-spike, 07-text-port-and-history, 08-generated-text-adapter). Rival linguistic tell detection is a deterministic `tellProfile` post-pass, and the sub-millisecond lexical check is gate tier 1. The local text-generation worker (`@huggingface/transformers`, an infrastructure adapter) is planned and gated on the timing spike. Lines are grounded in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas, never generic chatbot prose. See DESIGN_NOTES, Text pipeline (P2).",
+      "source_text": "  - There is no free-text player input (P2). A large share of the surfaced text should come from local SLM / Hugging Face generation, not hand-crafted lines. The owner is happy to get help with authoring. Text is produced behind `TextSourcePort`, with a `LineBrief` and a three-tier gate (lexical, grounding, tell compliance) (planned: 08a-timing-spike, 07-text-port-and-history, 08-generated-text-adapter). Rival linguistic tell detection is a deterministic `tellProfile` post-pass, and the sub-millisecond lexical check is gate tier 1. The local text-generation worker (`@huggingface/transformers`, an infrastructure adapter) is planned and gated on the timing spike. Lines are grounded in NPC epistemic memory, drives, contradictions, cadence, and banned lemmas, never generic chatbot prose. See DESIGN_NOTES, Text pipeline (P2).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Text pipeline (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pillars (shipped)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "P2 no-free-text, large generated share, gated worker/cache, tell post-pass, lexical tier and grounding retained as plans. F2: exact grounding sentence preserved in Text pipeline.",
+      "identifiers_and_literals": [
+        "TextSourcePort",
+        "LineBrief",
+        "tellProfile",
+        "@huggingface/transformers"
+      ],
+      "numeric_fragments": ["08", "07", "1"]
+    },
+    {
+      "id": "C032",
+      "group": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_anchor": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_text": "  Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "#### Telemetry policy (partial; planned: telemetry-wiring)"
+        }
+      ],
+      "disposition": "navigation",
+      "notes": "Storage-policy heading retained in canonical system.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C033",
+      "group": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_anchor": "- **Telemetry policy (revisable; browser wiring planned: telemetry-wiring)**: The Act log records what happened and is the gameplay record (planned: cm-act-envelope-and-rolls). Telemetry holds crash, warn, frame spikes and hash checkpoints. Decision traces come from replaying the scripted command log with tracing on (planned: 05f-eval-and-replay): log nothing, replay with tracing. Today the infrastructure NDJSON logger writes `./logs/current-session.jsonl` (via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`. The browser game does not feed it yet; it keeps an in-memory log. Browser telemetry will go through the guarded bridge with a crash ring buffer flushed on throw (planned: telemetry-wiring).",
+      "source_text": "  - **Telemetry policy (revisable; browser wiring planned: telemetry-wiring)**: The Act log records what happened and is the gameplay record (planned: cm-act-envelope-and-rolls). Telemetry holds crash, warn, frame spikes and hash checkpoints. Decision traces come from replaying the scripted command log with tracing on (planned: 05f-eval-and-replay): log nothing, replay with tracing. Today the infrastructure NDJSON logger writes `./logs/current-session.jsonl` (via Vite local middleware / Node FS) with `timestampIso`, `elapsedSessionMs`, `worldTick`, `level` (`info` | `warn` | `error` | `crash`), `actorId`, `acteeId`, `action`, `inputs`, `effects`, and `reasoning`. The browser game does not feed it yet; it keeps an in-memory log. Browser telemetry will go through the guarded bridge with a crash ring buffer flushed on throw (planned: telemetry-wiring).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "#### Telemetry policy (partial; planned: telemetry-wiring)"
+        },
+        {
+          "path": "src/infrastructure/README.md",
+          "anchor": "The optional trace field is `aiReasoning`"
+        },
+        {
+          "path": "src/domain/telemetry/SessionTelemetryPort.ts",
+          "anchor": "export const TelemetryEntrySchema"
+        }
+      ],
+      "disposition": "corrected",
+      "notes": "Actual schema uses aiReasoning, not a top-level reasoning field. Act/replay/crash-buffer policy remains planned; browser remains unwired.",
+      "identifiers_and_literals": [
+        "./logs/current-session.jsonl",
+        "timestampIso",
+        "elapsedSessionMs",
+        "worldTick",
+        "level",
+        "info",
+        "warn",
+        "error",
+        "crash",
+        "actorId",
+        "acteeId",
+        "action",
+        "inputs",
+        "effects",
+        "reasoning"
+      ],
+      "numeric_fragments": ["05"]
+    },
+    {
+      "id": "C034",
+      "group": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_anchor": "- The logger will never truncate: the previous session rotates into `./logs/prev/` (planned: hx-ops-safety; today a new session still empties both files). A Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events). Query `limit`, `tail` and `count-by`, a newline guard and an `ENOSPC` warning are planned (telemetry-wiring).",
+      "source_text": "  - The logger will never truncate: the previous session rotates into `./logs/prev/` (planned: hx-ops-safety; today a new session still empties both files). A Rolling Compactor compacts older time windows into `./logs/current-session.compacted.jsonl` (auto-compacting when active log exceeds 50 MiB and capping compacted log at 500 MiB, collapsing repetitive `info` routines while preserving 100% of `warn`, `error`, `crash`, player, rival, and AI reasoning events). Query `limit`, `tail` and `count-by`, a newline guard and an `ENOSPC` warning are planned (telemetry-wiring).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "#### Telemetry policy (partial; planned: telemetry-wiring)"
+        },
+        {
+          "path": "src/infrastructure/README.md",
+          "anchor": "## Storage boundaries and recovery"
+        },
+        {
+          "path": "src/infrastructure/README.md",
+          "anchor": "The active trigger is not a hard cap"
+        }
+      ],
+      "disposition": "corrected",
+      "notes": "Prior-session truncation and planned-rotation claims superseded by shipped rotation (archived hx-ops-safety); 50 MiB is trigger, not hard active cap. 100% high-signal retention superseded by priority-eviction implementation. Query enhancements remain planned.",
+      "identifiers_and_literals": [
+        "./logs/prev/",
+        "./logs/current-session.compacted.jsonl",
+        "info",
+        "warn",
+        "error",
+        "crash",
+        "limit",
+        "tail",
+        "count-by",
+        "ENOSPC"
+      ],
+      "numeric_fragments": ["50", "500", "100%"]
+    },
+    {
+      "id": "C035",
+      "group": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_anchor": "- A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. `.agents/skills/uplift-design-notes/SKILL.md` is the workflow for processing a raw design-note dump into living docs (topic breakdown, three-agent research, approval, integration, coherence assessment). All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.",
+      "source_text": "  - A dedicated `.agents/skills/uplift-debug/SKILL.md` and `npm run logs:query` CLI assist agents in querying logs and tracing bugs. `.agents/skills/uplift-design-notes/SKILL.md` is the workflow for processing a raw design-note dump into living docs (topic breakdown, three-agent research, approval, integration, coherence assessment). All project agent skills MUST be placed in `.agents/skills/<skill-name>/SKILL.md` and NEVER in `.cursor/skills/`.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": ".agents/skills/uplift-design-notes/SKILL.md",
+          "anchor": "# Uplift design notes"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Current shipped skills supersede older integration procedure; exact three research perspectives and independent review counts remain in skills.",
+      "identifiers_and_literals": [
+        ".agents/skills/uplift-debug/SKILL.md",
+        "npm run logs:query",
+        ".agents/skills/uplift-design-notes/SKILL.md",
+        ".agents/skills/<skill-name>/SKILL.md",
+        ".cursor/skills/"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C036",
+      "group": "Telemetry, Logging, Compaction & Multi-Session Save/Load (non-negotiable):",
+      "source_anchor": "- Multi-session Save/Load persists named session snapshots under `./saves/`. Planned policy (owner decision; DESIGN_NOTES, State, saves and pack identity): autosave at watch boundaries plus named manual saves, loading any earlier save is allowed (rollback), and the notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment (planned: hx-save-integrity, cm-observation-notebook).",
+      "source_text": "  - Multi-session Save/Load persists named session snapshots under `./saves/`. Planned policy (owner decision; DESIGN_NOTES, State, saves and pack identity): autosave at watch boundaries plus named manual saves, loading any earlier save is allowed (rollback), and the notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment (planned: hx-save-integrity, cm-observation-notebook).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "#### State, saves and pack identity (planned)"
+        },
+        {
+          "path": "src/infrastructure/README.md",
+          "anchor": "**Multi-Session Save / Load Repository"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "File repository exists; autosave, rollback/notebook policy remains planned with original owner decision.",
+      "identifiers_and_literals": ["./saves/"],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C037",
+      "group": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_anchor": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_text": "  Code Architecture (standing directive \u2014 do not skip):",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Rules spine R1 to R8 (partial)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### System graph (partial)"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Layer rules and canonical core-model pointers retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C038",
+      "group": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_anchor": "- Clean Architecture layering with strict inward dependency direction:",
+      "source_text": "  - Clean Architecture layering with strict inward dependency direction:\n      interfaces (three, hud, composition, cli) -> application -> domain\n      infrastructure (telemetry logger/compactor, save repository; planned: local text-generation worker) -> domain\n      content (eras, characters, behaviors, worlds, mechanics) -> domain (for logic/topology) or interfaces/three (for 3D scene blueprints only)\n      domain MUST NOT import application, infrastructure, interfaces, content packs, `three`, `@huggingface/transformers`, or DOM/WebGL APIs.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Rules spine R1 to R8 (partial)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### System graph (partial)"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Layer rules and canonical core-model pointers retained.",
+      "identifiers_and_literals": ["three", "@huggingface/transformers"],
+      "numeric_fragments": ["3"]
+    },
+    {
+      "id": "C039",
+      "group": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_anchor": "- Pure Reducer & Typed Plugin State:",
+      "source_text": "  - Pure Reducer & Typed Plugin State:\n      Behaviors and mechanics never mutate `WorldState` in place; they return `WorldEffect[]` applied by a deterministic reducer.\n      Custom module state MUST use typed `StateSliceKey<T>` descriptors, never untyped `Record<string, any>`. Planned (hx-slice-store): slices are frozen on write and shared on read (today the store deep-clones), and a descriptor gains an optional schema, version, migrate and a plain-JSON guard; see DESIGN_NOTES, State, saves and pack identity.\n      Freeze extension: no new registry kind or effect without content that uses it. Settle the clock model before more time-bearing schema. No deletion. A test in the kind-table change guards this (planned: pre-05b-launch-validation), not prose.\n      The rules spine R1 to R8, the seven-primitive core model and the system graph are written in DESIGN_NOTES.md (planned, revisable). This file points at them and does not copy them.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Rules spine R1 to R8 (partial)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### System graph (partial)"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Layer rules and canonical core-model pointers retained.",
+      "identifiers_and_literals": [
+        "WorldState",
+        "WorldEffect[]",
+        "StateSliceKey<T>",
+        "Record<string, any>"
+      ],
+      "numeric_fragments": ["05"]
+    },
+    {
+      "id": "C040",
+      "group": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_anchor": "- Strict TypeScript, ESLint, Prettier & Zero `any` Policy (non-negotiable):",
+      "source_text": "  - Strict TypeScript, ESLint, Prettier & Zero `any` Policy (non-negotiable):\n      `tsconfig.json` MUST enforce `\"strict\": true`, `\"noImplicitAny\": true`, `\"strictNullChecks\": true`, `\"noUncheckedIndexedAccess\": true`, `\"exactOptionalPropertyTypes\": true`, and `\"noImplicitOverride\": true`.\n      Both implicit `any` and explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) are strictly forbidden across `src/` and `tests/` and enforced by both ESLint (`@typescript-eslint/no-explicit-any`) and `tests/architecture/layer_boundaries.test.ts` during `npm run verify`.\n      Prettier formats on save (`.vscode/settings.json`), and Husky + `lint-staged` run ESLint and Prettier on every `git commit`.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "tsconfig.json",
+          "anchor": "\"strict\": true"
+        },
+        {
+          "path": "eslint.config.mjs",
+          "anchor": "@typescript-eslint/no-explicit-any"
+        },
+        {
+          "path": "README.md",
+          "anchor": "### Editor Format-on-Save & Pre-Commit Hooks"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Compiler checks and zero-any exemplars are source-backed; hook runs full verify after staged checks.",
+      "identifiers_and_literals": [
+        "any",
+        "tsconfig.json",
+        "\"strict\": true",
+        "\"noImplicitAny\": true",
+        "\"strictNullChecks\": true",
+        "\"noUncheckedIndexedAccess\": true",
+        "\"exactOptionalPropertyTypes\": true",
+        "\"noImplicitOverride\": true",
+        ": any",
+        "as any",
+        "<any>",
+        "any[]",
+        "Record<string, any>",
+        "src/",
+        "tests/",
+        "@typescript-eslint/no-explicit-any",
+        "tests/architecture/layer_boundaries.test.ts",
+        "npm run verify",
+        ".vscode/settings.json",
+        "lint-staged",
+        "git commit"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C041",
+      "group": "Code Architecture (standing directive \u2014 do not skip):",
+      "source_anchor": "- Determinism:",
+      "source_text": "  - Determinism:\n      `Math.random()` and `Date.now()` are forbidden inside `src/domain/` and `src/content/`. All simulation randomness MUST use the injected `SeededRandom` (Xorshift32) instance. Planned (hx-determinism-harness): the same ban covers `src/application/`, plus `node:*`, `require` and non-literal `import()`; see DESIGN_NOTES, Engineering rules.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "#### Determinism, fixed step and phases (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Current domain/content bans separated from planned application/import-scan expansion.",
+      "identifiers_and_literals": [
+        "Math.random()",
+        "Date.now()",
+        "src/domain/",
+        "src/content/",
+        "SeededRandom",
+        "src/application/",
+        "node:*",
+        "require",
+        "import()"
+      ],
+      "numeric_fragments": ["2"]
+    },
+    {
+      "id": "C042",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_text": "  Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Shipped contracts and consumers"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Epoch-agnostic registration and no-hardcoding requirements retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C043",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or feudal-only lore. All game content and sub-types register through declarative, epoch-agnostic module contracts (`EpochModuleRegistry`):",
+      "source_text": "  - Core engine (`src/domain/`, `src/application/`) contains ZERO hardcoded characters, rooms, behaviors, or feudal-only lore. All game content and sub-types register through declarative, epoch-agnostic module contracts (`EpochModuleRegistry`):",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Architecture and deterministic code"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Shipped contracts and consumers"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Epoch-agnostic registration and no-hardcoding requirements retained.",
+      "identifiers_and_literals": ["src/domain/", "src/application/", "EpochModuleRegistry"],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C044",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Characters (`CharacterBlueprint` & `VoiceProfile` (planned)): 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, public/private drive contradictions, `emergencyVice`, cadence/tic/banned-lemma rules, and domain-specific **Inertia Pillars** (`InertiaPillar[]`: `doctrine`, `constituency`, `debt`, `temper`, `ignorance`).",
+      "source_text": "      - Characters (`CharacterBlueprint` & `VoiceProfile` (planned)): 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, public/private drive contradictions, `emergencyVice`, cadence/tic/banned-lemma rules, and domain-specific **Inertia Pillars** (`InertiaPillar[]`: `doctrine`, `constituency`, `debt`, `temper`, `ignorance`).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Registry vocabulary and orbital reducer contracts"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Text pipeline (planned)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design. F3: complete Tier 1/2/3 mapping and lowercase pillar identifiers retained in domain Registry vocabulary; voice/contradiction intent maps to Text pipeline.",
+      "identifiers_and_literals": [
+        "CharacterBlueprint",
+        "VoiceProfile",
+        "utility_schemer",
+        "role_routine",
+        "ambient_crowd",
+        "lineageId",
+        "emergencyVice",
+        "InertiaPillar[]",
+        "doctrine",
+        "constituency",
+        "debt",
+        "temper",
+        "ignorance"
+      ],
+      "numeric_fragments": ["3", "1", "2"]
+    },
+    {
+      "id": "C045",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Rival Spacefaring Operatives (`RivalCivBlueprint`): Autonomous off-world operatives from competing spacefaring civilizations (e.g., *The Tithe* hegemonists, *The Quiet* ascetics, *House Reciprocal* mercantilists) operating on offset orbital clocks, leaving lexical/economic tells, and spoofing or deleting items on the Wider World Overview. Planned: tells become a structured `tellProfile`, each rival gets an agenda that emits Acts, and remote reports are Observations with latency (planned: 06-rivals-remote-evidence).",
+      "source_text": "      - Rival Spacefaring Operatives (`RivalCivBlueprint`): Autonomous off-world operatives from competing spacefaring civilizations (e.g., *The Tithe* hegemonists, *The Quiet* ascetics, *House Reciprocal* mercantilists) operating on offset orbital clocks, leaving lexical/economic tells, and spoofing or deleting items on the Wider World Overview. Planned: tells become a structured `tellProfile`, each rival gets an agenda that emits Acts, and remote reports are Observations with latency (planned: 06-rivals-remote-evidence).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Competing spacefaring civilizations (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design.",
+      "identifiers_and_literals": ["RivalCivBlueprint", "tellProfile"],
+      "numeric_fragments": ["06"]
+    },
+    {
+      "id": "C046",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Contested Offices, Pretexts & Groundside Economy (`OfficeBlueprint`, `QuietClaimBlueprint`, `IllicitInstrumentType`, `PressureStockType`): Contested offices (`institutionalLineageId`) and deniable Quiet Claims achieved via spent hooks and coalition keys, granting legitimate stipends and socially legal **Pretexts** (`medical_quarantine`, `ideological_censure`, `technical_audit`, `monetary_assay`, `protocol_immunity`) vs. 3 **Illicit Orbital Insertion Modes** (`unbacked_mass_commodity`, `forged_fiat_instrument`, `anachronistic_marvel`) impacting 3 **Societal Pressure Stocks** (`subsistence_pressure`, `production_pressure`, `elite_prestige_pressure`) and 4 discovery layers (`'noticed' | 'assayed' | 'attributed' | 'theorized'`). Planned: discovery layers become a decaying per-observer view over the Observation table (planned: cm-observation-notebook), instrument coupling becomes data profiles (planned: cm-instrument-profiles-audibility-tells), and stipends, funds and stocks become `ResourceLedger` entries with diegetic tells (planned: cm-ledger-and-emergency).",
+      "source_text": "      - Contested Offices, Pretexts & Groundside Economy (`OfficeBlueprint`, `QuietClaimBlueprint`, `IllicitInstrumentType`, `PressureStockType`): Contested offices (`institutionalLineageId`) and deniable Quiet Claims achieved via spent hooks and coalition keys, granting legitimate stipends and socially legal **Pretexts** (`medical_quarantine`, `ideological_censure`, `technical_audit`, `monetary_assay`, `protocol_immunity`) vs. 3 **Illicit Orbital Insertion Modes** (`unbacked_mass_commodity`, `forged_fiat_instrument`, `anachronistic_marvel`) impacting 3 **Societal Pressure Stocks** (`subsistence_pressure`, `production_pressure`, `elite_prestige_pressure`) and 4 discovery layers (`'noticed' | 'assayed' | 'attributed' | 'theorized'`). Planned: discovery layers become a decaying per-observer view over the Observation table (planned: cm-observation-notebook), instrument coupling becomes data profiles (planned: cm-instrument-profiles-audibility-tells), and stipends, funds and stocks become `ResourceLedger` entries with diegetic tells (planned: cm-ledger-and-emergency).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Registry vocabulary and orbital reducer contracts"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design. F4: Quiet Claim acquisition exact phrase retained in economy table.",
+      "identifiers_and_literals": [
+        "OfficeBlueprint",
+        "QuietClaimBlueprint",
+        "IllicitInstrumentType",
+        "PressureStockType",
+        "institutionalLineageId",
+        "medical_quarantine",
+        "ideological_censure",
+        "technical_audit",
+        "monetary_assay",
+        "protocol_immunity",
+        "unbacked_mass_commodity",
+        "forged_fiat_instrument",
+        "anachronistic_marvel",
+        "subsistence_pressure",
+        "production_pressure",
+        "elite_prestige_pressure",
+        "'noticed' | 'assayed' | 'attributed' | 'theorized'",
+        "ResourceLedger"
+      ],
+      "numeric_fragments": ["3", "4"]
+    },
+    {
+      "id": "C047",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Wider World Overview & The Communications Desk (`ChannelMediumBlueprint`, `WorldOverviewModule` & `MessageTransitQueue`): Multi-channel news/rumor board (with trust/spoof seams) and time-lagged async correspondence (stationery/credential, seal/cipher, courier tier, enclosures, proxy co-signing) to off-stage core NPCs (`CorrespondentProfile` with misread tables) arriving via Door Knock, Public Posting First, or Silent Wrong Action.",
+      "source_text": "      - Wider World Overview & The Communications Desk (`ChannelMediumBlueprint`, `WorldOverviewModule` & `MessageTransitQueue`): Multi-channel news/rumor board (with trust/spoof seams) and time-lagged async correspondence (stationery/credential, seal/cipher, courier tier, enclosures, proxy co-signing) to off-stage core NPCs (`CorrespondentProfile` with misread tables) arriving via Door Knock, Public Posting First, or Silent Wrong Action.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Registry vocabulary and orbital reducer contracts"
+        },
+        {
+          "path": "design/regard-and-romantasy.md",
+          "anchor": "## Triangulation, proxy co-signing and autonomous NPC-to-NPC relationships"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design. F4: stationery/credential and seal/cipher options explicit in economy table; existing proxy co-signing detail linked.",
+      "identifiers_and_literals": [
+        "ChannelMediumBlueprint",
+        "WorldOverviewModule",
+        "MessageTransitQueue",
+        "CorrespondentProfile"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C048",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Unified Interpersonal `Regard` Web & Manipulative Romantasy (`RegardGraphModule` & `RomanticMotiveBlueprint`): 2-tier hybrid social graph scaling to 500+ interactable on-stage and off-stage characters ($O(1)$ faction/role baseline priors + copy-on-write sparse materialized `RegardEdge`s with `affection`, `respect`, `trust`, `dread`, `obligation`, `exposure`, and `bondKind` plus salience pruning), autonomous NPC-to-NPC/off-stage bonds, relational triangulation & letter co-signing, 2-layer hidden romantic motives discoverable via 6 gameplay channels, and `LineageBondLegacy` continuity across Epochs.",
+      "source_text": "      - Unified Interpersonal `Regard` Web & Manipulative Romantasy (`RegardGraphModule` & `RomanticMotiveBlueprint`): 2-tier hybrid social graph scaling to 500+ interactable on-stage and off-stage characters ($O(1)$ faction/role baseline priors + copy-on-write sparse materialized `RegardEdge`s with `affection`, `respect`, `trust`, `dread`, `obligation`, `exposure`, and `bondKind` plus salience pruning), autonomous NPC-to-NPC/off-stage bonds, relational triangulation & letter co-signing, 2-layer hidden romantic motives discoverable via 6 gameplay channels, and `LineageBondLegacy` continuity across Epochs.",
+      "destinations": [
+        {
+          "path": "design/regard-and-romantasy.md",
+          "anchor": "## Shared on-stage and off-stage social web"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Planned detail and existing schema/reducer status separated; code-style names missing from design restored in their existing feature homes.",
+      "identifiers_and_literals": [
+        "Regard",
+        "RegardGraphModule",
+        "RomanticMotiveBlueprint",
+        "RegardEdge",
+        "affection",
+        "respect",
+        "trust",
+        "dread",
+        "obligation",
+        "exposure",
+        "bondKind",
+        "LineageBondLegacy"
+      ],
+      "numeric_fragments": ["2", "500+", "1", "6"]
+    },
+    {
+      "id": "C049",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Epoch 2+ Interactive Fast-Travel Vignettes (`TravelVignetteCoordinator`, `VehicleKindBlueprint`, `TransitRouteBlueprint`, `EnRouteEncounterTable`, `TravelSurfaceCueBlueprint`): Bounded vehicle-cabin stages (fast travel that is still a Clock-1 scene and a Clock-2 watch spend), fellow passengers, diegetic news, two independent social/news rolls that may mutate trip pretext / origin / destination / wider world, a summary skip that still resolves pending rolls, and small live world-state surface cues on the cabin (mud, extra gazette, empty seat, blackout shutters) \u2014 becoming less limited one `travelTechTier` rung at a time. Epoch 1 has no travel vignettes.",
+      "source_text": "      - Epoch 2+ Interactive Fast-Travel Vignettes (`TravelVignetteCoordinator`, `VehicleKindBlueprint`, `TransitRouteBlueprint`, `EnRouteEncounterTable`, `TravelSurfaceCueBlueprint`): Bounded vehicle-cabin stages (fast travel that is still a Clock-1 scene and a Clock-2 watch spend), fellow passengers, diegetic news, two independent social/news rolls that may mutate trip pretext / origin / destination / wider world, a summary skip that still resolves pending rolls, and small live world-state surface cues on the cabin (mud, extra gazette, empty seat, blackout shutters) \u2014 becoming less limited one `travelTechTier` rung at a time. Epoch 1 has no travel vignettes.",
+      "destinations": [
+        {
+          "path": "design/travel-vignettes.md",
+          "anchor": "# Epoch"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Planned detail and existing schema/reducer status separated; code-style names missing from design restored in their existing feature homes.",
+      "identifiers_and_literals": [
+        "TravelVignetteCoordinator",
+        "VehicleKindBlueprint",
+        "TransitRouteBlueprint",
+        "EnRouteEncounterTable",
+        "TravelSurfaceCueBlueprint",
+        "travelTechTier"
+      ],
+      "numeric_fragments": ["2+", "1", "2"]
+    },
+    {
+      "id": "C050",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Last-Resort Assassination, Counter-Assassination & Cover Persecution (`ViolentPlotModule` & `AnomalousSuspectState`): 4 assassination vectors (`drone_instrument`, `local_agent`, `staged_pretext`, `correspondence_enclosure`), counter-assassination weighted by *The Lamp's* `Regard` disposition (`silent_intercept` vs. `noisy_miracle` vs. `hesitation`) and rival operative orbital timing, plus epoch-agnostic `coverPersecutionRisk` (`clear -> rumored -> examined -> charged -> condemned`, skinned per Epoch across the 7-Epoch default ladder from Feudal Witch-Hunt Inquisition -> Renaissance Heresy Tribunal -> Colonial Admiralty Assize -> Industrial Wartime Court-Martial -> Cold-War Black-Site -> Computer-Age Algorithmic Blacklist -> Space-Age Quarantine Hearing) and `extracted_overt` Veil Scars.",
+      "source_text": "      - Last-Resort Assassination, Counter-Assassination & Cover Persecution (`ViolentPlotModule` & `AnomalousSuspectState`): 4 assassination vectors (`drone_instrument`, `local_agent`, `staged_pretext`, `correspondence_enclosure`), counter-assassination weighted by *The Lamp's* `Regard` disposition (`silent_intercept` vs. `noisy_miracle` vs. `hesitation`) and rival operative orbital timing, plus epoch-agnostic `coverPersecutionRisk` (`clear -> rumored -> examined -> charged -> condemned`, skinned per Epoch across the 7-Epoch default ladder from Feudal Witch-Hunt Inquisition -> Renaissance Heresy Tribunal -> Colonial Admiralty Assize -> Industrial Wartime Court-Martial -> Cold-War Black-Site -> Computer-Age Algorithmic Blacklist -> Space-Age Quarantine Hearing) and `extracted_overt` Veil Scars.",
+      "destinations": [
+        {
+          "path": "design/assassination-and-cover-persecution.md",
+          "anchor": "# Assassination"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Planned detail and existing schema/reducer status separated; code-style names missing from design restored in their existing feature homes.",
+      "identifiers_and_literals": [
+        "ViolentPlotModule",
+        "AnomalousSuspectState",
+        "drone_instrument",
+        "local_agent",
+        "staged_pretext",
+        "correspondence_enclosure",
+        "Regard",
+        "silent_intercept",
+        "noisy_miracle",
+        "hesitation",
+        "coverPersecutionRisk",
+        "clear -> rumored -> examined -> charged -> condemned",
+        "extracted_overt"
+      ],
+      "numeric_fragments": ["4", "7"]
+    },
+    {
+      "id": "C051",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Slow-Burn Butterfly Threads, Martyrdom & Crises (`TrajectoryThreadBlueprint`): Interconnected threads with obscure early omens, rising Inertia Pillars, Leverage Chains, the *Brother Assassin* Martyrdom/Succession rule (where a substitute martyr enshrines the wrong virtues, and even the right martyr creates a doctrinal rift in the next Epoch), and Crises (wars, plagues, economic shocks) with Dual-Use Ceilings. Leverage Chain (planned: cm-threads-and-pillars): pillars gain `bearsOnThreadId` and `supportedBy`, thread inertia is derived from them, and the player verb is `weaken_support`.",
+      "source_text": "      - Slow-Burn Butterfly Threads, Martyrdom & Crises (`TrajectoryThreadBlueprint`): Interconnected threads with obscure early omens, rising Inertia Pillars, Leverage Chains, the *Brother Assassin* Martyrdom/Succession rule (where a substitute martyr enshrines the wrong virtues, and even the right martyr creates a doctrinal rift in the next Epoch), and Crises (wars, plagues, economic shocks) with Dual-Use Ceilings. Leverage Chain (planned: cm-threads-and-pillars): pillars gain `bearsOnThreadId` and `supportedBy`, thread inertia is derived from them, and the player verb is `weaken_support`.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Leverage Chain (planned)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Registry vocabulary and orbital reducer contracts"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design. F5: exact substitute/right-martyr causal rule and crisis exemplars retained in planned Leverage Chain.",
+      "identifiers_and_literals": [
+        "TrajectoryThreadBlueprint",
+        "bearsOnThreadId",
+        "supportedBy",
+        "weaken_support"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C052",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Emergency States (`EmergencyStateBlueprint`): Suppresses (and compounds interest on) routine traits while activating crisis verbs, spatial crowd shifts, visible branching fuses, and player-triggered emergency pretexts. `EmergencyRuntime` carries a scope and compounding applies to the scoped group; the fuse is later (planned: cm-ledger-and-emergency, 09-emergency-fuse).",
+      "source_text": "      - Emergency States (`EmergencyStateBlueprint`): Suppresses (and compounds interest on) routine traits while activating crisis verbs, spatial crowd shifts, visible branching fuses, and player-triggered emergency pretexts. `EmergencyRuntime` carries a scope and compounding applies to the scoped group; the fuse is later (planned: cm-ledger-and-emergency, 09-emergency-fuse).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Resource ledger (planned)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Current Module Inventory"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Schema fields and reducers retained in shipped inventory; future gameplay and named exemplars remain canonical design. F6: crisis verbs, spatial crowd shifts and visible branching fuses retained in planned Resource ledger, with separate emergency/fuse owners.",
+      "identifiers_and_literals": ["EmergencyStateBlueprint", "EmergencyRuntime"],
+      "numeric_fragments": ["09"]
+    },
+    {
+      "id": "C053",
+      "group": "Plug-and-Play Modularity, World Mechanics & Scalable Entity Tiers:",
+      "source_anchor": "- Orbital Pass Cycle, Borrowable Time, Weather Control & Blackout Contingencies (`OrbitalPassBlueprint`, `OrbitalPassRuntimeState`, `WeatherControlModule`, `CampaignContingencyScheduler`): Ship pass position (`zenith`, `horizon`, `occluded`) with **Delta** budget for **Slingshot** (arrive early, longer occlusion) and **Burn** (linger at zenith, sky-omen footprint), gating recon, drops, and localized Weather Modification (tracked via Omen Ledger and Ecological Debt), plus conditional late-game **Rival Ship Ambush (`rival_evasive_maneuvers`)** and a 5-event random pool of once-per-playthrough **Orbital Blackout Contingencies** (`solar_flare_interdiction`, `comet_orbital_diversion` with final-epoch `local_mitigation`, `derelict_artifact_quarantine`, `tectonic_caldera_stabilization`, `hegemonic_emission_silence`) governed by stratified anti-clustering epoch caps (`0..2` per Epoch) and mandatory `minCooldownWatches` recovery buffers.",
+      "source_text": "      - Orbital Pass Cycle, Borrowable Time, Weather Control & Blackout Contingencies (`OrbitalPassBlueprint`, `OrbitalPassRuntimeState`, `WeatherControlModule`, `CampaignContingencyScheduler`): Ship pass position (`zenith`, `horizon`, `occluded`) with **Delta** budget for **Slingshot** (arrive early, longer occlusion) and **Burn** (linger at zenith, sky-omen footprint), gating recon, drops, and localized Weather Modification (tracked via Omen Ledger and Ecological Debt), plus conditional late-game **Rival Ship Ambush (`rival_evasive_maneuvers`)** and a 5-event random pool of once-per-playthrough **Orbital Blackout Contingencies** (`solar_flare_interdiction`, `comet_orbital_diversion` with final-epoch `local_mitigation`, `derelict_artifact_quarantine`, `tectonic_caldera_stabilization`, `hegemonic_emission_silence`) governed by stratified anti-clustering epoch caps (`0..2` per Epoch) and mandatory `minCooldownWatches` recovery buffers.",
+      "destinations": [
+        {
+          "path": "design/orbital-blackout-and-contingencies.md",
+          "anchor": "## Anti-clustering"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Levers and how they flow across the ladder (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "## Registry vocabulary and orbital reducer contracts"
+        },
+        {
+          "path": "design/orbital-blackout-and-contingencies.md",
+          "anchor": "each contingency is once-per-playthrough"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Planned detail and existing schema/reducer status separated; code-style names missing from design restored in their existing feature homes. F7: each contingency explicitly once-per-playthrough in existing orbital detail; source-backed shipped orbital reducer guidance retained in domain guide. T3-F9 refinement: spend_orbital_delta throws for non-zenith burn and insufficient Delta; this is not the planned returned-outcome contract.",
+      "identifiers_and_literals": [
+        "OrbitalPassBlueprint",
+        "OrbitalPassRuntimeState",
+        "WeatherControlModule",
+        "CampaignContingencyScheduler",
+        "zenith",
+        "horizon",
+        "occluded",
+        "rival_evasive_maneuvers",
+        "solar_flare_interdiction",
+        "comet_orbital_diversion",
+        "local_mitigation",
+        "derelict_artifact_quarantine",
+        "tectonic_caldera_stabilization",
+        "hegemonic_emission_silence",
+        "0..2",
+        "minCooldownWatches"
+      ],
+      "numeric_fragments": ["5", "0", "2"]
+    },
+    {
+      "id": "C054",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_text": "  Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Four clocks and the decision record (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["60", "4", "50\u2013100"]
+    },
+    {
+      "id": "C055",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "- **Clock 1 \u2014 60 FPS Room Embodiment & Perception**: Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, reliquary-lamp drone micro-swings, weather particles) runs continuously at 60 FPS (`stepKinematics(dt)`), with ~250ms perception pulses and ~8-12s local cognitive pulses (`deliberating -> moving -> performing_dwell -> cooldown | awaiting_trigger`).",
+      "source_text": "  - **Clock 1 \u2014 60 FPS Room Embodiment & Perception**: Everything visible to the player (player movement, Tier 1-3 NPC walking/steering at ~1.4 m/s, body/head rotation, swinging doors, reliquary-lamp drone micro-swings, weather particles) runs continuously at 60 FPS (`stepKinematics(dt)`), with ~250ms perception pulses and ~8-12s local cognitive pulses (`deliberating -> moving -> performing_dwell -> cooldown | awaiting_trigger`).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Four clocks and the decision record (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees. F8: body/head rotation, reliquary-lamp drone micro-swings and weather particles retained in Four clocks.",
+      "identifiers_and_literals": [
+        "stepKinematics(dt)",
+        "deliberating -> moving -> performing_dwell -> cooldown | awaiting_trigger"
+      ],
+      "numeric_fragments": ["1", "60", "1-3", "~1.4", "~250ms", "~8-12s"]
+    },
+    {
+      "id": "C056",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "- **Clock 2 \u2014 Campaign Watch & Committed Time-Spend Clock (`elapsedWatches`)**: Macro world time (message transit, office stipends, orbital pass cycles, crisis fuses \u2014 rebasing Change 03's `*Tick` fields to `*Watches` in `05b-1-watch-clock-and-time-spend`) runs on integer **Watches** (`SimulationTimeClocks`) advanced by player Committed Time-Spend Actions (Office shifts, Chambers study/rest, courier waits, Travel vignettes) so an **~8\u201314 hour Epoch** (`50\u2013100 hours` total campaign \u00f7 $N$ configured Epochs) never burns out in 15 minutes of idle room time. Decision record (planned, see DESIGN_NOTES): `elapsedWatches` is advanced only by `advance_watches`, `worldTick` is an effect serial and never time, and Clock 1 runs on a fixed `1/60` s step.",
+      "source_text": "  - **Clock 2 \u2014 Campaign Watch & Committed Time-Spend Clock (`elapsedWatches`)**: Macro world time (message transit, office stipends, orbital pass cycles, crisis fuses \u2014 rebasing Change 03's `*Tick` fields to `*Watches` in `05b-1-watch-clock-and-time-spend`) runs on integer **Watches** (`SimulationTimeClocks`) advanced by player Committed Time-Spend Actions (Office shifts, Chambers study/rest, courier waits, Travel vignettes) so an **~8\u201314 hour Epoch** (`50\u2013100 hours` total campaign \u00f7 $N$ configured Epochs) never burns out in 15 minutes of idle room time. Decision record (planned, see DESIGN_NOTES): `elapsedWatches` is advanced only by `advance_watches`, `worldTick` is an effect serial and never time, and Clock 1 runs on a fixed `1/60` s step.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Four clocks and the decision record (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees.",
+      "identifiers_and_literals": [
+        "elapsedWatches",
+        "*Tick",
+        "*Watches",
+        "05b-1-watch-clock-and-time-spend",
+        "SimulationTimeClocks",
+        "50\u2013100 hours",
+        "advance_watches",
+        "worldTick",
+        "1/60"
+      ],
+      "numeric_fragments": ["2", "03", "05", "1", "~8\u201314", "50\u2013100", "15", "60"]
+    },
+    {
+      "id": "C057",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "- **Clock 3 & Clock 4 \u2014 `StorytellerPacingDirector`, Plotline Point-Releases & Slow-Drift NPC Evolution**: Meters Butterfly Thread Point-Releases (`omen -> simmer -> institutional_friction -> crisis_fuse -> resolution`), Compositional Storylets (`StoryletTemplate`), and closed-form NPC drive/`Regard`/`InertiaPillar` drift across 50\u2013100 hours.",
+      "source_text": "  - **Clock 3 & Clock 4 \u2014 `StorytellerPacingDirector`, Plotline Point-Releases & Slow-Drift NPC Evolution**: Meters Butterfly Thread Point-Releases (`omen -> simmer -> institutional_friction -> crisis_fuse -> resolution`), Compositional Storylets (`StoryletTemplate`), and closed-form NPC drive/`Regard`/`InertiaPillar` drift across 50\u2013100 hours.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Four clocks and the decision record (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees.",
+      "identifiers_and_literals": [
+        "StorytellerPacingDirector",
+        "omen -> simmer -> institutional_friction -> crisis_fuse -> resolution",
+        "StoryletTemplate",
+        "Regard",
+        "InertiaPillar"
+      ],
+      "numeric_fragments": ["3", "4", "50\u2013100"]
+    },
+    {
+      "id": "C058",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "- **Data-Driven Curve Envelopes (`PacingProfileBlueprint`, `CurveEnvelopeSchema`) & `F3` Pacing Lab**: All pacing speeds, tension-and-recovery waveforms, point-release spacing, NPC evolution rates, and storylet densities are defined as declarative control-point envelopes (`progress01 -> value` with wave modulation) editable in `src/content/pacing/*.json` and, once built (planned: 05b-2-storylets-and-lab), live via the `F3` Pacing Lab (`GET`/`PUT /api/pacing-profiles/:profileId`, through the guarded bridge write-route helper, planned, built by hx-ops-safety).",
+      "source_text": "  - **Data-Driven Curve Envelopes (`PacingProfileBlueprint`, `CurveEnvelopeSchema`) & `F3` Pacing Lab**: All pacing speeds, tension-and-recovery waveforms, point-release spacing, NPC evolution rates, and storylet densities are defined as declarative control-point envelopes (`progress01 -> value` with wave modulation) editable in `src/content/pacing/*.json` and, once built (planned: 05b-2-storylets-and-lab), live via the `F3` Pacing Lab (`GET`/`PUT /api/pacing-profiles/:profileId`, through the guarded bridge write-route helper, planned, built by hx-ops-safety).",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pacing profiles and curve envelopes (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees.",
+      "identifiers_and_literals": [
+        "PacingProfileBlueprint",
+        "CurveEnvelopeSchema",
+        "F3",
+        "progress01 -> value",
+        "src/content/pacing/*.json",
+        "GET",
+        "PUT /api/pacing-profiles/:profileId"
+      ],
+      "numeric_fragments": ["1", "05", "2"]
+    },
+    {
+      "id": "C059",
+      "group": "Real-Time 60 FPS Experience vs 4-Clock Campaign Pacing & Curve Envelopes (50\u2013100 Hour Campaign Architecture):",
+      "source_anchor": "- **Human-Paced Cognition, Anti-Thundering-Herd & Fast-Eval Pacing Override (non-negotiable)**:",
+      "source_text": "  - **Human-Paced Cognition, Anti-Thundering-Herd & Fast-Eval Pacing Override (non-negotiable)**:\n      1. NPCs must never speed-run through multi-step plots at CPU speed during live gameplay. Every behavior progresses through human-paced phases (`deliberating` -> `moving` -> `performing_dwell` -> `cooldown` or `awaiting_trigger` when waiting for the next player-created trigger).\n      2. NPC-to-NPC trigger cascades (`enqueue_npc_stimulus`) enforce a digestion delay with exponential hop backoff (`cascadeHopCount` capped by `maxAutonomousCascadeHops`, default `2`) and a staggered token-bucket scheduler (`maxCognitiveEvaluationsPerPulse = 1`) so NPC-to-NPC interactions never cause a thundering herd.\n      3. All pacing/cascade limits and watch-gate scales are controlled via `SimulationPacingConfig` (`DEFAULT_GAMEPLAY_PACING_CONFIG` for live play vs. `FAST_EVAL_PACING_CONFIG` with `storytellerMinWatchScale: 0` added by 05b-2-envelopes-and-gates (planned) for automated tests and AI evals) so headless tests and evals can simulate a full Epoch in milliseconds.",
+      "destinations": [
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pacing config and fast-eval override (shipped)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Loop cycles (planned)"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Cognition phases and cascade guardrails (partial)"
+        },
+        {
+          "path": "src/domain/README.md",
+          "anchor": "`deliberating -> moving -> performing_dwell -> cooldown -> idle|awaiting_trigger`"
+        }
+      ],
+      "disposition": "merged",
+      "notes": "Original ~250ms/~8\u201312s tuning examples retained as planned. 8\u201314 h is superseded by canonical 7\u201314 h (50\u2013100 / seven) in existing clock decision record; actual elapsedWatches semantics and fixed step remain planned. Scheduler phase timings are not claimed as wall-clock guarantees. Exact performing_dwell phase chain remains in domain README kinematics inventory.",
+      "identifiers_and_literals": [
+        "deliberating",
+        "moving",
+        "performing_dwell",
+        "cooldown",
+        "awaiting_trigger",
+        "enqueue_npc_stimulus",
+        "cascadeHopCount",
+        "maxAutonomousCascadeHops",
+        "2",
+        "maxCognitiveEvaluationsPerPulse = 1",
+        "SimulationPacingConfig",
+        "DEFAULT_GAMEPLAY_PACING_CONFIG",
+        "FAST_EVAL_PACING_CONFIG",
+        "storytellerMinWatchScale: 0"
+      ],
+      "numeric_fragments": ["1", "2", "3", "0", "05"]
+    },
+    {
+      "id": "C060",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_text": "  Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["2026-10-29"]
+    },
+    {
+      "id": "C061",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Node.js LTS: 24.22.2 'Krypton' LTS or 26.13.0 'Lithium' LTS (includes Oct 21, 2026 security patches for CVE-2026-111497, CVE-2026-105482, CVE-2026-105483, CVE-2026-106069, CVE-2026-106074)",
+      "source_text": "  - Node.js LTS: 24.22.2 'Krypton' LTS or 26.13.0 'Lithium' LTS (includes Oct 21, 2026 security patches for CVE-2026-111497, CVE-2026-105482, CVE-2026-105483, CVE-2026-106069, CVE-2026-106074)",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": [
+        "24.22.2",
+        "26.13.0",
+        "21",
+        "2026",
+        "2026-111497",
+        "2026-105482",
+        "2026-105483",
+        "2026-106069",
+        "2026-106074"
+      ]
+    },
+    {
+      "id": "C062",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- npm: 12.2.1",
+      "source_text": "  - npm: 12.2.1",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["12.2.1"]
+    },
+    {
+      "id": "C063",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- OpenSpec CLI (`@fission-ai/openspec`): 1.15.0",
+      "source_text": "  - OpenSpec CLI (`@fission-ai/openspec`): 1.15.0",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["@fission-ai/openspec"],
+      "numeric_fragments": ["1.15.0"]
+    },
+    {
+      "id": "C064",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- TypeScript (`@typescript/native`): `npm:typescript@7.0.2` (native Go `tsc` binary) + `typescript`: `npm:@typescript/typescript6@6.0.2` (JS AST bridge for `typescript-eslint`)",
+      "source_text": "  - TypeScript (`@typescript/native`): `npm:typescript@7.0.2` (native Go `tsc` binary) + `typescript`: `npm:@typescript/typescript6@6.0.2` (JS AST bridge for `typescript-eslint`)",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [
+        "@typescript/native",
+        "npm:typescript@7.0.2",
+        "tsc",
+        "typescript",
+        "npm:@typescript/typescript6@6.0.2",
+        "typescript-eslint"
+      ],
+      "numeric_fragments": ["7.0.2", "6.0.2"]
+    },
+    {
+      "id": "C065",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Vite: 8.3.5",
+      "source_text": "  - Vite: 8.3.5",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["8.3.5"]
+    },
+    {
+      "id": "C066",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Vitest: 5.0.5",
+      "source_text": "  - Vitest: 5.0.5",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["5.0.5"]
+    },
+    {
+      "id": "C067",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- ESLint: 10.13.0 (`@eslint/js`: 10.0.1, `typescript-eslint`: 8.72.1, `eslint-config-prettier`: 10.1.8, `minimatch` override: 11.0.4)",
+      "source_text": "  - ESLint: 10.13.0 (`@eslint/js`: 10.0.1, `typescript-eslint`: 8.72.1, `eslint-config-prettier`: 10.1.8, `minimatch` override: 11.0.4)",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [
+        "@eslint/js",
+        "typescript-eslint",
+        "eslint-config-prettier",
+        "minimatch"
+      ],
+      "numeric_fragments": ["10.13.0", "10.0.1", "8.72.1", "10.1.8", "11.0.4"]
+    },
+    {
+      "id": "C068",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Prettier: 3.9.10",
+      "source_text": "  - Prettier: 3.9.10",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["3.9.10"]
+    },
+    {
+      "id": "C069",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Husky: 9.1.7 + `lint-staged`: 17.6.0",
+      "source_text": "  - Husky: 9.1.7 + `lint-staged`: 17.6.0",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["lint-staged"],
+      "numeric_fragments": ["9.1.7", "17.6.0"]
+    },
+    {
+      "id": "C070",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Zod (`zod`): 4.6.7",
+      "source_text": "  - Zod (`zod`): 4.6.7",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["zod"],
+      "numeric_fragments": ["4.6.7"]
+    },
+    {
+      "id": "C071",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Three.js (`three`): 0.186.1 (`@types/three`: 0.186.0)",
+      "source_text": "  - Three.js (`three`): 0.186.1 (`@types/three`: 0.186.0)",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["three", "@types/three"],
+      "numeric_fragments": ["0.186.1", "0.186.0"]
+    },
+    {
+      "id": "C072",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Hugging Face Transformers (`@huggingface/transformers`): 4.3.2",
+      "source_text": "  - Hugging Face Transformers (`@huggingface/transformers`): 4.3.2",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["@huggingface/transformers"],
+      "numeric_fragments": ["4.3.2"]
+    },
+    {
+      "id": "C073",
+      "group": "Stack & Pinned Versions (verified 2026-10-29 \u2014 latest stable & CVE-patched releases, bump deliberately):",
+      "source_anchor": "- Node types (`@types/node`): 24.19.2",
+      "source_text": "  - Node types (`@types/node`): 24.19.2",
+      "destinations": [
+        {
+          "path": "package.json",
+          "anchor": "\"dependencies\""
+        },
+        {
+          "path": ".nvmrc",
+          "anchor": "24.22.2"
+        },
+        {
+          "path": "README.md",
+          "anchor": "## Toolchain sources"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6A-02/S6A-03 and design decision 2 explicitly replace every dated version/CVE assertion with manifest pointers. No version/CVE value is carried as maintained guidance; original exact table retained only in evidence.",
+      "identifiers_and_literals": ["@types/node"],
+      "numeric_fragments": ["24.19.2"]
+    },
+    {
+      "id": "C074",
+      "group": "Planned Atomic Change Sequence: the ordered roadmap, with ids, dependencies and status, lives in `openspec/roadmap.yaml`. It is living and revisable (see the pillars in DESIGN_NOTES.md).",
+      "source_anchor": "Planned Atomic Change Sequence: the ordered roadmap, with ids, dependencies and status, lives in `openspec/roadmap.yaml`. It is living and revisable (see the pillars in DESIGN_NOTES.md).",
+      "source_text": "  Planned Atomic Change Sequence: the ordered roadmap, with ids, dependencies and status, lives in `openspec/roadmap.yaml`. It is living and revisable (see the pillars in DESIGN_NOTES.md).",
+      "destinations": [
+        {
+          "path": "openspec/roadmap.yaml",
+          "anchor": "entries:"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Roadmap remains sole ordered-work owner; no reordering.",
+      "identifiers_and_literals": ["openspec/roadmap.yaml"],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C075",
+      "group": "Evolving Design & Configuration Flexibility (standing directive):",
+      "source_anchor": "Evolving Design & Configuration Flexibility (standing directive):",
+      "source_text": "  Evolving Design & Configuration Flexibility (standing directive):",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Authority and navigation:"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pillars (shipped)"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Read living design/inbox before proposals; preserve tuning/epoch flexibility. Old intermediate change examples are illustrative, not pending owners.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C076",
+      "group": "Evolving Design & Configuration Flexibility (standing directive):",
+      "source_anchor": "- `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents. Before proposing any new change, always check `DESIGN_NOTES.md` for new ideas, adjustments, or intermediate changes (like `01a`, `02a`, etc.), and keep all registries and configuration data-driven and epoch-agnostic so mechanics, camera parameters, tick rates, and content sub-types can be tuned, swapped, or carried into future Epochs at any point. The owner pillars P1-P5 are recorded at the top of `DESIGN_NOTES.md`.",
+      "source_text": "  - `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents. Before proposing any new change, always check `DESIGN_NOTES.md` for new ideas, adjustments, or intermediate changes (like `01a`, `02a`, etc.), and keep all registries and configuration data-driven and epoch-agnostic so mechanics, camera parameters, tick rates, and content sub-types can be tuned, swapped, or carried into future Epochs at any point. The owner pillars P1-P5 are recorded at the top of `DESIGN_NOTES.md`.",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "Authority and navigation:"
+        },
+        {
+          "path": "DESIGN_NOTES.md",
+          "anchor": "### Pillars (shipped)"
+        }
+      ],
+      "disposition": "retained",
+      "notes": "Read living design/inbox before proposals; preserve tuning/epoch flexibility. Old intermediate change examples are illustrative, not pending owners.",
+      "identifiers_and_literals": ["DESIGN_NOTES.md", "openspec/config.yaml", "01a", "02a"],
+      "numeric_fragments": ["01", "02"]
+    },
+    {
+      "id": "C077",
+      "group": "Atomic Task & Commit Strategy (standing directive \u2014 \"1 Task = 1 Verified Deliverable Commit\"):",
+      "source_anchor": "Atomic Task & Commit Strategy (standing directive \u2014 \"1 Task = 1 Verified Deliverable Commit\"):",
+      "source_text": "  Atomic Task & Commit Strategy (standing directive \u2014 \"1 Task = 1 Verified Deliverable Commit\"):",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6B-05 and accepted task-size rule replace fixed 4\u20136 task count with at most three source/tooling files plus tests; over eight tasks or three runtime layers requires justification/split. One verified commit per task retained.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["1"]
+    },
+    {
+      "id": "C078",
+      "group": "Atomic Task & Commit Strategy (standing directive \u2014 \"1 Task = 1 Verified Deliverable Commit\"):",
+      "source_anchor": "- Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks.",
+      "source_text": "  - Every OpenSpec change MUST break `tasks.md` into 4 to 6 small, self-contained tasks.",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6B-05 and accepted task-size rule replace fixed 4\u20136 task count with at most three source/tooling files plus tests; over eight tasks or three runtime layers requires justification/split. One verified commit per task retained.",
+      "identifiers_and_literals": ["tasks.md"],
+      "numeric_fragments": ["4", "6"]
+    },
+    {
+      "id": "C079",
+      "group": "Atomic Task & Commit Strategy (standing directive \u2014 \"1 Task = 1 Verified Deliverable Commit\"):",
+      "source_anchor": "- Each task MUST touch at most 1-3 source files plus its corresponding test file, compile cleanly, pass `npm run verify`, and map 1:1 to a single Conventional Commit.",
+      "source_text": "  - Each task MUST touch at most 1-3 source files plus its corresponding test file, compile cleanly, pass `npm run verify`, and map 1:1 to a single Conventional Commit.",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Register S6B-05 and accepted task-size rule replace fixed 4\u20136 task count with at most three source/tooling files plus tests; over eight tasks or three runtime layers requires justification/split. One verified commit per task retained.",
+      "identifiers_and_literals": ["npm run verify"],
+      "numeric_fragments": ["1-3", "1"]
+    },
+    {
+      "id": "C080",
+      "group": "Review Gates (standing directive \u2014 do not skip):",
+      "source_anchor": "Review Gates (standing directive \u2014 do not skip):",
+      "source_text": "  Review Gates (standing directive \u2014 do not skip):",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Proposal: three auditors"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All 3/2/6 counts, axes, independent finding checks, strict validation and owner checkpoints retained. Register after-S7 model stipulation supersedes vendor models with high reasoning, medium-to-high model. G1\u2013G6 augment counts.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C081",
+      "group": "Review Gates (standing directive \u2014 do not skip):",
+      "source_anchor": "- Post-Propose 3-Subagent Spec Audit Gate (at the end of EVERY /opsx-propose phase, before /opsx-apply):",
+      "source_text": "  - Post-Propose 3-Subagent Spec Audit Gate (at the end of EVERY /opsx-propose phase, before /opsx-apply):\n      After creating proposal.md, specs/*, design.md, and tasks.md, launch three parallel subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the change artifacts and propose improvements:\n      1. Subagent A \u2014 Architecture, Adversarial, Determinism & Hardware Audit: Verify Clean Architecture inward layer placement, epoch-agnostic plug-and-play contracts (zero feudal hardcoding in domain), concurrency/immutability/determinism, zero external APIs, and 2019 Intel Mac 60 FPS / <5s verify budgets.\n      2. Subagent B \u2014 Spec Completeness, DESIGN_NOTES.md Alignment & Task Atomicity Audit: Verify testable WHEN/THEN scenarios (including negative/corruption cases), alignment with DESIGN_NOTES.md and openspec/config.yaml, and confirm tasks.md has 4-6 atomic tasks (1-3 files each) ordered inward-out so every intermediate commit compiles and passes npm run verify.\n      3. Subagent C - Game-industry standards compliance, best practices, user-safety, accessibility, gotchas and possible coding-into-a-corner, as well as future-proofing and extensibility.\n      Double-check findings, fold verified improvements into the change artifacts, re-run `npx openspec validate \"<change>\" --strict`, and pause for user review before starting `/opsx-apply`.",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Proposal: three auditors"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All 3/2/6 counts, axes, independent finding checks, strict validation and owner checkpoints retained. Register after-S7 model stipulation supersedes vendor models with high reasoning, medium-to-high model. G1\u2013G6 augment counts.",
+      "identifiers_and_literals": ["npx openspec validate \"<change>\" --strict", "/opsx-apply"],
+      "numeric_fragments": ["3", "2.5", "4.7", "1", "2019", "60", "<5s", "2", "4-6", "1-3"]
+    },
+    {
+      "id": "C082",
+      "group": "Review Gates (standing directive \u2014 do not skip):",
+      "source_anchor": "- Pre-Commit Short Self-Review & Per-Subtask 2-Subagent Review Gate (after EVERY subtask, before pausing for user review):",
+      "source_text": "  - Pre-Commit Short Self-Review & Per-Subtask 2-Subagent Review Gate (after EVERY subtask, before pausing for user review):\n      1. After implementing a subtask and running its `Verify:` command and `npm run verify`, launch a pair of parallel subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) with broad, non-overlapping review briefs on the staged subtask files:\n         - Subagent A \u2014 Correctness, Logic, Edge Cases & Performance: Audit algorithmic/state-machine logic, boundary/malformed inputs, immutability, determinism, and CPU/memory efficiency.\n         - Subagent B \u2014 Architecture, Spec/Design Adherence, Types & Test Coverage: Audit Clean Architecture inward boundaries, zero-`any` / Zod conventions, alignment with the change's spec/design, and unit test assertion quality/gaps.\n      2. Double-check their findings, fold any verified fixes into the staged subtask, re-run `npm run verify`, and perform a short self-review of `git diff --staged` before pausing for user review and committing.",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Proposal: three auditors"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All 3/2/6 counts, axes, independent finding checks, strict validation and owner checkpoints retained. Register after-S7 model stipulation supersedes vendor models with high reasoning, medium-to-high model. G1\u2013G6 augment counts.",
+      "identifiers_and_literals": ["Verify:", "npm run verify", "any", "git diff --staged"],
+      "numeric_fragments": ["2", "1", "2.5", "4.7"]
+    },
+    {
+      "id": "C083",
+      "group": "Review Gates (standing directive \u2014 do not skip):",
+      "source_anchor": "- Post-Change 6-Subagent Review Gate (after EVERY change is delivered, before archiving):",
+      "source_text": "  - Post-Change 6-Subagent Review Gate (after EVERY change is delivered, before archiving):\n      Once all tasks in a change are marked complete, launch 6 parallel review subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the delivered change across six axes:\n      1. Adversarial Review (edge cases, failure modes, concurrency/race conditions, invalid inputs)\n      2. Code Adherence & Architecture Review (layer boundaries, zero-`any`, plug-and-play modularity, OpenSpec spec compliance, hierarchical `README.md`/`AGENTS.md` completeness)\n      3. Performance Review (2019 Intel Core i7 16GB RAM budget, 60 FPS frame budget, memory allocation/cloning cost, algorithmic complexity)\n      4. Testing Review (assertion quality, missing boundary/negative tests, determinism, test execution speed)\n      5. Logic & Simulation Integrity Review (mathematical/bitwise correctness, state-transition invariants, off-by-one or reducer bugs)\n      6. Adherence to the project's design notes, thematic consistency, and overall coherence of the change.\n      Double-check the subagents' findings against the codebase, fix any verified issues in an atomic commit, and re-run `npm run verify`.",
+      "destinations": [
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Proposal: three auditors"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All 3/2/6 counts, axes, independent finding checks, strict validation and owner checkpoints retained. Register after-S7 model stipulation supersedes vendor models with high reasoning, medium-to-high model. G1\u2013G6 augment counts.",
+      "identifiers_and_literals": ["any", "README.md", "AGENTS.md", "npm run verify"],
+      "numeric_fragments": ["6", "2.5", "4.7", "1", "2", "3", "2019", "16", "60", "4", "5"]
+    },
+    {
+      "id": "C084",
+      "group": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_anchor": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_text": "  Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Section guides"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All paired guides/links and skill-location rule retained; fixed final-task-only doc updates replaced by docs in owning task. Pinned/CVE duplication replaced by manifest authority.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C085",
+      "group": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_anchor": "- Agent Skills Location Rule: All project agent skills MUST live under `.agents/skills/<skill-name>/SKILL.md` and NEVER under `.cursor/skills/` (enforced by `tests/architecture/layer_boundaries.test.ts`).",
+      "source_text": "  - Agent Skills Location Rule: All project agent skills MUST live under `.agents/skills/<skill-name>/SKILL.md` and NEVER under `.cursor/skills/` (enforced by `tests/architecture/layer_boundaries.test.ts`).",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Section guides"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All paired guides/links and skill-location rule retained; fixed final-task-only doc updates replaced by docs in owning task. Pinned/CVE duplication replaced by manifest authority.",
+      "identifiers_and_literals": [
+        ".agents/skills/<skill-name>/SKILL.md",
+        ".cursor/skills/",
+        "tests/architecture/layer_boundaries.test.ts"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C086",
+      "group": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_anchor": "- Maintain a two-tier documentation and agent-instruction hierarchy across the repository:",
+      "source_text": "  - Maintain a two-tier documentation and agent-instruction hierarchy across the repository:\n      1. Root `README.md`: High-level project overview, hardware/offline constraints, pinned dependency & CVE manifest, running/verification instructions, and a Directory Map linking to each section's `README.md`.\n      2. Root `AGENTS.md`: Global agent workflow, `/verify` loop, atomic commit policy, layer overview, and an Agent Map linking to each section's `AGENTS.md`.\n      3. Per-Section `README.md` & `AGENTS.md`: Every major codebase section (`src/domain/`, `src/application/`, `src/infrastructure/`, `src/content/`, `src/interfaces/`, and `tests/`) MUST maintain its own `README.md` (human-facing responsibilities, contracts, and module inventory) and `AGENTS.md` (agent-facing guardrails, allowed/forbidden imports, step-by-step extension recipes for plugins/content, and test patterns).",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Section guides"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All paired guides/links and skill-location rule retained; fixed final-task-only doc updates replaced by docs in owning task. Pinned/CVE duplication replaced by manifest authority.",
+      "identifiers_and_literals": [
+        "README.md",
+        "AGENTS.md",
+        "/verify",
+        "src/domain/",
+        "src/application/",
+        "src/infrastructure/",
+        "src/content/",
+        "src/interfaces/",
+        "tests/"
+      ],
+      "numeric_fragments": ["1", "2", "3"]
+    },
+    {
+      "id": "C087",
+      "group": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_anchor": "- `tests/architecture/layer_boundaries.test.ts` MUST verify that root `README.md` and `AGENTS.md` exist and link to all section `README.md` and `AGENTS.md` files, and that every major section contains both files.",
+      "source_text": "  - `tests/architecture/layer_boundaries.test.ts` MUST verify that root `README.md` and `AGENTS.md` exist and link to all section `README.md` and `AGENTS.md` files, and that every major section contains both files.",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Section guides"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All paired guides/links and skill-location rule retained; fixed final-task-only doc updates replaced by docs in owning task. Pinned/CVE duplication replaced by manifest authority.",
+      "identifiers_and_literals": [
+        "tests/architecture/layer_boundaries.test.ts",
+        "README.md",
+        "AGENTS.md"
+      ],
+      "numeric_fragments": []
+    },
+    {
+      "id": "C088",
+      "group": "Hierarchical Documentation & Agent Guidance (standing directive \u2014 do not skip):",
+      "source_anchor": "- Whenever a change adds or modifies modules in a section, its final task MUST update the corresponding section's `README.md` and `AGENTS.md` (and root index links if new sections were added).",
+      "source_text": "  - Whenever a change adds or modifies modules in a section, its final task MUST update the corresponding section's `README.md` and `AGENTS.md` (and root index links if new sections were added).",
+      "destinations": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Section guides"
+        },
+        {
+          "path": "AGENTS.md",
+          "anchor": "## Project skills"
+        },
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "All paired guides/links and skill-location rule retained; fixed final-task-only doc updates replaced by docs in owning task. Pinned/CVE duplication replaced by manifest authority.",
+      "identifiers_and_literals": ["README.md", "AGENTS.md"],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R001",
+      "group": "rules.proposal",
+      "source_anchor": "- \"Before proposing a change, review the project's README.md, AGENTS.md, and DESIGN_NOTES.md to ensure consistency with project scope, context, and design notes (or propose updates to DESIGN_NOTES.md if needed)\"",
+      "source_text": "    - \"Before proposing a change, review the project's README.md, AGENTS.md, and DESIGN_NOTES.md to ensure consistency with project scope, context, and design notes (or propose updates to DESIGN_NOTES.md if needed)\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R002",
+      "group": "rules.proposal",
+      "source_anchor": "- \"Before proposing a change, review the project's pinned-versions table, planned atomic change sequence, hierarchical documentation rules, and review gates\"",
+      "source_text": "    - \"Before proposing a change, review the project's pinned-versions table, planned atomic change sequence, hierarchical documentation rules, and review gates\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R003",
+      "group": "rules.proposal",
+      "source_anchor": "- \"Include a Non-goals section to keep the change small and atomic\"",
+      "source_text": "    - \"Include a Non-goals section to keep the change small and atomic\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R004",
+      "group": "rules.proposal",
+      "source_anchor": "- \"State dependencies on prior changes in the change sequence\"",
+      "source_text": "    - \"State dependencies on prior changes in the change sequence\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R005",
+      "group": "rules.proposal",
+      "source_anchor": "- \"Explicitly state that runtime and tests require zero external API keys or cloud inference\"",
+      "source_text": "    - \"Explicitly state that runtime and tests require zero external API keys or cloud inference\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R006",
+      "group": "rules.proposal",
+      "source_anchor": "- \"Describe how new modules plug into epoch-agnostic registries without modifying core domain loop code or hardcoding feudal-only assumptions\"",
+      "source_text": "    - \"Describe how new modules plug into epoch-agnostic registries without modifying core domain loop code or hardcoding feudal-only assumptions\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R007",
+      "group": "rules.specs",
+      "source_anchor": "- \"Specify observable domain, simulation, telemetry, or rendering behavior using testable WHEN/THEN scenarios\"",
+      "source_text": "    - \"Specify observable domain, simulation, telemetry, or rendering behavior using testable WHEN/THEN scenarios\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R008",
+      "group": "rules.specs",
+      "source_anchor": "- \"Enforce inward Clean Architecture boundaries, strict TypeScript (no implicit or explicit any), and deterministic SeededRandom behavior where applicable\"",
+      "source_text": "    - \"Enforce inward Clean Architecture boundaries, strict TypeScript (no implicit or explicit any), and deterministic SeededRandom behavior where applicable\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R009",
+      "group": "rules.design",
+      "source_anchor": "- \"Include the pinned-versions table verified on 2026-10-29 (including CVE-patched runtime/package versions)\"",
+      "source_text": "    - \"Include the pinned-versions table verified on 2026-10-29 (including CVE-patched runtime/package versions)\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["2026-10", "29"]
+    },
+    {
+      "id": "R010",
+      "group": "rules.design",
+      "source_anchor": "- \"Document layer placement (domain, application, infrastructure, interfaces, content) for every new module\"",
+      "source_text": "    - \"Document layer placement (domain, application, infrastructure, interfaces, content) for every new module\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R011",
+      "group": "rules.design",
+      "source_anchor": "- \"Ensure 3D presentation data (StageSceneBlueprint) never leaks into src/domain/\"",
+      "source_text": "    - \"Ensure 3D presentation data (StageSceneBlueprint) never leaks into src/domain/\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["3"]
+    },
+    {
+      "id": "R012",
+      "group": "rules.design",
+      "source_anchor": "- \"Detail verification commands and headless testing strategy (no WebGL or model load required in fast unit tests)\"",
+      "source_text": "    - \"Detail verification commands and headless testing strategy (no WebGL or model load required in fast unit tests)\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R013",
+      "group": "rules.design",
+      "source_anchor": "- \"Specify which section README.md and AGENTS.md files are created or updated by the change\"",
+      "source_text": "    - \"Specify which section README.md and AGENTS.md files are created or updated by the change\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R014",
+      "group": "rules.tasks",
+      "source_anchor": "- \"Limit each change to 4-6 atomic tasks achievable within a single session\"",
+      "source_text": "    - \"Limit each change to 4-6 atomic tasks achievable within a single session\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["4-6"]
+    },
+    {
+      "id": "R015",
+      "group": "rules.tasks",
+      "source_anchor": "- \"Enforce the 1 Task = 1 Verified Commit rule where every task checkbox includes an explicit Verify command and a Commit Conventional Commit message\"",
+      "source_text": "    - \"Enforce the 1 Task = 1 Verified Commit rule where every task checkbox includes an explicit Verify command and a Commit Conventional Commit message\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["1", "1"]
+    },
+    {
+      "id": "R016",
+      "group": "rules.tasks",
+      "source_anchor": "- \"Order tasks inward-out (domain -> application -> content/infrastructure/interfaces -> docs/verify) so every intermediate commit compiles and passes npm run verify\"",
+      "source_text": "    - \"Order tasks inward-out (domain -> application -> content/infrastructure/interfaces -> docs/verify) so every intermediate commit compiles and passes npm run verify\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R017",
+      "group": "rules.tasks",
+      "source_anchor": "- \"End each change with a documentation, verification, and 6-subagent review task (adversarial, code adherence, performance, testing, logic, design adherence) that updates root and per-section README.md and AGENTS.md files\"",
+      "source_text": "    - \"End each change with a documentation, verification, and 6-subagent review task (adversarial, code adherence, performance, testing, logic, design adherence) that updates root and per-section README.md and AGENTS.md files\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["6"]
+    },
+    {
+      "id": "R018",
+      "group": "rules.tasks",
+      "source_anchor": "- \"After creating tasks.md and completing all planning artifacts, run the mandatory Post-Propose 3-Subagent Spec Audit (Architecture/Adversarial/Hardware + Spec/DESIGN_NOTES/Task-Atomicity + Game-Industry Standards/Safety/Accessibility/Extensibility) and fold verified improvements into the artifacts before starting /opsx-apply\"",
+      "source_text": "    - \"After creating tasks.md and completing all planning artifacts, run the mandatory Post-Propose 3-Subagent Spec Audit (Architecture/Adversarial/Hardware + Spec/DESIGN_NOTES/Task-Atomicity + Game-Industry Standards/Safety/Accessibility/Extensibility) and fold verified improvements into the artifacts before starting /opsx-apply\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["3"]
+    },
+    {
+      "id": "R019",
+      "group": "operations.propose",
+      "source_anchor": "- \"Before proposing a change, review the project's DESIGN_NOTES.md to ensure the change is consistent with the project's design notes or propose changes to the design notes if necessary\"",
+      "source_text": "      - \"Before proposing a change, review the project's DESIGN_NOTES.md to ensure the change is consistent with the project's design notes or propose changes to the design notes if necessary\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R020",
+      "group": "operations.propose",
+      "source_anchor": "- \"Before proposing a change, review the project's planned atomic change sequence to ensure the change is consistent with the project's planned atomic change sequence or propose changes to the planned atomic change sequence if necessary\"",
+      "source_text": "      - \"Before proposing a change, review the project's planned atomic change sequence to ensure the change is consistent with the project's planned atomic change sequence or propose changes to the planned atomic change sequence if necessary\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R021",
+      "group": "operations.propose",
+      "source_anchor": "- \"Before proposing a change, review the project's hierarchical documentation rules to ensure the change is consistent with the project's hierarchical documentation rules or propose changes to the hierarchical documentation rules if necessary\"",
+      "source_text": "      - \"Before proposing a change, review the project's hierarchical documentation rules to ensure the change is consistent with the project's hierarchical documentation rules or propose changes to the hierarchical documentation rules if necessary\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R022",
+      "group": "operations.propose",
+      "source_anchor": "- \"Before proposing a change, review the project's review gates to ensure the change is consistent with the project's review gates or propose changes to the review gates if necessary\"",
+      "source_text": "      - \"Before proposing a change, review the project's review gates to ensure the change is consistent with the project's review gates or propose changes to the review gates if necessary\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R023",
+      "group": "operations.propose",
+      "source_anchor": "- \"Before proposing a change, review the project's operations to ensure the change is consistent with the project's operations or propose changes to the operations if necessary\"",
+      "source_text": "      - \"Before proposing a change, review the project's operations to ensure the change is consistent with the project's operations or propose changes to the operations if necessary\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R024",
+      "group": "operations.propose",
+      "source_anchor": "- \"After proposing a change and creating all planning artifacts, run three parallel subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit: (1) Architecture, Adversarial Edge-Cases, Determinism & Hardware Budget, (2) Spec Completeness, DESIGN_NOTES.md Alignment & Task Atomicity (inward-out ordering, 1 task = 1 green commit), and (3) game-industry standards, best practices, user-safety, accessibility, gotchas and possible coding-into-a-corner, as well as future-proofing and extensibility, and after review, fold verified improvements into the artifacts and pause for user review before /opsx-apply\"",
+      "source_text": "      - \"After proposing a change and creating all planning artifacts, run three parallel subagents (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit: (1) Architecture, Adversarial Edge-Cases, Determinism & Hardware Budget, (2) Spec Completeness, DESIGN_NOTES.md Alignment & Task Atomicity (inward-out ordering, 1 task = 1 green commit), and (3) game-industry standards, best practices, user-safety, accessibility, gotchas and possible coding-into-a-corner, as well as future-proofing and extensibility, and after review, fold verified improvements into the artifacts and pause for user review before /opsx-apply\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["2", "5", "4", "7", "1", "2", "1", "1", "3"]
+    },
+    {
+      "id": "R025",
+      "group": "operations.apply",
+      "source_anchor": "- \"Execute one task at a time by implementing the task, running its Verify command and npm run verify, running a 2-subagent review (Subagent A: Correctness, Logic, Edge Cases & Performance; Subagent B: Architecture, Spec/design Adherence, Types & Test Coverage) and folding in verified fixes, performing a short pre-commit self-review of git diff --staged, then pausing to allow user to review changes\"",
+      "source_text": "      - \"Execute one task at a time by implementing the task, running its Verify command and npm run verify, running a 2-subagent review (Subagent A: Correctness, Logic, Edge Cases & Performance; Subagent B: Architecture, Spec/design Adherence, Types & Test Coverage) and folding in verified fixes, performing a short pre-commit self-review of git diff --staged, then pausing to allow user to review changes\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["2"]
+    },
+    {
+      "id": "R026",
+      "group": "operations.apply",
+      "source_anchor": "- \"create an atomic git commit with a conventional commit message, and mark it - [x] in tasks.md before starting the next task\"",
+      "source_text": "      - \"create an atomic git commit with a conventional commit message, and mark it - [x] in tasks.md before starting the next task\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R027",
+      "group": "operations.apply",
+      "source_anchor": "- \"Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/\"",
+      "source_text": "      - \"Never weaken architecture boundary tests, never use implicit or explicit any, and never use raw Math.random() in src/domain/\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R028",
+      "group": "operations.apply",
+      "source_anchor": "- \"Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section\"",
+      "source_text": "      - \"Keep per-section README.md and AGENTS.md files in sync with the modules and conventions introduced in that section\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    },
+    {
+      "id": "R029",
+      "group": "operations.apply",
+      "source_anchor": "- \"After all tasks in a change are delivered, run the mandatory 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence)on the commits in the change, double-check their findings, and commit any verified fixes. run all repository tests (omit AI eval tests if not relevant), and npx verify before concluding\"",
+      "source_text": "      - \"After all tasks in a change are delivered, run the mandatory 6-subagent review (adversarial, code adherence, performance, testing, logic, design adherence)on the commits in the change, double-check their findings, and commit any verified fixes. run all repository tests (omit AI eval tests if not relevant), and npx verify before concluding\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "superseded",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["6"]
+    },
+    {
+      "id": "R030",
+      "group": "operations.archive",
+      "source_anchor": "- \"Confirm npm run verify passes, the 6-subagent post-change review has been completed and addressed, and all task commits are clean before archiving\"",
+      "source_text": "      - \"Confirm npm run verify passes, the 6-subagent post-change review has been completed and addressed, and all task commits are clean before archiving\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": ["6"]
+    },
+    {
+      "id": "R031",
+      "group": "operations.archive",
+      "source_anchor": "- \"Confirm root and per-section README.md and AGENTS.md files accurately reflect the completed change before archiving\"",
+      "source_text": "      - \"Confirm root and per-section README.md and AGENTS.md files accurately reflect the completed change before archiving\"",
+      "destinations": [
+        {
+          "path": "openspec/config.yaml",
+          "anchor": "rules:"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/SKILL.md",
+          "anchor": "## Delivery contract"
+        },
+        {
+          "path": ".agents/skills/uplift-review-gates/references/delivery.md",
+          "anchor": "## Each task: two reviewers"
+        }
+      ],
+      "disposition": "relocated",
+      "notes": "Supported proposal/specs/design/tasks rules and delivery procedure retain intent. Unsupported operations removed entirely; apply/archive instructions remain in their workflow skills. Fixed-count/vendor/version guidance superseded by accepted owner rules. npx verify corrected to npm run verify; owner approval remains required before commit/archive.",
+      "identifiers_and_literals": [],
+      "numeric_fragments": []
+    }
+  ]
+}

@@ -15,6 +15,8 @@ Four vectors (`AssassinationVectorBlueprint`, an option of last resort):
 3. `staged_pretext` (_Staged Medical/Industrial Accident_): medium–high success (`~0.73` with matching Office Pretext), lowest local suspicion if pretext holds, huge spike if exposed.
 4. `correspondence_enclosure` (_Sabotaged / Poisoned Enclosure_): medium success (`~0.45`, requires courier `trust`), low–medium suspicion.
 
+The planned plot module is `ViolentPlotModule`. Its counter-assassination outcome identifiers are `silent_intercept`, `noisy_miracle` and `hesitation`, corresponding to the named outcomes below.
+
 ## Counter-assassination against the player (local agent vs. rival spacefaring operative)
 
 - **Local retaliation**: triggered by botched player plots, `assassination_lockdown` emergencies, or Tier 1 NPCs with `betrayed` / `torn` `RegardEdge`s. Resolution depends on `droneInterceptQuality` derived from `Regard(advisor_particular -> player)`: high disposition (`>= 0.75`) is a **Silent Intercept** (`0` Veil/Persecution spike); medium disposition (`0.45–0.74`) is a **Noisy Miracle** (saves the player, spikes `coverPersecutionRisk`, and leaves the witnesses an Observation at the `noticed` or `assayed` level, so their derived discovery level advances to that threshold); low or alienated disposition (`< 0.45`) is **Drone Hesitation** (the player suffers a non-fatal wound or incapacitation, or capture into an `ideological_trial`).

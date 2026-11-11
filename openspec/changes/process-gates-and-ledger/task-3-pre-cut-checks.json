@@ -1,0 +1,115 @@
+{
+  "phase": "pre-cut; independent reviews pending",
+  "base": "c0251a0",
+  "budgets": {
+    "root_agents_before": 2234,
+    "root_agents_draft": 886,
+    "config_context_before": 4837,
+    "config_context_draft": 704,
+    "design_before": 16904,
+    "design_draft": 17050
+  },
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "before_sha256": "ec0a43fd26c3bc34aded89fd68891a913ea96295ed75e5418709e45a22767b93",
+      "draft_sha256": "5c9fb597b46f4e56bb730f70b3680de95491ebbfa1b7ed382990358b9c2b4221"
+    },
+    {
+      "path": "README.md",
+      "before_sha256": "ec2a994c6ffd37e3711c14f0c88603091c1704604e1d3675e09a19fe341fd17b",
+      "draft_sha256": "0c25c35d59c43c43b530d0478aba9a407cfa94be891d311a572ccc03244307dd"
+    },
+    {
+      "path": "openspec/config.yaml",
+      "before_sha256": "f4e3b65dd7fe7ece5af18d6ec37d367d122a808449c0158f82d108caa0197d55",
+      "draft_sha256": "f9eb7c38a8084e3dee8af9b44db60204d99b5247375fad4b7a7e48d9b42d4c3c"
+    },
+    {
+      "path": "openspec/roadmap.yaml",
+      "before_sha256": "31dda0cd232fb7a94a14369b7c7a861769bd59abb94a08133f1f94c9941e0ece",
+      "draft_sha256": "3ad1dd34f9b9bd206fd44ee1eb100940c72f7d9a95078a410b4220a5d62bb712"
+    },
+    {
+      "path": "DESIGN_NOTES.md",
+      "before_sha256": "5aec63912eac1942f3817adf17a7f5faad7c84ffa2ac884975cb53365b5348b7",
+      "draft_sha256": "33510362f3048c1a66ef3d98d6d8f98605383d181e392cdad3ceabf1beaa147b"
+    },
+    {
+      "path": "design/README.md",
+      "before_sha256": "b1330daadbcd60450bbaf99a07df0f4b345af7839214268e648ad3222bf9f970",
+      "draft_sha256": "b1330daadbcd60450bbaf99a07df0f4b345af7839214268e648ad3222bf9f970"
+    },
+    {
+      "path": "src/domain/README.md",
+      "before_sha256": "431f8b07dbd6d0875f877c85666e4abd93652618bbc8147a03b4e4654149edc0",
+      "draft_sha256": "1412ba9576e6cac658f405e43acd1d7be1c06c043512535592aad7e34a537635"
+    },
+    {
+      "path": "src/domain/AGENTS.md",
+      "before_sha256": "8ce56c229db6e433c443d7ab405547141941f39cb0f30d91d09fdbe3fe1ac587",
+      "draft_sha256": "c60e4a843c1acd08535060d9725d498ca7fa3db2b62ea2ddb3ed0bad0de048e6"
+    },
+    {
+      "path": "src/application/README.md",
+      "before_sha256": "54eb26dc162852b1c8e4fe723526ab864d62de70f9a2c09740a7bc617bdb1307",
+      "draft_sha256": "5e682bc24fc92629fa0ece5e1dc67f562f57dddd973ab5d87a993bafdb475360"
+    },
+    {
+      "path": "src/application/AGENTS.md",
+      "before_sha256": "9d7a9058ab2dba76a512388cb20a20f87f9950fc6d9addfa3dd277759ff8b228",
+      "draft_sha256": "da059b9917a85952d2345b05908621a2236f0696946c341d57b54ec88810aa1a"
+    },
+    {
+      "path": "src/infrastructure/README.md",
+      "before_sha256": "af491535e2d95ba4090edd26c2546b5eaa3563783d6cc6fed74cdf195a88d468",
+      "draft_sha256": "543b33abd87d6ec1752544fdab2d91fb75a9be6b34dfc4e8953260e1f861f1c9"
+    },
+    {
+      "path": "src/infrastructure/AGENTS.md",
+      "before_sha256": "8d74e05c210a58c259d81546fdea3793b0d96ee20bb3543c25a61f6ce0bc4847",
+      "draft_sha256": "55a77d59332c206229b377b43fbbf0626a017c2bc56375321753f6a8784b2283"
+    },
+    {
+      "path": "src/interfaces/README.md",
+      "before_sha256": "0ca1a024201ee8645867e82c61fe5c55be6c4f49387946b6360803b205eeb64a",
+      "draft_sha256": "1c0583909015ad0b0668ed383e70d6086c25651376cd513035beaf1f86f5b3e4"
+    },
+    {
+      "path": "src/interfaces/AGENTS.md",
+      "before_sha256": "b02c7bc62535b495ddbc81d723488a7626db5a68fddc00ab367ea3b22ceed863",
+      "draft_sha256": "5850bda304455daa59dea7fcd3f2d174282b289950d936cac9824eb6887a3e2e"
+    },
+    {
+      "path": "src/content/README.md",
+      "before_sha256": "0eff25f77a11486e995a200c154a4d36d5ceed3d85f5ce23a5d199ef60e9a488",
+      "draft_sha256": "ac11b4aaa2c9e02ad49b5a4f82004f9314a48c907ab25269039b6b2a588ede44"
+    },
+    {
+      "path": "src/content/AGENTS.md",
+      "before_sha256": "04bf12d7fc21d1284f1ec0001a0d43db64e1d1c5d52c5f29c89203444e281f74",
+      "draft_sha256": "91674e8ca8a83814b0cca543091b0490dbb17a26d5d512635e2e915943d3b231"
+    },
+    {
+      "path": "tests/README.md",
+      "before_sha256": "4b6ce5e502041866dc199651178a2fc5a30570e362e953793361f460678e5e4d",
+      "draft_sha256": "38d245ec79614d70345bf6f9d689da7bdbac62be331053a1982d2f1c0a2e7fd0"
+    },
+    {
+      "path": "tests/AGENTS.md",
+      "before_sha256": "f976d2280d3762e0f8c31a0800b811f91126c08257d7f1e2daf67d160101db8c",
+      "draft_sha256": "7deb2536ea5d486ad3392de5a37af74c913d2ee258fa96974b5a877de7b67973"
+    },
+    {
+      "path": "design/assassination-and-cover-persecution.md",
+      "before_sha256": "55dfefec9c3fdc37fcd59c82c73c9ebe0d89e11fb39c694b8ce87b4f1de294a2",
+      "draft_sha256": "a62775beda7e51bb4e48eab46f2e1bf3edda36e21ae58e600c605116da81c0f1"
+    },
+    {
+      "path": "design/regard-and-romantasy.md",
+      "before_sha256": "bd3466f752bb8364f215f023c7aee17ae229a8e4baa84fbb72f27a22c5431399",
+      "draft_sha256": "0b71c2a57fe23c508d13826a3cb185e59a3be19e4393c4ac1453c0376448ca33"
+    }
+  ],
+  "inbox_sha256": "201f90608ff5ec4f887bb67b57cd5666e9ddc07af7ac633b23ad8c0c2be4e4ed"
+}

@@ -1,0 +1,23 @@
+{
+  "AGENTS.md": "5c9fb597b46f4e56bb730f70b3680de95491ebbfa1b7ed382990358b9c2b4221",
+  "README.md": "0c25c35d59c43c43b530d0478aba9a407cfa94be891d311a572ccc03244307dd",
+  "openspec/config.yaml": "f9eb7c38a8084e3dee8af9b44db60204d99b5247375fad4b7a7e48d9b42d4c3c",
+  "openspec/roadmap.yaml": "3ad1dd34f9b9bd206fd44ee1eb100940c72f7d9a95078a410b4220a5d62bb712",
+  "DESIGN_NOTES.md": "5d8b391e40dd4377873e2574bdb6451abd1f31ed013f517c297385b45d73944e",
+  "design/README.md": "b1330daadbcd60450bbaf99a07df0f4b345af7839214268e648ad3222bf9f970",
+  "src/domain/README.md": "55dc2ac4524f338826b3e327e195f3489cca1b602d04a70245421598d5d16fd3",
+  "src/domain/AGENTS.md": "414a05d215f74e71a4f2661b1ad717410adf2a7e695a84b1d9be40385bd002da",
+  "src/application/README.md": "5e682bc24fc92629fa0ece5e1dc67f562f57dddd973ab5d87a993bafdb475360",
+  "src/application/AGENTS.md": "da059b9917a85952d2345b05908621a2236f0696946c341d57b54ec88810aa1a",
+  "src/infrastructure/README.md": "543b33abd87d6ec1752544fdab2d91fb75a9be6b34dfc4e8953260e1f861f1c9",
+  "src/infrastructure/AGENTS.md": "55a77d59332c206229b377b43fbbf0626a017c2bc56375321753f6a8784b2283",
+  "src/interfaces/README.md": "1c0583909015ad0b0668ed383e70d6086c25651376cd513035beaf1f86f5b3e4",
+  "src/interfaces/AGENTS.md": "5850bda304455daa59dea7fcd3f2d174282b289950d936cac9824eb6887a3e2e",
+  "src/content/README.md": "ac11b4aaa2c9e02ad49b5a4f82004f9314a48c907ab25269039b6b2a588ede44",
+  "src/content/AGENTS.md": "91674e8ca8a83814b0cca543091b0490dbb17a26d5d512635e2e915943d3b231",
+  "tests/README.md": "38d245ec79614d70345bf6f9d689da7bdbac62be331053a1982d2f1c0a2e7fd0",
+  "tests/AGENTS.md": "7deb2536ea5d486ad3392de5a37af74c913d2ee258fa96974b5a877de7b67973",
+  "design/assassination-and-cover-persecution.md": "a62775beda7e51bb4e48eab46f2e1bf3edda36e21ae58e600c605116da81c0f1",
+  "design/regard-and-romantasy.md": "0b71c2a57fe23c508d13826a3cb185e59a3be19e4393c4ac1453c0376448ca33",
+  "design/orbital-blackout-and-contingencies.md": "e9043b8ae55d042098da49d6ecfa2cbf56b6230fcfbef7529f14cb0cfad9aa2a"
+}

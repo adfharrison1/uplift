@@ -1,140 +1,68 @@
 # Agent Guide — Uplift
 
-**Uplift** is a 100% local, offline-capable covert civilization simulation inspired by Iain M. Banks' Culture stories (_Inversions_, _Matter_, _Special Circumstances_) and Fred Saberhagen's _Brother Assassin_, built with TypeScript and Three.js (3rd-person fixed-orientation tracking camera + free-cam debug inspector) for a 2019 Intel Core i7 MacBook Pro (16GB RAM).
+Uplift is a local, offline-capable covert civilization simulation inspired by Banks and Saberhagen. The hardware target is a 2019 Intel Core i7 MacBook Pro with 16 GB RAM and 60 FPS presentation. Runtime and tests require no cloud inference or external API keys. Design intent and future systems live in [DESIGN_NOTES.md](DESIGN_NOTES.md); these guides describe shipped code.
 
-## OpenSpec change citations
+## Worktree and documentation policy
 
-Name an OpenSpec change only in `openspec/`, `DESIGN_NOTES.md` and `design/`. Do not cite a change id (`05c-play-shell`), a change number (`Change 06`, `Changes 09 & 09a`), or "this change" in `README.md`, `AGENTS.md`, source, tests, or comments. Describe the module. Root `AGENTS.md` and root `README.md` may still explain how to run OpenSpec (`/opsx-propose`, `/opsx-apply`, `/opsx-archive`, `npx openspec`). That is the workflow, not a change. The verb "change" (`set_separation_weight`) is not a change id.
+Use the default checkout, including OpenSpec apply. Do not create or switch worktrees unless the owner requests it. Inspect the working tree before editing and preserve unrelated changes. Retain this policy when regenerating the apply skill.
 
-## Worktree policy
+New live OpenSpec change citations belong only in openspec/, DESIGN_NOTES.md and design/. Elsewhere describe capabilities, not change IDs or numbered changes. Workflow commands such as `/opsx-propose` are permitted. Tracked historical review reports remain immutable evidence under reviews/; do not rewrite them to satisfy live-guidance checks.
 
-Use the default worktree (the primary checkout) for this project, including OpenSpec apply. Do not create or switch to an isolated worktree unless the user explicitly requests it. This policy takes precedence over generic worktree-isolation guidance. Check the working tree before editing and preserve unrelated local changes. Keep this policy in the project apply skill when regenerating OpenSpec skills.
+Read the target section's AGENTS before editing. Update both its README and AGENTS when capabilities change. Keep shipped guidance, planned design, ordered work and review dispositions in their canonical homes. Read the design notes and inbox before proposing work. Preserve owner wording and unresolved inbox entries; use the review-gates document-integrity procedure for moves and cuts.
 
-## Quick Verify (Run After Every Task)
+## Quick Verify
 
-```bash
-npm run verify
-```
+Run `npm run verify` after every task. It runs format checking, lint, typechecking and one architecture/unit Vitest process concurrently, prints four PASS/FAIL summaries and waits for every check. Failure diagnostics stay grouped. The runner caps captured output at 1 MiB per check and terminates each process tree on overflow or interruption, with forced escalation after 500 ms. The reference-Mac target is under five seconds; record measurements instead of asserting wall-clock timing in tests. HTTP tests need loopback socket access.
 
-`npm run verify` uses `scripts/verify.mjs` to start four checks concurrently:
+`npm run verify:serial` keeps sequential checks; `npm run test:arch` and `npm run test:unit` remain callable separately. Every commit runs lint-staged followed by full verification. Either failure blocks the commit; the hook does not stage unrelated files. The owner approves each task before commit. Never push without an explicit request.
 
-1. `npm run format:check` (Prettier)
-2. `npm run lint` (source, tests, Vite/ESLint config and the verification runner)
-3. `npm run typecheck` (`tsc --noEmit` via native TypeScript 7.0.2)
-4. `npm test` (one Vitest run covering architecture and unit suites, excluding `eval/`)
+Read dependency versions and scripts from [package.json](package.json), the Node pin from [.nvmrc](.nvmrc), compiler settings from [tsconfig.json](tsconfig.json), and verification behavior from [scripts/verify.mjs](scripts/verify.mjs). Do not duplicate version or CVE tables.
 
-Each step prints one PASS/FAIL line; failure output stays grouped by step. The runner waits for every check, caps captured output at 1 MiB per check and fails on overflow. SIGINT/SIGTERM terminate each check's process tree with forced escalation after 500 ms. `npm run verify:serial` retains the sequential format/lint/type/architecture/unit chain; `test:arch` and `test:unit` remain separately callable. The reference-Mac target remains under five seconds; use recorded measurements, not a wall-clock unit assertion. HTTP tests require local loopback socket access.
+## Architecture and deterministic code
 
-Every commit runs `npx lint-staged` followed by full verification. Either failure blocks the commit; the hook never adds unrelated files to the index.
+| Layer                 | Allowed project dependencies                 |
+| --------------------- | -------------------------------------------- |
+| interfaces            | application, domain, infrastructure, content |
+| application           | domain                                       |
+| infrastructure        | domain                                       |
+| content outside scene | domain                                       |
+| content/scene         | interfaces/three, domain, three              |
+| domain                | no outward project layers                    |
 
-## Clean Architecture Layer Rules (Enforced by `tests/architecture/layer_boundaries.test.ts`)
+Domain is pure TypeScript with schema validation, without DOM/WebGL globals, Three.js or model runtimes. Application must not import infrastructure, interfaces, content, Three.js or model runtimes. Infrastructure must not import application, interfaces, content or Three.js. Content topology must not import outer layers or Three.js; scene content must not import application or infrastructure. All content excludes model runtimes.
 
-```text
-interfaces/*         -> application, domain, infrastructure, content
-application          -> domain
-infrastructure       -> domain
-content/* (topology) -> domain
-content/scene/*      -> interfaces/three, domain, three
-domain               -> NOTHING outward (pure TypeScript only)
-```
+Keep strict TypeScript and the existing null, index, optional-property and override checks. Implicit and explicit `any` are forbidden in source and tests. Preserve ESLint, Prettier and architecture assertions. Domain and content forbid ambient randomness/time; inject `SeededRandom` and clocks. Keep reducers pure and inputs immutable. Content identifiers, characters, rooms and behaviors belong in registered packs, never hardcoded in domain or application. Epoch and Era are synonyms; there is no fixed engine epoch count.
 
-| Layer                           | Path                             | Must NOT Import / Use                                                                                                                                                     |
-| ------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `domain`                        | `src/domain/`                    | `application`, `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, DOM/WebGL globals, `Math.random()`, `Date.now()`, implicit/explicit `any` |
-| `application`                   | `src/application/`               | `infrastructure`, `interfaces`, `content`, `three`, `@huggingface/transformers`, implicit/explicit `any`                                                                  |
-| `infrastructure`                | `src/infrastructure/`            | `application`, `interfaces`, `content`, `three`, implicit/explicit `any`                                                                                                  |
-| `content` (domain data/plugins) | `src/content/` (except `scene/`) | `application`, `infrastructure`, `interfaces`, `three`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                               |
-| `content/scene` (3D visuals)    | `src/content/scene/`             | `application`, `infrastructure`, `@huggingface/transformers`, `Math.random()`, `Date.now()`, implicit/explicit `any`                                                      |
-| `interfaces`                    | `src/interfaces/`                | implicit/explicit `any`                                                                                                                                                   |
+## Shipped contracts and consumers
 
-## Strict TypeScript, ESLint, Prettier & Zero-`any` Policy
+`EpochModuleRegistry` accepts spatial, character, behavior, office, quiet-claim, rival, thread, channel, emergency and orbital blueprints. Character contracts include tiers, lineage, drives, emergency vice, inertia pillars and separation weight. The proving pack supplies spaces, bodies, a portal and a waypoint behavior. The additional registry kinds are contracts, not a playable economy, correspondence or rival campaign.
 
-- `tsconfig.json` enforces `"strict": true`, `"noImplicitAny": true`, `"strictNullChecks": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`, and `"noImplicitOverride": true`.
-- We use Microsoft's official TypeScript 7.0.2 side-by-side setup (`@typescript/native` for `tsc` 7.0.2 + `typescript` aliased to `@typescript/typescript6@6.0.2` for `typescript-eslint`).
-- Explicit `any` (`: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`) is banned across `src/` and `tests/` and verified by both ESLint (`@typescript-eslint/no-explicit-any`) and `tests/architecture/layer_boundaries.test.ts`. Use `unknown` with type guards or generic type parameters `<T>` instead.
-- Prettier runs on save (`.vscode/settings.json`), and Husky + `lint-staged` run Prettier and ESLint on staged files on every `git commit`.
+`applyWorldEffects` already implements pressure/discovery, emergency and orbital state transitions. `SimulationCoordinator` dispatches effects, steps waypoint kinematics, schedules cognition and exposes save/load and legacy helpers. Do not describe existing reducers as missing, or infer complete gameplay from their presence. `PlaySession` and the browser composition own one canvas, resident-stage switching, waypoint development controls and the stage lab.
 
-## Plug-and-Play Module Registries & Core Systems
+The NDJSON logger, rolling compactor and file save repository exist. The browser uses in-memory telemetry and saves; it does not feed the disk logger. Stage-lab saves reach guarded local routes, but saved JSON is not loaded into the launch. Storage recovery and compaction limits are documented in the infrastructure guide.
 
-Throughout **Uplift**, **`Epoch` and `Era` are 100% synonymous** (`Epoch 1 === Era 1`; code uses `epochId`), and the campaign's Epoch ladder (`EpochProfileBlueprint[]`, default 7-Epoch arc: `Feudal -> Renaissance -> Pre-Industrial/Colonial -> Industrial/WWI -> Cold-War -> Computer-Age -> Space-Age/1st-Contact`) is 100% data-driven and configurable. Never hardcode specific characters, behaviors, rooms, props, offices, or epoch counts inside `src/domain/` or `src/application/`. Register all content and sub-types via `EpochModuleRegistry`:
+## Section guides
 
-- **Characters (`CharacterBlueprint`, `CharacterVisualBlueprint`)**: 3 tiers (`utility_schemer` Tier 1, `role_routine` Tier 2, `ambient_crowd` Tier 3) with `lineageId`, `drives`, `emergencyVice`, `inertiaPillars` (`InertiaPillar[]`: `doctrine`, `constituency`, `debt`, `temper`, `ignorance`), and 3D posture/wardrobe kitbashing. `locomotionMode` is `waypoint` (default) or `direct`. A direct body takes a steer and walks the floor. Waypoint bodies keep path requests.
-- **Prop footprints and arrival hold**: A prop blocks the oriented footprint of its drawn mesh plus a `0.03` m slop. Body contact uses a `0.22` m disc. Only the direct player's disc holds an NPC short of an arrival point. The hold emits an ambient line, then slides the player if the disc still covers the point.
-- **Proximity use, menu grammar, and `interactionHold`**: Space selects a same-room target within `0.4` m of its surface and inside `±45°` of facing, preferring the one closest to straight ahead. WASD, Space, and Escape drive the menu stack. Player pause freezes the room and leaves the camera anchored. `interactionHold` on world state stops the held person or prop so a conversation can keep that hold.
-- **Local AI eval runner**: Every AI subject is scored by one offline command, `npm run eval:ai`, from cases under `eval/`. A case is a fixture, a fixed seed, a rollout on fast-eval pacing, and assertions. New AI work adds a suite to that runner. The command stays outside `npm run verify`.
-- **Conversation paging and ambient lines**: A conversation the player enters, or that a world event opens, advances one chunk at a time on Space. A response is a WASD menu confirmed with Space, and the talk then continues or finishes. NPC lines use a diegetic bubble. Advisor lines use the lace page. The same keys drive both. An ambient line is short text on a speaker the player has not entered: an overheard exchange, an exclamation, or the impatient beat. It expires, takes no input, and does not lock the player. There is no voice acting. A written voice register is diction and cadence, not a performed voice. Cutting a conversation short, spending a role pretext, spending a fund, and an advisor dropping an `omissible` clause are later systems on this same page. The unread tail of a cut conversation does not fire.
-- **Rival Spacefaring Operatives (`RivalCivBlueprint`)**: Competing off-world operatives whose actions propagate across local and wider world nodes (`orbitalOffsetTicks`, `spoofMode`) and can spoof or be detected on the Wider World Overview.
-- **Contested Offices, Quiet Claims & Economy (`OfficeBlueprint`, `QuietClaimBlueprint`, `IllicitInstrumentType`, `PressureStockType`)**: Contested offices (`institutionalLineageId`, `pretextFamilies`, `stipendPerTick`) and deniable Quiet Claims vs. 3 orbital-inserted illicit fund modes (`insert_illicit_instrument`) impacting 3 societal pressure stocks and 4 discovery layers (`'noticed' | 'assayed' | 'attributed' | 'theorized'`).
-- **Correspondence Channels (`ChannelMediumBlueprint`)**: Epoch-pack channel contracts with `baseTransitTicks`, `interceptionRisk`, and `forgeryDifficulty`, registered on `EpochModuleRegistry`.
-- **Inertia Weighting, Slow-Burn Butterfly Threads & Crises (`TrajectoryThreadBlueprint`)**: Slow-building historical threads, religious martyrdom/succession rules (`primaryCandidateLineageId`, `substituteCandidateLineageId`), and crises with `dualUseCeiling`.
-- **Emergency States (`EmergencyStateBlueprint`)**: Pauses non-related traits and compounds `emergencyVice` drives (`trigger_emergency`, `compound_emergency_vices`, `resolve_emergency`) until resolved.
-- **Orbital Pass (`OrbitalPassBlueprint`, `OrbitalPassRuntimeState`)**: `zenith` / `horizon` / `occluded` phase, `availableDelta` capped by `maxDelta`, and `activeBurn`. `advance_orbital_pass` applies `deltaRegen` and clears `activeBurn` outside `zenith`. `spend_orbital_delta` throws on `burn` unless the phase is `zenith`; `slingshot` sets the phase to `zenith`.
-- **Session Telemetry & Debug Skill**: Every event and AI input/output/reasoning trace logs to `./logs/current-session.jsonl` (50 MiB active cap / 500 MiB compacted cap) with rolling compaction and `.agents/skills/uplift-debug/SKILL.md`.
-- **Design-Note Dump Skill (`.agents/skills/uplift-design-notes/SKILL.md`)**: Break a raw design dump into topics, research one topic at a time with three parallel subagents (game design, codebase fit, pacing/hardware — `composer-2.5-fast` or `grok-4.7-high-fast`), and after approval integrate it into `DESIGN_NOTES.md`, `openspec/config.yaml`, and `AGENTS.md`, then run a three-agent coherence assessment. Do not `/opsx-propose` from this skill.
-- **Agent Skills Rule (Enforced by `npm run test:arch`)**: Always place project agent skills in `.agents/skills/<skill-name>/SKILL.md` — never in `.cursor/skills/`.
-
-## Section-Specific Agent & Developer Guides (Hierarchical Map)
-
-Root `README.md` and `AGENTS.md` provide high-level project instructions and point to scoped `README.md` and `AGENTS.md` files inside every major section of the codebase. **Always read the target section's `AGENTS.md` when working in that directory, and update both `<section>/README.md` and `<section>/AGENTS.md` when adding or changing capabilities:**
-
-| Codebase Section         | Human Overview (`README.md`)                                   | Agent Rules & Recipes (`AGENTS.md`)                            | Scope                                                                                                    |
-| ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **Domain Layer**         | [`src/domain/README.md`](src/domain/README.md)                 | [`src/domain/AGENTS.md`](src/domain/AGENTS.md)                 | Pure simulation models, `SeededRandom`, `StateSliceKey<T>`, reducer contracts, `CivilizationLegacyState` |
-| **Application Layer**    | [`src/application/README.md`](src/application/README.md)       | [`src/application/AGENTS.md`](src/application/AGENTS.md)       | Use cases, tick orchestration, `RenderFrameBuilder`, port interfaces                                     |
-| **Infrastructure Layer** | [`src/infrastructure/README.md`](src/infrastructure/README.md) | [`src/infrastructure/AGENTS.md`](src/infrastructure/AGENTS.md) | Session NDJSON logger & compactor, save/load repository, local ONNX Web Worker                           |
-| **Content & Plugins**    | [`src/content/README.md`](src/content/README.md)               | [`src/content/AGENTS.md`](src/content/AGENTS.md)               | Swappable Eras, Characters (Tiers 1–3), Rivals, Roles, Behaviors, Spaces, Props, Mechanics               |
-| **Interfaces Layer**     | [`src/interfaces/README.md`](src/interfaces/README.md)         | [`src/interfaces/AGENTS.md`](src/interfaces/AGENTS.md)         | Three.js 60 FPS 3rd-person tracking renderer, Debug Inspector, HUD, composition root                     |
-| **Test Suites**          | [`tests/README.md`](tests/README.md)                           | [`tests/AGENTS.md`](tests/AGENTS.md)                           | Architecture boundary tests, domain unit tests, content contract tests, headless simulation tests        |
+| Section        | Human guide                            | Agent guide                            |
+| -------------- | -------------------------------------- | -------------------------------------- |
+| Domain         | [README](src/domain/README.md)         | [AGENTS](src/domain/AGENTS.md)         |
+| Application    | [README](src/application/README.md)    | [AGENTS](src/application/AGENTS.md)    |
+| Infrastructure | [README](src/infrastructure/README.md) | [AGENTS](src/infrastructure/AGENTS.md) |
+| Content        | [README](src/content/README.md)        | [AGENTS](src/content/AGENTS.md)        |
+| Interfaces     | [README](src/interfaces/README.md)     | [AGENTS](src/interfaces/AGENTS.md)     |
+| Tests          | [README](tests/README.md)              | [AGENTS](tests/AGENTS.md)              |
 
 ## Project skills
 
-Use the linked skill for the current workflow. The delivery-gates skill is authoritative for review procedures, task sizing and model-agnostic briefs; the legacy review summary below retains the existing review axes until its documentation consolidation. Preserve its 3/2/6 independent review counts and owner checkpoints.
+Project skills live in .agents/skills/, never .cursor/skills/. Read the relevant skill before its workflow. Delivery gates retain three proposal, two task and six delivery reviewers; briefs specify high reasoning, medium-to-high model. Slot limits require waves, not fewer reviewers.
 
-- [uplift-review-gates](.agents/skills/uplift-review-gates/SKILL.md): proposal, task and delivery review, G1–G6 evidence, task sizing and document integrity.
-- [root-and-branch-review](.agents/skills/root-and-branch-review/SKILL.md): periodic deep review of delivered code, design and roadmap; also available through the Claude skill symlink.
-- [uplift-debug](.agents/skills/uplift-debug/SKILL.md): inspect telemetry and simulation traces.
-- [uplift-design-notes](.agents/skills/uplift-design-notes/SKILL.md): assess a raw design dump or new mechanic.
-- [openspec-propose](.agents/skills/openspec-propose/SKILL.md): generate planning artifacts, then stop for review.
-- [openspec-apply-change](.agents/skills/openspec-apply-change/SKILL.md): implement approved tasks in the default checkout with per-task approval.
-- [openspec-update-change](.agents/skills/openspec-update-change/SKILL.md): revise existing planning artifacts without editing code.
-- [openspec-explore](.agents/skills/openspec-explore/SKILL.md): investigate ideas and requirements before implementation.
-- [openspec-sync-specs](.agents/skills/openspec-sync-specs/SKILL.md): sync delta specs without archiving.
-- [openspec-archive-change](.agents/skills/openspec-archive-change/SKILL.md): archive delivered work after its review gates.
-
-## Atomic Delivery, Post-Propose Audit, Pre-Commit Self-Review & Post-Change 6-Subagent Review
-
-We use **OpenSpec (`opsx`)** across the living atomic change roadmap in `openspec/config.yaml`. `DESIGN_NOTES.md` and `openspec/config.yaml` are living documents—before proposing any new change, always check `DESIGN_NOTES.md` for new notes or intermediate changes, and keep all engine parameters, camera settings, and module registries data-driven so design and config changes can be made at any time without structural rework.
-
-### 1. Post-Propose 3-Subagent Spec Audit Gate (Before `/opsx-apply`)
-
-After generating `proposal.md`, `specs/*`, `design.md`, and `tasks.md` in `/opsx-propose`, launch **three parallel subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to audit the change artifacts before implementation:
-
-1. **Subagent A — Architecture, Adversarial, Determinism & Hardware Audit**: Checks Clean Architecture inward layer placement, epoch-agnostic plug-and-play contracts (zero feudal hardcoding in `domain`), race conditions/immutability/determinism, zero external APIs, and 2019 Intel Mac 60 FPS / `<5s` verify budgets.
-2. **Subagent B — Spec Completeness, `DESIGN_NOTES.md` Alignment & Task Atomicity Audit**: Checks `WHEN`/`THEN` scenario coverage (including negative/error cases), alignment with `DESIGN_NOTES.md` and `openspec/config.yaml`, and verifies `tasks.md` has 4–6 atomic tasks (1–3 files each) ordered inward-out so every intermediate commit compiles and passes `npm run verify`.
-3. **Subagent C — Game-Industry Standards, Best Practices, User safety, Accessibility, Gotchas & Extensibility Audit**: Checks game-industry simulation/architecture best practices, user-safety, accessibility, gotchas, possible coding-into-a-corner, future-proofing, and extensibility.
-
-Fold verified improvements from the 3 subagents into the OpenSpec artifacts, run `npx openspec validate "<change>" --strict`, and **pause for user review and approval before starting `/opsx-apply`**.
-
-### 2. Per-Subtask 2-Subagent Review & Pre-Commit Self-Review (Before Pausing for User Review & Committing)
-
-Within each change, every task in `tasks.md` is scoped to 1–3 files + tests (`1 Task = 1 Verified Commit`). For every subtask:
-
-1. Implement the subtask and run its `Verify:` command and `npm run verify`.
-2. Launch **2 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) with broad, non-overlapping review briefs on the subtask's files:
-   - **Subagent A — Correctness, Logic, Edge Cases & Performance**: Audits algorithmic/state-machine logic, boundary/malformed inputs, immutability, determinism, and CPU/memory efficiency.
-   - **Subagent B — Architecture, Spec/Design Adherence, Types & Test Coverage**: Audits Clean Architecture inward boundaries, zero-`any` / Zod conventions, alignment with the change's spec/design, and unit test assertion quality/gaps.
-3. Double-check their findings, apply any verified fixes, re-run `npm run verify`, and inspect `git diff --staged` before pausing for user review.
-4. Once approved, create the atomic **Conventional Commit** and mark `- [x]` in `tasks.md`. Do not push to a remote unless explicitly asked.
-
-### 3. Post-Change 6-Subagent Review Gate (After Each Change Is Delivered)
-
-When all tasks in a change are delivered (and before `/opsx-archive`), launch **6 parallel review subagents** (using Composer 2.5 Fast or Grok 4.7 High Fast) to review the change across 6 specialized dimensions:
-
-1. **Adversarial Review**: Edge cases, malformed inputs, concurrency/race conditions, and failure modes.
-2. **Code Adherence & Architecture Review**: Clean Architecture inward imports, zero-`any` compliance, plug-and-play registry boundaries, OpenSpec spec adherence, and hierarchical `README.md` / `AGENTS.md` completeness.
-3. **Performance Review**: 2019 Intel Core i7 (16GB RAM) hardware budget, 60 FPS frame budget, cloning/allocation overhead, and algorithmic complexity.
-4. **Testing Review**: Test coverage gaps, boundary/negative assertions, determinism, and execution speed (`<3s` unit/arch suite).
-5. **Logic & Simulation Integrity Review**: Mathematical/bitwise correctness, state-transition invariants, and reducer purity.
-6. **Design Notes, Thematic Consistency & Coherence Review**: Adherence to `DESIGN_NOTES.md`, thematic consistency, and overall coherence of the change.
-
-Always double-check the subagents' findings against the actual code, apply any verified fixes in an atomic commit (`fix(<scope>): ...`), and re-run `npm run verify`.
+- [uplift-review-gates](.agents/skills/uplift-review-gates/SKILL.md): delivery reviews, G1–G6, task sizing and document integrity.
+- [root-and-branch-review](.agents/skills/root-and-branch-review/SKILL.md): periodic whole-project review.
+- [uplift-debug](.agents/skills/uplift-debug/SKILL.md): telemetry and simulation diagnosis.
+- [uplift-design-notes](.agents/skills/uplift-design-notes/SKILL.md): assess and disposition raw design notes.
+- [openspec-propose](.agents/skills/openspec-propose/SKILL.md): create planning artifacts and stop for owner review.
+- [openspec-apply-change](.agents/skills/openspec-apply-change/SKILL.md): implement approved tasks with per-task approval.
+- [openspec-update-change](.agents/skills/openspec-update-change/SKILL.md): revise planning artifacts without code edits.
+- [openspec-explore](.agents/skills/openspec-explore/SKILL.md): investigate ideas and requirements.
+- [openspec-sync-specs](.agents/skills/openspec-sync-specs/SKILL.md): synchronize delta specs without archiving.
+- [openspec-archive-change](.agents/skills/openspec-archive-change/SKILL.md): archive delivered work after its gates.

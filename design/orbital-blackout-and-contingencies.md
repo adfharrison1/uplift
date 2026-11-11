@@ -12,7 +12,7 @@ Canonical summary lives in DESIGN_NOTES § Orbital blackout, contingencies and S
 
 ## The pool of 5 planetary contingencies
 
-`ContingencyEventBlueprint` and `orbitalContingencyLedger`; 2–3 are drawn per playthrough with the keyed `roll(worldSeed, streamKey, counter)`. They come in addition to the conditional late-game Rival Ship Ambush (see Rivals in DESIGN_NOTES).
+`ContingencyEventBlueprint` and `orbitalContingencyLedger`; each contingency is once-per-playthrough, and 2–3 are drawn per playthrough with the keyed `roll(worldSeed, streamKey, counter)`. They come in addition to the conditional late-game Rival Ship Ambush (see Rivals in DESIGN_NOTES).
 
 1. `solar_flare_interdiction` (_Catastrophic Coronal Mass Ejection_): _The Ending_ leaves orbit for `watchesRemaining` to deploy Lagrange field-mirror damping. Cannot be solved by locals; discoverability/paranoia delta scales with the Epoch's `detectionTechLevel` (`0..1`: Feudal aurora omens -> Renaissance/Colonial optical telescopes -> Industrial telegraph geomagnetic storms -> Cold-War/Computer/Space-Age radar, radio & satellite telemetry; the ladder form is in The configurable ladder in DESIGN_NOTES).
 2. `comet_orbital_diversion` (_Intersecting Comet / Bolide_): in earlier Epochs, _The Ending_ must leave orbit to nudge the comet's trajectory (`ship_diversion`). In the **Final Epoch (`isTerminalEpoch: true`)**, you can choose **`local_mitigation`**: keep the Ship silent and manipulate the civilization's own scientific/space-age institutions to deflect the comet themselves (lower success odds boosted by uplifted science/institutions, much lower discovery/paranoia risk, and a crowning legacy achievement).

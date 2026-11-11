@@ -2,9 +2,9 @@
 
 ## Purpose
 
-`src/content/` houses all swappable, declarative game content for **Uplift** so the core engine (`src/domain/`, `src/application/`) stays 100% free of hardcoded lore, characters, rooms, or epoch-specific mechanics. Throughout **Uplift**, **`Epoch` and `Era` are 100% synonymous** (`Epoch 1 === Era 1`), and the campaign's Epoch ladder (`EpochProfileBlueprint[]`) is 100% data-driven and configurable.
+`src/content/` houses all swappable, declarative game content for **Uplift** so the core engine (`src/domain/`, `src/application/`) stays 100% free of hardcoded lore, characters, rooms, or epoch-specific mechanics. Throughout **Uplift**, **`Epoch` and `Era` are 100% synonymous** (`Epoch 1 === Era 1`), and the configurable campaign ladder remains [design intent](../../DESIGN_NOTES.md); its blueprint contract is not shipped.
 
-Content is organized into modular packs:
+Content is organized into modular packs. Registry acceptance of offices, rivals, threads and other kinds does not imply authored content or active gameplay consumers for them:
 
 - **3D Scene Blueprints (`scene/`)**: Presentation-only 3-Layer Encoded Visual Blueprints (`EpochVisualTheme`, `StageSceneBlueprint`, `CharacterVisualBlueprint`) consumed by `src/interfaces/three/`.
 - **Epochs / Eras, Characters, Rivals, Offices, Behaviors, Worlds & Mechanics**: Declarative `EpochModulePackInput` packs (`SpaceNodeBlueprint`, `PropBlueprint`, `CharacterBlueprint` with `InertiaPillar[]`, `OfficeBlueprint`, `QuietClaimBlueprint`, `RivalCivBlueprint`, `TrajectoryThreadBlueprint`, `ChannelMediumBlueprint`, `EmergencyStateBlueprint`, `OrbitalPassBlueprint`, and `BehaviorModule`).

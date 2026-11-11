@@ -4,7 +4,7 @@
 
 `src/domain/` is the pure TypeScript heart of **Uplift**. It defines the deterministic simulation primitives, Zod-validated domain schemas and ports, epoch-agnostic plug-and-play module registries, continuous 60Hz spatial kinematics and human-paced cognitive phases, pure `WorldEffect` reducers, and Dual-Ledger `CivilizationLegacyState` continuity models.
 
-It has **zero outward dependencies** on application, infrastructure, interfaces, content, Three.js, ONNX/Transformers, or DOM/WebGL globals.
+It has **zero outward dependencies** on application, infrastructure, interfaces, content, Three.js, model runtimes, or DOM/WebGL globals. Registry schemas describe accepted data, not complete gameplay consumers. Emergency, pressure/discovery and orbital reducers exist, while the proving pack does not supply content for those systems. Campaign maturation and a configurable epoch-ladder contract remain in [design intent](../../DESIGN_NOTES.md).
 
 ## Current Module Inventory
 
@@ -21,3 +21,11 @@ It has **zero outward dependencies** on application, infrastructure, interfaces,
 - `simulation/KinematicsEngine.ts` — Continuous 60Hz `stepKinematics(state, dtSeconds, spaceKinds?)` engine advancing spatial polyline paths (`<= 1e-6m` zero-segment guard, exact waypoint coordinate snapping, intra-frame leftover distance carry, and ordered `WaypointArrivalEvent` emission) alongside human-paced cognitive timers (`deliberating -> moving -> performing_dwell -> cooldown -> idle|awaiting_trigger`) with single-pass zero-duration waterfalling under `FAST_EVAL_PACING_CONFIG`. Moving embodied entities in the same space take a weight-scaled XZ slide from start-of-step positions. An omitted `spaceKinds` map embodies every entity. Weight `0` keeps authored spacing.
 - `legacy/CivilizationLegacyState.ts` — Dual-Ledger `CivilizationLegacyState` (`materialScars` vs. `veilScars`, `communicationsBackboneControllerId`, `lineageMutations`), `civilizationLegacyFromRecordedScars`, `recordScarInLegacyState`, `legacyStateToRecord` / `parseLegacyState`, and `applyLegacyToCharacterBlueprints` (`add | multiply | clamp | override` strategies with conflict and `[0, 1]` bounds checks).
 - `index.ts` — Public barrel exporting all domain primitives, registries, simulation reducers/kinematics, legacy state helpers, schemas, and ports.
+
+## Registry vocabulary and orbital reducer contracts
+
+The character tier mapping is Tier 1 `utility_schemer`, Tier 2 `role_routine`, Tier 3 `ambient_crowd`. `InertiaPillar` kinds are `doctrine`, `constituency`, `debt`, `temper` and `ignorance`. These are schema vocabularies, not proof of a full AI implementation for every tier. Written voice profiles and public/private drive contradictions remain [design intent](../../DESIGN_NOTES.md).
+
+`OfficeBlueprint` carries `institutionalLineageId`, `pretextFamilies` and `stipendPerTick`; `RivalCivBlueprint` carries `orbitalOffsetTicks` and `spoofMode`. `ChannelMediumBlueprint` carries `baseTransitTicks`, `interceptionRisk` and `forgeryDifficulty`. `TrajectoryThreadBlueprint` carries `dualUseCeiling` and optional `primaryCandidateLineageId` / `substituteCandidateLineageId`. These contracts accept data; they do not implement stipends, transit, spoofing or martyrdom gameplay.
+
+`OrbitalPassRuntimeState` carries phase, `availableDelta`, `maxDelta` and `activeBurn`. The shipped `advance_orbital_pass` reducer adds the effect's `deltaRegen`, caps the result at `maxDelta`, and clears `activeBurn` outside `zenith`. `spend_orbital_delta` throws for `burn` unless the phase is `zenith`, throws for insufficient Delta, and sets the phase to `zenith` for `slingshot`. These are callable reducer contracts; the proving pack does not drive a playable orbital loop.

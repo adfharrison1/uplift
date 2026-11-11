@@ -23,7 +23,7 @@ milestones:
     outcome: "Hold a paged, menu-driven conversation with bubbles and lace page, then read what you learned in the notebook; eval:ai replays it."
   - id: M5
     name: "Vertical slice"
-    outcome: "Play one Epoch 1 thread from first clue to a stub end card; the go/no-go point for everything after."
+    outcome: "Play one Epoch 1 thread with findable inference trails as the go/no-go point; a separate follow-up adds the ledger and end card."
   - id: M6
     name: "Breadth"
     outcome: "Rivals, overview, generated text, advisors, audio lab, Delta/emergency and crew handoff across epochs, ending in a finished Epoch 1."
@@ -68,14 +68,24 @@ entries:
   - id: "05c-play-shell"
     title: "The campaign's single browser page: one canvas, whichever pack is registered, waypoint and door requests, stage swap on focus-space change, F3 stage lab"
     milestone: null
-    depends_on: ["04-third-person-camera-and-inspector", "05-live-npc-steering-and-world-stage"]
+    depends_on:
+      [
+        "04-third-person-camera-and-inspector",
+        "05-live-npc-steering-and-world-stage",
+      ]
     specs_modified: []
     status: archived
   - id: "hx-ops-safety"
     title: "Hardening 0: guarded bridge, logger rotation, parallel verify"
     milestone: M1
     depends_on: ["05c-play-shell"]
-    specs_modified: ["multi-session-saves", "stage-inspector", "session-telemetry-and-compaction", "clean-architecture-and-quality-gate"]
+    specs_modified:
+      [
+        "multi-session-saves",
+        "stage-inspector",
+        "session-telemetry-and-compaction",
+        "clean-architecture-and-quality-gate",
+      ]
     status: archived
     delivery_note: "Archived 2026-11-10; all six tasks delivered, reviews cleared and four main specs synchronized. Evidence: openspec/changes/archive/2026-11-10-hx-ops-safety/delivery.md and verification.md. Archive state remains derived from openspec/changes/."
     scope: "Runs first in the whole plan because the bridge CSRF was reproduced and the fix is independent of everything else. One guarded write-route helper (Origin allow-list, Sec-Fetch-Site, Content-Type, per-run token, size cap that destroys the stream, realpath containment) with explicit server.cors and a real http middleware test on 127.0.0.1:0, plus the logger rotating the prior session into logs/prev instead of truncating it (spec delta replaces the requirement that the prior log SHALL be replaced). Then verify runs format, lint, typecheck and vitest in parallel with buffered one-line PASS/FAIL, keeps verify:serial, deletes the prose-pinning arch tests and runs verify in pre-commit, with the unmeasured under-5-seconds clause replaced by a measured budget."
@@ -83,17 +93,24 @@ entries:
     title: "Docs: rules spine, system graph, roadmap.yaml"
     milestone: M1
     depends_on: ["hx-ops-safety"]
-    specs_modified: ["(none: doc-only)", "(new) roadmap-graph"]
+    specs_modified: ["(none: doc-only)"]
     status: done-by-review
     note: "Delivered by the 2026-11 root-and-branch review's Phase 1 doc commits. The roadmap:next script and the roadmap DAG check moved to process-gates-and-ledger."
-    scope: "Doc-only, anchored on quoted passages not line numbers. DESIGN_NOTES.md gets the index, pillars P1-P5, the Where-facts-live owner table, a section status index (this change writes the index only; heading markers are written once, by the amendment that touches each section), the numbered 8-rule spine, minute/session/epoch cycles, the clock decision record, the Leverage Chain definition with the owner wording kept, the 7-primitive system graph with economy hubs, an emergency cardinality and scope note, one pause/lab definition (player pause sets the single domain freeze bit: time freezes, effects still reduce and return outcomes; lab mode is a PlaySession flag that also holds the bit; free-cam keys gate on lab mode), the owner's save-policy decision (autosave at watch boundaries plus named manual saves; loading any earlier save is allowed and restores that save's notebook), the INV-1 verdicts (INV-A to INV-F), a reserved tellProfile note, the section 9 amendment (tone blips are not a synthesised voice), the past-advisor cameo as a design-note candidate only, and the S2-04 edits retiring free-text and ONNX wording. It also moves the planned camera, play-shell and core-model blocks out of config.yaml into DESIGN_NOTES with a diff proving nothing is lost, writes notes/inbox.md, triages the half-integrated 8 Nov dump into it, adds the ch2 doc shape for review outputs and a dispositions appendix, and adds the planned economy, Regard, storyteller-deck and Writing Desk passages so every change has a doc home. openspec/roadmap.yaml (ordered array, depends_on, specs_modified, status) is seeded from this plan with the original ids restored, and parked entries each with a revisit trigger (onboarding, DPR/antialiasing, silhouette budget, theme roles, later notebook categories, offline self-play tuning, small classifier spike, INV-D Bayesian network, INV-F exact-inference network, RC2 runtime reranker, dither-fade wall occlusion, merged Tier-3 crowd, compiler-API import scan, Epoch 1 definition of done)."
+    scope: "Doc-only, anchored on quoted passages not line numbers. DESIGN_NOTES.md gets the index, pillars P1-P5, the Where-facts-live owner table, a section status index (this change writes the index only; heading markers are written once, by the amendment that touches each section), the numbered 8-rule spine, minute/session/epoch cycles, the clock decision record, the Leverage Chain definition with the owner wording kept, the 7-primitive system graph with economy hubs, an emergency cardinality and scope note, one pause/lab definition (player pause sets the single domain freeze bit: time freezes, effects still reduce and return outcomes; lab mode is a PlaySession flag that also holds the bit; free-cam keys gate on lab mode), the owner's save-policy decision (autosave at watch boundaries plus named manual saves; loading any earlier save is allowed and restores that save's notebook), the INV-1 verdicts (INV-A to INV-F), a reserved tellProfile note, the section 9 amendment (tone blips are not a synthesised voice), the past-advisor cameo as a design-note candidate only, and the S2-04 edits retiring free-text and ONNX wording. Config consolidation and its no-loss mapping are owned by process-gates-and-ledger; the system sections here provide its canonical design destinations. It writes notes/inbox.md, triages the half-integrated 8 Nov dump into it, adds the ch2 doc shape for review outputs and a dispositions appendix, and adds the planned economy, Regard, storyteller-deck and Writing Desk passages so every change has a doc home. openspec/roadmap.yaml (ordered array, depends_on, specs_modified, status) is seeded from this plan with the original ids restored, and parked entries each with a revisit trigger (onboarding, DPR/antialiasing, silhouette budget, theme roles, later notebook categories, offline self-play tuning, small classifier spike, INV-D Bayesian network, INV-F exact-inference network, RC2 runtime reranker, dither-fade wall occlusion, merged Tier-3 crowd, compiler-API import scan, Epoch 1 definition of done)."
   - id: "process-gates-and-ledger"
-    title: "Process: design-notes skill fix, docs-truth test, gates skill, defect ledger"
+    title: "Process: truthful guidance, review skills, roadmap and defect lifecycle"
     milestone: M1
     depends_on: ["docs-spine-and-roadmap"]
-    specs_modified: ["clean-architecture-and-quality-gate", "(new) review-process", "(new) defect-ledger"]
-    status: planned
-    scope: "Also adds the roadmap:next script (prints the first planned entry whose depends_on are all archived or done-by-review) and the roadmap.yaml DAG check, moved here from docs-spine-and-roadmap. Fixes .agents/skills/uplift-design-notes so it writes DESIGN_NOTES, notes/inbox.md and roadmap.yaml and never AGENTS.md; rewrites root AGENTS.md to shipped code only (target about 900 words, test ceiling 1050, no change ids), single-sources versions in package.json, drops CVE ids, and cuts config.yaml context under 1.5k words by whole-block cuts that point to DESIGN_NOTES, only after the no-loss diff from the spine change passes. Creates .agents/skills/uplift-review-gates/SKILL.md with gates G1-G6 (additions only, task-size rule replacing the 4-6 count, retargeting the old Subagent B wording into the skill, consumer scenarios and MODIFIED deltas for contradicted requirements) and adds a tracked openspec/defect-ledger.yaml (id, source, severity, fixing change id; a finding with no fixing change is recorded as parked) whose entries are deleted by an opsx-archive wrapper script, with the skill only pointing at that script. The single docs-truth test lands last so it starts green: it checks root AGENTS.md only (identifiers and scripts resolve, versions match, change ids only in openspec/ and DESIGN_NOTES, status markers resolve to roadmap.yaml, word budgets, numeric facts) and fails on ledger entries naming archived or absent changes; the ledger seed (all severities or majors only) awaits Q3. Ledger seed: every open code defect this review found that has a slotted fixing change, all severities."
+    specs_modified:
+      [
+        "clean-architecture-and-quality-gate",
+        "(new) review-process",
+        "(new) design-note-workflow",
+        "(new) roadmap-graph",
+        "(new) defect-ledger",
+      ]
+    status: proposed
+    scope: "Also adds the roadmap:next script (prints the first planned entry whose depends_on are all archived or done-by-review) and the roadmap.yaml DAG check, moved here from docs-spine-and-roadmap. Fixes .agents/skills/uplift-design-notes so it writes DESIGN_NOTES, notes/inbox.md and roadmap.yaml and never AGENTS.md; rewrites root AGENTS.md to shipped code only (target about 900 words, test ceiling 1050, no change ids), single-sources versions in package.json, drops CVE ids, and cuts config.yaml context under 1.5k words by whole-block cuts that point to DESIGN_NOTES, only after its own two-reviewer no-loss mapping passes. Creates .agents/skills/uplift-review-gates/SKILL.md with gates G1-G6 (additions only, task-size rule replacing the 4-6 count, retargeting the old Subagent B wording into the skill, consumer scenarios and MODIFIED deltas for contradicted requirements) and adds a tracked openspec/defect-ledger.yaml (id, source, severity, fixing change id; a finding with no fixing change is recorded as parked) whose verified entries move into durable resolution receipts through a checked archive wrapper, with the skill only pointing at that script. The single docs-truth test lands last so it starts green: it checks root AGENTS.md only (identifiers and scripts resolve, versions match, live change ids only in openspec/, DESIGN_NOTES and design/; historical review evidence is retained, status markers resolve to roadmap.yaml, word budgets, numeric facts) and fails on ledger entries naming archived or absent changes; Q3 is settled: the ledger is tracked at openspec/defect-ledger.yaml. Ledger seed: every open code defect this review found that has a slotted fixing change, all severities."
   - id: "hx-1-legacy-clamp-seed-scramble"
     title: "Hardening 1+2: legacy clamp, seed scramble"
     milestone: M1
@@ -107,7 +124,7 @@ entries:
     depends_on: ["hx-1-legacy-clamp-seed-scramble"]
     specs_modified: ["deterministic-simulation-primitives"]
     status: planned
-    scope: "Adds tests/support makeRegistry, makeWorldState and makeStageBlueprint, splits the monolithic tests onto them, gives the bridge its first tests, and carries the S3-17 acceptance lines (caps, mid-hop states, dt splits) for later hardening changes. StateSliceStore then freezes on write and shares on read with O(1) append (the default-fallback scenario no longer demands a clone), guarded by frozen-output invariant tests. StateSliceKey gains optional schema/version/migrate and a plain-JSON guard so Map and Set cannot enter a slice."
+    scope: "Adds tests/support makeRegistry, makeWorldState and makeStageBlueprint, splits the monolithic tests onto them, refactors and extends the existing bridge tests, and carries the S3-17 acceptance lines (caps, mid-hop states, dt splits) for later hardening changes. StateSliceStore then freezes on write and shares on read with O(1) append (the default-fallback scenario no longer demands a clone), guarded by frozen-output invariant tests. StateSliceKey gains optional schema/version/migrate and a plain-JSON guard so Map and Set cannot enter a slice."
   - id: "hx-save-integrity"
     title: "Hardening 4: WorldStateCodec, pack identity, id pattern"
     milestone: M1
@@ -133,7 +150,11 @@ entries:
     title: "Hardening 6b: state hash, golden run, determinism lint"
     milestone: M1
     depends_on: ["hx-fixed-step-tick"]
-    specs_modified: ["deterministic-simulation-primitives", "clean-architecture-and-quality-gate"]
+    specs_modified:
+      [
+        "deterministic-simulation-primitives",
+        "clean-architecture-and-quality-gate",
+      ]
     status: planned
     scope: "hashWorldState and src/application/headless/runScenario drive a golden run with shuffled insertion, throwing Math.random and Date stubs, a slice JSON round trip and a PHASES-order test (spec delta replaces raw-dt stepping with the fixed step). One ESLint determinism block covers domain, non-scene content and application, bans node:*, require and non-literal import(), and closes the layer-test blind spots."
   - id: "hx-kinematics"
@@ -196,14 +217,20 @@ entries:
     title: "Pre-05b-1: validateLaunch, kind table, ref table"
     milestone: M3
     depends_on: ["audio-minimal", "hx-save-integrity"]
-    specs_modified: ["(new) launch-validation", "clean-architecture-and-quality-gate"]
+    specs_modified:
+      ["(new) launch-validation", "clean-architecture-and-quality-gate"]
     status: planned
     scope: "validateLaunch(pack, stages, visuals) collects all errors with ids and file hints and folds in the interim shape-id check from the renderer change. defineModuleKind replaces the closed 11-kind registry, the registry gets a ref table (institutionalLineageId ref added, duplicate check dropped), the epoch-agnostic denylist is derived from exported packs and moved to tests/architecture, and an arch test forbids a new kind or effect without content using it."
   - id: "pre-05b-pack-source-of-truth"
     title: "Pre-05b-1: JSON packs and stages, section docs truth"
     milestone: M3
     depends_on: ["pre-05b-launch-validation", "process-gates-and-ledger"]
-    specs_modified: ["stage-inspector", "multi-session-saves", "clean-architecture-and-quality-gate"]
+    specs_modified:
+      [
+        "stage-inspector",
+        "multi-session-saves",
+        "clean-architecture-and-quality-gate",
+      ]
     status: planned
     scope: "The runtime loader reads allowlisted, Zod-checked JSON packs and stages through validateLaunch with no TS emission, the stage-lab save gets an end-to-end scenario to its consumer, and kitbash recipes become data with a resolve contract test. Section AGENTS recipes are rewritten to working steps, stale HF/ONNX pointers fixed (the planned local generation worker stays), the lab Save caveat added, fixtures moved out of the content barrel, the pre-P2 plan lines (config line 56) removed, and the docs-truth test extended to section AGENTS with the check that every named *Blueprint exists unless tagged (planned)."
   - id: "05b-1-watch-clock-and-time-spend"
@@ -216,7 +243,8 @@ entries:
   - id: "telemetry-wiring"
     title: "Telemetry wiring: browser feed, crash ring, CLI and log guards"
     milestone: M3
-    depends_on: ["05b-1-watch-clock-and-time-spend", "hx-reducer-and-frame-safety"]
+    depends_on:
+      ["05b-1-watch-clock-and-time-spend", "hx-reducer-and-frame-safety"]
     specs_modified: ["session-telemetry-and-compaction"]
     status: planned
     scope: "Placed directly after 05b-1 so Act events can be traced: the browser posts telemetry through the guarded bridge, a crash ring buffer flushes on throw, and click-to-waypoint is labelled dev tooling. The CLI and compaction half (query limit/tail/count-by, honest skill text, newline guard, ENOSPC warning, compaction gaps) is the last task and is not needed before the Act ring, so it may slip as late as 05f."
@@ -309,7 +337,12 @@ entries:
   - id: "07-dialogue-paging"
     title: "07 (amended) a: paging, response menus, ambient lines, talk cost"
     milestone: M4
-    depends_on: ["07-authoring-kit", "05e-settings-model", "05b-1-watch-clock-and-time-spend"]
+    depends_on:
+      [
+        "07-authoring-kit",
+        "05e-settings-model",
+        "05b-1-watch-clock-and-time-spend",
+      ]
     specs_modified: ["(new) tactical-dialogue"]
     status: planned
     scope: "Space-paged conversation chunks, WASD response menus, and the ambient-line mechanism (short expiring text that takes no input and is recorded in the notebook); 07a keeps only interruption. Each conversation charges the fractional time-spend verb and budget owned by 05b-1 so talking costs time from the world."
@@ -330,7 +363,8 @@ entries:
   - id: "07-notebook-presenter"
     title: "07 notebook presenter"
     milestone: M4
-    depends_on: ["07-bubble-lace-skins-and-tone-blips", "cm-observation-notebook"]
+    depends_on:
+      ["07-bubble-lace-skins-and-tone-blips", "cm-observation-notebook"]
     specs_modified: ["(new) notebook"]
     status: planned
     scope: "Lace-log notebook UI over the notebook data model, honouring the save-policy decision (Q2) for what persists across reloads. Save policy (owner decision): autosave at watch boundaries plus named manual saves. Loading ANY earlier save is allowed; the owner wants rollback. The notebook (the player's Observations) is part of the save, so loading restores the knowledge state of that moment. Deterministic keyed rolls (roll(worldSeed, streamKey, counter)) mean a reload does not reroll random outcomes unless the player acts differently. An optional ironman mode is parked."
@@ -374,7 +408,8 @@ entries:
   - id: "06a-interpersonal-regard-and-romantasy"
     title: "06a: Regard and romantasy"
     milestone: M6
-    depends_on: ["06-overview-writing-desk-report", "cm-diffusion-and-balancing"]
+    depends_on:
+      ["06-overview-writing-desk-report", "cm-diffusion-and-balancing"]
     specs_modified: []
     status: planned
     scope: "Original meaning kept: the 500+ character two-tier RegardGraph, triangulation and letter co-signing, manipulative romantasy and hidden RomanticMotiveBlueprint discovery, sharing data with presence and Regard.exposure no longer the only knowledge record."
@@ -438,7 +473,8 @@ entries:
   - id: "05a-audio-engine"
     title: "05a a: AudioRenderFrame and two-bus engine"
     milestone: M6
-    depends_on: ["07e-voice-register-evals", "cm-instrument-profiles-audibility-tells"]
+    depends_on:
+      ["07e-voice-register-evals", "cm-instrument-profiles-audibility-tells"]
     specs_modified: []
     status: planned
     scope: "Original 05a engine half: AudioRenderFrame builder, two-bus procedural WebAudioEngine, hybrid samples and audio settings. It consumes the audibility-tier rule owned by the instrument-profiles change and drops the calculator from its scope."
@@ -452,14 +488,20 @@ entries:
   - id: "06c-epoch-travel-vignettes"
     title: "06c: epoch travel vignettes"
     milestone: M6
-    depends_on: ["05a-sound-lab", "05b-2-storylets-and-lab", "06-overview-writing-desk-report"]
+    depends_on:
+      [
+        "05a-sound-lab",
+        "05b-2-storylets-and-lab",
+        "06-overview-writing-desk-report",
+      ]
     specs_modified: []
     status: planned
     scope: "Original meaning: bounded vehicle-cabin fast-travel scenes with Clock-2 spend, encounter tables and world-news slice; needs 06, 05b-1 Clock-2 spend and 05b-2 encounter tables."
   - id: "06b-assassination-and-cover-persecution"
     title: "06b: assassination and cover persecution"
     milestone: M6
-    depends_on: ["06c-epoch-travel-vignettes", "06a-interpersonal-regard-and-romantasy"]
+    depends_on:
+      ["06c-epoch-travel-vignettes", "06a-interpersonal-regard-and-romantasy"]
     specs_modified: []
     status: planned
     scope: "Original meaning: four last-resort assassination vectors, counter-assassination weighted by Drone Regard and rival timing, and coverPersecutionRisk Witch-Hunt trials."

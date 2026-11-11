@@ -6,6 +6,8 @@ Purpose: the fine-grained design of the shared Regard graph, its two-layer stora
 
 Canonical summary lives in DESIGN_NOTES § Regard web and Romantasy.
 
+The planned module name `RegardGraphModule` denotes the graph system described here.
+
 ## Shared on-stage and off-stage social web
 
 Every interactable character shares the same directed `Regard` graph (`holderId -> targetId`): local visible NPCs of Tier 1 `utility_schemer` and Tier 2 `role_routine`, off-stage non-visible Correspondent NPCs, Rival Alien Operative covers, the Player Operative, and the two Culture Advisors `advisor_integral` and `advisor_particular`.

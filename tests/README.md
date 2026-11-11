@@ -2,9 +2,9 @@
 
 ## Purpose
 
-`tests/` verifies architectural integrity, deterministic domain behavior, application simulation and rendering frame coordination, infrastructure persistence/telemetry, interface CLI/HTTP/Three.js/HUD adapters, plug-and-play content contracts, and headless multi-tick simulation stability in under 3 seconds as part of `npm run verify` (format, lint, typecheck and one combined architecture/unit Vitest run concurrently; `verify:serial` retains the sequential fallback).
+`tests/` verifies architectural integrity, deterministic domain behavior, application simulation and rendering frame coordination, infrastructure persistence/telemetry, interface CLI/HTTP/Three.js/HUD adapters, plug-and-play content contracts, and headless multi-tick simulation stability with an under-three-second reference-Mac target as part of `npm run verify` (format, lint, typecheck and one combined architecture/unit Vitest run concurrently; `verify:serial` retains the sequential fallback).
 
-AI subject cases are not a tier under `tests/`. They live in `eval/` and run with `npm run eval:ai`, outside `npm run verify`.
+The separate AI evaluation runner is [planned](../DESIGN_NOTES.md); no eval command or model runtime is currently shipped. Measure suite timing rather than treating the performance target as a test assertion.
 
 ## Test Tiers
 
