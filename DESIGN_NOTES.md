@@ -146,7 +146,7 @@ Delivered by `hx-ops-safety`. The concurrent verification command and serial fal
 
 Seed scrambling is shipped; all other work in this section remains planned.
 
-- **Seed scramble (shipped)**: `SeededRandom` mixes each fresh numeric seed with `splitmix32` inside its constructor; golden-vector tests pin the initial states for adjacent seeds. RNG held outside `WorldState` is replaced by the stateless keyed `roll(worldSeed, streamKey, counter)` (planned: cm-act-envelope-and-rolls).
+- **Seed scramble (shipped)**: `SeededRandom` mixes each fresh numeric seed with `splitmix32` inside its constructor to spread adjacent numeric seeds before Xorshift32; golden vectors pin the resulting initial states, and tests check repeatable draws. RNG held outside `WorldState` is replaced by the stateless keyed `roll(worldSeed, streamKey, counter)` (planned: cm-act-envelope-and-rolls).
 - **Fixed step**: Clock 1 runs on a fixed `1/60` s step with an accumulator and capped catch-up, replacing raw-dt stepping. Tests split a frame's dt to prove the same result.
 - **Golden run**: `hashWorldState` and a golden run through `runScenario`, with shuffled insertion order, throwing `Math.random` and `Date` stubs, a slice JSON round trip and a phase-order test.
 - **One lint block**: a single ESLint determinism block covers domain, non-scene content and application, and bans `node:*`, `require` and non-literal `import()`. Today the guards are literal-only and application has none. When it ships, the `AGENTS.md` layer table gains `Math.random` and `Date.now` bans on the application row.

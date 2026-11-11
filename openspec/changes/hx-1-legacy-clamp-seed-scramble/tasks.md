@@ -22,7 +22,7 @@ The six independent delivery reviews identified four bounded corrections. The tw
 
 - [x] 4.2 For each pinned fresh seed `0`, `1`, `2` and `42`, assert identical multi-draw sequences from repeated construction in `SeededRandom.test.ts`, retaining exact initial-state and mixed-zero vectors. **Verify:** `npx vitest run tests/unit/domain/SeededRandom.test.ts`, `npm run verify`. **Commit:** `test(domain): pin repeated draws for adjacent seeds`.
 
-- [ ] 4.3 Correct the stale shipped/planned status references in the `DESIGN_NOTES.md` Engineering rules introduction and Operative rotation cross-reference, preserving later planned systems and owner wording. **Verify:** `npm run verify`, document-integrity no-loss review and status-index/roadmap checks. **Commit:** `docs(design): align shipped legacy status references`.
+- [x] 4.3 Correct the stale shipped/planned status references in the `DESIGN_NOTES.md` Engineering rules introduction and Operative rotation cross-reference, preserving later planned systems and owner wording. **Verify:** `npm run verify`, document-integrity no-loss review and status-index/roadmap checks. **Commit:** `docs(design): align shipped legacy status references`.
 
 - [ ] 4.4 Restore the adjacent-seed separation intent in the `DESIGN_NOTES.md` seed paragraph without claiming statistical independence or changing the shipped algorithm. **Verify:** `npm run verify` and document-integrity no-loss review. **Commit:** `docs(design): retain adjacent-seed intent`.
 
