@@ -2,6 +2,39 @@ import { describe, expect, it } from 'vitest';
 import { SeededRandom } from '../../../src/domain/core/SeededRandom.js';
 
 describe('SeededRandom', () => {
+  it.each([
+    [0, 0x92ca2f0e],
+    [1, 0x96a0f96b],
+    [2, 0xb4421bbb],
+    [42, 0x3805ea2c],
+  ])('mixes fresh seed %i to the pinned initial state', (seed, initialState) => {
+    expect(new SeededRandom(seed).getState()).toBe(initialState);
+    expect(new SeededRandom(seed).nextUint32()).toBe(new SeededRandom(seed).nextUint32());
+  });
+
+  it('normalizes wrapped and negative seeds before mixing', () => {
+    expect(new SeededRandom(-1).getState()).toBe(new SeededRandom(0xffffffff).getState());
+    expect(new SeededRandom(0x1_0000_0000).getState()).toBe(0x92ca2f0e);
+    expect(new SeededRandom(0x1_0000_0001).getState()).toBe(0x96a0f96b);
+  });
+
+  it('uses the non-zero fallback when a valid seed mixes to zero', () => {
+    const first = new SeededRandom(0x61c88647);
+    const second = new SeededRandom(0x61c88647);
+
+    expect(first.getState()).toBe(0x6d2b79f5);
+    expect(Array.from({ length: 10 }, () => first.nextUint32())).toEqual(
+      Array.from({ length: 10 }, () => second.nextUint32()),
+    );
+    expect(first.getState()).not.toBe(0);
+  });
+
+  it('restores a serialized word without applying fresh-seed mixing', () => {
+    const restored = SeededRandom.fromState(0x12345678);
+    expect(restored.getState()).toBe(0x12345678);
+    expect(restored.nextUint32()).toBe(0x87985aa5);
+  });
+
   it('produces identical sequences of 100 values from the same numeric seed', () => {
     const rngA = new SeededRandom(42_001);
     const rngB = new SeededRandom(42_001);

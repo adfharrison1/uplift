@@ -6,13 +6,20 @@
  */
 const DEFAULT_NON_ZERO_SEED = 0x6d2b79f5;
 const UINT32_MAX_PLUS_ONE = 0x1_0000_0000;
+const RAW_STATE_TOKEN = Symbol('SeededRandom.rawState');
 
 function validateAndNormalizeSeed(seed: number): number {
   if (!Number.isInteger(seed)) {
     throw new RangeError(`Seed must be a finite integer, received: ${String(seed)}`);
   }
-  const uint32 = seed >>> 0;
-  return uint32 === 0 ? DEFAULT_NON_ZERO_SEED : uint32;
+  return seed >>> 0;
+}
+
+function mixFreshSeed(seed: number): number {
+  let word = (seed + 0x9e3779b9) >>> 0;
+  word = Math.imul(word ^ (word >>> 16), 0x85ebca6b);
+  word = Math.imul(word ^ (word >>> 13), 0xc2b2ae35);
+  return (word ^ (word >>> 16)) >>> 0;
 }
 
 function normalizeInternalState(state: number): number {
@@ -23,8 +30,11 @@ function normalizeInternalState(state: number): number {
 export class SeededRandom {
   private state: number;
 
-  public constructor(seed: number) {
-    this.state = validateAndNormalizeSeed(seed);
+  public constructor(seed: number, rawStateToken?: typeof RAW_STATE_TOKEN) {
+    this.state =
+      rawStateToken === RAW_STATE_TOKEN
+        ? seed
+        : normalizeInternalState(mixFreshSeed(validateAndNormalizeSeed(seed)));
   }
 
   /**
@@ -36,7 +46,7 @@ export class SeededRandom {
         `Serialized SeededRandom state must be an integer in [1, 2^32 - 1], received: ${String(state)}`,
       );
     }
-    return new SeededRandom(state);
+    return new SeededRandom(state, RAW_STATE_TOKEN);
   }
 
   /**

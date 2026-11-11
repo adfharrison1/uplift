@@ -8,7 +8,7 @@ It has **zero outward dependencies** on application, infrastructure, interfaces,
 
 ## Current Module Inventory
 
-- `core/SeededRandom.ts` — Deterministic 32-bit Xorshift PRNG (`nextUint32`, `nextFloat`, `nextInt` with rejection sampling, `choose`, `getState`, `fromState`).
+- `core/SeededRandom.ts` — Deterministic 32-bit Xorshift PRNG with one-shot `splitmix32` mixing for fresh numeric seeds and raw serialized-state restoration through `fromState` (`nextUint32`, `nextFloat`, `nextInt` with rejection sampling, `choose`, `getState`).
 - `core/StateSliceRegistry.ts` — Type-safe plugin state descriptors (`StateSliceKey<T>`, `defineStateSlice`, `StateSliceRegistry`, and immutable `StateSliceStore` with `toSnapshot` / `fromSnapshot` and primitive fast-paths).
 - `telemetry/SessionTelemetryPort.ts` — Epoch-agnostic session telemetry schemas and ports (`TelemetryClock`, `TelemetryLevelSchema`, `AiReasoningTraceSchema`, `TelemetryEventInputSchema`, `TelemetryEntrySchema`, `CompactedTelemetryDigestSchema`, `TelemetryStreamRecordSchema`, `PRESERVED_TELEMETRY_CATEGORIES`, `isHighSignalTelemetryEntry`, `SessionTelemetryPort`).
 - `persistence/SaveSlotRepositoryPort.ts` — Epoch-agnostic multi-session save/load schemas and ports (`SAVE_SLOT_SCHEMA_VERSION`, `SaveSlotIdSchema`, `RngStateSchema`, `SaveSlotMetadataSchema`, `SaveSlotEnvelopeSchema`, `SaveSlotWriteInputSchema`, `validateSaveSlotId`, `SaveSlotRepositoryPort`).

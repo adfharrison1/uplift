@@ -8,6 +8,7 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 2. **Zero Era-Specific Hardcoding**: Keep all schemas, registries, reducers, and kinematics inside `src/domain/` 100% epoch-agnostic. Never hardcode specific Era 1 feudal character names, spaces, or factions here—author those in `src/content/` and register them via `EpochModuleRegistry`.
 3. **Zero DOM / WebGL Globals**: Never reference `window`, `document`, `HTMLCanvasElement`, or `WebGLRenderingContext`.
 4. **Deterministic Execution Only**: `Math.random()`, `Date.now()`, `performance.now()`, and `new Date()` are strictly banned (enforced by both ESLint `no-restricted-syntax` and `tests/architecture/layer_boundaries.test.ts`). Accept an injected `SeededRandom` for randomness; telemetry timestamps come through `TelemetryClock`. Domain code must not construct runtime clocks.
+   Fresh `SeededRandom` numeric seeds pass through one `splitmix32` step; `fromState` restores a validated non-zero internal word directly so saved streams continue exactly.
 5. **Immutable State & Pure Reducers**: `WorldState`, `applyWorldEffects`, `stepKinematics`, `applyLegacyToCharacterBlueprints`, and `StateSliceStore` updates must return new instances without mutating inputs in place.
 6. **Zero `any` & Zod v4 Conventions**: Both implicit and explicit `any` are forbidden. Derive TypeScript types via `z.infer<typeof Schema>` and remember that `z.number()` in Zod v4 is finite by default (do not call deprecated `.finite()`).
 
