@@ -1,0 +1,59 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (76 tests | 5 failed | 71 skipped) 1620ms
+   × direct repair and reconciliation reject changed review proof for pending archive (defects=false) 404ms
+   × direct repair and reconciliation reject changed review proof for pending archive (defects=true) 369ms
+   × direct repair and reconciliation reject changed review proof for finalized archive (defects=false) 216ms
+   × direct repair and reconciliation reject changed review proof for finalized archive (defects=true) 423ms
+   × direct recovery rejects a missing archived final-review manifest in an empty receipt 199ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair and reconciliation reject changed review proof for pending archive (defects=false)
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair and reconciliation reject changed review proof for pending archive (defects=true)
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair and reconciliation reject changed review proof for finalized archive (defects=false)
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair and reconciliation reject changed review proof for finalized archive (defects=true)
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:922:7
+    920|     expect(() =>
+    921|       s.execute(root, ['defects', 'reconcile', '--repair', '--change',…
+    922|     ).toThrow(/EVIDENCE/);
+       |       ^
+    923|     expect(() => s.execute(root, ['defects', 'reconcile', '--check']))…
+    924|     expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct recovery rejects a missing archived final-review manifest in an empty receipt
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:946:92
+    944|   m.execute(root, ['alpha'], { runCli: runner(root).run });
+    945|   rmSync(join(root, 'openspec/changes/archive/2026-01-02-alpha/final-r…
+    946|   expect(() => s.execute(root, ['defects', 'reconcile', '--repair', '-…
+       |                                                                                            ^
+    947|     /EVIDENCE/,
+    948|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 71 skipped (76)
+   Start at  11:12:43
+   Duration  1.74s (tests 97%, import 2%, transform 1%)
+

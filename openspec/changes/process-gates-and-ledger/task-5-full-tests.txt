@@ -1,0 +1,14 @@
+
+> uplift@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+{"operation":"rotation","path":".","code":"STORAGE_ERROR"}
+
+ Test Files  30 passed (30)
+      Tests  449 passed (449)
+   Start at  11:22:43
+   Duration  11.21s (tests 88%, import 8%, transform 4%)
+

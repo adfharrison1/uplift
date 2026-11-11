@@ -1,0 +1,51 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (55 tests | 2 failed | 53 skipped) 525ms
+   ❯ dated identity consumer consistency (2)
+     × accepts a dated receipt through pure reconciliation without an adapter mapping 386ms
+     × rejects an ambiguous future dated destination before CLI invocation or preparation 130ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > dated identity consumer consistency > accepts a dated receipt through pure reconciliation without an adapter mapping
+Error: REFERENCE: missing change 2026-01-02-alpha
+ ❯ fail scripts/project-status.mjs:175:9
+    173| const LOCK = 'openspec/.project-status.lock';
+    174| export function fail(code, message) {
+    175|   throw new Error(`${code}: ${message}`);
+       |         ^
+    176| }
+    177| function check(schema, value, label) {
+ ❯ changePath scripts/project-status.mjs:689:3
+ ❯ receiptPath scripts/project-status.mjs:874:13
+ ❯ Module.reconcileProject scripts/project-status.mjs:931:23
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:784:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > dated identity consumer consistency > rejects an ambiguous future dated destination before CLI invocation or preparation
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:807:22
+    805|       }),
+    806|     ).toThrow(/ambiguous/);
+    807|     expect(archived).toBe(false);
+       |                      ^
+    808|     expect(existsSync(join(root, 'openspec/changes/2026-01-02-alpha/de…
+    809|       false,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 53 skipped (55)
+   Start at  11:05:53
+   Duration  668ms (tests 90%, import 6%, transform 4%)
+

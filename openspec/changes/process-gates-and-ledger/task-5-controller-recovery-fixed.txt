@@ -1,0 +1,4 @@
+INTERRUPTION probe interruption
+WRAPPER EVIDENCE: evidence digest mismatch: openspec/changes/archive/2026-11-11-alpha/reviews/testing.md
+DIRECT REPAIR EVIDENCE: archived change preimage missing or changed: openspec/changes/alpha/reviews/testing.md; restore retained bytes before recovery
+RECONCILE EVIDENCE: archived change preimage missing or changed: openspec/changes/alpha/reviews/testing.md; restore retained bytes before recovery

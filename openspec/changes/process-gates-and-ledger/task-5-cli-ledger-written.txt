@@ -1,0 +1,26 @@
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-DeOWh9 alpha ledger-written
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE injected ledger-written
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"9d9c302da6a671faf1d0ce1f007ad55db48b87a2c9b3d525748635e2a1875181"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}

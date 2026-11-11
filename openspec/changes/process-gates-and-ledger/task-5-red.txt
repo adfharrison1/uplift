@@ -1,0 +1,348 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (34 tests | 34 failed) 10ms
+   ❯ validated archive wrapper (34)
+     × runs full archive once and reaches empty receipt, roadmap, combined list and reconciliation consumers 4ms
+     × refuses open owned defects before archive 0ms
+     × refuses parked owned defects before archive 0ms
+     × rejects unsafe argument ../alpha before any subprocess or mutation 0ms
+     × rejects unsafe argument alpha/beta before any subprocess or mutation 0ms
+     × rejects unsafe argument --skip-specs before any subprocess or mutation 0ms
+     × rejects unsafe argument alpha;touch sentinel before any subprocess or mutation 0ms
+     × rejects unsupported option --store 0ms
+     × rejects unsupported option --lock=false 0ms
+     × rejects unsupported option --skip-specs 0ms
+     × rejects unsupported option --no-validate 0ms
+     × rejects external planning root from context before preparation 0ms
+     × rejects external planning root from list before preparation 0ms
+     × rejects external planning root from status before preparation 0ms
+     × refuses incomplete-tasks without generated state 0ms
+     × refuses malformed-counts without generated state 0ms
+     × refuses incomplete-artifacts without generated state 1ms
+     × refuses blocked-apply without generated state 0ms
+     × refuses invalid-json without generated state 0ms
+     × refuses strict-failure without generated state 0ms
+     × rejects missing final review evidence before preparation 0ms
+     × rejects five final review evidence before preparation 0ms
+     × rejects duplicate-reviewer final review evidence before preparation 0ms
+     × rejects stale final review evidence before preparation 0ms
+     × holds the shared lock through preflight, CLI and repair 0ms
+     × rechecks the selected root after preparing and preserves recovery state when selection changes 0ms
+     × preserves a failed pre-move archive for explicit resume, refreshes checks, then archives only once on resume 0ms
+     × treats nonzero exit after move as pending and repairs on resume without invoking CLI 0ms
+     × preserves preparation at occupied write boundary openspec/changes/alpha/defect-resolution.yaml 0ms
+     × preserves preparation at occupied write boundary openspec/archive-transaction.yaml 0ms
+     × repairs interruption at finalization write openspec/defect-ledger.yaml idempotently 0ms
+     × repairs interruption at finalization write openspec/roadmap.yaml idempotently 0ms
+     × repairs interruption at finalization write openspec/changes/archive/2026-01-02-alpha/defect-resolution.yaml idempotently 0ms
+     × rejects linked change directories without touching outside bytes 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 34 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > runs full archive once and reaches empty receipt, roadmap, combined list and reconciliation consumers
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:75:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses open owned defects before archive
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses parked owned defects before archive
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:84:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsafe argument ../alpha before any subprocess or mutation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsafe argument alpha/beta before any subprocess or mutation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsafe argument --skip-specs before any subprocess or mutation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsafe argument alpha;touch sentinel before any subprocess or mutation
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:89:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsupported option --store
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsupported option --lock=false
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsupported option --skip-specs
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects unsupported option --no-validate
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:93:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects external planning root from context before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects external planning root from list before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects external planning root from status before preparation
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:97:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses incomplete-tasks without generated state
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses malformed-counts without generated state
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses incomplete-artifacts without generated state
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses blocked-apply without generated state
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses invalid-json without generated state
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > refuses strict-failure without generated state
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:101:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects missing final review evidence before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects five final review evidence before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects duplicate-reviewer final review evidence before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects stale final review evidence before preparation
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:114:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > holds the shared lock through preflight, CLI and repair
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:121:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rechecks the selected root after preparing and preserves recovery state when selection changes
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:127:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > preserves a failed pre-move archive for explicit resume, refreshes checks, then archives only once on resume
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:133:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > treats nonzero exit after move as pending and repairs on resume without invoking CLI
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:140:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > preserves preparation at occupied write boundary openspec/changes/alpha/defect-resolution.yaml
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > preserves preparation at occupied write boundary openspec/archive-transaction.yaml
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:148:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > repairs interruption at finalization write openspec/defect-ledger.yaml idempotently
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > repairs interruption at finalization write openspec/roadmap.yaml idempotently
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > repairs interruption at finalization write openspec/changes/archive/2026-01-02-alpha/defect-resolution.yaml idempotently
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:157:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/34]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > validated archive wrapper > rejects linked change directories without touching outside bytes
+AssertionError: archive wrapper exists: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ api tests/unit/tooling/ArchiveChange.test.ts:17:60
+     15| const modulePath = resolve('scripts/archive-change.mjs');
+     16| async function api(): Promise<ArchiveModule> {
+     17|   expect(existsSync(modulePath), 'archive wrapper exists').toBe(true);
+       |                                                            ^
+     18|   return await import(pathToFileURL(modulePath).href) as ArchiveModule;
+     19| }
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:165:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/34]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  34 failed (34)
+   Start at  10:58:47
+   Duration  193ms (import 50%, transform 29%, tests 16%, worker 4%)
+

@@ -1,0 +1,105 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (53 tests | 9 failed) 6032ms
+   ❯ archive durable boundaries and evidence (16)
+     × recovers failure after prepared-receipt-written without duplicate history or lost listing rows 301ms
+     × recovers failure after journal-written without duplicate history or lost listing rows 302ms
+     × recovers failure after ledger-written without duplicate history or lost listing rows 282ms
+     × recovers failure after roadmap-written without duplicate history or lost listing rows 267ms
+     × recovers failure after finalized-receipt-written without duplicate history or lost listing rows 291ms
+     × recovers failure after journal-removed without duplicate history or lost listing rows 285ms
+     × rechecks prepared preimages immediately before invoking archive 100ms
+     × rejects changed delivery evidence after move without removing owned records 123ms
+     × stops a pre-synchronized renamed conflict before preparation 120ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after prepared-receipt-written without duplicate history or lost listing rows
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after journal-written without duplicate history or lost listing rows
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after ledger-written without duplicate history or lost listing rows
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after roadmap-written without duplicate history or lost listing rows
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after finalized-receipt-written without duplicate history or lost listing rows
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > recovers failure after journal-removed without duplicate history or lost listing rows
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:607:7
+    605|         },
+    606|       }),
+    607|     ).toThrow(/injected/);
+       |       ^
+    608|     const listing = s.execute(root, ['defects', 'list', '--include-res…
+    609|     if (step === 'journal-removed')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > rechecks prepared preimages immediately before invoking archive
+AssertionError: expected [Function] to throw error matching /preimage conflict/ but got 'ARCHIVE: {"success":true}. Run npm ru…'
+
+- Expected:
+/preimage conflict/
+
++ Received:
+"ARCHIVE: {\"success\":true}. Run npm run change:archive -- alpha --resume after inspection, or npm run defects -- reconcile --cancel --change alpha.
+Run npm run change:archive -- alpha --resume after inspection, or npm run defects -- reconcile --cancel --change alpha."
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:685:67
+    683|       return result;
+    684|     });
+    685|     expect(() => m.execute(root, ['alpha'], { runCli: cli.run })).toTh…
+       |                                                                   ^
+    686|     expect(cli.calls.some((args) => args[0] === 'archive')).toBe(false…
+    687|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > rejects changed delivery evidence after move without removing owned records
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:698:67
+    696|       return result;
+    697|     });
+    698|     expect(() => m.execute(root, ['alpha'], { runCli: cli.run })).toTh…
+       |                                                                   ^
+    699|     expect(receipt(root, true)['state']).toBe('prepared');
+    700|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > archive durable boundaries and evidence > stops a pre-synchronized renamed conflict before preparation
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:717:67
+    715|       '# Main\n\n## Requirements\n\n### Requirement: Existing\nOld bod…
+    716|     );
+    717|     expect(() => m.execute(root, ['alpha'], { runCli: cli.run })).toTh…
+       |                                                                   ^
+    718|     noPreparation(root);
+    719|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 44 passed (53)
+   Start at  11:04:00
+   Duration  6.16s (tests 99%)
+

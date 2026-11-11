@@ -1,0 +1,19 @@
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-PlBUWY alpha no-defects
+BEFORE {"entries":[],"pending":[]}
+ARCHIVE {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":[],"reconcile":{"ok":true,"active":0,"resolved":0}}
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":0}

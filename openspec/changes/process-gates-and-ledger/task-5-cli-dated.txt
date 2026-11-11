@@ -1,0 +1,21 @@
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-F1lB8d 2026-01-02-alpha normal
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"2026-01-02-alpha"}],"pending":[]}
+ARCHIVE {"state":"finalized","change_id":"2026-01-02-alpha","archive_path":"openspec/changes/archive/2026-01-02-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"2026-01-02-alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"2026-01-02-alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"2026-01-02-alpha","receipt_sha256":"a869f5024742df12ef1dba08ba41a2700708a6dc4f05b3c2e4a76abfc22ac8ed"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}

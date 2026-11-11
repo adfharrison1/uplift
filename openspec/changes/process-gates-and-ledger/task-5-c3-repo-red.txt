@@ -1,0 +1,33 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (77 tests | 1 failed | 76 skipped) 526ms
+   × direct repair preserves stale repository-located final-review evidence in an empty receipt 515ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair preserves stale repository-located final-review evidence in an empty receipt
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:981:92
+    979|   ).toThrow(/injected/);
+    980|   put(root, proof, 'changed repository review');
+    981|   expect(() => s.execute(root, ['defects', 'reconcile', '--repair', '-…
+       |                                                                                            ^
+    982|     /EVIDENCE/,
+    983|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 76 skipped (77)
+   Start at  11:14:21
+   Duration  681ms (tests 90%, import 5%, transform 5%)
+

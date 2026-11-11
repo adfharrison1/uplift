@@ -1,0 +1,45 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (68 tests | 7 failed | 56 skipped) 2157ms
+   × rejects presynced ADDED with CRLF line endings before preparation 397ms
+   × rejects presynced ADDED with LF main / CRLF delta line endings before preparation 212ms
+   × rejects presynced MODIFIED with CRLF line endings before preparation 212ms
+   × rejects presynced MODIFIED with CRLF main / LF delta line endings before preparation 204ms
+   × rejects presynced MODIFIED with LF main / CRLF delta line endings before preparation 185ms
+   × rejects presynced REMOVED with CRLF line endings before preparation 204ms
+   × rejects presynced REMOVED with LF main / CRLF delta line endings before preparation 261ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced ADDED with CRLF line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced ADDED with LF main / CRLF delta line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced MODIFIED with CRLF line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced MODIFIED with CRLF main / LF delta line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced MODIFIED with LF main / CRLF delta line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced REMOVED with CRLF line endings before preparation
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > rejects presynced REMOVED with LF main / CRLF delta line endings before preparation
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:856:67
+    854|       ),
+    855|     );
+    856|     expect(() => m.execute(root, ['alpha'], { runCli: cli.run })).toTh…
+       |                                                                   ^
+    857|     noPreparation(root);
+    858|     expect(cli.calls.some((args) => args[0] === 'archive')).toBe(false…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 5 passed | 56 skipped (68)
+   Start at  11:10:56
+   Duration  2.29s (tests 98%, import 1%, transform 1%)
+

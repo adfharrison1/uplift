@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "open": 53,
+    "parked": 1,
+    "verified": 11
+  },
+  "pending": [],
+  "defects": {
+    "ok": true,
+    "active": 65,
+    "resolved": 0
+  },
+  "roadmap": {
+    "state": "active",
+    "active": [
+      "process-gates-and-ledger"
+    ],
+    "next": null,
+    "blocked": []
+  },
+  "ledger_revision": 150,
+  "read_only_determinism": "passed"
+}

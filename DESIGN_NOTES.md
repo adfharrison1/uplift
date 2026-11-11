@@ -13,7 +13,7 @@ One owner per duplicated fact. Other files point at the owner and do not restate
 | Verify steps and budget                     | `package.json` scripts and `scripts/verify.mjs`; root `AGENTS.md` Quick Verify; measured delivery evidence under `openspec/`                    |
 | Layer rules                                 | root `AGENTS.md` plus `tests/architecture`                                                                                                      |
 | Roadmap order and `depends_on`              | `openspec/roadmap.yaml`                                                                                                                         |
-| Review gates                                | the `uplift-review-gates` skill (shipped; broader tooling remains planned: process-gates-and-ledger)                                            |
+| Review gates                                | the `uplift-review-gates` skill and root README command guide (review gates, roadmap/defect/archive tooling shipped; docs-truth checks remain planned in process-gates-and-ledger)                                            |
 | Implementation numeric facts                | Source constants; docs-truth checks are planned in process-gates-and-ledger. The seven-epoch default is design content, not an engine constant. |
 | Bridge access policy                        | "Bridge lock" under Engineering rules; operational contracts in `src/interfaces/README.md`                                                      |
 | Session archive/recovery policy             | "Telemetry policy" under Engineering rules; recovery procedure in `src/infrastructure/README.md`                                                |

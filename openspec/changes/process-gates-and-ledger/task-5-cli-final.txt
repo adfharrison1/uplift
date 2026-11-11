@@ -1,0 +1,244 @@
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha normal
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-uXQxhz alpha normal
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+ARCHIVE {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs 2026-01-02-alpha normal
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-DzijWi 2026-01-02-alpha normal
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"2026-01-02-alpha"}],"pending":[]}
+ARCHIVE {"state":"finalized","change_id":"2026-01-02-alpha","archive_path":"openspec/changes/archive/2026-01-02-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"2026-01-02-alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"2026-01-02-alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"2026-01-02-alpha","receipt_sha256":"32803478720721c28efff1608e615d1209301c3856da9eb495a0a639916b0bfe"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha no-defects
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-IYmcJu alpha no-defects
+BEFORE {"entries":[],"pending":[]}
+ARCHIVE {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":[],"reconcile":{"ok":true,"active":0,"resolved":0}}
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":0}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha before-move
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-F6DH6h alpha before-move
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE ARCHIVE: injected before CLI move. Run npm run change:archive -- alpha --resume after inspection, or npm run defects -- reconcile --cancel --change alpha.
+Run npm run change:archive -- alpha --resume after inspection, or npm run defects -- reconcile --cancel --change alpha.
+PENDING {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha after-move
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-VWRqw1 alpha after-move
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE ARCHIVE: injected failure after real CLI move. Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha ledger-written
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-MYl0Xy alpha ledger-written
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE injected ledger-written
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha roadmap-written
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-7XU9Hh alpha roadmap-written
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE injected roadmap-written
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha finalized-receipt-written
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-bLkbhu alpha finalized-receipt-written
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE injected finalized-receipt-written
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[],"pending":[{"change_id":"alpha","ids":["D-1"]}]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+
+COMMAND: node .superpowers/sdd/tasks/task-5-smoke.mjs alpha journal-removed
+FIXTURE /private/var/folders/ch/7k3l_gw51w9d8cvqkwjj9kfw0000gn/T/uplift-real-archive-uDTpXH alpha journal-removed
+BEFORE {"entries":[{"id":"D-1","status":"verified","revision":3,"fixing_change":"alpha"}],"pending":[]}
+EXPECTED-FAILURE injected journal-removed
+Run npm run defects -- reconcile --repair --change alpha (or npm run change:archive -- alpha --resume); never rearchive a moved change.
+PENDING {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+REPEAT-RESUME {"state":"finalized","change_id":"alpha","archive_path":"openspec/changes/archive/2026-11-11-alpha","ids":["D-1"],"reconcile":{"ok":true,"active":0,"resolved":1}}
+INITIAL-ARCHIVE-ATTEMPTS 1
+SPEC # fixture Specification
+
+## Purpose
+This fixture demonstrates validated full archive and reliable local consumer readback without changing the real project.
+
+## Requirements
+
+### Requirement: Fixture operation
+The system SHALL retain a fixture result.
+
+#### Scenario: Successful operation
+- **WHEN** the fixture runs
+- **THEN** its result is retained
+
+LIST {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"}],"pending":[]}
+RECONCILE {"ok":true,"active":0,"resolved":1}
+REOPEN {"entries":[{"id":"D-1","status":"resolved","revision":4,"fixing_change":"alpha"},{"id":"D-2","status":"open","revision":1,"fixing_change":"beta","reopened_from":{"id":"D-1","change_id":"alpha","receipt_sha256":"06ca39a8bddb2fe5a263c2c096c9a9b41b606e86027e68b09c0198fda41acb65"}}],"pending":[]}
+RECONCILE-AFTER-REOPEN {"ok":true,"active":1,"resolved":1}
+EXIT: 0
+

@@ -1,0 +1,8 @@
+
+> uplift@0.1.0 verify
+> node scripts/verify.mjs
+
+PASS format:check (930 ms)
+PASS lint (1454 ms)
+PASS typecheck (775 ms)
+PASS test (12397 ms)

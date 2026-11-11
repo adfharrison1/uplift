@@ -99,3 +99,35 @@ T2-BUDGET-01 and T2-DOC-04: document debt **fixed and independently verified** b
 ### Final task 4 dispositions
 
 Both independent final reviews passed. With controller-staged retained proof, T4-C1/C2/C3 were transitioned through the checked CLI to **verified**, each at revision 3. The current ledger is revision 135 with 60 records: 53 open, 1 parked, 6 verified; no resolved record. [Final supplement](task-4-final-supplement.md) and [exact verification commands](task-4-verified-commands.json) supersede the earlier checkpoint's in_progress status while preserving it as history. T4-B-01 source/provenance corrections and T4-B-02 independent-writer coverage passed final review. G5 reconciliation passed after all three transitions. Owner approval and task commit remain pending; no archive or whole-change completion is claimed.
+
+
+## Task 5 implementation dispositions
+
+- **T5-C1**, major code integration defect: real installed CLI preserves a date-prefixed original ID but the shared parser stripped it, stranding moved receipt lookup/recovery. Retained baseline is `task-5-cli-baseline.log`; supported add → in_progress records the finding at ledger revision 137. Bounded identity resolution and preflight rejection now pass unit and actual CLI/list/reconcile/reopen evidence in [task-5 evidence](task-5-evidence.md). Independent final review and tracked proof are still required before a verified transition. This unplanned integration correction remains visible for task 6 closing audit; no live archive was attempted.
+- **T5-P1**, process/document integration: the old archive skill's inline sync and manual move conflict with the approved full checked CLI transaction. Cold baseline reproduced the routing conflict. No-loss replacement preserves selection/context/advisory/approval and delegates authoritative sync/archive/recovery to the wrapper. Both independent pre-cut fidelity/coherence reviews passed before installation; final installed/cold exercise remains the controller's checkpoint. This is a workflow correction, not an invented runtime defect.
+- **T5-P2**, minor process/document ordering: first pre-cut coherence review found that strict validation was only executable inside the postapproval wrapper despite the preceding gate claiming preapproval validation. Accepted; the reviewable preparation step now explicitly runs strict CLI validation and stops on failure. The independent exact-line recheck passed before installation. Earlier review history is retained.
+- **T5-HARNESS**, test setup only: initial failure-smoke runs stopped on a missing `existsSync` import before exercising archive failure boundaries. Corrected the scratch harness and reran all six modes; each now exits zero after explicit recovery and consumer readback. This is not evidence that the production wrapper failed and is not a runtime-ledger entry.
+
+
+### Task 5 review-fix dispositions
+
+- **T5-C2**, major code defect: accepted independent review finding that CRLF/mixed line endings bypass prior-sync detection. Read-only comparison normalization fixes the root cause;12 wrapper regressions pass after 7 failed before the fix. Recorded through checked add → in_progress; retained RED/GREEN proof is linked in [task-5 evidence](task-5-evidence.md).
+- **T5-C3**, major code defect: accepted controller/reviewer finding that direct shared repair and reconciliation could bypass final-review integrity, including empty receipts and repo/other-change locators. Archived-original hashes plus optional generic retained-evidence locators now cover every shared consumer; missing/changed bytes are preserved until restored. Meaningful pending/finalized/empty/repository/other-change tests failed before the respective corrections and now pass. Recorded through checked add → in_progress; final verification waits for independent retained proof.
+- **T5-C4**, major code defect: implementer/controller independently reproduced CLI-returned dot-segment paths escaping the selected change while remaining repository-local. Canonical path validation fixes artifact/task/context inputs before preparation. Three RED cases and final GREEN preserve the outside sentinel; recorded through checked add → in_progress.
+
+The checked ledger is revision 143 with 64 active records (53 open, 1 parked, 6 verified, 4 in_progress) before controller verification transitions. No task 5 finding is resolved or claimed verified here; no live archive, exemption extension or direct history edit occurred. These four unplanned fixes remain visible for the task 6 closing audit.
+
+
+### Task 5 performance correction
+
+**T5-C5**, minor code/tooling performance finding (G3): retained-reference validation repeatedly launched Git per locator, increasing the 170-test checkpoint to 33.60 seconds. Controller accepted a narrow scoped reference-checker correction: one lazy NUL-delimited tracked-path set per read/validation operation, shared duplicate-reference checks, no cache across operations. The regression proving later invocations see untracking passes; all 171 focused tests pass in 11.11 seconds. Both timing records remain retained in [task-5 evidence](task-5-evidence.md). Checked add → in_progress advances the ledger to 145 with 65 active records; final independent review and immutable tracked proof still precede verified. Existing T5-P1 remains the distinct process/document finding; no earlier ID was reused or renumbered.
+
+
+### Task 5 verification observation
+
+**T5-V1**, unverified test-run anomaly: the first controller full verify reported 66 missing-file archive-fixture failures; its first detailed stack was truncated. Five scratch JSON format failures were corrected, but no production/test code changed. Subsequent standalone 449-test and full-verification runs passed. Investigation found no supported root cause; this is not a verified code defect and is not claimed fixed. Retain the uncertainty in [immutable fix evidence](task-5-fix-evidence.md) and task 6 closing review; reopen investigation on recurrence. Current evidence supports the task approval checkpoint without inventing a runtime-ledger defect.
+
+
+### Final task 5 dispositions
+
+T5-C1–C5 are now **verified**, each revision 3, through the five supported CLI transitions retained in [command evidence](task-5-verified-commands.json). [Immutable fix snapshot](task-5-fix-evidence.md) binds exact source, passing tests and both independent review reports. Ledger revision 150 contains 65 records (53 open, 1 parked, 11 verified), no resolved records; actual reconciliation passes. T5-P1/P2 and the cold forward exercise passed final review. T5-V1 remains an unlocalized initial test-run observation for task 6 closing review; passing reruns do not claim a root-cause fix. [Final supplement](task-5-final-supplement.md) records verification, limits and pending owner approval.

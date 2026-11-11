@@ -24,7 +24,8 @@
     "verify": "node scripts/verify.mjs",
     "verify:serial": "npm run format:check && npm run lint && npm run typecheck && npm run test:arch && npm run test:unit",
     "roadmap:next": "node scripts/project-status.mjs roadmap",
-    "defects": "node scripts/project-status.mjs defects"
+    "defects": "node scripts/project-status.mjs defects",
+    "change:archive": "node scripts/archive-change.mjs"
   },
   "lint-staged": {
     "*.{ts,mjs}": [

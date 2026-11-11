@@ -224,9 +224,35 @@ export function archiveIdentity(name) {
     fail('ARCHIVE', `invalid archive directory: ${name}`);
   return check(ID, match[2], 'archive ID');
 }
-function identities(inventory) {
+export function archiveChangeId(inventory, name) {
+  const stripped = archiveIdentity(name);
+  const id = inventory.archiveIds?.[name] ?? stripped;
+  if (id !== stripped && id !== name) fail('ARCHIVE', `invalid archive identity mapping: ${name}`);
+  return check(ID, id, 'archive identity');
+}
+function mappedInventory(inventory, roadmap) {
+  const declared = new Set(roadmap.entries.map((entry) => entry.id));
+  const archiveIds = {};
+  for (const name of inventory.archives) {
+    const stripped = archiveIdentity(name);
+    const candidates = [name, stripped].filter((id) => declared.has(id));
+    if (candidates.length > 1)
+      fail('ARCHIVE', `ambiguous archive identity: ${name} matches ${candidates.join(', ')}`);
+    archiveIds[name] = candidates[0] ?? stripped;
+  }
+  if (inventory.archiveIds && !same(inventory.archiveIds, archiveIds))
+    fail('ARCHIVE', 'archive identity mapping differs from declared roadmap IDs');
+  return { ...inventory, archiveIds };
+}
+function identities(inventory, roadmap) {
+  if (roadmap) inventory = mappedInventory(inventory, roadmap);
+  if (
+    inventory.archiveIds &&
+    Object.keys(inventory.archiveIds).some((name) => !inventory.archives.includes(name))
+  )
+    fail('ARCHIVE', 'archive identity mapping names an absent directory');
   const active = inventory.active.map((v) => check(ID, v, 'active ID'));
-  const archived = inventory.archives.map(archiveIdentity);
+  const archived = inventory.archives.map((name) => archiveChangeId(inventory, name));
   unique(active, 'active ID');
   unique(archived, 'archive identity');
   for (const id of active)
@@ -235,7 +261,7 @@ function identities(inventory) {
 }
 export function validateGraph(value, inventory, checkReference = () => undefined) {
   const graph = check(roadmapSchema, value, 'roadmap');
-  const { active, archived } = identities(inventory);
+  const { active, archived } = identities(inventory, graph);
   unique(
     graph.entries.map((e) => e.id),
     'roadmap ID',
@@ -282,7 +308,7 @@ export function validateGraph(value, inventory, checkReference = () => undefined
 }
 export function selectNext(roadmap, inventory) {
   validateGraph(roadmap, inventory);
-  const { active, archived } = identities(inventory);
+  const { active, archived } = identities(inventory, roadmap);
   if (active.length)
     return { state: 'active', active: [...active].sort(), next: null, blocked: [] };
   const done = new Set([
@@ -392,7 +418,7 @@ export function validateLedger(
   { checkEvidence = () => undefined, allowArchivedOwners = false } = {},
 ) {
   const ledger = check(ledgerSchema, value, 'ledger');
-  const { archived } = identities(inventory);
+  const { archived } = identities(inventory, roadmap);
   unique(
     ledger.entries.map((e) => e.id),
     'defect ID',
@@ -645,49 +671,58 @@ export function scanInventory(root) {
       .map((e) => e.name)
       .sort();
   }
-  return {
+  const inventory = {
     active: directories('openspec/changes').filter((v) => v !== 'archive'),
     archives: directories('openspec/changes/archive'),
   };
+  const roadmap = check(roadmapSchema, parseYaml(bytes(root, ROADMAP), ROADMAP), 'roadmap');
+  const mapped = mappedInventory(inventory, roadmap);
+  identities(mapped);
+  return mapped;
 }
 export function changePath(inventory, id) {
   check(ID, id, 'change ID');
   const { active, archived } = identities(inventory);
   if (active.includes(id)) return `openspec/changes/${id}`;
   if (archived.includes(id))
-    return `openspec/changes/archive/${inventory.archives.find((name) => archiveIdentity(name) === id)}`;
+    return `openspec/changes/archive/${inventory.archives.find((name) => archiveChangeId(inventory, name) === id)}`;
   fail('REFERENCE', `missing change ${id}`);
 }
-export function validateReference(root, inventory, value) {
-  const reference = check(fixSchema, value, 'evidence reference');
-  if (reference.kind === 'git') {
-    git(root, ['cat-file', '-e', `${reference.commit}^{commit}`]);
-    return;
-  }
-  const path =
-    reference.kind === 'repo'
-      ? reference.path
-      : `${changePath(inventory, reference.change_id)}/${reference.relative_path}`;
-  const content = bytes(root, path);
-  // During a wrapper move the index still names the original tracked change files.
-  const original =
-    reference.kind === 'change'
-      ? `openspec/changes/${reference.change_id}/${reference.relative_path}`
-      : path;
-  const tracked = git(root, ['ls-files', '--', path, original]).split('\n');
-  if (!tracked.includes(path) && !tracked.includes(original))
-    fail('EVIDENCE', `evidence must be tracked: ${path}`);
-  if (digest(content) !== reference.sha256) fail('EVIDENCE', `evidence digest mismatch: ${path}`);
-}
-function evidenceChecker(root, inventory) {
+// One synchronous read/validation owns this cache. Never retain it across operations:
+// subsequent calls must observe changed index membership and evidence bytes.
+export function createReferenceChecker(root, inventory) {
+  let tracked;
   const checked = new Set();
-  const reference = (value) => {
-    const key = canonical(value);
-    if (!checked.has(key)) {
-      validateReference(root, inventory, value);
-      checked.add(key);
+  return (value) => {
+    const reference = check(fixSchema, value, 'evidence reference');
+    const key = canonical(reference);
+    if (checked.has(key)) return;
+    if (reference.kind === 'git') {
+      git(root, ['cat-file', '-e', `${reference.commit}^{commit}`]);
+    } else {
+      const path =
+        reference.kind === 'repo'
+          ? reference.path
+          : `${changePath(inventory, reference.change_id)}/${reference.relative_path}`;
+      const content = bytes(root, path);
+      // During a wrapper move the index still names the original tracked change files.
+      const original =
+        reference.kind === 'change'
+          ? `openspec/changes/${reference.change_id}/${reference.relative_path}`
+          : path;
+      tracked ??= new Set(git(root, ['ls-files', '-z']).split('\0').filter(Boolean));
+      if (!tracked.has(path) && !tracked.has(original))
+        fail('EVIDENCE', `evidence must be tracked: ${path}`);
+      if (digest(content) !== reference.sha256)
+        fail('EVIDENCE', `evidence digest mismatch: ${path}`);
     }
+    checked.add(key);
   };
+}
+export function validateReference(root, inventory, value) {
+  createReferenceChecker(root, inventory)(value);
+}
+function evidenceChecker(root, inventory, reference = createReferenceChecker(root, inventory)) {
   return (evidence) => {
     reference(evidence.fix_ref);
     for (const record of [...evidence.tests, ...evidence.reviews]) reference(record.locator);
@@ -717,6 +752,7 @@ const receiptSchema = z
     records_sha256: hash,
     records: z.array(entrySchema),
     resolved: z.array(entrySchema),
+    retained_evidence: z.array(locatorSchema).optional(),
     preimages: z
       .object({ ledger: z.string(), roadmap: z.string(), files: z.record(z.string(), hash) })
       .strict(),
@@ -844,16 +880,43 @@ function receiptPath(inventory, id) {
   return `${changePath(inventory, id)}/defect-resolution.yaml`;
 }
 export function readReceipts(root, inventory) {
+  const referenceChecker = createReferenceChecker(root, inventory);
+  const checkEvidence = evidenceChecker(root, inventory, referenceChecker);
   const result = [];
-  for (const id of [...inventory.active, ...inventory.archives.map(archiveIdentity)].sort()) {
+  for (const id of [
+    ...inventory.active,
+    ...inventory.archives.map((name) => archiveChangeId(inventory, name)),
+  ].sort()) {
     const path = receiptPath(inventory, id);
     const content = optionalBytes(root, path);
     if (content !== null)
       result.push({
         path,
         bytes: content,
-        receipt: validateReceipt(parseYaml(content, path), evidenceChecker(root, inventory)),
+        receipt: validateReceipt(parseYaml(content, path), checkEvidence),
       });
+  }
+  for (const item of result) {
+    for (const reference of item.receipt.retained_evidence ?? []) {
+      try {
+        referenceChecker(reference);
+      } catch (error) {
+        fail('EVIDENCE', `retained archive evidence: ${error.message}`);
+      }
+    }
+    if (!inventory.active.includes(item.receipt.change_id)) {
+      const originalPrefix = `openspec/changes/${item.receipt.change_id}/`;
+      const archivedPath = changePath(inventory, item.receipt.change_id);
+      for (const [original, expected] of Object.entries(item.receipt.preimages.files)) {
+        if (!original.startsWith(originalPrefix)) continue;
+        const target = safePath(root, `${archivedPath}/${original.slice(originalPrefix.length)}`);
+        if (!existsSync(target) || digest(readFileSync(target)) !== expected)
+          fail(
+            'EVIDENCE',
+            `archived change preimage missing or changed: ${original}; restore retained bytes before recovery`,
+          );
+      }
+    }
   }
   for (const item of result)
     if (item.path !== receiptPath(inventory, item.receipt.change_id))
@@ -873,23 +936,23 @@ function checkProject(project, { pending = false } = {}) {
     ? {
         ...project.roadmap,
         entries: project.roadmap.entries.map((e) =>
-          project.inventory.archives.some((a) => archiveIdentity(a) === e.id)
+          project.inventory.archives.some((a) => archiveChangeId(project.inventory, a) === e.id)
             ? { ...e, status: 'archived' }
             : e,
         ),
       }
     : project.roadmap;
-  validateGraph(graph, project.inventory, (reference) =>
-    validateReference(project.root, project.inventory, reference),
-  );
+  const referenceChecker = createReferenceChecker(project.root, project.inventory);
+  validateGraph(graph, project.inventory, referenceChecker);
   validateLedger(project.ledger, project.roadmap, project.inventory, {
-    checkEvidence: evidenceChecker(project.root, project.inventory),
+    checkEvidence: evidenceChecker(project.root, project.inventory, referenceChecker),
     allowArchivedOwners: pending,
   });
 }
 // Pure reconciliation consumes already-parsed files; callers supply retained receipts, not guessed state.
 export function reconcileProject(project, receipts, journal = null) {
-  const { ledger, roadmap, inventory } = project;
+  const { ledger, roadmap } = project;
+  const inventory = mappedInventory(project.inventory, roadmap);
   const { archived } = identities(inventory);
   const diagnostics = [];
   const byId = new Map();
@@ -921,7 +984,7 @@ export function reconcileProject(project, receipts, journal = null) {
   for (const name of ledger.legacy_archives)
     if (!inventory.archives.includes(name)) diagnostics.push(`legacy archive missing ${name}`);
   for (const name of inventory.archives) {
-    const id = archiveIdentity(name);
+    const id = archiveChangeId(inventory, name);
     const row = roadmap.entries.find((e) => e.id === id);
     const item = byId.get(id);
     if (ledger.legacy_archives.includes(name)) {
@@ -1004,7 +1067,9 @@ function snapshotFiles(root, paths) {
 function preMoveCheck(root, project, receipt) {
   if (
     !project.inventory.active.includes(receipt.change_id) ||
-    project.inventory.archives.some((a) => archiveIdentity(a) === receipt.change_id)
+    project.inventory.archives.some(
+      (a) => archiveChangeId(project.inventory, a) === receipt.change_id,
+    )
   )
     fail('CONFLICT', 'archive moved or active directory missing; cancellation/resume refused');
   if (
@@ -1043,6 +1108,15 @@ export function prepareArchive(root, id, options = {}) {
       records_sha256: digest(canonical(records)),
       records,
       resolved: [],
+      ...(options.retainedEvidence
+        ? {
+            retained_evidence: check(
+              z.array(locatorSchema),
+              options.retainedEvidence,
+              'retained evidence',
+            ),
+          }
+        : {}),
       preimages: {
         ledger: project.ledgerBytes,
         roadmap: project.roadmapBytes,
@@ -1051,8 +1125,12 @@ export function prepareArchive(root, id, options = {}) {
       targets: targetsFor(project.ledger, project.roadmap, id, records),
     };
     validateReceipt(receipt);
+    const referenceChecker = createReferenceChecker(root, project.inventory);
+    for (const reference of receipt.retained_evidence ?? []) referenceChecker(reference);
     atomicWrite(root, path, stringify(receipt), null);
+    options.onStep?.('prepared-receipt-written');
     atomicWrite(root, JOURNAL, stringify(journalFor(receipt)), null);
+    options.onStep?.('journal-written');
     return receipt;
   });
 }
@@ -1093,7 +1171,11 @@ export function cancelArchive(root, id, options = {}) {
 export function resumeArchive(root, id, options = {}) {
   return locked(root, options, () => {
     const state = recoveryState(root, id);
-    if (state.project.inventory.archives.some((a) => archiveIdentity(a) === id))
+    if (
+      state.project.inventory.archives.some(
+        (a) => archiveChangeId(state.project.inventory, a) === id,
+      )
+    )
       return repairArchive(root, id, { lock: false });
     preMoveCheck(root, state.project, state.item.receipt);
     checkProject(state.project);
@@ -1105,7 +1187,11 @@ export function repairArchive(root, id, options = {}) {
   return locked(root, options, () => {
     const state = recoveryState(root, id);
     const { receipt } = state.item;
-    if (!state.project.inventory.archives.some((a) => archiveIdentity(a) === id))
+    if (
+      !state.project.inventory.archives.some(
+        (a) => archiveChangeId(state.project.inventory, a) === id,
+      )
+    )
       fail('ARCHIVE', 'archive not moved; use explicit resume or cancel');
     if (!state.journal && receipt.state === 'finalized') {
       assertClean(state);
@@ -1128,10 +1214,14 @@ export function repairArchive(root, id, options = {}) {
       ['ledger', LEDGER],
       ['roadmap', ROADMAP],
     ])
-      if (currentHash(root, path) === plan.before[key])
+      if (currentHash(root, path) === plan.before[key]) {
         atomicWrite(root, path, receipt.targets[key], plan.before[key]);
-    if (receipt.state !== 'finalized')
+        options.onStep?.(`${key}-written`);
+      }
+    if (receipt.state !== 'finalized') {
       atomicWrite(root, state.item.path, stringify(finalized), digest(state.item.bytes));
+      options.onStep?.('finalized-receipt-written');
+    }
     // Verify all finalized consumers before removing the last durable recovery marker.
     const finalState = repositoryState(root);
     const withoutJournal = reconcileProject(finalState.project, finalState.receipts, null);
@@ -1140,6 +1230,7 @@ export function repairArchive(root, id, options = {}) {
     if (currentHash(root, JOURNAL) !== digest(stringify(plan)))
       fail('CONFLICT', 'journal hash conflict');
     unlinkSync(safePath(root, JOURNAL));
+    options.onStep?.('journal-removed');
     return { state: 'finalized', change_id: id, ids: receipt.records.map((e) => e.id) };
   });
 }
@@ -1185,8 +1276,10 @@ export function execute(root, args) {
   if (group === 'roadmap') {
     options(args.slice(1), ['--json']);
     const project = readProject(root);
-    validateGraph(project.roadmap, project.inventory, (ref) =>
-      validateReference(root, project.inventory, ref),
+    validateGraph(
+      project.roadmap,
+      project.inventory,
+      createReferenceChecker(root, project.inventory),
     );
     return selectNext(project.roadmap, project.inventory);
   }

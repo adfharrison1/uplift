@@ -20,7 +20,7 @@ Read dependency versions and scripts from [package.json](package.json), the Node
 
 ## Local project status
 
-Use `npm run roadmap:next -- --json` for validated active/next work and `npm run defects -- reconcile --check` at task checkpoints. Mutate defects through checked add/transition/update/reopen commands, with expected revisions and retained evidence; see [command guide](README.md#roadmap-and-defect-status). Keep verification files immutable. Resolved records live in archive receipts, not the active ledger. Shared recovery supports explicit repair/cancel; the archive wrapper remains separate work. Never hand-edit history, extend legacy exemptions or steal a project lock.
+Use `npm run roadmap:next -- --json` for validated active/next work and `npm run defects -- reconcile --check` at task checkpoints. Mutate defects through checked add/transition/update/reopen commands, with expected revisions and retained evidence; see [command guide](README.md#roadmap-and-defect-status). Keep verification files immutable. Resolved records live in archive receipts, not the active ledger. Use `npm run change:archive -- <id>` only after owner archive approval; it validates local scope, completion, final reviews and owned findings, then performs full CLI sync/archive with receipt finalization. Explicit `--resume` or defect repair/cancel handles interruption; never presync, hand-move, skip checks or rearchive a moved receipt. Never hand-edit history, extend legacy exemptions or steal a project lock.
 
 ## Architecture and deterministic code
 

@@ -1,0 +1,75 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts (80 tests | 4 failed | 76 skipped) 1464ms
+   × direct repair preserves changed repository-located final-review evidence in an empty receipt 644ms
+   × direct repair preserves deleted repository-located final-review evidence in an empty receipt 325ms
+   × requires an immutable review snapshot outside the mutable main-spec tree 241ms
+   × retains evidence in another change across shared archive recovery 246ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair preserves changed repository-located final-review evidence in an empty receipt
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > direct repair preserves deleted repository-located final-review evidence in an empty receipt
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:986:7
+    984|     expect(() =>
+    985|       s.execute(root, ['defects', 'reconcile', '--repair', '--change',…
+    986|     ).toThrow(/EVIDENCE/);
+       |       ^
+    987|     expect(() => s.execute(root, ['defects', 'reconcile', '--check']))…
+    988|     expect(receipt(root, true)['state']).toBe('prepared');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > requires an immutable review snapshot outside the mutable main-spec tree
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:1021:65
+    1019|   git(root, 'add', '.');
+    1020|   const cli = runner(root);
+    1021|   expect(() => m.execute(root, ['alpha'], { runCli: cli.run })).toThro…
+       |                                                                 ^
+    1022|   noPreparation(root);
+    1023|   expect(cli.calls.some((args) => args[0] === 'archive')).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/tooling/ArchiveChange.test.ts > retains evidence in another change across shared archive recovery
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ArchiveChange.test.ts:1049:70
+    1047|   m.execute(root, ['alpha'], { runCli: runner(root).run });
+    1048|   put(root, proof, 'tampered other-change review');
+    1049|   expect(() => s.execute(root, ['defects', 'reconcile', '--check'])).t…
+       |                                                                      ^
+    1050|   put(root, proof, bytes);
+    1051|   expect(s.execute(root, ['defects', 'reconcile', '--repair', '--chang…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 76 skipped (80)
+   Start at  11:15:10
+   Duration  1.65s (tests 95%, import 3%, transform 2%)
+
