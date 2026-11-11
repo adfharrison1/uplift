@@ -1,0 +1,96 @@
+{
+  "baseline": "1c77ac7",
+  "expected_seed_records": 57,
+  "actual_records": 60,
+  "additional_code_defects": [
+    "T4-C1",
+    "T4-C2",
+    "T4-C3"
+  ],
+  "ledger_revision": 132,
+  "status_counts": {
+    "in_progress": 3,
+    "open": 53,
+    "parked": 1,
+    "verified": 3
+  },
+  "severity_counts": {
+    "major": 41,
+    "minor": 19
+  },
+  "split_children": 19,
+  "legacy_archives": [
+    "2026-10-29-01-clean-scaffold-and-verify",
+    "2026-11-05-01a-eslint-prettier-and-hooks",
+    "2026-11-06-02-telemetry-saves-and-debug-skill",
+    "2026-11-06-03-modular-registries-and-kinematics",
+    "2026-11-07-04-third-person-camera-and-inspector",
+    "2026-11-07-05-live-npc-steering-and-world-stage",
+    "2026-11-08-05c-play-shell",
+    "2026-11-10-hx-ops-safety"
+  ],
+  "parity_failures": [],
+  "source_records_checked": 57,
+  "immutable_verification_files": [
+    {
+      "path": "openspec/changes/process-gates-and-ledger/task-1-evidence.md",
+      "unchanged": true,
+      "sha256": "925a42863fd9de1a07eee1abe9da81c43fdeacb1946ec893906dcd22233e448e"
+    },
+    {
+      "path": "openspec/changes/process-gates-and-ledger/task-1-reviews.md",
+      "unchanged": true,
+      "sha256": "645d5371de7cc37c1980d376534b938cc118c9fc8b4414197fc503793f9c7fba"
+    }
+  ],
+  "earlier_tooling_histories": [
+    {
+      "id": "T1-QC-01",
+      "revision": 4,
+      "operations": [
+        "add",
+        "transition",
+        "transition",
+        "update"
+      ],
+      "statuses": [
+        "open",
+        "in_progress",
+        "verified",
+        "verified"
+      ]
+    },
+    {
+      "id": "T1-QC-02",
+      "revision": 4,
+      "operations": [
+        "add",
+        "transition",
+        "transition",
+        "update"
+      ],
+      "statuses": [
+        "open",
+        "in_progress",
+        "verified",
+        "verified"
+      ]
+    },
+    {
+      "id": "T1-QC-03",
+      "revision": 4,
+      "operations": [
+        "add",
+        "transition",
+        "transition",
+        "update"
+      ],
+      "statuses": [
+        "open",
+        "in_progress",
+        "verified",
+        "verified"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,418 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts (72 tests | 56 failed) 4461ms
+   ❯ roadmap consumers (17)
+     × prioritizes actual active proposals over ready later work without edits 162ms
+   ❯ defect lifecycle and history (46)
+     × adds sorted records and rejects stale writers without changing bytes 80ms
+     × open -> open enforces the transition contract 78ms
+     × open -> in_progress enforces the transition contract 122ms
+     × open -> blocked enforces the transition contract 69ms
+     × open -> verified enforces the transition contract 67ms
+     × open -> parked enforces the transition contract 66ms
+     × open -> resolved enforces the transition contract 67ms
+     × in_progress -> open enforces the transition contract 68ms
+     × in_progress -> in_progress enforces the transition contract 77ms
+     × in_progress -> blocked enforces the transition contract 89ms
+     × in_progress -> verified enforces the transition contract 74ms
+     × in_progress -> parked enforces the transition contract 101ms
+     × in_progress -> resolved enforces the transition contract 90ms
+     × blocked -> open enforces the transition contract 68ms
+     × blocked -> in_progress enforces the transition contract 70ms
+     × blocked -> blocked enforces the transition contract 68ms
+     × blocked -> verified enforces the transition contract 77ms
+     × blocked -> parked enforces the transition contract 69ms
+     × blocked -> resolved enforces the transition contract 75ms
+     × verified -> open enforces the transition contract 84ms
+     × verified -> in_progress enforces the transition contract 81ms
+     × verified -> blocked enforces the transition contract 74ms
+     × verified -> verified enforces the transition contract 70ms
+     × verified -> parked enforces the transition contract 84ms
+     × verified -> resolved enforces the transition contract 74ms
+     × parked -> open enforces the transition contract 82ms
+     × parked -> in_progress enforces the transition contract 79ms
+     × parked -> blocked enforces the transition contract 82ms
+     × parked -> verified enforces the transition contract 87ms
+     × parked -> parked enforces the transition contract 79ms
+     × parked -> resolved enforces the transition contract 87ms
+     × rejects current status contradicting replay 88ms
+     × rejects current fixing_change contradicting replay 69ms
+     × rejects current severity contradicting replay 68ms
+     × rejects current evidence contradicting replay 81ms
+     × rejects current blocker contradicting replay 77ms
+     × rejects current revisit_when contradicting replay 73ms
+     × rejects current revision contradicting replay 71ms
+     × preserves invalidated evidence in history and clears blocker/revisit state 81ms
+     × records owner/severity/source updates and forbids rewriting verified claims 80ms
+     × rejects invalid adds {"status":"verified"} 105ms
+     × rejects invalid adds {"id":"../escape"} 77ms
+     × rejects invalid adds {"fixing_change":"missing"} 72ms
+     × rejects invalid adds {"status":"parked","fixing_change":null} 74ms
+     × rejects invalid adds {"surprise":1} 73ms
+     × rejects malformed YAML, unknown CLI flags and incomplete destination prerequisites 70ms
+   ❯ evidence and serialized filesystem writes (4)
+     × checks tracked retained evidence, digests and real Git commits 79ms
+     × retains change-local evidence across archive relocation 75ms
+     × rejects symlinks, traversal, held locks and stale hashes preserving sentinels 70ms
+     × refuses stale hash and unsafe paths without truncation 74ms
+   ❯ archive receipts and explicit recovery primitives (5)
+     × blocks unverified owners and pending mutations; cancel preserves original ledger and permits later edits 111ms
+     × preserves conflicts and refuses cancellation after a move 69ms
+     × lists pending IDs when ledger cleanup already happened, repairs idempotently, and reopens a successor 68ms
+     × detects bypass archives, forged snapshots and closed pending journals 68ms
+     × supports orphan prepared receipts and zero-defect archives without extending legacy exemptions 68ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 56 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > roadmap consumers > prioritizes actual active proposals over ready later work without edits
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:68:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > adds sorted records and rejects stale writers without changing bytes
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:98:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> open enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> in_progress enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> blocked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> verified enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> parked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > open -> resolved enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> open enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> in_progress enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> blocked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> verified enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> parked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > in_progress -> resolved enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> open enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> in_progress enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> blocked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> verified enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> parked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > blocked -> resolved enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> open enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> in_progress enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> blocked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> verified enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> parked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > verified -> resolved enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> open enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> in_progress enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> blocked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> verified enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> parked enforces the transition contract
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > parked -> resolved enforces the transition contract
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:107:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current status contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current fixing_change contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current severity contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current evidence contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current blocker contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current revisit_when contradicting replay
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects current revision contradicting replay
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:121:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > preserves invalidated evidence in history and clears blocker/revisit state
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:124:134
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > records owner/severity/source updates and forbids rewriting verified claims
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:125:135
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects invalid adds {"status":"verified"}
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects invalid adds {"id":"../escape"}
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects invalid adds {"fixing_change":"missing"}
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects invalid adds {"status":"parked","fixing_change":null}
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects invalid adds {"surprise":1}
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:127:231
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > defect lifecycle and history > rejects malformed YAML, unknown CLI flags and incomplete destination prerequisites
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:128:142
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > evidence and serialized filesystem writes > checks tracked retained evidence, digests and real Git commits
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:132:122
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > evidence and serialized filesystem writes > retains change-local evidence across archive relocation
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:133:115
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > evidence and serialized filesystem writes > rejects symlinks, traversal, held locks and stale hashes preserving sentinels
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:134:137
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > evidence and serialized filesystem writes > refuses stale hash and unsafe paths without truncation
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:135:114
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > archive receipts and explicit recovery primitives > blocks unverified owners and pending mutations; cancel preserves original ledger and permits later edits
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:140:164
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > archive receipts and explicit recovery primitives > preserves conflicts and refuses cancellation after a move
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:141:117
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > archive receipts and explicit recovery primitives > lists pending IDs when ledger cleanup already happened, repairs idempotently, and reopens a successor
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:142:161
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > archive receipts and explicit recovery primitives > detects bypass archives, forged snapshots and closed pending journals
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:151:131
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/56]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > archive receipts and explicit recovery primitives > supports orphan prepared receipts and zero-defect archives without extending legacy exemptions
+Error: Command failed: git -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture
+error: Enter passphrase for "/Users/alan.harrison/.ssh/id_ed25519": Load key "/Users/alan.harrison/.ssh/id_ed25519": incorrect passphrase supplied to decrypt private key?
+
+fatal: failed to write commit object
+
+ ❯ git tests/unit/tooling/ProjectStatus.test.ts:37:10
+     35| function git(root: string, ...args: string[]): string {
+     36|   const env = Object.fromEntries(Object.entries(process.env).filter(([…
+     37|   return execFileSync('git', args, { cwd: root, env, encoding: 'utf8',…
+       |          ^
+     38| }
+     39| function row(id: string, overrides: Data = {}): Data { return { id, ti…
+ ❯ fixture tests/unit/tooling/ProjectStatus.test.ts:50:51
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:155:154
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/56]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  56 failed | 16 passed (72)
+   Start at  10:35:11
+   Duration  4.58s (tests 99%, import 1%)
+

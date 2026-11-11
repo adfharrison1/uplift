@@ -1,0 +1,32 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts (77 tests | 1 failed) 5695ms
+   ❯ recovery conflict and replay regressions (5)
+     × treats completed repair as a no-op after later unrelated mutations 64ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > recovery conflict and replay regressions > treats completed repair as a no-op after later unrelated mutations
+Error: CONFLICT: transaction openspec/defect-ledger.yaml hash conflict
+ ❯ fail scripts/project-status.mjs:152:9
+    150| const LOCK = 'openspec/.project-status.lock';
+    151| export function fail(code, message) {
+    152|   throw new Error(`${code}: ${message}`);
+       |         ^
+    153| }
+    154| function check(schema, value, label) {
+ ❯ scripts/project-status.mjs:1058:9
+ ❯ withProjectLock scripts/project-status.mjs:580:12
+ ❯ locked scripts/project-status.mjs:973:47
+ ❯ Module.repairArchive scripts/project-status.mjs:1047:10
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:628:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 76 passed (77)
+   Start at  10:38:34
+   Duration  5.82s (tests 99%)
+

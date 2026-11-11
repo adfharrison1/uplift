@@ -1,0 +1,31 @@
+{
+  "revision": 135,
+  "records": 60,
+  "status_counts": {
+    "open": 53,
+    "parked": 1,
+    "verified": 6
+  },
+  "severity_counts": {
+    "major": 41,
+    "minor": 19
+  },
+  "combined_output_identical": true,
+  "read_only_bytes_unchanged": true,
+  "files": [
+    {
+      "path": "openspec/defect-ledger.yaml",
+      "sha256": "caa8b7fc1bfbc028e08e3005ab9258f30ca4550b521666a7b68593d1f18f566b"
+    },
+    {
+      "path": "openspec/roadmap.yaml",
+      "sha256": "4c407cd4953255fa82be02a062629a40ed3b66e43a869b1f741068f38ffd70d3"
+    }
+  ],
+  "verified_review_finding_ids": [
+    "T4-C1",
+    "T4-C2",
+    "T4-C3"
+  ],
+  "pending": []
+}

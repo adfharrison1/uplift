@@ -1,0 +1,1007 @@
+[
+  {
+    "id": "S3-01",
+    "summary": "Slice cloning on reads and writes; append cost grows with slice size",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-01"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/core/StateSliceRegistry.ts",
+        "line": 105,
+        "quote": "  public get<T>(key: StateSliceKey<T>): T {",
+        "file_sha256": "cccf5044839e358d26b531a94ad38c3299d1099a9ac0ff58c624002c4836e1e7"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-02",
+    "summary": "Missing slice schema/version and plain-JSON enforcement",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-02"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/core/StateSliceRegistry.ts",
+        "line": 8,
+        "quote": "export interface StateSliceKey<T> {",
+        "file_sha256": "cccf5044839e358d26b531a94ad38c3299d1099a9ac0ff58c624002c4836e1e7"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-03",
+    "summary": "Weak inner snapshot validation, no migration or pack mismatch check",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-03"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 112,
+        "quote": "function isSerializedWorldStateSnapshot(value: unknown): value is SerializedWorldStateSnapshot {",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-04",
+    "summary": "No per-effect rejection outcome; throws abort a batch",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-04"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/simulation/WorldEffectReducer.ts",
+        "line": 55,
+        "quote": "function requireEntity(",
+        "file_sha256": "3f44f3cc39a469ee4ac00d7cc0a2f0973ed193bb5a792c4295967686037797b9"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-05",
+    "summary": "Frame exception prevents the next animation frame",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-05"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/browserMain.ts",
+        "line": 232,
+        "quote": "    ownerWindow.requestAnimationFrame(onFrame);",
+        "file_sha256": "6da59290f7e632ac593ff76fb354af6597c6ff2a124cc27bf14a66794aaf4dd4"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-06",
+    "summary": "Pause silently drops dispatched effects",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-06"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 506,
+        "quote": "    if (this.state.paused || effects.length === 0) {",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-07-golden",
+    "summary": "State hash and seeded golden-run coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-07"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/application/SimulationCoordinator.test.ts",
+        "line": 128,
+        "quote": "describe('SimulationCoordinator', () => {",
+        "file_sha256": "46ece673b9c059a9e8ac0b29e94f3e41dcb6852ced33fabbd66f3b3413085c6a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-07-raw-dt",
+    "summary": "Raw frame-dt stepping",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-07"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/browserMain.ts",
+        "line": 208,
+        "quote": "    const dtSeconds = Math.max(0, (nowMs - previousMs) / 1000);",
+        "file_sha256": "6da59290f7e632ac593ff76fb354af6597c6ff2a124cc27bf14a66794aaf4dd4"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-08-rolls",
+    "summary": "Saved deterministic keyed rolls",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-08"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 252,
+        "quote": "  private rng: SeededRandom;",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-08-seed",
+    "summary": "Seed scrambling",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-08"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/core/SeededRandom.ts",
+        "line": 10,
+        "quote": "function validateAndNormalizeSeed(seed: number): number {",
+        "file_sha256": "2b624bf543ba7caf4563886aa4bb8d5b870ceb0f4c671407e763f66380dbc69c"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-09-fields",
+    "summary": "Duplicated snapshot field lists",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-09"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 95,
+        "quote": "interface SerializedWorldStateSnapshot {",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-09-order",
+    "summary": "Frame phase ordering and coordinator responsibilities",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-09"
+    },
+    "current_source": [
+      {
+        "path": "src/application/shell/PlaySession.ts",
+        "line": 184,
+        "quote": "    this.coordinator.stepFrame(dtSeconds);",
+        "file_sha256": "a6651de5892e3a2275ce781a0486206fa9fe6ba30d188dde92870bb72f10d020"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-10",
+    "summary": "Kinematic extension seams and stale phase fields",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-10"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/simulation/KinematicsEngine.ts",
+        "line": 333,
+        "quote": "function advanceEntityPath(",
+        "file_sha256": "8c545ab0e3c22ae4aedb54b5ffe1a0c56864d5ea4a54e1c39c7a9d9a0d039486"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-11",
+    "summary": "Closed door truncates route into silent doorway dwell",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-11"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 204,
+        "quote": "function truncateEntityPaths(state: WorldState, portals: ReadonlyArray<PortalGate>): WorldState {",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-12",
+    "summary": "Retarget starts from last waypoint rather than current body position",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-12"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 446,
+        "quote": "  public requestWaypointMove(",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-13",
+    "summary": "Stimulus cap evicts by age without deduplication",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-13"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/simulation/WorldEffectReducer.ts",
+        "line": 151,
+        "quote": "    case 'enqueue_npc_stimulus': {",
+        "file_sha256": "3f44f3cc39a469ee4ac00d7cc0a2f0973ed193bb5a792c4295967686037797b9"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-14-accumulation",
+    "summary": "Legacy mutations accumulate across epochs",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-14"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 717,
+        "quote": "    const combinedMutations: LineageMutation[] = [",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-14-clamp",
+    "summary": "Runtime clamp requirement; existing authoring throw remains specified",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-14"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/legacy/CivilizationLegacyState.ts",
+        "line": 327,
+        "quote": "    for (const [driveKey, finalVal] of Object.entries(nextDrives)) {",
+        "file_sha256": "b15b384ac2ab102479f1fd7830652ade945d0b6a6c386b442641e85fe1cb477b"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-14-source",
+    "summary": "Unchecked sourceScarId reference",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-14"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/legacy/CivilizationLegacyState.ts",
+        "line": 41,
+        "quote": "      sourceScarId: NonEmptyStringSchema,",
+        "file_sha256": "b15b384ac2ab102479f1fd7830652ade945d0b6a6c386b442641e85fe1cb477b"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-15",
+    "summary": "Zero-speed mover never finishes; hop-based routing limitation",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-15"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/simulation/KinematicsEngine.ts",
+        "line": 333,
+        "quote": "function advanceEntityPath(",
+        "file_sha256": "8c545ab0e3c22ae4aedb54b5ffe1a0c56864d5ea4a54e1c39c7a9d9a0d039486"
+      },
+      {
+        "path": "src/domain/simulation/WaypointNavigator.ts",
+        "line": 218,
+        "quote": "  const queue: string[] = [fromWaypointId];",
+        "file_sha256": "bc99510b9a0806ebd548cdc90c4e08afda00d1a9e4592c9ff4a0666f20fb707b"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-16",
+    "summary": "Small per-frame allocation cost; revisit at 100+ bodies in a room",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-16"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/simulation/KinematicsEngine.ts",
+        "line": 574,
+        "quote": "  const sortedEntityIds = Object.keys(state.entities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));",
+        "file_sha256": "8c545ab0e3c22ae4aedb54b5ffe1a0c56864d5ea4a54e1c39c7a9d9a0d039486"
+      },
+      {
+        "path": "src/domain/simulation/KinematicsEngine.ts",
+        "line": 593,
+        "quote": "    grid: insertEmbodiedBodies(hashedBodies, spaceKinds),",
+        "file_sha256": "8c545ab0e3c22ae4aedb54b5ffe1a0c56864d5ea4a54e1c39c7a9d9a0d039486"
+      },
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 303,
+        "quote": "  private portalGates(): readonly PortalGate[] {",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      },
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 401,
+        "quote": "    this.state = truncateEntityPaths(this.state, this.portalGates());",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Parked kinematics/coordinator allocation finding; earlier renderer anchor is superseded, not an expansion into renderer optimization."
+  },
+  {
+    "id": "S3-17-clamp-rng",
+    "summary": "Frozen-input clamp and RNG golden-vector coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-17"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/domain/CivilizationLegacyState.test.ts",
+        "line": 39,
+        "quote": "describe('Dual-Ledger CivilizationLegacyState and applyLegacyToCharacterBlueprints', () => {",
+        "file_sha256": "d2a3f40becc06a3f1e58fd3f69baa2ac49661b55a3ce479499f5066e87ef3ab0"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-17-hop",
+    "summary": "Mid-hop routing and boundary-state coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-17"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/domain/KinematicsAndReducer.test.ts",
+        "line": 48,
+        "quote": "describe('stepKinematics and applyWorldEffects', () => {",
+        "file_sha256": "b74c95c96dae1bfa40d8530e5bfd4aafc1d960c48d534472062046e02e6d189a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-17-save",
+    "summary": "Strengthened codec round-trip, corruption, schema, migration and pack coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-17"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/application/SimulationCoordinator.test.ts",
+        "line": 128,
+        "quote": "describe('SimulationCoordinator', () => {",
+        "file_sha256": "46ece673b9c059a9e8ac0b29e94f3e41dcb6852ced33fabbd66f3b3413085c6a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-17-slices",
+    "summary": "Frozen/shared output and JSON-slice invariants",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-17"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/domain/StateSliceRegistry.test.ts",
+        "line": 14,
+        "quote": "describe('StateSliceRegistry and StateSliceStore', () => {",
+        "file_sha256": "a142836343a12582cef0cdbffab0cd9f49644d2c9518d5d7d46bbeecfe7d2d62"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-17-step",
+    "summary": "Catch-up caps and equivalent dt splits",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-17"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/application/SimulationCoordinator.test.ts",
+        "line": 128,
+        "quote": "describe('SimulationCoordinator', () => {",
+        "file_sha256": "46ece673b9c059a9e8ac0b29e94f3e41dcb6852ced33fabbd66f3b3413085c6a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S3-18",
+    "summary": "Sticky PlaySession status",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S3-18"
+    },
+    "current_source": [
+      {
+        "path": "src/application/shell/PlaySession.ts",
+        "line": 57,
+        "quote": "  private status: PlaySessionStatus = 'ready';",
+        "file_sha256": "a6651de5892e3a2275ce781a0486206fa9fe6ba30d188dde92870bb72f10d020"
+      },
+      {
+        "path": "src/application/shell/PlaySession.ts",
+        "line": 151,
+        "quote": "  public requestMove(waypointId: string): WaypointMoveRequestStatus {",
+        "file_sha256": "a6651de5892e3a2275ce781a0486206fa9fe6ba30d188dde92870bb72f10d020"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-01",
+    "summary": "Saved stage JSON is not loaded into the runtime launch",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-01"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/browserMain.ts",
+        "line": 481,
+        "quote": "    pack: STARTER_HOLD_PACK,",
+        "file_sha256": "6da59290f7e632ac593ff76fb354af6597c6ff2a124cc27bf14a66794aaf4dd4"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-04",
+    "summary": "Literal-shape determinism guards and missing application coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-04"
+    },
+    "current_source": [
+      {
+        "path": "eslint.config.mjs",
+        "line": 34,
+        "quote": "    files: ['src/domain/**/*.ts', 'src/content/**/*.ts'],",
+        "file_sha256": "4f32c552d099d9fe8538cb272c42a583a7d83fa648a48e7c0c6048eed278fdad"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-05",
+    "summary": "Import/layer checker blind spots",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-05"
+    },
+    "current_source": [
+      {
+        "path": "tests/architecture/layer_boundaries.test.ts",
+        "line": 41,
+        "quote": "export function extractImports(source: string): ReadonlyArray<{ specifier: string; line: number }> {",
+        "file_sha256": "6aaa55b2ee8ad8525af40d7986c741a519c22403b028e0680e4ccb6539916314"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-06",
+    "summary": "Hand-maintained epoch-specific denylist",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-06"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/content/StarterHoldStage.test.ts",
+        "line": 23,
+        "quote": "const HIGHGLASS_IDS = [",
+        "file_sha256": "c9d30288ba454274862b8047351fd958c28010febad2f214372804f111e6877a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-07-json",
+    "summary": "Map/Set and frozen-slice invariants",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-07"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/core/StateSliceRegistry.ts",
+        "line": 27,
+        "quote": "function deepFreeze<T>(value: T): T {",
+        "file_sha256": "cccf5044839e358d26b531a94ad38c3299d1099a9ac0ff58c624002c4836e1e7"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-07-order",
+    "summary": "Sorted-iteration and determinism coverage",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-07"
+    },
+    "current_source": [
+      {
+        "path": "tests/architecture/layer_boundaries.test.ts",
+        "line": 116,
+        "quote": "export function findDeterminismViolations(filePath: string, source: string): Violation[] {",
+        "file_sha256": "6aaa55b2ee8ad8525af40d7986c741a519c22403b028e0680e4ccb6539916314"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-08",
+    "summary": "Bare-string joins lack launch validation",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-08"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/registries/EpochModuleRegistry.ts",
+        "line": 47,
+        "quote": "  private readonly characters = new Map<string, CharacterBlueprint>();",
+        "file_sha256": "953da93e50421d914c3e7ccc836db92db081d2a88897b2162b4404ffb48c32c1"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-09",
+    "summary": "Closed registry kinds and inconsistent references",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-09"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/registries/EpochModuleRegistry.ts",
+        "line": 40,
+        "quote": "  private readonly allIds = new Map<string, string>();",
+        "file_sha256": "953da93e50421d914c3e7ccc836db92db081d2a88897b2162b4404ffb48c32c1"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-10",
+    "summary": "Pack identity and composition are not modelled",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-10"
+    },
+    "current_source": [
+      {
+        "path": "src/domain/registries/EpochModuleRegistry.ts",
+        "line": 57,
+        "quote": "  public registerPack(pack: EpochModulePackInput): void {",
+        "file_sha256": "953da93e50421d914c3e7ccc836db92db081d2a88897b2162b4404ffb48c32c1"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-11-contracts",
+    "summary": "Missing blueprint contracts and fixtures exported as content",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-11"
+    },
+    "current_source": [
+      {
+        "path": "src/content/index.ts",
+        "line": 10,
+        "quote": "  DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT,",
+        "file_sha256": "ff71b5b3e040165122ec85b9d14c41fcfdf34c3686e6890a52a46488292989c5"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-12",
+    "summary": "Existing telemetry versus intended Act-log policy",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-12"
+    },
+    "current_source": [
+      {
+        "path": "src/application/simulation/SimulationCoordinator.ts",
+        "line": 336,
+        "quote": "    this.telemetry.record({",
+        "file_sha256": "93d1a77f172bce6df916b5566047739262e5d36c89b350c137583942db3aa055"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-13",
+    "summary": "Remaining monolithic tests and pasted fixtures; bridge portion delivered",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-13"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/application/SimulationCoordinator.test.ts",
+        "line": 128,
+        "quote": "describe('SimulationCoordinator', () => {",
+        "file_sha256": "46ece673b9c059a9e8ac0b29e94f3e41dcb6852ced33fabbd66f3b3413085c6a"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-14-runtime",
+    "summary": "CLI tail/limit/count gaps and compaction edge behavior",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-14"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/cli/queryLogs.ts",
+        "line": 48,
+        "quote": "export function parseQueryCliArgs(",
+        "file_sha256": "1b4e6ac1eb4c2219ae2cf700de015145a4d17475cf4354c9051d41a9ebc47701"
+      },
+      {
+        "path": "src/infrastructure/telemetry/NdjsonSessionTelemetry.ts",
+        "line": 190,
+        "quote": "  public compact(retentionWindowMs: number = this.budget.defaultRetentionWindowMs): void {",
+        "file_sha256": "f15bdb747e73a6c84e7406837a96eb1680af419f5d19a4f1fde263668972fb75"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S4-17",
+    "summary": "Untyped ESLint; typed async-port lint remains assigned",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S4-17"
+    },
+    "current_source": [
+      {
+        "path": "eslint.config.mjs",
+        "line": 10,
+        "quote": "  ...tseslint.configs.strict,",
+        "file_sha256": "4f32c552d099d9fe8538cb272c42a583a7d83fa648a48e7c0c6048eed278fdad"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-01",
+    "summary": "Current mesh creation requires an ID-matched visual",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-01"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+        "line": 193,
+        "quote": "  for (const charVis of options.characterVisuals ?? []) {",
+        "file_sha256": "e48a53917a235f00007067c543341e1fa10e4fd98c90338a85e8cb9aa61f4793"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-02",
+    "summary": "Frame and stage-build work scales with the whole cast",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-02"
+    },
+    "current_source": [
+      {
+        "path": "src/application/rendering/RenderFrameBuilder.ts",
+        "line": 678,
+        "quote": "    const sortedEntityIds = Object.keys(worldState.entities).sort((a, b) =>",
+        "file_sha256": "9dcea036a379f0fee236ec3b2b28a1ab4ac89a4ae7d41326e25082bf8dd39beb"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-03",
+    "summary": "Invalid semantic entity ID can throw during frame construction",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-03"
+    },
+    "current_source": [
+      {
+        "path": "src/application/rendering/RenderFrameBuilder.ts",
+        "line": 699,
+        "quote": "        semanticId: formatCharacterRootSemanticId(entity.entityId),",
+        "file_sha256": "9dcea036a379f0fee236ec3b2b28a1ab4ac89a4ae7d41326e25082bf8dd39beb"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-04",
+    "summary": "Missing render interpolation seam",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-04"
+    },
+    "current_source": [
+      {
+        "path": "src/application/rendering/RenderFrameBuilder.ts",
+        "line": 690,
+        "quote": "      const localPosition = sanitizeFiniteTriple(toLocal(entity.position, origin));",
+        "file_sha256": "9dcea036a379f0fee236ec3b2b28a1ab4ac89a4ae7d41326e25082bf8dd39beb"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-05",
+    "summary": "Renderer-owned shape literals and closed vocabulary",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-05"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/three/StageKitbashBuilders.ts",
+        "line": 142,
+        "quote": "function buildSingleMotifUnitGeometry(",
+        "file_sha256": "6741433c6b5d6027a17eb49cd954746ebdde74f06b3ef896e4c6026f448fc5e2"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-06",
+    "summary": "Camera volume pitch/yaw do not drive actual view orientation",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-06"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+        "line": 264,
+        "quote": "  camera.lookAt(frame.camera.lookAt[0], frame.camera.lookAt[1], frame.camera.lookAt[2]);",
+        "file_sha256": "e48a53917a235f00007067c543341e1fa10e4fd98c90338a85e8cb9aa61f4793"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-07",
+    "summary": "Per-part geometry/material allocation and caching",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-07"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/three/StageKitbashBuilders.ts",
+        "line": 106,
+        "quote": "  const material = new THREE.MeshToonMaterial({",
+        "file_sha256": "6741433c6b5d6027a17eb49cd954746ebdde74f06b3ef896e4c6026f448fc5e2"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-09",
+    "summary": "Stateless event.key input and unmanaged focus seam",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-09"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/playInput.ts",
+        "line": 41,
+        "quote": "  keyDown(key: string, repeat?: boolean): void;",
+        "file_sha256": "c5d15ef671c1cd44b267abe0177cd1b2aed0b89bf7cafe7b7c7d8584debb7586"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-11",
+    "summary": "Existing camera latch/zoom seam limitation",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-11"
+    },
+    "current_source": [
+      {
+        "path": "src/application/rendering/RenderFrameBuilder.ts",
+        "line": 528,
+        "quote": "    const targetPosX = focusPos[0] + activeVolume.offset[0];",
+        "file_sha256": "9dcea036a379f0fee236ec3b2b28a1ab4ac89a4ae7d41326e25082bf8dd39beb"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-12",
+    "summary": "Existing settings/accessibility limitation",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-12"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/browserMain.ts",
+        "line": 211,
+        "quote": "      reduceMotionAndFlashing: prefersReducedMotion((query) => ownerWindow.matchMedia(query)),",
+        "file_sha256": "6da59290f7e632ac593ff76fb354af6597c6ff2a124cc27bf14a66794aaf4dd4"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-14",
+    "summary": "Free-camera keys gate on isPaused",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-14"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/composition/playInput.ts",
+        "line": 157,
+        "quote": "      if (!options.isPaused()) {",
+        "file_sha256": "c5d15ef671c1cd44b267abe0177cd1b2aed0b89bf7cafe7b7c7d8584debb7586"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "S5-18-cyan",
+    "summary": "Existing debug highlight conflicts with reserved lace cyan",
+    "provenance": {
+      "path": "reviews/2026-11-08-root-and-branch/register.md",
+      "anchor": "S5-18"
+    },
+    "current_source": [
+      {
+        "path": "src/interfaces/three/ChiaroscuroStageRenderer.ts",
+        "line": 330,
+        "quote": "      mat.emissive.set('#4fd2ff');",
+        "file_sha256": "e48a53917a235f00007067c543341e1fa10e4fd98c90338a85e8cb9aa61f4793"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "T1-QC-01",
+    "summary": "Historical quotechecker could accept false quote tails/ranges",
+    "provenance": {
+      "path": "openspec/changes/process-gates-and-ledger/finding-inventory.md",
+      "anchor": "T1-QC-01"
+    },
+    "current_source": [
+      {
+        "path": "reviews/tools/quotecheck.py",
+        "line": 22,
+        "quote": "        first = norm(q.splitlines()[0]) if q.strip() else \"\"",
+        "file_sha256": "b097bf3c560128abc8a35a2abeef49944ea9ae296cdd09d65415b4cc7ec5d1ed"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "T1-QC-02",
+    "summary": "Historical quotechecker root/path and command-evidence handling",
+    "provenance": {
+      "path": "openspec/changes/process-gates-and-ledger/finding-inventory.md",
+      "anchor": "T1-QC-02"
+    },
+    "current_source": [
+      {
+        "path": "reviews/tools/quotecheck.py",
+        "line": 15,
+        "quote": "        fp = os.path.join(root, p)",
+        "file_sha256": "b097bf3c560128abc8a35a2abeef49944ea9ae296cdd09d65415b4cc7ec5d1ed"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "T1-QC-03",
+    "summary": "Unicode separators incorrectly treated as physical source lines",
+    "provenance": {
+      "path": "openspec/changes/process-gates-and-ledger/finding-inventory.md",
+      "anchor": "T1-QC-03"
+    },
+    "current_source": [
+      {
+        "path": ".agents/skills/root-and-branch-review/scripts/quotecheck.py",
+        "line": 58,
+        "quote": "def source_lines(text):",
+        "file_sha256": "c83746b602a705a5d828695696aeff47348cf258dc91ec7d9bfa4a253e759d8e"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  },
+  {
+    "id": "TOOL-GIT-FIXTURE-INDEX",
+    "summary": "Inherited Git environment makes nested fixtures use the parent index",
+    "provenance": {
+      "path": "openspec/changes/archive/2026-11-10-hx-ops-safety/verification.md",
+      "anchor": "GIT_INDEX_FILE"
+    },
+    "current_source": [
+      {
+        "path": "tests/unit/tooling/VerifyRunner.test.ts",
+        "line": 286,
+        "quote": "        env: { ...process.env, PATH: `${bin}${delimiter}${process.env.PATH ?? ''}`, TRACE: trace },",
+        "file_sha256": "152c69765c2e6ba26a8e8bf1b6ba04ef10f73d5a1d75d07709770e1aafba07f4"
+      }
+    ],
+    "scope_note": "Exact source excerpts supersede earlier descriptive/imprecise code anchors; accepted scope, status and owner remain unchanged."
+  }
+]

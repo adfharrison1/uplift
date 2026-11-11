@@ -1,0 +1,56 @@
+# Task 4 implementation evidence
+
+Status: implementation and targeted checks complete; controller full verification passed. Both final independent reviews passed. Staging of retained proof, the three new defects' verified transitions and owner approval remain controller checkpoints. No commit, task checkbox, push, archive wrapper or live archive was performed by the implementer.
+
+## Delivered scope
+
+The reusable project-status module and real npm commands validate ordered roadmap state, select active/next work, perform checked defect mutations with full replay and immutable provenance, validate tracked/digested evidence and Git references, serialize writers, and consume recoverable archive receipts. Shared prepare/resume/cancel/repair functions support the following wrapper task. No runtime simulation code or dependency changed. Tooling-file scope is two files (module and package scripts), plus tests, canonical ledger/roadmap data and paired guidance/evidence.
+
+The roadmap's existing done-by-review row gained a real delivery reference: Git object 0b3d6b1366cf5f16326e1b91471594eb8a58f465 exists and records the design-spine delivery disposition. Order/dependencies are unchanged. The ledger's finite legacy set is the eight actual pre-tooling archive directories; the archive folder's .gitkeep file was excluded during empty-ledger initialization, before the first supported mutation.
+
+## Commands and outcomes
+
+| Command/check                                                                  | Observed result                                                                                                                                                    |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| npx vitest run tests/unit/tooling/ProjectStatus.test.ts                        | Final 90/90 PASS, 7.03s Vitest duration; retained focused-green-final.txt                                                                                          |
+| npx eslint scripts/project-status.mjs tests/unit/tooling/ProjectStatus.test.ts | PASS after final source edit                                                                                                                                       |
+| npm run typecheck                                                              | PASS after final source edit                                                                                                                                       |
+| npm run verify                                                                 | Controller PASS: format 1630ms, lint 2490ms, typecheck 765ms, tests 8394ms                                                                                         |
+| npm run roadmap:next -- --json                                                 | Active process-gates-and-ledger, next null, no later proposal silently selected                                                                                    |
+| npm run defects -- reconcile --check                                           | PASS: 60 active, 0 resolved at ledger revision 132                                                                                                                 |
+| CLI list --include-resolved --json, twice                                      | Controller: byte-identical output; ledger/roadmap hashes unchanged; 60 records, no pending                                                                         |
+| Strict OpenSpec validation                                                     | Controller PASS; no proposal contract changed                                                                                                                      |
+| git diff --check                                                               | PASS before final evidence additions; controller final diff checkpoint remains                                                                                     |
+| Baseline seed parity / literal source audit                                    | 57 accepted records exact;19 parent splits;63 literal excerpts across 57 records plus file digests/provenance independently rechecked by controller, zero failures |
+| Prior task evidence integrity                                                  | Task1 proof/review files equal baseline 1c77ac7 bytes and their recorded SHA-256; task2/3 evidence untouched                                                       |
+
+Node was selected by prepending the pinned nvm runtime to PATH. No system Node/global OpenSpec mismatch was used. Timings are measured host observations, not proof of reference Intel Mac budgets. The focused/full test durations exceed the target; coverage was not weakened to hide that fact. The suite uses one copied temporary Git template and per-invocation evidence caching to avoid redundant setup/work.
+
+## TDD and review history
+
+[Retained raw output](task-4-evidence/) includes initial absent-module RED 67; recovery setup output; concrete idempotence RED 1; immutable-provenance RED 2; independent review RED 3; second-removal conflict RED 1; and final GREEN 90. The recovery setup run encountered inherited Git signing configuration; it is explicitly a fixture setup error, corrected with fixture-only signing disablement, not counted as a production regression. Historical source anchors were also corrected explicitly through supported updates rather than hand-editing history.
+
+The initial independent correctness review found three major defects: cancellation stranded a journal, relocated empty receipts could evade missing-receipt detection, and accepted repository evidence could break after archive. Controller independently reproduced them. Their corrected source is captured in [immutable fix evidence](task-4-fix-evidence.md); [scenario mapping](task-4-scenarios.md) names consumer-ending cases. The final focused suite includes actual independent Node writers racing the same revision and checks the winner's persisted bytes.
+
+## Ledger migration and parity
+
+- [Initial inputs](task-4-seed-inputs.json) and [seed commands](task-4-seed-commands.json) retain 57 real adds, six quotechecker transitions, two read consumers and six initial source-label corrections. No lifecycle event was fabricated manually.
+- [Source corrections](task-4-source-corrections.json) retain 57 later supported updates after [literal source audit](task-4-source-audit.json), superseding imprecise labels and supplying correct parent anchors. All current authoritative anchors were checked against actual file text. S3-16 is kinematics/coordinator allocation debt, deliberately parked/null until 100+ bodies in a room.
+- [Fix commands](task-4-fix-commands.json) retain three real add → in_progress sequences for T4-C1/C2/C3. They remain in_progress until final independent review and tracked proof allow truthful verified transitions.
+- [Parity snapshot](task-4-seed-parity.json): baseline 57 unchanged in ID, summary, severity, owner, parent and intended status. Current 60 records: 53 open, 1 parked, 3 verified, 3 in_progress; 41 major, 19 minor. Ledger revision 132. Earlier quotechecker histories are add → in_progress → verified → source-update, preserving verification and original proof. There are no resolved records before archive.
+- Document/process findings remain explicit inventory dispositions. Delivered safety fixes retain archive evidence; planned/art choices are excluded with reasons in the seed audit. No umbrella finding falsely resolves a child or sibling.
+
+## G1–G6 and document integrity
+
+| Gate | Evidence / limit                                                                                                                                                                                                                                                                                                          |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1   | npm CLI → execute → schemas/graph/replay/evidence → atomic persistence → list/reconcile; fixture archive move → shared repair → combined resolved listing. Live commands and temporary consumer tests agree.                                                                                                              |
+| G2   | Strict input fields/options, safe IDs/paths, symlink refusal, tracked digest/Git evidence, directory-bound receipt identity, durable locator policy. Tests use real files and outside sentinels.                                                                                                                          |
+| G3   | Local on-demand tooling only, no frame-loop consumers. Graph traversal and bounded local file processing; measured focused/full timing above, no unsupported hardware guarantee.                                                                                                                                          |
+| G4   | Stale revision/hash, held lock, independent process race, occupied atomic candidate, partial cleanup, crash-between-removal, external edit, orphan receipt, missing/misplaced receipt and explicit repair/cancel cases preserve evidence. Arbitrary editors ignoring the lock remain outside its serialization guarantee. |
+| G5   | Real migration, 60 active reconciliation PASS, literal source/parity checks and immutable prior evidence. Three newly fixed code findings await tracked-evidence transitions; no premature verified claim.                                                                                                                |
+| G6   | Every relevant delta scenario is mapped in task-4-scenarios.md. Shared primitive fixtures pass; actual OpenSpec context/store/strict-validation/archive-wrapper scenarios explicitly remain task 5.                                                                                                                       |
+
+Canonical placement: shipped commands in root README/AGENTS; tooling tests in tests README/AGENTS; ledger and ordered work under openspec; review/source/scenario evidence in this proposal. DESIGN_NOTES status index, Where-facts-live, pillars and rules spine checked and unchanged: no new gameplay/design system or owner decision. Existing roadmap scope/order remains intact; only required delivery proof added. No content moves/cuts or inbox edits occurred. Root AGENTS grew 886→961 words, below 1050. Config and design budgets unchanged. Both final task reviewers passed, including additive guide fidelity/no-loss and coherence/source/coverage lenses.
+
+The [shared API outline](task-4-shared-api.md) documents trusted lock ownership, snapshot/receipt protocol, explicit recovery and the next task's external CLI obligations. This task does not implement the wrapper, invoke live archive or assert whole-change completion.

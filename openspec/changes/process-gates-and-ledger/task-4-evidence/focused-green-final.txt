@@ -1,0 +1,9 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+
+ Test Files  1 passed (1)
+      Tests  90 passed (90)
+   Start at  10:48:54
+   Duration  7.03s (tests 99%)
+

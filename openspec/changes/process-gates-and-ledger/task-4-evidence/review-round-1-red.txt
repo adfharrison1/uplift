@@ -1,0 +1,64 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts (84 tests | 3 failed) 6388ms
+   ❯ independent review regressions (4)
+     × recovers cancellation interrupted between journal and receipt removal 150ms
+     × rejects a finalized zero-defect receipt relocated into a different change 54ms
+     × rejects repository locators under movable change directories before verification 83ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > independent review regressions > recovers cancellation interrupted between journal and receipt removal
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:758:149
+    756|   it('recovers cancellation interrupted between journal and receipt re…
+    757|     const m = await api(); const root = fixture(); add(m, root); verif…
+    758|     expect(() => m.cancelArchive(root, 'alpha', { onStep: step => { if…
+       |                                                                                                                                                     ^
+    759|     expect(existsSync(join(root, 'openspec/archive-transaction.yaml'))…
+    760|     expect(existsSync(join(root, 'openspec/changes/alpha/defect-resolu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > independent review regressions > rejects a finalized zero-defect receipt relocated into a different change
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:767:73
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > independent review regressions > rejects repository locators under movable change directories before verification
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:771:87
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 81 passed (84)
+   Start at  10:45:47
+   Duration  6.53s (tests 99%)
+

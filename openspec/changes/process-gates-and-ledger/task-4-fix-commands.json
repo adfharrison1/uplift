@@ -1,0 +1,557 @@
+[
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "add",
+      "--file",
+      ".superpowers/sdd/tasks/task-4-input.json",
+      "--expect-ledger-revision",
+      "69"
+    ],
+    "input": {
+      "id": "T4-C1",
+      "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+      "source": [
+        {
+          "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+          "anchor": "T4-C1",
+          "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+        }
+      ],
+      "severity": "major",
+      "status": "open",
+      "fixing_change": "process-gates-and-ledger"
+    },
+    "exit": 0,
+    "result": {
+      "revision": 70,
+      "entry": {
+        "id": "T4-C1",
+        "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C1",
+            "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+          }
+        ],
+        "severity": "major",
+        "status": "open",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 1,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C1",
+      "--to",
+      "in_progress",
+      "--expect-revision",
+      "1",
+      "--reason",
+      "Independent review reproduced the bug; regression test is RED and targeted correction is underway"
+    ],
+    "exit": 0,
+    "result": {
+      "revision": 71,
+      "entry": {
+        "id": "T4-C1",
+        "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C1",
+            "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+          }
+        ],
+        "severity": "major",
+        "status": "in_progress",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 2,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "add",
+      "--file",
+      ".superpowers/sdd/tasks/task-4-input.json",
+      "--expect-ledger-revision",
+      "71"
+    ],
+    "input": {
+      "id": "T4-C2",
+      "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+      "source": [
+        {
+          "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+          "anchor": "T4-C2",
+          "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+        }
+      ],
+      "severity": "major",
+      "status": "open",
+      "fixing_change": "process-gates-and-ledger"
+    },
+    "exit": 0,
+    "result": {
+      "revision": 72,
+      "entry": {
+        "id": "T4-C2",
+        "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C2",
+            "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+          }
+        ],
+        "severity": "major",
+        "status": "open",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 1,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C2",
+      "--to",
+      "in_progress",
+      "--expect-revision",
+      "1",
+      "--reason",
+      "Independent review reproduced the bug; regression test is RED and targeted correction is underway"
+    ],
+    "exit": 0,
+    "result": {
+      "revision": 73,
+      "entry": {
+        "id": "T4-C2",
+        "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C2",
+            "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+          }
+        ],
+        "severity": "major",
+        "status": "in_progress",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 2,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "add",
+      "--file",
+      ".superpowers/sdd/tasks/task-4-input.json",
+      "--expect-ledger-revision",
+      "73"
+    ],
+    "input": {
+      "id": "T4-C3",
+      "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+      "source": [
+        {
+          "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+          "anchor": "T4-C3",
+          "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+        }
+      ],
+      "severity": "major",
+      "status": "open",
+      "fixing_change": "process-gates-and-ledger"
+    },
+    "exit": 0,
+    "result": {
+      "revision": 74,
+      "entry": {
+        "id": "T4-C3",
+        "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C3",
+            "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+          }
+        ],
+        "severity": "major",
+        "status": "open",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 1,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C3",
+      "--to",
+      "in_progress",
+      "--expect-revision",
+      "1",
+      "--reason",
+      "Independent review reproduced the bug; regression test is RED and targeted correction is underway"
+    ],
+    "exit": 0,
+    "result": {
+      "revision": 75,
+      "entry": {
+        "id": "T4-C3",
+        "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C3",
+            "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+          }
+        ],
+        "severity": "major",
+        "status": "in_progress",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": null,
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 2,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  }
+]

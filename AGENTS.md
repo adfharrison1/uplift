@@ -18,6 +18,10 @@ Run `npm run verify` after every task. It runs format checking, lint, typechecki
 
 Read dependency versions and scripts from [package.json](package.json), the Node pin from [.nvmrc](.nvmrc), compiler settings from [tsconfig.json](tsconfig.json), and verification behavior from [scripts/verify.mjs](scripts/verify.mjs). Do not duplicate version or CVE tables.
 
+## Local project status
+
+Use `npm run roadmap:next -- --json` for validated active/next work and `npm run defects -- reconcile --check` at task checkpoints. Mutate defects through checked add/transition/update/reopen commands, with expected revisions and retained evidence; see [command guide](README.md#roadmap-and-defect-status). Keep verification files immutable. Resolved records live in archive receipts, not the active ledger. Shared recovery supports explicit repair/cancel; the archive wrapper remains separate work. Never hand-edit history, extend legacy exemptions or steal a project lock.
+
 ## Architecture and deterministic code
 
 | Layer                 | Allowed project dependencies                 |

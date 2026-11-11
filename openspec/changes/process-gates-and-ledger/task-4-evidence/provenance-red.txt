@@ -1,0 +1,24 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts (80 tests | 2 failed) 5983ms
+   ❯ immutable provenance in replay (3)
+     × rejects edited id even with unchanged workflow state 28ms
+     × rejects edited parent_id even with unchanged workflow state 30ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > immutable provenance in replay > rejects edited id even with unchanged workflow state
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > immutable provenance in replay > rejects edited parent_id even with unchanged workflow state
+AssertionError: expected [Function] to throw an error
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:735:415
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 78 passed (80)
+   Start at  10:40:22
+   Duration  6.12s (tests 99%)
+

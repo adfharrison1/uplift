@@ -1,0 +1,880 @@
+[
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C1",
+      "--to",
+      "verified",
+      "--expect-revision",
+      "2",
+      "--reason",
+      "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+      "--evidence",
+      ".superpowers/sdd/tasks/task-4-verified-evidence.json"
+    ],
+    "input": {
+      "fix_ref": {
+        "kind": "change",
+        "change_id": "process-gates-and-ledger",
+        "relative_path": "task-4-fix-evidence.md",
+        "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+      },
+      "tests": [
+        {
+          "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+          "outcome": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-evidence/focused-green-final.txt",
+            "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+          }
+        }
+      ],
+      "reviews": [
+        {
+          "reviewer": "Task 4 independent correctness reviewer A",
+          "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-correctness-review.md",
+            "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+          }
+        },
+        {
+          "reviewer": "Task 4 independent source/specification reviewer B",
+          "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-seed-audit.md",
+            "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+          }
+        }
+      ]
+    },
+    "exit": 0,
+    "result": {
+      "revision": 133,
+      "entry": {
+        "id": "T4-C1",
+        "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C1",
+            "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+          }
+        ],
+        "severity": "major",
+        "status": "verified",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": {
+          "fix_ref": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-fix-evidence.md",
+            "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+          },
+          "tests": [
+            {
+              "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+              "outcome": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-evidence/focused-green-final.txt",
+                "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+              }
+            }
+          ],
+          "reviews": [
+            {
+              "reviewer": "Task 4 independent correctness reviewer A",
+              "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-correctness-review.md",
+                "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+              }
+            },
+            {
+              "reviewer": "Task 4 independent source/specification reviewer B",
+              "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-seed-audit.md",
+                "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+              }
+            }
+          ]
+        },
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 3,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C1"
+            },
+            "sequence": 3,
+            "operation": "transition",
+            "reason": "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+            "before": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C1",
+                  "description": "Cancellation deletes the receipt before its journal; an interruption leaves an unrecoverable orphan journal."
+                }
+              ],
+              "severity": "major",
+              "status": "verified",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": {
+                "fix_ref": {
+                  "kind": "change",
+                  "change_id": "process-gates-and-ledger",
+                  "relative_path": "task-4-fix-evidence.md",
+                  "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+                },
+                "tests": [
+                  {
+                    "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+                    "outcome": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-evidence/focused-green-final.txt",
+                      "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+                    }
+                  }
+                ],
+                "reviews": [
+                  {
+                    "reviewer": "Task 4 independent correctness reviewer A",
+                    "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-correctness-review.md",
+                      "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+                    }
+                  },
+                  {
+                    "reviewer": "Task 4 independent source/specification reviewer B",
+                    "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-seed-audit.md",
+                      "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+                    }
+                  }
+                ]
+              },
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C2",
+      "--to",
+      "verified",
+      "--expect-revision",
+      "2",
+      "--reason",
+      "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+      "--evidence",
+      ".superpowers/sdd/tasks/task-4-verified-evidence.json"
+    ],
+    "input": {
+      "fix_ref": {
+        "kind": "change",
+        "change_id": "process-gates-and-ledger",
+        "relative_path": "task-4-fix-evidence.md",
+        "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+      },
+      "tests": [
+        {
+          "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+          "outcome": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-evidence/focused-green-final.txt",
+            "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+          }
+        }
+      ],
+      "reviews": [
+        {
+          "reviewer": "Task 4 independent correctness reviewer A",
+          "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-correctness-review.md",
+            "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+          }
+        },
+        {
+          "reviewer": "Task 4 independent source/specification reviewer B",
+          "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-seed-audit.md",
+            "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+          }
+        }
+      ]
+    },
+    "exit": 0,
+    "result": {
+      "revision": 134,
+      "entry": {
+        "id": "T4-C2",
+        "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C2",
+            "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+          }
+        ],
+        "severity": "major",
+        "status": "verified",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": {
+          "fix_ref": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-fix-evidence.md",
+            "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+          },
+          "tests": [
+            {
+              "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+              "outcome": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-evidence/focused-green-final.txt",
+                "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+              }
+            }
+          ],
+          "reviews": [
+            {
+              "reviewer": "Task 4 independent correctness reviewer A",
+              "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-correctness-review.md",
+                "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+              }
+            },
+            {
+              "reviewer": "Task 4 independent source/specification reviewer B",
+              "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-seed-audit.md",
+                "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+              }
+            }
+          ]
+        },
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 3,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C2"
+            },
+            "sequence": 3,
+            "operation": "transition",
+            "reason": "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+            "before": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C2",
+                  "description": "Receipt discovery does not bind its declared change identity to its containing directory; a moved empty receipt can hide a missing archive receipt."
+                }
+              ],
+              "severity": "major",
+              "status": "verified",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": {
+                "fix_ref": {
+                  "kind": "change",
+                  "change_id": "process-gates-and-ledger",
+                  "relative_path": "task-4-fix-evidence.md",
+                  "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+                },
+                "tests": [
+                  {
+                    "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+                    "outcome": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-evidence/focused-green-final.txt",
+                      "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+                    }
+                  }
+                ],
+                "reviews": [
+                  {
+                    "reviewer": "Task 4 independent correctness reviewer A",
+                    "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-correctness-review.md",
+                      "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+                    }
+                  },
+                  {
+                    "reviewer": "Task 4 independent source/specification reviewer B",
+                    "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-seed-audit.md",
+                      "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+                    }
+                  }
+                ]
+              },
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "transition",
+      "T4-C3",
+      "--to",
+      "verified",
+      "--expect-revision",
+      "2",
+      "--reason",
+      "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+      "--evidence",
+      ".superpowers/sdd/tasks/task-4-verified-evidence.json"
+    ],
+    "input": {
+      "fix_ref": {
+        "kind": "change",
+        "change_id": "process-gates-and-ledger",
+        "relative_path": "task-4-fix-evidence.md",
+        "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+      },
+      "tests": [
+        {
+          "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+          "outcome": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-evidence/focused-green-final.txt",
+            "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+          }
+        }
+      ],
+      "reviews": [
+        {
+          "reviewer": "Task 4 independent correctness reviewer A",
+          "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-correctness-review.md",
+            "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+          }
+        },
+        {
+          "reviewer": "Task 4 independent source/specification reviewer B",
+          "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+          "disposition": "passed",
+          "locator": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-seed-audit.md",
+            "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+          }
+        }
+      ]
+    },
+    "exit": 0,
+    "result": {
+      "revision": 135,
+      "entry": {
+        "id": "T4-C3",
+        "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+        "source": [
+          {
+            "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+            "anchor": "T4-C3",
+            "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+          }
+        ],
+        "severity": "major",
+        "status": "verified",
+        "fixing_change": "process-gates-and-ledger",
+        "evidence": {
+          "fix_ref": {
+            "kind": "change",
+            "change_id": "process-gates-and-ledger",
+            "relative_path": "task-4-fix-evidence.md",
+            "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+          },
+          "tests": [
+            {
+              "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+              "outcome": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-evidence/focused-green-final.txt",
+                "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+              }
+            }
+          ],
+          "reviews": [
+            {
+              "reviewer": "Task 4 independent correctness reviewer A",
+              "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-correctness-review.md",
+                "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+              }
+            },
+            {
+              "reviewer": "Task 4 independent source/specification reviewer B",
+              "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+              "disposition": "passed",
+              "locator": {
+                "kind": "change",
+                "change_id": "process-gates-and-ledger",
+                "relative_path": "task-4-seed-audit.md",
+                "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+              }
+            }
+          ]
+        },
+        "blocker": null,
+        "revisit_when": null,
+        "parked_reason": null,
+        "revision": 3,
+        "history": [
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 1,
+            "operation": "add",
+            "reason": "Accepted finding",
+            "before": null,
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 2,
+            "operation": "transition",
+            "reason": "Independent review reproduced the bug; regression test is RED and targeted correction is underway",
+            "before": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "open",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          },
+          {
+            "identity": {
+              "id": "T4-C3"
+            },
+            "sequence": 3,
+            "operation": "transition",
+            "reason": "Observed failing regression corrected; final 90-test suite, controller full verification and two independent final reviews passed; immutable retained evidence now tracked",
+            "before": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "in_progress",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": null,
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            },
+            "after": {
+              "summary": "Repository evidence locators beneath an active change pass verification but break after archive moves the change.",
+              "source": [
+                {
+                  "path": "openspec/changes/process-gates-and-ledger/task-4-correctness-review.md",
+                  "anchor": "T4-C3",
+                  "description": "Repository evidence locators beneath an active change pass verification but break after archive moves the change."
+                }
+              ],
+              "severity": "major",
+              "status": "verified",
+              "fixing_change": "process-gates-and-ledger",
+              "evidence": {
+                "fix_ref": {
+                  "kind": "change",
+                  "change_id": "process-gates-and-ledger",
+                  "relative_path": "task-4-fix-evidence.md",
+                  "sha256": "2c0e07905aa129f8f857bf9d01c284ad85e62c7143f173d13dd60236f8563920"
+                },
+                "tests": [
+                  {
+                    "command": "npx vitest run tests/unit/tooling/ProjectStatus.test.ts",
+                    "outcome": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-evidence/focused-green-final.txt",
+                      "sha256": "18211dc427c800b74e02a60865bc0352ebb05f67046202ba127cd1e71f56a94d"
+                    }
+                  }
+                ],
+                "reviews": [
+                  {
+                    "reviewer": "Task 4 independent correctness reviewer A",
+                    "brief": "Correctness, adversarial recovery, concurrency and guide fidelity",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-correctness-review.md",
+                      "sha256": "629676de18c2fecc9703b469794f6b3edbd12fd2a3bb75cd72cddb2cc61c0eb1"
+                    }
+                  },
+                  {
+                    "reviewer": "Task 4 independent source/specification reviewer B",
+                    "brief": "Seed source provenance, specification, test coverage, documentation and coherence",
+                    "disposition": "passed",
+                    "locator": {
+                      "kind": "change",
+                      "change_id": "process-gates-and-ledger",
+                      "relative_path": "task-4-seed-audit.md",
+                      "sha256": "1bde76835fc4f5e0d5fba7b7a413bf7049edc94587da97ae5057066a132c91d7"
+                    }
+                  }
+                ]
+              },
+              "blocker": null,
+              "revisit_when": null,
+              "parked_reason": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "defects",
+      "reconcile",
+      "--check"
+    ],
+    "exit": 0,
+    "result": {
+      "ok": true,
+      "active": 60,
+      "resolved": 0
+    }
+  },
+  {
+    "command": [
+      "/Users/alan.harrison/.nvm/versions/node/v24.22.2/bin/node",
+      "scripts/project-status.mjs",
+      "roadmap",
+      "--json"
+    ],
+    "exit": 0,
+    "result": {
+      "state": "active",
+      "active": [
+        "process-gates-and-ledger"
+      ],
+      "next": null,
+      "blocked": []
+    }
+  }
+]

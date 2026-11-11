@@ -1,0 +1,29 @@
+
+ RUN  v5.0.5 /Users/alan.harrison/Kraken/uplift
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts (90 tests | 1 failed) 6731ms
+   ❯ review boundary completeness (6)
+     × preserves an external receipt edit between cancellation removals 49ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/tooling/ProjectStatus.test.ts > review boundary completeness > preserves an external receipt edit between cancellation removals
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/unit/tooling/ProjectStatus.test.ts:872:133
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 89 passed (90)
+   Start at  10:48:22
+   Duration  6.87s (tests 99%)
+
