@@ -163,6 +163,11 @@ entries:
       - (new) roadmap-graph
       - (new) defect-ledger
     status: archived
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: process-gates-and-ledger
+      relative_path: defect-resolution.yaml
     scope: "Also adds the roadmap:next script (prints the first planned entry whose
       depends_on are all archived or done-by-review) and the roadmap.yaml DAG
       check, moved here from docs-spine-and-roadmap. Fixes
@@ -188,11 +193,6 @@ entries:
       is settled: the ledger is tracked at openspec/defect-ledger.yaml. Ledger
       seed: every open code defect this review found that has a slotted fixing
       change, all severities."
-    archive_protocol: v1
-    archive_receipt:
-      kind: change
-      change_id: process-gates-and-ledger
-      relative_path: defect-resolution.yaml
   - id: hx-1-legacy-clamp-seed-scramble
     title: "Hardening 1+2: legacy clamp, seed scramble"
     milestone: M1
@@ -201,7 +201,7 @@ entries:
     specs_modified:
       - deterministic-simulation-primitives
       - dual-ledger-civilization-legacy
-    status: planned
+    status: archived
     scope: "Clamps legacy mutations to [0,1] with a telemetry note (the throw stays
       in an authoring-time contract test) and adds a splitmix32 seed scramble
       with a golden-vector test. This is deliberately only the clamp half of
@@ -209,6 +209,11 @@ entries:
       and sourceScarId to 05b-1, each carried by its own source id so the three
       pieces sum to the finding. Adds acceptance lines for the frozen-input and
       RNG golden-value test gaps."
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: defect-resolution.yaml
   - id: hx-slice-store
     title: "Hardening 3: test builders, share-on-read slice store, typed slice keys"
     milestone: M1
