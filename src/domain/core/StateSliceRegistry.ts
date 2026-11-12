@@ -47,6 +47,19 @@ const emptyConstraints: SliceConstraints = Object.freeze({
 
 const unsafeKeys = new Set(['__proto__', 'constructor', 'prototype']);
 
+function emptyRecord<T>(): Record<string, T> {
+  return Object.create(null) as Record<string, T>;
+}
+
+function appendOwn<T>(values: T[], value: T): void {
+  Object.defineProperty(values, String(values.length), {
+    value,
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+}
+
 function invalid(id: string, path: string, reason: string): never {
   throw new TypeError(`StateSliceKey '${id}' at ${path}: ${reason}`);
 }
@@ -182,17 +195,17 @@ function copyJson(
         if (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor)) {
           invalid(id, `${path}[${index}]`, 'sparse or accessor array element');
         }
-        result.push(copyJson(descriptor.value, id, `${path}[${index}]`, ancestors));
+        appendOwn(result, copyJson(descriptor.value, id, `${path}[${index}]`, ancestors));
       }
       return result;
     }
-    const result: Record<string, unknown> = {};
+    const result = emptyRecord<unknown>();
     const keys: string[] = [];
     for (const key of Reflect.ownKeys(value)) {
       if (typeof key !== 'string') {
         invalid(id, path, 'symbol object key');
       }
-      keys.push(key);
+      appendOwn(keys, key);
     }
     for (const key of keys.sort()) {
       if (unsafeKeys.has(key)) {
@@ -362,13 +375,13 @@ type SliceEntry =
 
 function readVersionMap(input: unknown, slices: object): Readonly<Record<string, number>> {
   if (input === undefined) {
-    return {};
+    return emptyRecord<number>();
   }
   const copied = copyJson(input, 'sliceVersions');
   if (copied === null || Array.isArray(copied) || typeof copied !== 'object') {
     invalid('sliceVersions', '$', 'version map must be a plain record');
   }
-  const versions: Record<string, number> = {};
+  const versions = emptyRecord<number>();
   for (const [id, version] of Object.entries(copied)) {
     if (!Object.hasOwn(slices, id)) {
       invalid(id, '$.version', 'orphaned version entry');
@@ -595,7 +608,7 @@ export class StateSliceStore {
 
   /** Versions above historical version one, stored separately from raw slice values. */
   public toVersionMap(): Readonly<Record<string, number>> {
-    const versions: Record<string, number> = {};
+    const versions = emptyRecord<number>();
     for (const id of Array.from(this.#entries.keys()).sort()) {
       const entry = this.#entries.get(id);
       if (entry !== undefined && entry.version !== 1) {
@@ -609,7 +622,7 @@ export class StateSliceStore {
    * Returns a deeply frozen, deterministic plain-object snapshot of all explicitly stored slices.
    */
   public toSnapshot(): Readonly<Record<string, unknown>> {
-    const result: Record<string, unknown> = {};
+    const result = emptyRecord<unknown>();
     const sortedKeys = Array.from(this.#entries.keys()).sort();
     for (const id of sortedKeys) {
       const entry = this.#entries.get(id);
@@ -632,7 +645,7 @@ export class StateSliceStore {
     const appendedRows: unknown[] = [];
     let current: SliceEntry = entry;
     while (current.kind === 'append') {
-      appendedRows.push(current.row);
+      appendOwn(appendedRows, current.row);
       current = current.previous;
     }
     if (!Array.isArray(current.value)) {
@@ -640,7 +653,7 @@ export class StateSliceStore {
     }
     const rows: unknown[] = [...current.value];
     for (let index = appendedRows.length - 1; index >= 0; index -= 1) {
-      rows.push(appendedRows[index]);
+      appendOwn(rows, appendedRows[index]);
     }
     const frozen = Object.freeze(rows);
     this.#materialized.set(id, frozen);

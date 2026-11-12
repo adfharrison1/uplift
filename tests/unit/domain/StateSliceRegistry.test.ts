@@ -13,6 +13,25 @@ interface FoundryLedgerState {
   notes: string[];
 }
 
+function withInheritedSetter<T>(prototype: object, property: string, action: () => T): T {
+  const previous = Object.getOwnPropertyDescriptor(prototype, property);
+  Object.defineProperty(prototype, property, {
+    configurable: true,
+    set() {
+      throw new Error(`Inherited setter ${property} was invoked`);
+    },
+  });
+  try {
+    return action();
+  } finally {
+    if (previous === undefined) {
+      Reflect.deleteProperty(prototype, property);
+    } else {
+      Object.defineProperty(prototype, property, previous);
+    }
+  }
+}
+
 describe('StateSliceRegistry and StateSliceStore', () => {
   const cannonProgressSlice = defineStateSlice<number>('foundry.cannon_progress', 0);
   const ledgerSlice = defineStateSlice<FoundryLedgerState>('foundry.ledger', {
@@ -485,6 +504,87 @@ describe('StateSliceRegistry and StateSliceStore', () => {
         Object.defineProperty(Object.prototype, 'toJSON', previous);
       }
     }
+  });
+
+  it('preserves valid object properties through copies despite an inherited setter', () => {
+    const key = withInheritedSetter(Object.prototype, 'payload', () =>
+      defineStateSlice('foundry.setter_object', { payload: 1 }),
+    );
+    expect(key.defaultValue).toEqual({ payload: 1 });
+
+    const store = withInheritedSetter(Object.prototype, 'payload', () =>
+      new StateSliceStore().withSlice(key, { payload: 2 }),
+    );
+    expect(store.get(key)).toEqual({ payload: 2 });
+    const snapshot = withInheritedSetter(Object.prototype, 'payload', () => store.toSnapshot());
+    expect(snapshot).toEqual({ 'foundry.setter_object': { payload: 2 } });
+  });
+
+  it('preserves slice ids and version entries despite an inherited setter', () => {
+    const key = defineStateSlice('foundry.setter_id', { count: 0 }, { version: 2 });
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+    const store = new StateSliceStore().withSlice(key, { count: 7 });
+    const [snapshot, versions] = withInheritedSetter(
+      Object.prototype,
+      key.id,
+      () => [store.toSnapshot(), store.toVersionMap()] as const,
+    );
+    expect(snapshot).toEqual({ 'foundry.setter_id': { count: 7 } });
+    expect(versions).toEqual({ 'foundry.setter_id': 2 });
+
+    const restored = withInheritedSetter(Object.prototype, key.id, () =>
+      StateSliceStore.fromSnapshot({ 'foundry.setter_id': { count: 7 } }, registry, {
+        'foundry.setter_id': 2,
+      }),
+    );
+    expect(restored.get(key)).toEqual({ count: 7 });
+    expect(restored.toVersionMap()).toEqual({ 'foundry.setter_id': 2 });
+  });
+
+  it('treats a prototype-named slice with no version entry as historical version one', () => {
+    let migrations = 0;
+    const key = defineStateSlice(
+      'toString',
+      { count: 0 },
+      {
+        version: 2,
+        migrate(value, fromVersion) {
+          migrations += 1;
+          expect(value).toEqual({ oldCount: 7 });
+          expect(fromVersion).toBe(1);
+          return { count: 7 };
+        },
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+
+    const restored = StateSliceStore.fromSnapshot({ toString: { oldCount: 7 } }, registry);
+    expect(restored.get(key)).toEqual({ count: 7 });
+    expect(restored.toVersionMap()).toEqual({ toString: 2 });
+    expect(migrations).toBe(1);
+  });
+
+  it('keeps copied array elements and object key lists dense under numeric setters', () => {
+    const arrayKey = withInheritedSetter(Array.prototype, '0', () =>
+      defineStateSlice('foundry.setter_array', [42]),
+    );
+    expect(arrayKey.defaultValue).toEqual([42]);
+    expect(Object.hasOwn(arrayKey.defaultValue, 0)).toBe(true);
+
+    const objectKey = withInheritedSetter(Array.prototype, '0', () =>
+      defineStateSlice('foundry.setter_key_list', { label: 'safe' }),
+    );
+    expect(objectKey.defaultValue).toEqual({ label: 'safe' });
+  });
+
+  it.each(['0', '1'])('materializes an appended row under inherited index setter %s', (index) => {
+    const key = defineStateSlice<ReadonlyArray<number>>(`foundry.setter_append_${index}`, [1]);
+    const appended = new StateSliceStore().appendSlice(key, 7);
+    const rows = withInheritedSetter(Array.prototype, index, () => appended.get(key));
+    expect(rows).toEqual([1, 7]);
+    expect(Object.hasOwn(rows, 1)).toBe(true);
   });
 
   it('keeps one validator authority for reads and whole-value writes of an id', () => {
