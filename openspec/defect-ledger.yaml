@@ -1,5 +1,5 @@
 schema_version: 1
-revision: 191
+revision: 204
 legacy_archives:
   - 2026-10-29-01-clean-scaffold-and-verify
   - 2026-11-05-01a-eslint-prettier-and-hooks
@@ -60,6 +60,156 @@ entries:
           parked_reason: No gameplay caller currently uses nextInt or choose; changing
             draw semantics now would alter saved continuation and exceeds this
             change.
+  - id: HXSLICE-COLD-READ-01
+    summary: Own-index hardening increased cold large-slice read and snapshot cost
+      before a gameplay consumer exists
+    source:
+      - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+        anchor: P6-G3-01
+        description: Independent performance review measured the Node 24 ARM64
+          before/after regression and its reference-Mac limit.
+      - path: src/domain/core/StateSliceRegistry.ts
+        anchor: "function appendOwn<T>(values: T[], value: T): void {"
+        description: Own-property insertion runs for each copied or materialized array
+          element.
+    severity: minor
+    status: parked
+    fixing_change: cm-act-envelope-and-rolls
+    evidence: null
+    blocker: null
+    revisit_when: Before cm-act-envelope-and-rolls adds a gameplay append reader,
+      frame-path full read, or large bounded Act ring.
+    parked_reason: Full reads and snapshots may scale with rows under the current
+      contract; no gameplay append reader or reference-Mac frame measurement
+      exists yet.
+    revision: 1
+    history:
+      - identity:
+          id: HXSLICE-COLD-READ-01
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Own-index hardening increased cold large-slice read and snapshot cost
+            before a gameplay consumer exists
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G3-01
+              description: Independent performance review measured the Node 24 ARM64
+                before/after regression and its reference-Mac limit.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "function appendOwn<T>(values: T[], value: T): void {"
+              description: Own-property insertion runs for each copied or materialized array
+                element.
+          severity: minor
+          status: parked
+          fixing_change: cm-act-envelope-and-rolls
+          evidence: null
+          blocker: null
+          revisit_when: Before cm-act-envelope-and-rolls adds a gameplay append reader,
+            frame-path full read, or large bounded Act ring.
+          parked_reason: Full reads and snapshots may scale with rows under the current
+            contract; no gameplay append reader or reference-Mac frame
+            measurement exists yet.
+  - id: HXSLICE-TELEM-DISPATCH-01
+    summary: Effect telemetry failure can report failure after world state has been
+      published
+    source:
+      - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+        anchor: HXSLICE-TELEM-DISPATCH-01
+        description: Closing review records controller source inspection of
+          publication-before-telemetry ordering.
+      - path: src/application/simulation/SimulationCoordinator.ts
+        anchor: public dispatchEffects(
+        description: The coordinator assigns this.state before telemetry.record; retry
+          after a telemetry exception can apply effects twice.
+    severity: major
+    status: parked
+    fixing_change: hx-reducer-and-frame-safety
+    evidence: null
+    blocker: null
+    revisit_when: Before hx-reducer-and-frame-safety finalizes applied/rejected
+      outcomes and effect retry behavior.
+    parked_reason: The behavior predates slice-store and the planned reducer-outcome
+      work is the next owner of effect failure semantics.
+    revision: 1
+    history:
+      - identity:
+          id: HXSLICE-TELEM-DISPATCH-01
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Effect telemetry failure can report failure after world state has been
+            published
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: HXSLICE-TELEM-DISPATCH-01
+              description: Closing review records controller source inspection of
+                publication-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: public dispatchEffects(
+              description: The coordinator assigns this.state before telemetry.record; retry
+                after a telemetry exception can apply effects twice.
+          severity: major
+          status: parked
+          fixing_change: hx-reducer-and-frame-safety
+          evidence: null
+          blocker: null
+          revisit_when: Before hx-reducer-and-frame-safety finalizes applied/rejected
+            outcomes and effect retry behavior.
+          parked_reason: The behavior predates slice-store and the planned reducer-outcome
+            work is the next owner of effect failure semantics.
+  - id: HXSLICE-TELEM-SAVE-01
+    summary: Save telemetry failure can report failure after a slot has been persisted
+    source:
+      - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+        anchor: P6-G4-02
+        description: Independent logic review and controller inspection identified the
+          persistence-before-telemetry ordering.
+      - path: src/application/simulation/SimulationCoordinator.ts
+        anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+        description: The repository save completes before telemetry.record; a telemetry
+          exception then obscures the persisted outcome.
+    severity: minor
+    status: parked
+    fixing_change: hx-save-integrity
+    evidence: null
+    blocker: null
+    revisit_when: Before hx-save-integrity finalizes save completion and retry semantics.
+    parked_reason: The retry contract predates slice-store and belongs with the
+      planned save codec and persistence integrity work.
+    revision: 1
+    history:
+      - identity:
+          id: HXSLICE-TELEM-SAVE-01
+        sequence: 1
+        operation: add
+        reason: Accepted finding
+        before: null
+        after:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: parked
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: Before hx-save-integrity finalizes save completion and retry
+            semantics.
+          parked_reason: The retry contract predates slice-store and belongs with the
+            planned save codec and persistence integrity work.
   - id: S3-01
     summary: Slice cloning on reads and writes; append cost grows with slice size
     source:
@@ -82,13 +232,53 @@ entries:
           size. Exact source excerpts supersede earlier descriptive/imprecise
           code anchors; accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-slice-store
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-slice-store
+        relative_path: task-6-1-evidence.md
+        sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      tests:
+        - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+            tests/unit/domain/WorldEffectReducer.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-scenario-matrix.md
+            sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-evidence.md
+            sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      reviews:
+        - reviewer: /root/slice_close_perf
+          brief: G3 append, read and snapshot cost with measured limits
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+        - reviewer: /root/slice_close_adversarial
+          brief: G2/G4 slice boundaries, migration and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-01
@@ -171,6 +361,176 @@ entries:
           blocker: null
           revisit_when: null
           parked_reason: null
+      - identity:
+          id: S3-01
+        sequence: 3
+        operation: transition
+        reason: Reviewed implementation complete; retaining final evidence
+        before:
+          summary: Slice cloning on reads and writes; append cost grows with slice size
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceStore.get/withSlice/updateSlice
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Authoritative accepted provenance for S3-01. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L105: public get<T>(key: StateSliceKey<T>): T {"
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Slice cloning on reads and writes; append cost grows with slice size
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceStore.get/withSlice/updateSlice
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Authoritative accepted provenance for S3-01. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L105: public get<T>(key: StateSliceKey<T>): T {"
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-01
+        sequence: 4
+        operation: transition
+        reason: Fix, passing tests and independent reviews retained
+        before:
+          summary: Slice cloning on reads and writes; append cost grows with slice size
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceStore.get/withSlice/updateSlice
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Authoritative accepted provenance for S3-01. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L105: public get<T>(key: StateSliceKey<T>): T {"
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Slice cloning on reads and writes; append cost grows with slice size
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceStore.get/withSlice/updateSlice
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-01
+              description: Authoritative accepted provenance for S3-01. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L105: public get<T>(key: StateSliceKey<T>): T {"
+              description: Slice cloning on reads and writes; append cost grows with slice
+                size. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-slice-store
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-slice-store
+              relative_path: task-6-1-evidence.md
+              sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            tests:
+              - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+                  tests/unit/domain/WorldEffectReducer.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-scenario-matrix.md
+                  sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-evidence.md
+                  sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            reviews:
+              - reviewer: /root/slice_close_perf
+                brief: G3 append, read and snapshot cost with measured limits
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+              - reviewer: /root/slice_close_adversarial
+                brief: G2/G4 slice boundaries, migration and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+          blocker: null
+          revisit_when: null
+          parked_reason: null
   - id: S3-02
     summary: Missing slice schema/version and plain-JSON enforcement
     source:
@@ -192,13 +552,53 @@ entries:
           source excerpts supersede earlier descriptive/imprecise code anchors;
           accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-slice-store
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-slice-store
+        relative_path: task-6-1-evidence.md
+        sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      tests:
+        - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+            tests/unit/domain/WorldEffectReducer.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-scenario-matrix.md
+            sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-evidence.md
+            sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      reviews:
+        - reviewer: /root/slice_close_adversarial
+          brief: G2/G4 slice boundaries, migration and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+        - reviewer: /root/slice_close_logic
+          brief: G1 state, migration and save-load integrity
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-02
@@ -271,6 +671,164 @@ entries:
           status: open
           fixing_change: hx-slice-store
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-02
+        sequence: 3
+        operation: transition
+        reason: Reviewed implementation complete; retaining final evidence
+        before:
+          summary: Missing slice schema/version and plain-JSON enforcement
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Missing slice schema/version and plain-JSON enforcement
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceKey/fromSnapshot/toSnapshot
+              description: Missing slice schema/version and plain-JSON enforcement; inspected
+                against baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Authoritative accepted provenance for S3-02. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L8: export interface StateSliceKey<T> {"
+              description: Missing slice schema/version and plain-JSON enforcement. Exact
+                source excerpts supersede earlier descriptive/imprecise code
+                anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Missing slice schema/version and plain-JSON enforcement
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Missing slice schema/version and plain-JSON enforcement
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceKey/fromSnapshot/toSnapshot
+              description: Missing slice schema/version and plain-JSON enforcement; inspected
+                against baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Authoritative accepted provenance for S3-02. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L8: export interface StateSliceKey<T> {"
+              description: Missing slice schema/version and plain-JSON enforcement. Exact
+                source excerpts supersede earlier descriptive/imprecise code
+                anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-02
+        sequence: 4
+        operation: transition
+        reason: Fix, passing tests and independent reviews retained
+        before:
+          summary: Missing slice schema/version and plain-JSON enforcement
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Missing slice schema/version and plain-JSON enforcement
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceKey/fromSnapshot/toSnapshot
+              description: Missing slice schema/version and plain-JSON enforcement; inspected
+                against baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Authoritative accepted provenance for S3-02. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L8: export interface StateSliceKey<T> {"
+              description: Missing slice schema/version and plain-JSON enforcement. Exact
+                source excerpts supersede earlier descriptive/imprecise code
+                anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Missing slice schema/version and plain-JSON enforcement
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Missing slice schema/version and plain-JSON enforcement
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: StateSliceKey/fromSnapshot/toSnapshot
+              description: Missing slice schema/version and plain-JSON enforcement; inspected
+                against baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-02
+              description: Authoritative accepted provenance for S3-02. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L8: export interface StateSliceKey<T> {"
+              description: Missing slice schema/version and plain-JSON enforcement. Exact
+                source excerpts supersede earlier descriptive/imprecise code
+                anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-slice-store
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-slice-store
+              relative_path: task-6-1-evidence.md
+              sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            tests:
+              - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+                  tests/unit/domain/WorldEffectReducer.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-scenario-matrix.md
+                  sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-evidence.md
+                  sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            reviews:
+              - reviewer: /root/slice_close_adversarial
+                brief: G2/G4 slice boundaries, migration and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+              - reviewer: /root/slice_close_logic
+                brief: G1 state, migration and save-load integrity
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -2485,13 +3043,53 @@ entries:
           excerpts supersede earlier descriptive/imprecise code anchors;
           accepted scope, status and owner remain unchanged.
     severity: minor
-    status: open
+    status: verified
     fixing_change: hx-slice-store
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-slice-store
+        relative_path: task-6-1-evidence.md
+        sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      tests:
+        - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+            tests/unit/domain/WorldEffectReducer.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-scenario-matrix.md
+            sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-evidence.md
+            sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      reviews:
+        - reviewer: /root/slice_close_adversarial
+          brief: G2/G4 slice boundaries, migration and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+        - reviewer: /root/slice_close_testing
+          brief: G6 scenarios and coordinator, HTTP and disk consumers
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-17-slices
@@ -2566,6 +3164,166 @@ entries:
           status: open
           fixing_change: hx-slice-store
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-17-slices
+          parent_id: S3-17
+        sequence: 3
+        operation: transition
+        reason: Reviewed implementation complete; retaining final evidence
+        before:
+          summary: Frozen/shared output and JSON-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-slices
+              description: Frozen/shared output and JSON-slice invariants
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: slice tests; shared frozen output and JSON-only invariants outstanding
+              description: Frozen/shared output and JSON-slice invariants; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-slices. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: "L14: describe('StateSliceRegistry and StateSliceStore', () => {"
+              description: Frozen/shared output and JSON-slice invariants. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: minor
+          status: open
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Frozen/shared output and JSON-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-slices
+              description: Frozen/shared output and JSON-slice invariants
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: slice tests; shared frozen output and JSON-only invariants outstanding
+              description: Frozen/shared output and JSON-slice invariants; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-slices. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: "L14: describe('StateSliceRegistry and StateSliceStore', () => {"
+              description: Frozen/shared output and JSON-slice invariants. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-17-slices
+          parent_id: S3-17
+        sequence: 4
+        operation: transition
+        reason: Fix, passing tests and independent reviews retained
+        before:
+          summary: Frozen/shared output and JSON-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-slices
+              description: Frozen/shared output and JSON-slice invariants
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: slice tests; shared frozen output and JSON-only invariants outstanding
+              description: Frozen/shared output and JSON-slice invariants; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-slices. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: "L14: describe('StateSliceRegistry and StateSliceStore', () => {"
+              description: Frozen/shared output and JSON-slice invariants. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Frozen/shared output and JSON-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-slices
+              description: Frozen/shared output and JSON-slice invariants
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: slice tests; shared frozen output and JSON-only invariants outstanding
+              description: Frozen/shared output and JSON-slice invariants; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-slices. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/domain/StateSliceRegistry.test.ts
+              anchor: "L14: describe('StateSliceRegistry and StateSliceStore', () => {"
+              description: Frozen/shared output and JSON-slice invariants. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: minor
+          status: verified
+          fixing_change: hx-slice-store
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-slice-store
+              relative_path: task-6-1-evidence.md
+              sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            tests:
+              - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+                  tests/unit/domain/WorldEffectReducer.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-scenario-matrix.md
+                  sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-evidence.md
+                  sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            reviews:
+              - reviewer: /root/slice_close_adversarial
+                brief: G2/G4 slice boundaries, migration and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+              - reviewer: /root/slice_close_testing
+                brief: G6 scenarios and coordinator, HTTP and disk consumers
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -3345,13 +4103,53 @@ entries:
           supersede earlier descriptive/imprecise code anchors; accepted scope,
           status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-slice-store
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-slice-store
+        relative_path: task-6-1-evidence.md
+        sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      tests:
+        - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+            tests/unit/domain/WorldEffectReducer.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-scenario-matrix.md
+            sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-evidence.md
+            sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      reviews:
+        - reviewer: /root/slice_close_adversarial
+          brief: G2/G4 slice boundaries, migration and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+        - reviewer: /root/slice_close_logic
+          brief: G1 state, migration and save-load integrity
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S4-07-json
@@ -3426,6 +4224,166 @@ entries:
           status: open
           fixing_change: hx-slice-store
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-07-json
+          parent_id: S4-07
+        sequence: 3
+        operation: transition
+        reason: Reviewed implementation complete; retaining final evidence
+        before:
+          summary: Map/Set and frozen-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07-json
+              description: Map/Set and frozen-slice invariants
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: deepFreeze/toSnapshot
+              description: Map/Set and frozen-slice invariants; inspected against baseline
+                1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07
+              description: Authoritative accepted provenance for S4-07-json. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L27: function deepFreeze<T>(value: T): T {"
+              description: Map/Set and frozen-slice invariants. Exact source excerpts
+                supersede earlier descriptive/imprecise code anchors; accepted
+                scope, status and owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Map/Set and frozen-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07-json
+              description: Map/Set and frozen-slice invariants
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: deepFreeze/toSnapshot
+              description: Map/Set and frozen-slice invariants; inspected against baseline
+                1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07
+              description: Authoritative accepted provenance for S4-07-json. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L27: function deepFreeze<T>(value: T): T {"
+              description: Map/Set and frozen-slice invariants. Exact source excerpts
+                supersede earlier descriptive/imprecise code anchors; accepted
+                scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-07-json
+          parent_id: S4-07
+        sequence: 4
+        operation: transition
+        reason: Fix, passing tests and independent reviews retained
+        before:
+          summary: Map/Set and frozen-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07-json
+              description: Map/Set and frozen-slice invariants
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: deepFreeze/toSnapshot
+              description: Map/Set and frozen-slice invariants; inspected against baseline
+                1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07
+              description: Authoritative accepted provenance for S4-07-json. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L27: function deepFreeze<T>(value: T): T {"
+              description: Map/Set and frozen-slice invariants. Exact source excerpts
+                supersede earlier descriptive/imprecise code anchors; accepted
+                scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Map/Set and frozen-slice invariants
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07-json
+              description: Map/Set and frozen-slice invariants
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: deepFreeze/toSnapshot
+              description: Map/Set and frozen-slice invariants; inspected against baseline
+                1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-07
+              description: Authoritative accepted provenance for S4-07-json. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/domain/core/StateSliceRegistry.ts
+              anchor: "L27: function deepFreeze<T>(value: T): T {"
+              description: Map/Set and frozen-slice invariants. Exact source excerpts
+                supersede earlier descriptive/imprecise code anchors; accepted
+                scope, status and owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-slice-store
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-slice-store
+              relative_path: task-6-1-evidence.md
+              sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            tests:
+              - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+                  tests/unit/domain/WorldEffectReducer.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-scenario-matrix.md
+                  sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-evidence.md
+                  sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            reviews:
+              - reviewer: /root/slice_close_adversarial
+                brief: G2/G4 slice boundaries, migration and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+              - reviewer: /root/slice_close_logic
+                brief: G1 state, migration and save-load integrity
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -4085,13 +5043,53 @@ entries:
           descriptive/imprecise code anchors; accepted scope, status and owner
           remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-slice-store
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-slice-store
+        relative_path: task-6-1-evidence.md
+        sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      tests:
+        - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+            tests/unit/domain/WorldEffectReducer.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-scenario-matrix.md
+            sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-evidence.md
+            sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+      reviews:
+        - reviewer: /root/slice_close_testing
+          brief: G6 scenarios and coordinator, HTTP and disk consumers
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+        - reviewer: /root/slice_close_arch
+          brief: Architecture, types, scoped guides and source adherence
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-slice-store
+            relative_path: task-6-1-reviews.md
+            sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S4-13
@@ -4174,6 +5172,180 @@ entries:
           status: open
           fixing_change: hx-slice-store
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-13
+        sequence: 3
+        operation: transition
+        reason: Reviewed implementation complete; retaining final evidence
+        before:
+          summary: Remaining monolithic tests and pasted fixtures; bridge portion
+            delivered
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: local pasted fixtures and monolithic coordinator cases
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Authoritative accepted provenance for S4-13. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Remaining monolithic tests and pasted fixtures; bridge portion
+            delivered
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: local pasted fixtures and monolithic coordinator cases
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Authoritative accepted provenance for S4-13. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-13
+        sequence: 4
+        operation: transition
+        reason: Fix, passing tests and independent reviews retained
+        before:
+          summary: Remaining monolithic tests and pasted fixtures; bridge portion
+            delivered
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: local pasted fixtures and monolithic coordinator cases
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Authoritative accepted provenance for S4-13. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-slice-store
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Remaining monolithic tests and pasted fixtures; bridge portion
+            delivered
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: local pasted fixtures and monolithic coordinator cases
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-13
+              description: Authoritative accepted provenance for S4-13. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Remaining monolithic tests and pasted fixtures; bridge portion
+                delivered. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-slice-store
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-slice-store
+              relative_path: task-6-1-evidence.md
+              sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            tests:
+              - command: npx vitest run tests/unit/domain/StateSliceRegistry.test.ts
+                  tests/unit/domain/WorldEffectReducer.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-scenario-matrix.md
+                  sha256: 15f49848dd409a9aae5be5d37554fdbf7960ef2655f152422b41f21cb9f730ca
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-evidence.md
+                  sha256: b26b433d570d4ba8e46da3f1a13f62d5502279538d5ac494159871eda58595eb
+            reviews:
+              - reviewer: /root/slice_close_testing
+                brief: G6 scenarios and coordinator, HTTP and disk consumers
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+              - reviewer: /root/slice_close_arch
+                brief: Architecture, types, scoped guides and source adherence
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-slice-store
+                  relative_path: task-6-1-reviews.md
+                  sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
           blocker: null
           revisit_when: null
           parked_reason: null

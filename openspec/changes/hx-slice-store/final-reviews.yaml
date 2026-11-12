@@ -1,0 +1,57 @@
+schema_version: 1
+change_id: hx-slice-store
+reviews:
+  - dimension: adversarial
+    reviewer: /root/slice_close_adversarial
+    brief: G2 and G4 malformed input, prototype boundaries, migration and rollback
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+  - dimension: architecture-adherence
+    reviewer: /root/slice_close_arch
+    brief: Layer and type boundaries, registry contracts, scoped guides and document integrity
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+  - dimension: performance
+    reviewer: /root/slice_close_perf
+    brief: G3 append and full-read cost, host measurements and reference-Mac limits
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+  - dimension: testing
+    reviewer: /root/slice_close_testing
+    brief: G6 all delta scenarios and real coordinator, repository, HTTP and disk consumers
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+  - dimension: logic-integrity
+    reviewer: /root/slice_close_logic
+    brief: G1 state, migration and save-load invariants, signed-zero boundary and retries
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
+  - dimension: design-coherence
+    reviewer: /root/slice_close_design
+    brief: Accepted design wording, shipped and planned status, storage and later ownership
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: task-6-1-reviews.md
+      sha256: 08f826e90067ee26d0ab84277166cd34299b4f0e69f24824fcaadaaac9297e84
