@@ -26,6 +26,10 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 
 Preserve the exact schema vocabularies and orbital reducer rules recorded in this section's README. Distinguish data acceptance and callable reducer behavior from a content pack or gameplay consumer; do not remove working reducer contracts when correcting planned-feature claims.
 
+## World snapshot boundary
+
+Use `encodeWorldState` and `decodeWorldStateSnapshot` for serialized world fields, keeping custom slice values and version maps separate. The codec owns a strict version-2 shape, a pure synthetic version-1 marker migration, nested validation, plain-JSON ownership, unsafe-key rejection and equality of inner and outer epoch/tick. It rejects orbital availability above capacity and never trims saved pillar IDs. The coordinator does not yet call the codec; do not describe its current shallow load guard as full validation. `validateEntityId` is exported for the shared render token rule but is not yet enforced by registration or snapshot decoding.
+
 ## Legacy mutation policy
 
 Keep the strict authoring mutator and pure runtime resolver on one ordered mutation path. Reject conflicting overrides, unknown targets, malformed intervals and non-finite arithmetic at each step, even if a later mutation could mask the error. Only the runtime resolver saturates finite final drives to `[0, 1]`; return deterministic notes as data, with no telemetry dependency in domain. Preserve frozen inputs and unrelated blueprints.

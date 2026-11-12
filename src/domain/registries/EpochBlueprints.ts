@@ -10,6 +10,16 @@ import { z } from 'zod';
 
 const NonEmptyIdSchema = z.string().trim().min(1);
 
+/** Token accepted by character semantic IDs; callers choose the registration or load boundary. */
+export function validateEntityId(entityId: string): string {
+  if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(entityId)) {
+    throw new TypeError(
+      `Invalid entity id '${entityId}': expected a lowercase token of 1-64 characters`,
+    );
+  }
+  return entityId;
+}
+
 export const SurfaceMaterialSchema = z.enum(['mud', 'stone', 'wood', 'metal', 'earth']);
 export type SurfaceMaterial = z.infer<typeof SurfaceMaterialSchema>;
 

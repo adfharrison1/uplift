@@ -53,6 +53,11 @@ export {
   validateSaveSlotId,
 } from './persistence/SaveSlotRepositoryPort.js';
 export {
+  decodeWorldStateSnapshot,
+  encodeWorldState,
+  type SerializedWorldStateSnapshot,
+} from './persistence/WorldStateCodec.js';
+export {
   type AcousticBias,
   AcousticBiasSchema,
   type AcousticClass,
@@ -108,6 +113,7 @@ export {
   TrajectoryThreadBlueprintSchema,
   type WaypointBlueprint,
   WaypointBlueprintSchema,
+  validateEntityId,
 } from './registries/EpochBlueprints.js';
 export { EpochModuleRegistry } from './registries/EpochModuleRegistry.js';
 export {
