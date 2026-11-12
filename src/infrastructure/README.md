@@ -8,7 +8,7 @@
   - `NdjsonSessionTelemetry` records supplied events and optional AI reasoning to `./logs/current-session.jsonl`; `InMemorySessionTelemetry` keeps supplied events in memory. These adapters do not automatically connect browser events to disk; the campaign page currently uses its own in-memory telemetry port.
   - Rotates previous active/compacted files byte-for-byte into numbered groups under `logs/prev/`, retaining three completed groups by default (`maxPreviousSessions`). Current queries read only the current files. Uses a **50 MiB** active log auto-compaction trigger (`DEFAULT_MAX_ACTIVE_LOG_BYTES`) and a **500 MiB** compacted log priority-eviction cap (`DEFAULT_MAX_COMPACTED_LOG_BYTES`) via `RollingLogCompactor`. The active trigger is not a hard cap: recent retained entries may still exceed it. Compaction preserves high-signal entries verbatim before storage-cap eviction; no category has unlimited retention. The optional trace field is `aiReasoning`.
 - **Multi-Session Save / Load Repository (`persistence/`)**:
-  - `FileSaveSlotRepository` persists and restores named session files in `./saves/<slotId>.json` with shared path confinement, exclusively created temporary files for atomic replacement, and Zod `safeParse` validation. `InMemorySaveSlotRepository` stores cloned envelopes in a Map and performs no disk I/O.
+  - `FileSaveSlotRepository` persists and restores named session files in `./saves/<slotId>.json` with shared path confinement, exclusively created temporary files for atomic replacement, and Zod `safeParse` validation. File and in-memory repositories preserve optional pack ID/version in envelopes and listing metadata. `InMemorySaveSlotRepository` stores cloned envelopes in a Map and performs no disk I/O.
 
 ## Current Module Inventory
 

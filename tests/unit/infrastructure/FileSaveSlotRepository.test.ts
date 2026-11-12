@@ -209,4 +209,101 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     expect(memRepo.deleteSlot('mem-slot')).toBe(true);
     expect(() => memRepo.loadSlot('mem-slot')).toThrow(/does not exist/);
   });
+
+  it.each(['file', 'memory'] as const)(
+    '%s slots preserve supplied pack identity and omit absent identity',
+    (kind) => {
+      const repo =
+        kind === 'file'
+          ? new FileSaveSlotRepository(tempSavesDir)
+          : new InMemorySaveSlotRepository();
+      const withIdentity = repo.saveSlot({
+        slotId: 'with_identity',
+        epochId: 'epoch_identity',
+        packId: 'pack_primary',
+        packVersion: 3,
+        worldTick: 2,
+        rngState: 7,
+        stateSlices: { 'test.slice': { count: 1 } },
+        savedAtIso: '2026-11-12T00:00:00.000Z',
+      });
+      const withoutIdentity = repo.saveSlot({
+        slotId: 'without_identity',
+        epochId: 'epoch_identity',
+        worldTick: 1,
+        rngState: 8,
+        stateSlices: {},
+        savedAtIso: '2026-11-12T00:01:00.000Z',
+      });
+
+      expect(withIdentity).toMatchObject({ packId: 'pack_primary', packVersion: 3 });
+      expect(repo.loadSlot('with_identity')).toMatchObject({
+        packId: 'pack_primary',
+        packVersion: 3,
+      });
+      expect(repo.listSlots()).toEqual([
+        {
+          slotId: 'with_identity',
+          schemaVersion: 1,
+          epochId: 'epoch_identity',
+          packId: 'pack_primary',
+          packVersion: 3,
+          worldTick: 2,
+          savedAtIso: '2026-11-12T00:00:00.000Z',
+        },
+        {
+          slotId: 'without_identity',
+          schemaVersion: 1,
+          epochId: 'epoch_identity',
+          worldTick: 1,
+          savedAtIso: '2026-11-12T00:01:00.000Z',
+        },
+      ]);
+      expect(withoutIdentity).not.toHaveProperty('packId');
+      expect(withoutIdentity).not.toHaveProperty('packVersion');
+      expect(repo.loadSlot('without_identity')).not.toHaveProperty('packId');
+      if (kind === 'file') {
+        expect(
+          JSON.parse(readFileSync(join(tempSavesDir, 'with_identity.json'), 'utf8')),
+        ).toMatchObject({
+          packId: 'pack_primary',
+          packVersion: 3,
+        });
+      }
+    },
+  );
+
+  it.each(['file', 'memory'] as const)(
+    '%s slots keep accepted nested values when callers mutate input or returned envelopes',
+    (kind) => {
+      const repo =
+        kind === 'file'
+          ? new FileSaveSlotRepository(tempSavesDir)
+          : new InMemorySaveSlotRepository();
+      const input = {
+        slotId: 'owned_values',
+        epochId: 'epoch_identity',
+        packId: 'pack_primary',
+        packVersion: 3,
+        worldTick: 2,
+        rngState: 7,
+        stateSlices: { 'test.slice': { count: 1 } },
+        legacyState: { markers: ['original'] },
+      };
+
+      const saved = repo.saveSlot(input);
+      input.stateSlices['test.slice'].count = 99;
+      input.legacyState.markers[0] = 'changed';
+      (saved.stateSlices['test.slice'] as { count: number }).count = 88;
+      (saved.legacyState?.['markers'] as string[])[0] = 'changed again';
+      const loaded = repo.loadSlot('owned_values');
+      expect(loaded.stateSlices).toEqual({ 'test.slice': { count: 1 } });
+      expect(loaded.legacyState).toEqual({ markers: ['original'] });
+
+      (loaded.stateSlices['test.slice'] as { count: number }).count = 66;
+      (loaded.legacyState?.['markers'] as string[])[0] = 'changed after load';
+      expect(repo.loadSlot('owned_values').stateSlices).toEqual({ 'test.slice': { count: 1 } });
+      expect(repo.loadSlot('owned_values').legacyState).toEqual({ markers: ['original'] });
+    },
+  );
 });

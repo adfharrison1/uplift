@@ -26,8 +26,10 @@ import {
   type SaveSlotEnvelope,
   SaveSlotEnvelopeSchema,
   type SaveSlotMetadata,
+  SaveSlotMetadataSchema,
   type SaveSlotRepositoryPort,
   type SaveSlotWriteInput,
+  SaveSlotWriteInputSchema,
   type SessionTelemetryPort,
   type TelemetryClock,
   type TelemetryEntry,
@@ -431,25 +433,22 @@ function entryMatches(entry: TelemetryEntry, filter: TelemetryQueryFilter): bool
   return true;
 }
 
-class BrowserSaveRepository implements SaveSlotRepositoryPort {
+export class BrowserSaveRepository implements SaveSlotRepositoryPort {
   private readonly slots = new Map<string, SaveSlotEnvelope>();
 
   public constructor(private readonly clock: TelemetryClock) {}
 
   public saveSlot(input: SaveSlotWriteInput): SaveSlotEnvelope {
     const slotId = validateSaveSlotId(input.slotId);
+    const parsed = SaveSlotWriteInputSchema.parse(input);
     const envelope = SaveSlotEnvelopeSchema.parse({
+      ...parsed,
       slotId,
       schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
-      epochId: input.epochId,
-      worldTick: input.worldTick,
-      rngState: input.rngState,
-      stateSlices: input.stateSlices,
-      ...(input.legacyState !== undefined ? { legacyState: input.legacyState } : {}),
-      savedAtIso: input.savedAtIso ?? this.clock.nowIso(),
+      savedAtIso: parsed.savedAtIso ?? this.clock.nowIso(),
     });
-    this.slots.set(slotId, envelope);
-    return envelope;
+    this.slots.set(slotId, structuredClone(envelope));
+    return structuredClone(envelope);
   }
 
   public loadSlot(slotId: string): SaveSlotEnvelope {
@@ -458,17 +457,11 @@ class BrowserSaveRepository implements SaveSlotRepositoryPort {
     if (envelope === undefined) {
       throw new Error(`Save slot '${validId}' does not exist`);
     }
-    return envelope;
+    return structuredClone(envelope);
   }
 
   public listSlots(): ReadonlyArray<SaveSlotMetadata> {
-    return [...this.slots.values()].map((envelope) => ({
-      slotId: envelope.slotId,
-      schemaVersion: envelope.schemaVersion,
-      epochId: envelope.epochId,
-      worldTick: envelope.worldTick,
-      savedAtIso: envelope.savedAtIso,
-    }));
+    return [...this.slots.values()].map((envelope) => SaveSlotMetadataSchema.parse(envelope));
   }
 
   public deleteSlot(slotId: string): boolean {

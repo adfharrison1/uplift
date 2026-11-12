@@ -52,6 +52,28 @@ describe('HTTP storage readback', () => {
     app = await start();
   });
 
+  it('carries optional pack identity through guarded save PUT, GET, listing and disk', async () => {
+    const identified = { ...save, packId: 'pack_http', packVersion: 4 };
+    expect(
+      (await app.send('/api/saves/identified', 'PUT', JSON.stringify(identified))).status,
+    ).toBe(200);
+    expect((await app.send('/api/saves/anonymous', 'PUT', JSON.stringify(save))).status).toBe(200);
+    expect((await app.send('/api/saves/identified')).body).toMatchObject({
+      envelope: { packId: 'pack_http', packVersion: 4 },
+    });
+    expect((await app.send('/api/saves')).body).toMatchObject({
+      slots: [
+        { slotId: 'anonymous' },
+        { slotId: 'identified', packId: 'pack_http', packVersion: 4 },
+      ],
+    });
+    expect((await app.send('/api/saves/anonymous')).body).not.toHaveProperty('envelope.packId');
+    const onDisk = JSON.parse(
+      readFileSync(join(app.base, 'saves', 'identified.json'), 'utf8'),
+    ) as unknown;
+    expect(onDisk).toMatchObject({ packId: 'pack_http', packVersion: 4 });
+  });
+
   it('serves a token that the real lab browser transport uses for stage and character persistence', async () => {
     const stage = { ...DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT, themeId: 'http_edited_theme' };
     const initialVisual = STARTER_HOLD_CHARACTER_VISUALS[0];

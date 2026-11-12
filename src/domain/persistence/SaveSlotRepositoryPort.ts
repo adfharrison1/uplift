@@ -30,11 +30,18 @@ export function validateSaveSlotId(slotId: string): string {
 }
 
 export const RngStateSchema = z.number().int().min(1).max(UINT32_MAX);
+const PackIdSchema = z
+  .string()
+  .min(1)
+  .refine((id) => id === id.trim(), 'packId must not be padded');
+const PackVersionSchema = z.number().int().positive();
 
 export const SaveSlotMetadataSchema = z.object({
   slotId: SaveSlotIdSchema,
   schemaVersion: z.literal(SAVE_SLOT_SCHEMA_VERSION),
   epochId: z.string().trim().min(1),
+  packId: PackIdSchema.optional(),
+  packVersion: PackVersionSchema.optional(),
   worldTick: z.number().int().nonnegative(),
   savedAtIso: z.string().trim().min(1),
 });
@@ -50,6 +57,8 @@ export type SaveSlotEnvelope = z.infer<typeof SaveSlotEnvelopeSchema>;
 export const SaveSlotWriteInputSchema = z.object({
   slotId: SaveSlotIdSchema,
   epochId: z.string().trim().min(1),
+  packId: PackIdSchema.optional(),
+  packVersion: PackVersionSchema.optional(),
   worldTick: z.number().int().nonnegative(),
   rngState: RngStateSchema,
   stateSlices: z.record(z.string(), z.unknown()),

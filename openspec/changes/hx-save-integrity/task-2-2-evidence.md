@@ -1,0 +1,26 @@
+# Task 2.2 evidence — optional pack identity across save ports
+
+Status: implemented and independently reviewed in the default checkout; awaiting owner approval before commit. The task checkbox remains open. No defect transition is claimed.
+
+## Scope and observed checks
+
+Three source files changed: `SaveSlotRepositoryPort.ts` carries optional pack ID/version in write inputs, envelopes and listing metadata; `FileSaveSlotRepository.ts` preserves supplied identity in both file and in-memory envelopes and metadata; `browserMain.ts` constructs its browser save envelope from all validated write fields, stores owned copies and returns fresh save/load copies. The guarded HTTP route and its admission, byte and path checks were unchanged. Paired domain, infrastructure and interfaces guides, test guidance and the shipped/planned wording in `DESIGN_NOTES.md` were updated.
+
+Test-first runs failed 3/26 file/in-memory/guarded-HTTP cases because supplied identity was dropped. Browser tests first failed because the local browser port was not directly callable for a unit test; after it was exported from its existing module, 2/2 failed on shared mutable objects and missing identity metadata. A review follow-up added file/in-memory nested mutation assertions; a temporary in-memory clone mutation made that regression fail and was restored. The final focused command passed **33/33 tests in 4 files** (`npx vitest run tests/unit/infrastructure/FileSaveSlotRepository.test.ts tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts tests/unit/interfaces/LocalDiskBridge.test.ts tests/unit/interfaces/BrowserSaveRepository.test.ts`; 449 ms on this host). It covers identity present and absent across file, in-memory, browser and guarded HTTP PUT/GET/list/disk consumers; input/save-return/load-return mutation isolation across all three repositories; and existing file/HTTP confinement and replacement regressions.
+
+Final `npm run verify` with loopback access passed format **1,771 ms**, lint **1,738 ms**, typecheck **901 ms** and tests **17,441 ms**. Strict OpenSpec validation and checked defect reconciliation passed; reconciliation reported **49 active, 30 resolved**. `git diff --check` passed. These are current-host measurements; the 2019 Intel reference Mac and per-save costs were not measured.
+
+## Task-scoped G1–G6
+
+| Gate | Result and limit |
+| --- | --- |
+| G1 Consumer trace | Caller write → domain write schema → file/in-memory or browser repository → envelope and listing metadata; guarded HTTP PUT derives that schema, stores via file repository, then GET/list and disk readback expose supplied identity. Browser return mutation tests end at a later `loadSlot` consumer. Coordinator stamping and identity rejection remain task 2.3. |
+| G2 Trust boundary | Optional pack ID is nonempty and unpadded; version is a positive integer. Existing safe slot ID, HTTP provenance/token/media-type/byte limits and file path confinement remain on the same operations. Absence remains valid in this intermediate contract. |
+| G3 Hot-path cost | Schema parse, structured copies and file writes occur only on explicit save/load/list calls. Browser save/load copies scale with envelope size, including custom slices. No frame loop changed. Focused/full-suite durations above are host measurements; reference-Mac latency is unverified. |
+| G4 Failure containment | Browser mutations to accepted input, a returned save envelope or a returned load envelope do not alter the stored slot. Existing file replacement, symlink and HTTP rejection tests pass; this task changes neither path guards nor route dispatch. |
+| G5 Defect reconciliation | Review findings `T2.2-R1` (document status) and `T2.2-R2` (file/in-memory mutation coverage) were corrected; see the review record. No new runtime defect was found. Change-owned ledger transitions remain assigned to the closing task; reconciliation passed. |
+| G6 Scenario traceability | File and in-memory identity present/absent, nested input/return isolation and disk/list results map to `FileSaveSlotRepository.test.ts`; browser ownership and identity map to `BrowserSaveRepository.test.ts`; guarded HTTP PUT/GET/list/disk map to `LocalDiskBridgeHttp/storage.test.ts`, with existing confinement tests in that file and `LocalDiskBridge.test.ts`. Required identity and old-envelope rejection remain task 2.3. |
+
+## Document integrity
+
+Domain, infrastructure and interfaces README/AGENTS pairs describe the shipped intermediate capability and its limits. Tests guidance names the browser port test. `DESIGN_NOTES.md` remains **partial**: optional propagation is shipped; required identity enforcement, structural listing and browser disk loading remain planned. The owner save-policy wording, status index category, Where-facts-live ownership, roadmap order, dispositions and inbox remain unchanged. No owner block was moved or cut. Before → after word counts: `DESIGN_NOTES.md` 17,425 → 17,457; domain README 1,063 → 1,083, AGENTS 1,003 → 1,044; infrastructure README 558 → 571, AGENTS 397 → 428; interfaces README 1,293 → 1,308, AGENTS 1,162 → 1,209; tests README 1,313 → 1,344, AGENTS 1,534 → 1,571. Both independent reviewers checked fidelity and coherence; the initial wording conflict was corrected.
