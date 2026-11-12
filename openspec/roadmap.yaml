@@ -226,10 +226,11 @@ entries:
       splits the monolithic tests onto them, refactors and extends the existing
       bridge tests, and carries the S3-17 acceptance lines (caps, mid-hop
       states, dt splits) for later hardening changes. StateSliceStore then
-      freezes on write and shares on read with O(1) append (the default-fallback
-      scenario no longer demands a clone), guarded by frozen-output invariant
-      tests. StateSliceKey gains optional schema/version/migrate and a
-      plain-JSON guard so Map and Set cannot enter a slice.
+      freezes on write and shares on read with append cost proportional to the
+      new row and distinct slice keys, independent of existing rows. The
+      default-fallback scenario no longer demands a clone; frozen-output
+      invariant tests guard these contracts. StateSliceKey gains optional
+      schema/version/migrate and a plain-JSON guard so Map and Set cannot enter a slice.
   - id: hx-save-integrity
     title: "Hardening 4: WorldStateCodec, pack identity, id pattern"
     milestone: M1

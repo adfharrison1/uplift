@@ -238,9 +238,33 @@ function schemaMatches(
     invalid(id, path, `schema rejected value: ${String(error)}`);
   }
   const checked = copyJson(parsed, id, path);
-  if (JSON.stringify(checked) !== JSON.stringify(value)) {
+  if (!sameJsonValue(checked, value)) {
     invalid(id, path, 'schema would change the value');
   }
+}
+
+function sameJsonValue(left: unknown, right: unknown): boolean {
+  if (left === right) {
+    return true;
+  }
+  if (left === null || right === null || typeof left !== 'object' || typeof right !== 'object') {
+    return false;
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+      return false;
+    }
+    return left.every((value, index) => sameJsonValue(value, right[index]));
+  }
+  const leftRecord = left as Record<string, unknown>;
+  const rightRecord = right as Record<string, unknown>;
+  const keys = Object.keys(leftRecord);
+  return (
+    keys.length === Object.keys(rightRecord).length &&
+    keys.every(
+      (key) => Object.hasOwn(rightRecord, key) && sameJsonValue(leftRecord[key], rightRecord[key]),
+    )
+  );
 }
 
 function ownFrozen<T>(value: T, id: string, constraints = emptyConstraints): T {
@@ -461,10 +485,15 @@ export class StateSliceStore {
   }
 
   #read<T>(key: StateSliceKey<T>, id: string, constraints: SliceConstraints): T {
+    const registered = this.#registry?.get(id);
+    if (registered !== undefined) {
+      requireSameConstraints(id, captureConstraints(registered, id), constraints);
+    }
     const entry = this.#entries.get(id);
     if (entry === undefined) {
-      if (definedKeys.has(key)) {
-        return key.defaultValue;
+      const defaultKey = registered ?? key;
+      if (definedKeys.has(defaultKey) || registered !== undefined) {
+        return defaultKey.defaultValue as T;
       }
       if (!this.#fallbacks.has(key)) {
         this.#fallbacks.set(key, ownFrozen(key.defaultValue, id, constraints));

@@ -49,6 +49,19 @@ describe('StateSliceRegistry and StateSliceStore', () => {
     });
   });
 
+  it('uses the registered default for an unset slice despite a colliding caller descriptor', () => {
+    const registered = defineStateSlice('foundry.registered_default', { count: 10 });
+    const alternate = defineStateSlice('foundry.registered_default', { count: 0 });
+    const registry = new StateSliceRegistry();
+    registry.register(registered);
+    const before = StateSliceStore.fromSnapshot({}, registry);
+
+    expect(before.get(alternate)).toEqual({ count: 10 });
+    const after = before.updateSlice(alternate, ({ count }) => ({ count: count + 1 }));
+    expect(after.get(registered)).toEqual({ count: 11 });
+    expect(before.toSnapshot()).toEqual({});
+  });
+
   it('freezes private copies on write and returns one reference while preserving earlier stores', () => {
     const store0 = new StateSliceStore();
     const store1 = store0.withSlice(cannonProgressSlice, 0.45);
@@ -446,6 +459,32 @@ describe('StateSliceRegistry and StateSliceStore', () => {
     expect(() => new StateSliceStore().withSlice(key, { count: -1 })).toThrow(
       /foundry\.stable_schema/,
     );
+  });
+
+  it('rejects a value-changing schema despite an inherited toJSON hook', () => {
+    const key = defineStateSlice(
+      'foundry.to_json_hook',
+      { count: 2 },
+      {
+        schema: { parse: () => ({ count: 2 }) },
+      },
+    );
+    const previous = Object.getOwnPropertyDescriptor(Object.prototype, 'toJSON');
+    Object.defineProperty(Object.prototype, 'toJSON', {
+      configurable: true,
+      value: () => ({ hidden: true }),
+    });
+    try {
+      expect(() => new StateSliceStore().withSlice(key, { count: 1 })).toThrow(
+        /foundry\.to_json_hook.*change/i,
+      );
+    } finally {
+      if (previous === undefined) {
+        Reflect.deleteProperty(Object.prototype, 'toJSON');
+      } else {
+        Object.defineProperty(Object.prototype, 'toJSON', previous);
+      }
+    }
   });
 
   it('keeps one validator authority for reads and whole-value writes of an id', () => {

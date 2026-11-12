@@ -54,7 +54,11 @@ describe('SimulationCoordinator versioned state slices', () => {
     registry.register(key);
     const repository = new InMemorySaveSlotRepository();
     const writer = coordinator(repository, registry);
-    writer.dispatchEffects([{ type: 'set_state_slice', sliceId: key.id, value: { count: 4 } }]);
+    writer.dispatchEffects([
+      { type: 'set_state_slice', sliceId: key.id, value: { count: 4 } },
+      { type: 'adjust_pressure_stock', stock: 'production_pressure', delta: 0.45 },
+      { type: 'set_discovery_layer', layer: 'assayed' },
+    ]);
     const saved = writer.saveToSlot('versioned_one');
 
     expect(saved.stateSlices[CUSTOM_SLICES]).toEqual({ 'plugin.versioned': { count: 4 } });
@@ -63,12 +67,16 @@ describe('SimulationCoordinator versioned state slices', () => {
     const loaded = reader.loadFromSlot('versioned_one');
     expect(loaded.stateSlices.get(key)).toEqual({ count: 4 });
     expect(loaded.stateSlices.toVersionMap()).toEqual({ 'plugin.versioned': 2 });
+    expect(loaded.pressureStocks.production_pressure).toBeCloseTo(0.45);
+    expect(loaded.discoveryLayer).toBe('assayed');
     expect(reader.saveToSlot('versioned_two').stateSlices[SLICE_VERSIONS]).toEqual({
       'plugin.versioned': 2,
     });
-    expect(
-      coordinator(repository, registry).loadFromSlot('versioned_two').stateSlices.get(key),
-    ).toEqual({ count: 4 });
+    const loadedAgain = coordinator(repository, registry).loadFromSlot('versioned_two');
+    expect(loadedAgain.stateSlices.get(key)).toEqual({ count: 4 });
+    expect(loadedAgain.stateSlices.toVersionMap()).toEqual({ 'plugin.versioned': 2 });
+    expect(loadedAgain.pressureStocks.production_pressure).toBeCloseTo(0.45);
+    expect(loadedAgain.discoveryLayer).toBe('assayed');
     const prior = writer.getWorldState();
     expect(() =>
       writer.dispatchEffects([{ type: 'set_state_slice', sliceId: key.id, value: { count: -1 } }]),
@@ -218,30 +226,55 @@ describe('SimulationCoordinator versioned state slices', () => {
     const repository = new InMemorySaveSlotRepository();
     const reader = coordinator(repository, registry);
     const valid = reader.saveToSlot('valid_slices');
+    reader.dispatchEffects(
+      [
+        { type: 'set_state_slice', sliceId: key.id, value: { count: 9 } },
+        { type: 'set_discovery_layer', layer: 'assayed' },
+      ],
+      { advanceTick: true },
+    );
     const priorWorld = reader.getWorldState();
     const priorRng = reader.getRng();
     const priorWord = priorRng.getState();
-    const cases: ReadonlyArray<{ name: string; slices: unknown; versions: unknown }> = [
-      { name: 'null container', slices: null, versions: {} },
-      { name: 'number container', slices: 7, versions: {} },
-      { name: 'array container', slices: [], versions: {} },
-      { name: 'null versions', slices: { 'plugin.checked': { count: 1 } }, versions: null },
-      { name: 'orphan version', slices: {}, versions: { orphan: 2 } },
+    const cases: ReadonlyArray<{
+      name: string;
+      slices: unknown;
+      versions: unknown;
+      error: RegExp;
+    }> = [
+      { name: 'null container', slices: null, versions: {}, error: /stateSlices/ },
+      { name: 'number container', slices: 7, versions: {}, error: /stateSlices/ },
+      { name: 'array container', slices: [], versions: {}, error: /stateSlices/ },
+      {
+        name: 'null versions',
+        slices: { 'plugin.checked': { count: 1 } },
+        versions: null,
+        error: /sliceVersions/,
+      },
+      { name: 'orphan version', slices: {}, versions: { orphan: 2 }, error: /orphan/ },
       {
         name: 'fractional version',
         slices: { 'plugin.checked': { count: 1 } },
         versions: { 'plugin.checked': 1.5 },
+        error: /plugin\.checked.*version/,
       },
       {
         name: 'future version',
         slices: { 'plugin.checked': { count: 1 } },
         versions: { 'plugin.checked': 3 },
+        error: /plugin\.checked.*future slice version/,
       },
-      { name: 'missing migration', slices: { 'plugin.checked': { count: 1 } }, versions: {} },
+      {
+        name: 'missing migration',
+        slices: { 'plugin.checked': { count: 1 } },
+        versions: {},
+        error: /plugin\.checked.*missing migration.*version/,
+      },
       {
         name: 'invalid schema',
         slices: { 'plugin.checked': { count: -1 } },
         versions: { 'plugin.checked': 2 },
+        error: /plugin\.checked.*schema rejected/,
       },
     ];
     for (const [index, invalid] of cases.entries()) {
@@ -255,10 +288,16 @@ describe('SimulationCoordinator versioned state slices', () => {
           [SLICE_VERSIONS]: invalid.versions,
         },
       });
-      expect(() => reader.loadFromSlot(slotId), invalid.name).toThrow();
+      expect(() => reader.loadFromSlot(slotId), invalid.name).toThrow(invalid.error);
       expect(reader.getWorldState(), invalid.name).toBe(priorWorld);
       expect(reader.getRng(), invalid.name).toBe(priorRng);
       expect(reader.getRng().getState(), invalid.name).toBe(priorWord);
+      expect(reader.getWorldState().worldTick, invalid.name).toBe(1);
+      expect(reader.getWorldState().discoveryLayer, invalid.name).toBe('assayed');
+      expect(reader.getWorldState().stateSlices.get(key), invalid.name).toEqual({ count: 9 });
+      expect(reader.getWorldState().stateSlices.toVersionMap(), invalid.name).toEqual({
+        'plugin.checked': 2,
+      });
     }
     repository.saveSlot({
       ...valid,
@@ -305,6 +344,13 @@ describe('SimulationCoordinator versioned state slices', () => {
         [SLICE_VERSIONS]: {},
       },
     });
+    reader.dispatchEffects(
+      [
+        { type: 'set_state_slice', sliceId: key.id, value: { count: 12 } },
+        { type: 'set_discovery_layer', layer: 'assayed' },
+      ],
+      { advanceTick: true },
+    );
     const prior = reader.getWorldState();
     const priorRng = reader.getRng();
     const priorWord = priorRng.getState();
@@ -314,6 +360,10 @@ describe('SimulationCoordinator versioned state slices', () => {
       expect(reader.getWorldState()).toBe(prior);
       expect(reader.getRng()).toBe(priorRng);
       expect(reader.getRng().getState()).toBe(priorWord);
+      expect(reader.getWorldState().worldTick).toBe(1);
+      expect(reader.getWorldState().discoveryLayer).toBe('assayed');
+      expect(reader.getWorldState().stateSlices.get(key)).toEqual({ count: 12 });
+      expect(reader.getWorldState().stateSlices.toVersionMap()).toEqual({ 'plugin.retry': 2 });
     }
 
     mode = 'valid';
