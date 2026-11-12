@@ -25,8 +25,6 @@ import {
   SAVE_SLOT_SCHEMA_VERSION,
   type SaveSlotEnvelope,
   SaveSlotEnvelopeSchema,
-  type SaveSlotMetadata,
-  SaveSlotMetadataSchema,
   type SaveSlotRepositoryPort,
   type SaveSlotWriteInput,
   SaveSlotWriteInputSchema,
@@ -39,6 +37,7 @@ import {
   type TelemetryStreamRecord,
   validateSaveSlotId,
 } from '../../domain/index.js';
+import { inspectSaveSlotEnvelope } from '../../domain/persistence/SaveSlotRepositoryPort.js';
 import {
   type DomAttributeSink,
   InMemoryDomAttributeSink,
@@ -447,8 +446,14 @@ export class BrowserSaveRepository implements SaveSlotRepositoryPort {
       schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
       savedAtIso: parsed.savedAtIso ?? this.clock.nowIso(),
     });
-    this.slots.set(slotId, structuredClone(envelope));
-    return structuredClone(envelope);
+    const inspected = inspectSaveSlotEnvelope(envelope, slotId);
+    if (inspected.envelope === undefined) {
+      throw new Error(
+        `Invalid save slot '${slotId}': ${inspected.listing.readable ? 'unknown' : inspected.listing.reason}`,
+      );
+    }
+    this.slots.set(slotId, structuredClone(inspected.envelope));
+    return structuredClone(inspected.envelope);
   }
 
   public loadSlot(slotId: string): SaveSlotEnvelope {
@@ -457,11 +462,23 @@ export class BrowserSaveRepository implements SaveSlotRepositoryPort {
     if (envelope === undefined) {
       throw new Error(`Save slot '${validId}' does not exist`);
     }
-    return structuredClone(envelope);
+    const inspected = inspectSaveSlotEnvelope(envelope, validId);
+    if (inspected.envelope === undefined) {
+      throw new Error(
+        `Corrupted save slot '${validId}': ${inspected.listing.readable ? 'unknown' : inspected.listing.reason}`,
+      );
+    }
+    return structuredClone(inspected.envelope);
   }
 
-  public listSlots(): ReadonlyArray<SaveSlotMetadata> {
-    return [...this.slots.values()].map((envelope) => SaveSlotMetadataSchema.parse(envelope));
+  public listSlots(
+    expectedIdentity?: Parameters<SaveSlotRepositoryPort['listSlots']>[0],
+  ): ReturnType<SaveSlotRepositoryPort['listSlots']> {
+    return [...this.slots.values()]
+      .map(
+        (envelope) => inspectSaveSlotEnvelope(envelope, envelope.slotId, expectedIdentity).listing,
+      )
+      .sort((a, b) => (a.slotId < b.slotId ? -1 : a.slotId > b.slotId ? 1 : 0));
   }
 
   public deleteSlot(slotId: string): boolean {

@@ -15,6 +15,7 @@
 9. **PlaySession stage fixture and suites**: `tests/support/makeStageBlueprint.ts` builds synthetic semantic ids through the application presentation schema. Keep stage-selection and control tests in `PlaySessionStage.test.ts` and `PlaySessionControls.test.ts`, including reduced-motion and stage-boundary assertions. Retain the proving-pack consumer in `tests/unit/content/StarterHoldStage.test.ts`.
 10. **Browser save-port boundary**: `BrowserSaveRepository.test.ts` imports the in-file browser port directly and checks that accepted nested input and returned envelopes cannot mutate stored saves. Preserve the guarded HTTP PUT/GET/list path and confinement tests when save fields change.
     Direct save fixtures require pack ID/version and schema 2; the coordinator must reject old or mismatched envelopes before state publication while permitting earlier ticks under the current pack version.
+    Use `tests/support/withSaveSnapshot.ts` for structurally valid direct-save fixtures. Inject corrupt reads explicitly when testing coordinator rollback; normal repositories reject invalid writes. Check unreadable reason precedence, redaction, structural versus registered-slice compatibility and byte preservation at the repository and guarded HTTP consumers.
 11. **Keep fast verification local**: The AI eval runner is planned in [design intent](../DESIGN_NOTES.md); no eval command is currently shipped. Do not introduce model loading or cloud inference into unit verification.
 
 ## Storage regression tests

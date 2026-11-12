@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer, type Plugin, type ViteDevServer } from 'vite';
 import { afterEach, vi } from 'vitest';
+import { withSaveSnapshot } from '../../../support/withSaveSnapshot.js';
 import {
   createLocalBridgeAccessPolicy,
   handleLocalDiskBridgeRequest,
@@ -36,14 +37,14 @@ export const event = {
   action: 'record',
   message: 'evidence',
 };
-export const save = {
+export const save = withSaveSnapshot({
   epochId: 'test',
   packId: 'test_http_pack',
   packVersion: 1,
   worldTick: 9,
   rngState: 42,
   stateSlices: { test: 3 },
-};
+});
 export const active = 'current-session.jsonl';
 
 export function snapshot(base: string, entries: readonly string[] = roots): Record<string, string> {

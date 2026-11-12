@@ -1,17 +1,16 @@
 import {
   SAVE_SLOT_SCHEMA_VERSION,
   type SaveSlotEnvelope,
-  SaveSlotEnvelopeSchema,
-  type SaveSlotMetadata,
   type SaveSlotRepositoryPort,
   type SaveSlotWriteInput,
   SaveSlotWriteInputSchema,
   SeededRandom,
   validateSaveSlotId,
 } from '../../domain/index.js';
+import { inspectSaveSlotEnvelope } from '../../domain/persistence/SaveSlotRepositoryPort.js';
+import { z } from 'zod';
 import {
   createSafeLocalFiles,
-  UnsafeLocalPathError,
   type LocalFileOptions,
   type SafeLocalFiles,
 } from './safeLocalFiles.js';
@@ -34,7 +33,7 @@ function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
   const data = parsed.data;
   SeededRandom.fromState(data.rngState);
 
-  return {
+  const envelope: SaveSlotEnvelope = {
     slotId: data.slotId,
     schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
     epochId: data.epochId,
@@ -46,19 +45,17 @@ function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
     stateSlices: structuredClone(data.stateSlices),
     ...(data.legacyState !== undefined ? { legacyState: structuredClone(data.legacyState) } : {}),
   };
+  const inspected = inspectSaveSlotEnvelope(envelope, slotId);
+  if (inspected.envelope === undefined) {
+    throw new Error(
+      `Invalid SaveSlotWriteInput for '${slotId}': ${inspected.listing.readable ? 'unknown' : inspected.listing.reason}`,
+    );
+  }
+  return inspected.envelope;
 }
 
-function toMetadata(envelope: SaveSlotEnvelope): SaveSlotMetadata {
-  return {
-    slotId: envelope.slotId,
-    schemaVersion: envelope.schemaVersion,
-    epochId: envelope.epochId,
-    packId: envelope.packId,
-    packVersion: envelope.packVersion,
-    worldTick: envelope.worldTick,
-    savedAtIso: envelope.savedAtIso,
-  };
-}
+type ListEntry = ReturnType<SaveSlotRepositoryPort['listSlots']>[number];
+type ExpectedIdentity = Parameters<SaveSlotRepositoryPort['listSlots']>[0];
 
 /**
  * Fast in-memory implementation of `SaveSlotRepositoryPort` for unit and headless simulation tests.
@@ -78,13 +75,21 @@ export class InMemorySaveSlotRepository implements SaveSlotRepositoryPort {
     if (stored === undefined) {
       throw new Error(`Save slot '${safeId}' does not exist`);
     }
-    return structuredClone(stored);
+    const inspected = inspectSaveSlotEnvelope(stored, safeId);
+    if (inspected.envelope === undefined) {
+      throw new Error(
+        `Corrupted save slot '${safeId}': ${inspected.error?.message ?? (inspected.listing.readable ? 'unknown' : inspected.listing.reason)}`,
+      );
+    }
+    return structuredClone(inspected.envelope);
   }
 
-  public listSlots(): ReadonlyArray<SaveSlotMetadata> {
+  public listSlots(expectedIdentity?: ExpectedIdentity): ReadonlyArray<ListEntry> {
     return Array.from(this.slots.values())
-      .map(toMetadata)
-      .sort((a, b) => a.slotId.localeCompare(b.slotId));
+      .map(
+        (envelope) => inspectSaveSlotEnvelope(envelope, envelope.slotId, expectedIdentity).listing,
+      )
+      .sort((a, b) => (a.slotId < b.slotId ? -1 : a.slotId > b.slotId ? 1 : 0));
   }
 
   public deleteSlot(slotId: string): boolean {
@@ -126,20 +131,20 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
       throw new Error(`Save slot '${safeId}' does not exist`);
     }
 
-    const result = safeParseJsonWithSchema(raw, SaveSlotEnvelopeSchema);
-    if (!result.success || result.data.slotId !== safeId) {
+    const result = safeParseJsonWithSchema(raw, z.unknown());
+    if (!result.success) throw new Error(`Corrupted save slot '${safeId}': invalid_json`);
+    const inspected = inspectSaveSlotEnvelope(result.data, safeId);
+    if (inspected.envelope === undefined) {
       throw new Error(
-        `Corrupted save slot '${safeId}': ${result.success ? 'mismatched slotId' : result.error.message}`,
+        `Corrupted save slot '${safeId}': ${inspected.error?.message ?? (inspected.listing.readable ? 'unknown' : inspected.listing.reason)}`,
       );
     }
-
-    SeededRandom.fromState(result.data.rngState);
-    return structuredClone(result.data);
+    return structuredClone(inspected.envelope);
   }
 
-  public listSlots(): ReadonlyArray<SaveSlotMetadata> {
+  public listSlots(expectedIdentity?: ExpectedIdentity): ReadonlyArray<ListEntry> {
     const entries = this.files.list();
-    const metadataList: SaveSlotMetadata[] = [];
+    const results: ListEntry[] = [];
 
     for (const fileName of entries) {
       if (!fileName.endsWith('.json')) {
@@ -147,15 +152,21 @@ export class FileSaveSlotRepository implements SaveSlotRepositoryPort {
       }
       const candidateSlotId = fileName.slice(0, -'.json'.length);
       try {
-        const envelope = this.loadSlot(candidateSlotId);
-        metadataList.push(toMetadata(envelope));
-      } catch (error) {
-        if (error instanceof UnsafeLocalPathError) throw error;
-        // Isolate corrupted files during directory listing so valid sessions remain accessible
+        validateSaveSlotId(candidateSlotId);
+      } catch {
+        continue;
       }
+      const raw = this.files.read(fileName);
+      if (raw === undefined) continue;
+      const parsed = safeParseJsonWithSchema(raw, z.unknown());
+      results.push(
+        parsed.success
+          ? inspectSaveSlotEnvelope(parsed.data, candidateSlotId, expectedIdentity).listing
+          : { slotId: candidateSlotId, readable: false, reason: 'invalid_json' },
+      );
     }
 
-    return metadataList.sort((a, b) => a.slotId.localeCompare(b.slotId));
+    return results.sort((a, b) => (a.slotId < b.slotId ? -1 : a.slotId > b.slotId ? 1 : 0));
   }
 
   public deleteSlot(slotId: string): boolean {

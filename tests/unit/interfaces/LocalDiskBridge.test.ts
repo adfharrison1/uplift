@@ -12,6 +12,7 @@ import {
   localDiskBridgePlugin,
   MAX_BRIDGE_BODY_BYTES,
 } from '../../../src/interfaces/index.js';
+import { withSaveSnapshot } from '../../support/withSaveSnapshot.js';
 
 describe('Vite Local Disk Bridge Middleware', () => {
   let tempLogsDir: string;
@@ -95,15 +96,22 @@ describe('Vite Local Disk Bridge Middleware', () => {
       {
         method: 'PUT',
         url: '/api/saves/court-day-1',
-        rawBody: JSON.stringify({
-          epochId: 'era_1_highglass_hold',
-          packId: 'test_bridge_pack',
-          packVersion: 1,
-          worldTick: 9,
-          rngState: 55_555,
-          stateSlices: { 'office.physician': true },
-          legacyState: { materialScars: [] },
-        }),
+        rawBody: JSON.stringify(
+          withSaveSnapshot({
+            epochId: 'era_1_highglass_hold',
+            packId: 'test_bridge_pack',
+            packVersion: 1,
+            worldTick: 9,
+            rngState: 55_555,
+            stateSlices: { 'office.physician': true },
+            legacyState: {
+              sourceEpochId: 'era_1_highglass_hold',
+              materialScars: [],
+              veilScars: [],
+              lineageMutations: [],
+            },
+          }),
+        ),
       },
       telemetry,
       saves,

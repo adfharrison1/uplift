@@ -74,6 +74,67 @@ describe('HTTP storage readback', () => {
     expect(onDisk).toMatchObject({ packId: 'pack_http', packVersion: 4 });
   });
 
+  it('returns readable and redacted unreadable save entries through guarded GET', async () => {
+    expect((await app.send('/api/saves/valid', 'PUT', JSON.stringify(save))).status).toBe(200);
+    const saved = JSON.parse(readFileSync(join(app.base, 'saves', 'valid.json'), 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    const slices = saved['stateSlices'] as Record<string, unknown>;
+    const world = slices['__upliftWorldStateSnapshot'] as Record<string, unknown>;
+    writeFileSync(join(app.base, 'saves', 'corrupt.json'), '{bad');
+    writeFileSync(
+      join(app.base, 'saves', 'invalid_snapshot.json'),
+      JSON.stringify({
+        ...saved,
+        slotId: 'invalid_snapshot',
+        stateSlices: { ...slices, __upliftWorldStateSnapshot: { ...world, worldTick: 10 } },
+      }),
+    );
+    const response = await app.send('/api/saves');
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      slots: [
+        { slotId: 'corrupt', readable: false, reason: 'invalid_json' },
+        { slotId: 'invalid_snapshot', readable: false, reason: 'invalid_snapshot' },
+        { slotId: 'valid', readable: true, packId: 'test_http_pack' },
+      ],
+    });
+    expect(JSON.stringify(response.body)).not.toContain(app.base);
+    expect(JSON.stringify(response.body)).not.toContain(app.token);
+    expect((await app.send('/api/saves/valid')).status).toBe(200);
+  });
+
+  it('reports listing read faults as redacted storage failures and preserves the slot', async () => {
+    let failReads = false;
+    const faulting = await start(
+      tempRoot(),
+      {},
+      {
+        fileOptions: {
+          fileOps: {
+            ...nodeLocalFileOps,
+            read: (fd) => {
+              if (failReads) throw Object.assign(new Error('injected read fault'), { code: 'EIO' });
+              return nodeLocalFileOps.read(fd);
+            },
+          },
+        },
+      },
+    );
+    expect((await faulting.send('/api/saves/valid', 'PUT', JSON.stringify(save))).status).toBe(200);
+    const bytes = readFileSync(join(faulting.base, 'saves', 'valid.json'), 'utf8');
+    failReads = true;
+    const failed = await faulting.send('/api/saves');
+    expect(failed.status).toBe(500);
+    expect(failed.body).toEqual({ error: 'Bridge storage operation failed' });
+    expect(readFileSync(join(faulting.base, 'saves', 'valid.json'), 'utf8')).toBe(bytes);
+    failReads = false;
+    expect((await faulting.send('/api/saves')).body).toMatchObject({
+      slots: [{ slotId: 'valid', readable: true }],
+    });
+  });
+
   it('serves a token that the real lab browser transport uses for stage and character persistence', async () => {
     const stage = { ...DEFAULT_CHARNEL_STAIRS_STAGE_BLUEPRINT, themeId: 'http_edited_theme' };
     const initialVisual = STARTER_HOLD_CHARACTER_VISUALS[0];

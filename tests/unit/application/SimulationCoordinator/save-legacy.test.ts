@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SimulationCoordinator } from '../../../../src/application/index.js';
 import {
   createCivilizationLegacyState,
   FAST_EVAL_PACING_CONFIG,
   legacyStateToRecord,
+  type SaveSlotEnvelope,
   SeededRandom,
 } from '../../../../src/domain/index.js';
 import {
@@ -100,16 +101,19 @@ describe('SimulationCoordinator save and legacy', () => {
     );
     expect(coordinator.getWorldState().worldTick).toBe(2);
 
-    // Foreign slot missing WorldState snapshot throws atomically without altering RNG or state
-    saveRepository.saveSlot({
-      slotId: 'slot_foreign',
-      epochId: 'epoch_sim_test',
-      packId: 'test_simulation',
-      packVersion: 1,
-      worldTick: 99,
-      rngState: 12345,
-      stateSlices: {},
-    });
+    // Inject a corrupt read; direct repository writes now reject missing snapshots.
+    const loadSlot = saveRepository.loadSlot.bind(saveRepository);
+    vi.spyOn(saveRepository, 'loadSlot').mockImplementation((slotId) =>
+      slotId === 'slot_foreign'
+        ? {
+            ...envelope,
+            slotId,
+            worldTick: 99,
+            rngState: 12345,
+            stateSlices: {},
+          }
+        : loadSlot(slotId),
+    );
     const rngBeforeFailedLoad = coordinator.getRng().getState();
     expect(() => coordinator.loadFromSlot('slot_foreign')).toThrow(
       /does not contain a valid SimulationCoordinator WorldState snapshot/,
@@ -301,6 +305,11 @@ describe('SimulationCoordinator save and legacy', () => {
       legacyState: highLegacy,
     });
     const saved = coordinator.saveToSlot('slot_base_valid');
+    const injected = new Map<string, SaveSlotEnvelope>();
+    const loadSlot = saveRepository.loadSlot.bind(saveRepository);
+    vi.spyOn(saveRepository, 'loadSlot').mockImplementation(
+      (slotId) => injected.get(slotId) ?? loadSlot(slotId),
+    );
     const base = { lineageId: 'lineage_alpha', sourceScarId: 'scar_invalid' } as const;
     const override = { ...base, target: driveTarget, strategy: 'override', value: 0.25 } as const;
     const invalidCases: ReadonlyArray<{
@@ -400,7 +409,13 @@ describe('SimulationCoordinator save and legacy', () => {
 
     for (const [index, invalid] of invalidCases.entries()) {
       const slotId = `invalid_${String(index)}`;
-      saveRepository.saveSlot({ ...saved, slotId, legacyState: invalid.legacyState });
+      const candidate = { ...saved, slotId, legacyState: invalid.legacyState };
+      if (invalid.name === 'interval') {
+        expect(() => saveRepository.saveSlot(candidate)).toThrow(/invalid_legacy_state/);
+        injected.set(slotId, candidate);
+      } else {
+        saveRepository.saveSlot(candidate);
+      }
       expect(() => coordinator.loadFromSlot(slotId), invalid.name).toThrow(invalid.expected);
       expect(coordinator.getWorldState(), invalid.name).toBe(priorState);
       expect(coordinator.getRng(), invalid.name).toBe(priorRng);

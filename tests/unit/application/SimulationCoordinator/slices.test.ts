@@ -1,11 +1,12 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { SimulationCoordinator } from '../../../../src/application/index.js';
 import {
   defineStateSlice,
+  type SaveSlotEnvelope,
   type SaveSlotRepositoryPort,
   SeededRandom,
   StateSliceRegistry,
@@ -226,6 +227,11 @@ describe('SimulationCoordinator versioned state slices', () => {
     const repository = new InMemorySaveSlotRepository();
     const reader = coordinator(repository, registry);
     const valid = reader.saveToSlot('valid_slices');
+    const injected = new Map<string, SaveSlotEnvelope>();
+    const loadSlot = repository.loadSlot.bind(repository);
+    vi.spyOn(repository, 'loadSlot').mockImplementation(
+      (slotId) => injected.get(slotId) ?? loadSlot(slotId),
+    );
     reader.dispatchEffects(
       [
         { type: 'set_state_slice', sliceId: key.id, value: { count: 9 } },
@@ -279,7 +285,7 @@ describe('SimulationCoordinator versioned state slices', () => {
     ];
     for (const [index, invalid] of cases.entries()) {
       const slotId = `invalid_slice_${String(index)}`;
-      repository.saveSlot({
+      const candidate: SaveSlotEnvelope = {
         ...valid,
         slotId,
         stateSlices: {
@@ -287,7 +293,17 @@ describe('SimulationCoordinator versioned state slices', () => {
           [CUSTOM_SLICES]: invalid.slices,
           [SLICE_VERSIONS]: invalid.versions,
         },
-      });
+      };
+      if (index < 6) {
+        expect(() => repository.saveSlot(candidate), invalid.name).toThrow(/invalid_slices/);
+        injected.set(slotId, candidate);
+      } else {
+        repository.saveSlot(candidate);
+        expect(repository.listSlots().find((entry) => entry.slotId === slotId)).toMatchObject({
+          slotId,
+          readable: true,
+        });
+      }
       expect(() => reader.loadFromSlot(slotId), invalid.name).toThrow(invalid.error);
       expect(reader.getWorldState(), invalid.name).toBe(priorWorld);
       expect(reader.getRng(), invalid.name).toBe(priorRng);
@@ -299,6 +315,7 @@ describe('SimulationCoordinator versioned state slices', () => {
         'plugin.checked': 2,
       });
     }
+    injected.delete('invalid_slice_0');
     repository.saveSlot({
       ...valid,
       slotId: 'invalid_slice_0',
