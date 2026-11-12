@@ -10,7 +10,8 @@
 6. **Content exemplars stay in content**: A headless content test may register a pack on `SimulationCoordinator` and step it with `FAST_EVAL_PACING_CONFIG`. Do not copy that pack's space, character, or prop ids into `src/domain/` or `src/application/`.
 7. **Coordinator fixtures and suites**: Startup, simulation, and save/legacy tests live in `tests/unit/application/SimulationCoordinator/`. They share local telemetry/legacy helpers and use `tests/support/makeRegistry.ts` for a synthetic registry with typed pack overrides. Keep atomic load rollback assertions in the save/legacy suite when changing fixtures.
 8. **World-state fixtures and domain suites**: `tests/support/makeWorldState.ts` supplies synthetic entities and explicit entity, prop, pacing and slice overrides. `Kinematics.test.ts` retains movement, hash and separation boundaries; `WorldEffectReducer.test.ts` retains effect, immutability and rejection assertions. Keep these headless suites deterministic.
-9. **Keep fast verification local**: The AI eval runner is planned in [design intent](../DESIGN_NOTES.md); no eval command is currently shipped. Do not introduce model loading or cloud inference into unit verification.
+9. **PlaySession stage fixture and suites**: `tests/support/makeStageBlueprint.ts` builds synthetic semantic ids through the application presentation schema. Keep stage-selection and control tests in `PlaySessionStage.test.ts` and `PlaySessionControls.test.ts`, including reduced-motion and stage-boundary assertions. Retain the proving-pack consumer in `tests/unit/content/StarterHoldStage.test.ts`.
+10. **Keep fast verification local**: The AI eval runner is planned in [design intent](../DESIGN_NOTES.md); no eval command is currently shipped. Do not introduce model loading or cloud inference into unit verification.
 
 ## Storage regression tests
 
