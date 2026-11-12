@@ -14,7 +14,9 @@ import {
   type CivilizationLegacyState,
   civilizationLegacyFromRecordedScars,
   createInitialWorldState,
+  decodeWorldStateSnapshot,
   DEFAULT_GAMEPLAY_PACING_CONFIG,
+  encodeWorldState,
   type EntitySimulationState,
   type EpochModuleRegistry,
   type InheritedScar,
@@ -94,47 +96,6 @@ export interface CognitivePulseResult {
   readonly state: WorldState;
   readonly promotedEntityIds: ReadonlyArray<string>;
   readonly consumedStimuli: ReadonlyArray<ConsumedStimulusRecord>;
-}
-
-interface SerializedWorldStateSnapshot {
-  readonly epochId: string;
-  readonly worldTick: number;
-  readonly elapsedSimulationSeconds: number;
-  readonly paused: boolean;
-  readonly pacingConfig: SimulationPacingConfig;
-  readonly cognitiveRoundRobinCursor: number;
-  readonly entities: Readonly<Record<string, EntitySimulationState>>;
-  readonly props: Readonly<Record<string, PropSimulationState>>;
-  readonly pressureStocks: WorldState['pressureStocks'];
-  readonly discoveryLayer: WorldState['discoveryLayer'];
-  readonly activeEmergencyId: WorldState['activeEmergencyId'];
-  readonly orbitalPass: WorldState['orbitalPass'];
-  readonly emittedAudioCues: WorldState['emittedAudioCues'];
-  readonly recordedLegacyScars: WorldState['recordedLegacyScars'];
-}
-
-function isSerializedWorldStateSnapshot(value: unknown): value is SerializedWorldStateSnapshot {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record['epochId'] === 'string' &&
-    typeof record['worldTick'] === 'number' &&
-    typeof record['elapsedSimulationSeconds'] === 'number' &&
-    typeof record['paused'] === 'boolean' &&
-    typeof record['cognitiveRoundRobinCursor'] === 'number' &&
-    typeof record['entities'] === 'object' &&
-    record['entities'] !== null &&
-    typeof record['props'] === 'object' &&
-    record['props'] !== null &&
-    typeof record['pressureStocks'] === 'object' &&
-    record['pressureStocks'] !== null &&
-    typeof record['orbitalPass'] === 'object' &&
-    record['orbitalPass'] !== null &&
-    Array.isArray(record['emittedAudioCues']) &&
-    Array.isArray(record['recordedLegacyScars'])
-  );
 }
 
 function buildInitialEntities(
@@ -793,23 +754,6 @@ export class SimulationCoordinator {
    * into the named slot via `SaveSlotRepositoryPort`.
    */
   public saveToSlot(slotId: string): SaveSlotEnvelope {
-    const worldSnapshot: SerializedWorldStateSnapshot = {
-      epochId: this.state.epochId,
-      worldTick: this.state.worldTick,
-      elapsedSimulationSeconds: this.state.elapsedSimulationSeconds,
-      paused: this.state.paused,
-      pacingConfig: this.state.pacingConfig,
-      cognitiveRoundRobinCursor: this.state.cognitiveRoundRobinCursor,
-      entities: structuredClone(this.state.entities),
-      props: structuredClone(this.state.props),
-      pressureStocks: { ...this.state.pressureStocks },
-      discoveryLayer: this.state.discoveryLayer,
-      activeEmergencyId: this.state.activeEmergencyId,
-      orbitalPass: { ...this.state.orbitalPass },
-      emittedAudioCues: structuredClone(this.state.emittedAudioCues),
-      recordedLegacyScars: structuredClone(this.state.recordedLegacyScars),
-    };
-
     const envelope = this.saveRepository.saveSlot({
       slotId,
       epochId: this.state.epochId,
@@ -817,23 +761,27 @@ export class SimulationCoordinator {
       rngState: this.rng.getState(),
       savedAtIso: this.clock.nowIso(),
       stateSlices: {
-        [WORLD_STATE_SNAPSHOT_KEY]: worldSnapshot,
+        [WORLD_STATE_SNAPSHOT_KEY]: encodeWorldState(this.state),
         [CUSTOM_SLICES_SNAPSHOT_KEY]: this.state.stateSlices.toSnapshot(),
         [CUSTOM_SLICE_VERSIONS_KEY]: this.state.stateSlices.toVersionMap(),
       },
       legacyState: legacyStateToRecord(this.exportLegacyState()),
     });
 
-    this.telemetry.record({
-      epochId: this.state.epochId,
-      worldTick: this.state.worldTick,
-      level: 'info',
-      category: 'persistence',
-      actorId: 'system',
-      action: 'save_slot',
-      inputs: { slotId: envelope.slotId },
-      message: `Saved simulation state to slot '${envelope.slotId}' at tick ${String(this.state.worldTick)}`,
-    });
+    try {
+      this.telemetry.record({
+        epochId: this.state.epochId,
+        worldTick: this.state.worldTick,
+        level: 'info',
+        category: 'persistence',
+        actorId: 'system',
+        action: 'save_slot',
+        inputs: { slotId: envelope.slotId },
+        message: `Saved simulation state to slot '${envelope.slotId}' at tick ${String(this.state.worldTick)}`,
+      });
+    } catch {
+      // Persistence already succeeded; a telemetry failure must not invite a duplicate save.
+    }
 
     return envelope;
   }
@@ -845,11 +793,15 @@ export class SimulationCoordinator {
   public loadFromSlot(slotId: string): WorldState {
     const envelope = this.saveRepository.loadSlot(slotId);
     const rawWorldSnapshot = envelope.stateSlices[WORLD_STATE_SNAPSHOT_KEY];
-    if (!isSerializedWorldStateSnapshot(rawWorldSnapshot)) {
+    if (rawWorldSnapshot === undefined) {
       throw new Error(
         `Save slot '${slotId}' does not contain a valid SimulationCoordinator WorldState snapshot`,
       );
     }
+    const worldSnapshot = decodeWorldStateSnapshot(rawWorldSnapshot, {
+      epochId: envelope.epochId,
+      worldTick: envelope.worldTick,
+    });
 
     const rawCustomSlices = envelope.stateSlices[CUSTOM_SLICES_SNAPSHOT_KEY];
     const customSlicesRecord = Object.hasOwn(envelope.stateSlices, CUSTOM_SLICES_SNAPSHOT_KEY)
@@ -869,9 +821,7 @@ export class SimulationCoordinator {
     const nextRng = SeededRandom.fromState(envelope.rngState);
     const nextLegacy =
       envelope.legacyState !== undefined ? parseLegacyState(envelope.legacyState) : undefined;
-    const nextPacing = Object.freeze({
-      ...SimulationPacingConfigSchema.parse(rawWorldSnapshot.pacingConfig),
-    });
+    const nextPacing = Object.freeze({ ...worldSnapshot.pacingConfig });
 
     const baseCharacters = this.registry.getAllCharacters();
     const nextResolution =
@@ -880,21 +830,11 @@ export class SimulationCoordinator {
         : { characters: [...baseCharacters], clampNotes: [] };
     const nextClampNotes = freezeLegacyClampNotes(nextResolution.clampNotes);
 
+    const { snapshotVersion: _snapshotVersion, ...worldFields } = worldSnapshot;
+    void _snapshotVersion;
     const nextState: WorldState = {
-      epochId: rawWorldSnapshot.epochId,
-      worldTick: rawWorldSnapshot.worldTick,
-      elapsedSimulationSeconds: rawWorldSnapshot.elapsedSimulationSeconds,
-      paused: rawWorldSnapshot.paused,
+      ...worldFields,
       pacingConfig: nextPacing,
-      cognitiveRoundRobinCursor: rawWorldSnapshot.cognitiveRoundRobinCursor,
-      entities: structuredClone(rawWorldSnapshot.entities),
-      props: structuredClone(rawWorldSnapshot.props),
-      pressureStocks: { ...rawWorldSnapshot.pressureStocks },
-      discoveryLayer: rawWorldSnapshot.discoveryLayer,
-      activeEmergencyId: rawWorldSnapshot.activeEmergencyId,
-      orbitalPass: { ...rawWorldSnapshot.orbitalPass },
-      emittedAudioCues: structuredClone(rawWorldSnapshot.emittedAudioCues),
-      recordedLegacyScars: structuredClone(rawWorldSnapshot.recordedLegacyScars),
       stateSlices: nextSlices,
     };
 
