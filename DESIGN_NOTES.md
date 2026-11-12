@@ -157,9 +157,9 @@ Seed scrambling is shipped; all other work in this section remains planned.
 
 #### State, saves and pack identity (partial)
 
-Legacy drive saturation is shipped; the other work in this section remains planned.
+Legacy drive saturation and version-aware slice storage are shipped; codec, pack identity and the other work in this section remain planned.
 
-- **Slices**: frozen on write and shared on read. Today the store deep-clones on every read and write and appends in O(n); the target is O(1) append, guarded by frozen-output invariant tests. `StateSliceKey<T>` gains an optional `schema`, `version` and `migrate`, and a plain-JSON guard so a `Map` or `Set` cannot enter a slice.
+- **Slices (shipped)**: the store copies and freezes plain-JSON values on write, shares frozen references on read and appends a row without traversing earlier rows; a full read or snapshot still scales with the collection. Frozen-output and 5,000-row tests guard those paths. `StateSliceKey<T>` accepts validation-only `schema`, positive `version` and one-step `migrate`; `Map` and `Set` are rejected. The coordinator saves raw custom values with a separate version map, validates and migrates known keys before load publication, and retains unknown values and versions. The later codec and pack-identity work remains planned.
 - **Codec**: `WorldStateCodec` owns `snapshotVersion`, the Zod load, the migrations chain and the epoch check, replacing four copies of the world-state field list. A save round-trip scenario guards it, and each of its three parts is its own task with its own round-trip test.
 - **Pack identity**: saves carry `packId` and `version`, and load checks the pack and the epoch. Decision: one registry per epoch, with cameo content only through an explicit import list. Fingerprint reconciliation is parked with `10-registry-swap-and-legacy`.
 - **Entity ids**: one entity-id pattern check at load and at materialize stops a bad id throwing in the render loop, and `listSlots` reports why a slot is unreadable.

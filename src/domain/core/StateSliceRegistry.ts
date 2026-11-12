@@ -10,6 +10,8 @@ export interface StateSliceKey<T> {
   readonly defaultValue: T;
   readonly schema?: SliceSchema<unknown> | undefined;
   readonly rowSchema?: SliceSchema<unknown> | undefined;
+  readonly version?: number | undefined;
+  readonly migrate?: ((value: unknown, fromVersion: number) => unknown) | undefined;
 }
 
 export interface SliceSchema<T> {
@@ -21,6 +23,8 @@ export interface StateSliceOptions<T> {
   readonly rowSchema?: T extends ReadonlyArray<infer Row>
     ? SliceSchema<Row> | undefined
     : undefined;
+  readonly version?: number | undefined;
+  readonly migrate?: ((value: unknown, fromVersion: number) => unknown) | undefined;
 }
 
 const definedKeys = new WeakSet<object>();
@@ -30,11 +34,15 @@ const capturedConstraints = new WeakMap<object, SliceConstraints>();
 interface SliceConstraints {
   readonly schema: SliceSchema<unknown> | undefined;
   readonly rowSchema: SliceSchema<unknown> | undefined;
+  readonly version: number;
+  readonly migrate: ((value: unknown, fromVersion: number) => unknown) | undefined;
 }
 
 const emptyConstraints: SliceConstraints = Object.freeze({
   schema: undefined,
   rowSchema: undefined,
+  version: 1,
+  migrate: undefined,
 });
 
 const unsafeKeys = new Set(['__proto__', 'constructor', 'prototype']);
@@ -83,7 +91,7 @@ function captureSchema(
 }
 
 function captureConstraints(
-  input: Pick<StateSliceKey<unknown>, 'schema' | 'rowSchema'> | undefined,
+  input: Pick<StateSliceKey<unknown>, 'schema' | 'rowSchema' | 'version' | 'migrate'> | undefined,
   id: string,
 ): SliceConstraints {
   if (input === undefined) {
@@ -95,9 +103,19 @@ function captureConstraints(
   }
   const schema = input.schema;
   const rowSchema = input.rowSchema;
+  const version = input.version === undefined ? 1 : input.version;
+  const migrate = input.migrate;
+  if (!Number.isSafeInteger(version) || version < 1) {
+    invalid(id, '$.version', 'version must be a positive integer');
+  }
+  if (migrate !== undefined && typeof migrate !== 'function') {
+    invalid(id, '$.migrate', 'migration must be a function');
+  }
   const constraints: SliceConstraints = Object.freeze({
     schema: captureSchema(schema, id, '$.schema'),
     rowSchema: captureSchema(rowSchema, id, '$.rowSchema'),
+    version,
+    migrate: migrate?.bind(input),
   });
   capturedConstraints.set(input, constraints);
   return constraints;
@@ -108,7 +126,12 @@ function requireSameConstraints(
   stored: SliceConstraints,
   incoming: SliceConstraints,
 ): void {
-  if (stored.schema !== incoming.schema || stored.rowSchema !== incoming.rowSchema) {
+  if (
+    stored.schema !== incoming.schema ||
+    stored.rowSchema !== incoming.rowSchema ||
+    stored.version !== incoming.version ||
+    stored.migrate !== incoming.migrate
+  ) {
     throw new TypeError(`StateSliceKey '${id}' schema differs from the stored slice`);
   }
 }
@@ -252,6 +275,8 @@ export function defineStateSlice<T>(
     defaultValue: ownFrozen(defaultValue, trimmed, constraints),
     schema: constraints.schema,
     rowSchema: constraints.rowSchema,
+    version: constraints.version,
+    migrate: constraints.migrate,
   });
   definedKeys.add(key);
   capturedConstraints.set(key, constraints);
@@ -276,6 +301,8 @@ export class StateSliceRegistry {
       defaultValue: ownFrozen(key.defaultValue, id, constraints),
       schema: constraints.schema,
       rowSchema: constraints.rowSchema,
+      version: constraints.version,
+      migrate: constraints.migrate,
     });
     capturedConstraints.set(registered, constraints);
     this.keys.set(id, registered);
@@ -295,13 +322,40 @@ export class StateSliceRegistry {
 }
 
 type SliceEntry =
-  | { readonly kind: 'value'; readonly value: unknown; readonly constraints: SliceConstraints }
+  | {
+      readonly kind: 'value';
+      readonly value: unknown;
+      readonly constraints: SliceConstraints;
+      readonly version: number;
+    }
   | {
       readonly kind: 'append';
       readonly previous: SliceEntry;
       readonly row: unknown;
       readonly constraints: SliceConstraints;
+      readonly version: number;
     };
+
+function readVersionMap(input: unknown, slices: object): Readonly<Record<string, number>> {
+  if (input === undefined) {
+    return {};
+  }
+  const copied = copyJson(input, 'sliceVersions');
+  if (copied === null || Array.isArray(copied) || typeof copied !== 'object') {
+    invalid('sliceVersions', '$', 'version map must be a plain record');
+  }
+  const versions: Record<string, number> = {};
+  for (const [id, version] of Object.entries(copied)) {
+    if (!Object.hasOwn(slices, id)) {
+      invalid(id, '$.version', 'orphaned version entry');
+    }
+    if (typeof version !== 'number' || !Number.isSafeInteger(version) || version < 1) {
+      invalid(id, '$.version', 'version must be a positive integer');
+    }
+    versions[id] = version;
+  }
+  return versions;
+}
 
 /**
  * Immutable store for modular plugin state slices.
@@ -309,6 +363,7 @@ type SliceEntry =
  */
 export class StateSliceStore {
   #entries: ReadonlyMap<string, SliceEntry> = new Map();
+  #registry: StateSliceRegistry | undefined;
   readonly #materialized = new Map<string, ReadonlyArray<unknown>>();
   readonly #fallbacks = new WeakMap<object, unknown>();
 
@@ -318,9 +373,13 @@ export class StateSliceStore {
     }
   }
 
-  static #fromTrustedEntries(entries: ReadonlyMap<string, SliceEntry>): StateSliceStore {
+  static #fromTrustedEntries(
+    entries: ReadonlyMap<string, SliceEntry>,
+    registry?: StateSliceRegistry,
+  ): StateSliceStore {
     const store = new StateSliceStore();
     store.#entries = entries;
+    store.#registry = registry;
     return store;
   }
 
@@ -328,23 +387,68 @@ export class StateSliceStore {
    * Restores a `StateSliceStore` from a plain-object snapshot produced by `toSnapshot()`.
    */
   public static fromSnapshot(
-    snapshot: Readonly<Record<string, unknown>>,
+    snapshot: unknown,
     registry?: StateSliceRegistry,
+    versionMap?: unknown,
   ): StateSliceStore {
     const copied = copyJson(snapshot, 'stateSlices');
     if (copied === null || Array.isArray(copied) || typeof copied !== 'object') {
       invalid('stateSlices', '$', 'snapshot must be a plain record');
     }
+    const versions = readVersionMap(versionMap, copied);
     const entries = new Map<string, SliceEntry>();
     for (const [id, value] of Object.entries(copied)) {
       checkedId(id);
-      const constraints = captureConstraints(registry?.get(id), id);
+      const registered = registry?.get(id);
+      const constraints = captureConstraints(registered, id);
+      const fromVersion = versions[id] ?? 1;
+      if (registered !== undefined && fromVersion > constraints.version) {
+        invalid(
+          id,
+          '$.version',
+          `future slice version ${String(fromVersion)} exceeds ${String(constraints.version)}`,
+        );
+      }
+      let candidate = value;
+      if (registered !== undefined && fromVersion < constraints.version) {
+        if (constraints.migrate === undefined) {
+          invalid(id, '$.version', `missing migration from version ${String(fromVersion)}`);
+        }
+        try {
+          candidate = copyJson(constraints.migrate(copyJson(candidate, id), fromVersion), id);
+        } catch (error) {
+          invalid(
+            id,
+            '$.version',
+            `migration from version ${String(fromVersion)} failed: ${String(error)}`,
+          );
+        }
+      }
+      const version = registered === undefined ? fromVersion : constraints.version;
+      let frozenValue: unknown;
+      try {
+        frozenValue = ownFrozen(candidate, id, constraints);
+      } catch (error) {
+        if (registered !== undefined && fromVersion < constraints.version) {
+          invalid(
+            id,
+            '$.version',
+            `migration to version ${String(constraints.version)} produced invalid value: ${String(error)}`,
+          );
+        }
+        throw error;
+      }
       entries.set(
         id,
-        Object.freeze({ kind: 'value', value: ownFrozen(value, id, constraints), constraints }),
+        Object.freeze({
+          kind: 'value',
+          value: frozenValue,
+          constraints,
+          version,
+        }),
       );
     }
-    return StateSliceStore.#fromTrustedEntries(entries);
+    return StateSliceStore.#fromTrustedEntries(entries, registry);
   }
 
   /**
@@ -376,39 +480,56 @@ export class StateSliceStore {
    */
   public withSlice<T>(key: StateSliceKey<T>, newValue: T): StateSliceStore {
     const id = checkedId(key.id);
-    return this.#withSlice(id, newValue, captureConstraints(key, id));
+    return this.#withSlice(id, newValue, captureConstraints(this.#registry?.get(id) ?? key, id));
   }
 
   #withSlice<T>(id: string, newValue: T, constraints: SliceConstraints): StateSliceStore {
     const previous = this.#entries.get(id);
     if (previous !== undefined) {
       requireSameConstraints(id, previous.constraints, constraints);
+      if (previous.version !== constraints.version) {
+        invalid(id, '$.version', 'write cannot replace a different stored version');
+      }
     }
     const next = new Map(this.#entries);
     next.set(
       id,
-      Object.freeze({ kind: 'value', value: ownFrozen(newValue, id, constraints), constraints }),
+      Object.freeze({
+        kind: 'value',
+        value: ownFrozen(newValue, id, constraints),
+        constraints,
+        version: constraints.version,
+      }),
     );
-    return StateSliceStore.#fromTrustedEntries(next);
+    return StateSliceStore.#fromTrustedEntries(next, this.#registry);
   }
 
   /** Appends one privately frozen row without reading or copying prior rows. */
   public appendSlice<Row>(key: StateSliceKey<ReadonlyArray<Row>>, row: Row): StateSliceStore {
     const id = checkedId(key.id);
-    const constraints = captureConstraints(key, id);
+    const registered = this.#registry?.get(id);
+    const constraints = captureConstraints(registered ?? key, id);
     if (constraints.schema !== undefined) {
       throw new TypeError(`StateSliceKey '${id}' cannot use fast append with a whole-array schema`);
     }
-    if (!this.#entries.has(id) && !definedKeys.has(key)) {
+    if (!this.#entries.has(id) && !definedKeys.has(key) && registered === undefined) {
       throw new TypeError(`StateSliceKey '${id}' must use defineStateSlice for append`);
     }
     const previous =
       this.#entries.get(id) ??
-      Object.freeze({ kind: 'value', value: key.defaultValue, constraints });
+      Object.freeze({
+        kind: 'value',
+        value: registered?.defaultValue ?? key.defaultValue,
+        constraints,
+        version: constraints.version,
+      });
     if (previous.constraints.schema !== undefined) {
       throw new TypeError(`StateSliceKey '${id}' cannot append to a whole-array schema value`);
     }
     requireSameConstraints(id, previous.constraints, constraints);
+    if (previous.version !== constraints.version) {
+      invalid(id, '$.version', 'append cannot change the stored version');
+    }
     if (previous.kind === 'value' && !Array.isArray(previous.value)) {
       throw new TypeError(`StateSliceKey '${id}' is not an array collection`);
     }
@@ -423,12 +544,13 @@ export class StateSliceStore {
           id,
           constraints.rowSchema === undefined
             ? emptyConstraints
-            : { schema: constraints.rowSchema, rowSchema: undefined },
+            : { ...emptyConstraints, schema: constraints.rowSchema },
         ),
         constraints,
+        version: constraints.version,
       }),
     );
-    return StateSliceStore.#fromTrustedEntries(next);
+    return StateSliceStore.#fromTrustedEntries(next, this.#registry);
   }
 
   /**
@@ -436,10 +558,22 @@ export class StateSliceStore {
    */
   public updateSlice<T>(key: StateSliceKey<T>, updater: (current: T) => T): StateSliceStore {
     const id = checkedId(key.id);
-    const constraints = captureConstraints(key, id);
+    const constraints = captureConstraints(this.#registry?.get(id) ?? key, id);
     const current = this.#read(key, id, constraints);
     const updated = updater(current);
     return this.#withSlice(id, updated, constraints);
+  }
+
+  /** Versions above historical version one, stored separately from raw slice values. */
+  public toVersionMap(): Readonly<Record<string, number>> {
+    const versions: Record<string, number> = {};
+    for (const id of Array.from(this.#entries.keys()).sort()) {
+      const entry = this.#entries.get(id);
+      if (entry !== undefined && entry.version !== 1) {
+        versions[id] = entry.version;
+      }
+    }
+    return Object.freeze(versions);
   }
 
   /**

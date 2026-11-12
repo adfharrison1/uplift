@@ -304,8 +304,6 @@ export function createInitialWorldState(options: {
     },
     emittedAudioCues: [],
     recordedLegacyScars: [],
-    stateSlices: options.stateSlices
-      ? StateSliceStore.fromSnapshot(options.stateSlices.toSnapshot())
-      : new StateSliceStore(),
+    stateSlices: options.stateSlices ?? new StateSliceStore(),
   };
 }

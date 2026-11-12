@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { createInitialWorldState } from '../../../src/domain/simulation/WorldState.js';
 import {
   defineStateSlice,
   StateSliceRegistry,
@@ -464,6 +465,204 @@ describe('StateSliceRegistry and StateSliceStore', () => {
     );
     expect(() => stored.get(lax)).toThrow(/foundry\.bound_value.*schema/i);
     expect(stored.get(strict)).toEqual({ count: 1 });
+  });
+
+  it('keeps raw snapshots separate from versions and migrates an older known slice once', () => {
+    const callbackOutput = { count: 5 };
+    let calls = 0;
+    const key = defineStateSlice(
+      'foundry.versioned',
+      { count: 0 },
+      {
+        version: 2,
+        schema: z.object({ count: z.number().int().nonnegative() }),
+        migrate(value, fromVersion) {
+          calls += 1;
+          expect(fromVersion).toBe(1);
+          expect(value).toEqual({ oldCount: 5 });
+          return callbackOutput;
+        },
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+
+    const written = new StateSliceStore().withSlice(key, { count: 4 });
+    expect(written.toSnapshot()).toEqual({ 'foundry.versioned': { count: 4 } });
+    expect(written.toVersionMap()).toEqual({ 'foundry.versioned': 2 });
+
+    const restored = StateSliceStore.fromSnapshot(
+      { 'foundry.versioned': { oldCount: 5 } },
+      registry,
+      { 'foundry.versioned': 1 },
+    );
+    expect(calls).toBe(1);
+    expect(restored.get(key)).toEqual({ count: 5 });
+    expect(restored.toSnapshot()).toEqual({ 'foundry.versioned': { count: 5 } });
+    expect(restored.toVersionMap()).toEqual({ 'foundry.versioned': 2 });
+    callbackOutput.count = 99;
+    expect(restored.get(key)).toEqual({ count: 5 });
+    expect(Object.isFrozen(restored.get(key))).toBe(true);
+  });
+
+  it('preserves an unknown value and version across snapshots', () => {
+    const restored = StateSliceStore.fromSnapshot(
+      { 'future.slice': { nested: [1, 2] } },
+      new StateSliceRegistry(),
+      { 'future.slice': 3 },
+    );
+
+    expect(restored.toSnapshot()).toEqual({ 'future.slice': { nested: [1, 2] } });
+    expect(restored.toVersionMap()).toEqual({ 'future.slice': 3 });
+  });
+
+  it('calls one-step migration once when the saved version is several versions old', () => {
+    const calls: number[] = [];
+    const key = defineStateSlice(
+      'foundry.one_step',
+      { count: 0 },
+      {
+        version: 3,
+        schema: z.object({ count: z.number().int() }),
+        migrate(value, fromVersion) {
+          calls.push(fromVersion);
+          expect(value).toEqual({ oldCount: 7 });
+          return { count: 7 };
+        },
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+
+    const restored = StateSliceStore.fromSnapshot(
+      { 'foundry.one_step': { oldCount: 7 } },
+      registry,
+    );
+    expect(calls).toEqual([1]);
+    expect(restored.get(key)).toEqual({ count: 7 });
+    expect(restored.toVersionMap()).toEqual({ 'foundry.one_step': 3 });
+  });
+
+  it('uses registered validation and version for an update before the first write', () => {
+    const key = defineStateSlice(
+      'foundry.bound_update',
+      { count: 0 },
+      {
+        version: 2,
+        schema: z.object({ count: z.number().int().nonnegative() }),
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+    const store = StateSliceStore.fromSnapshot({}, registry);
+    const structural = { id: key.id, defaultValue: { count: 0 } };
+
+    expect(() => store.updateSlice(structural, () => ({ count: -1 }))).toThrow(
+      /foundry\.bound_update/,
+    );
+    expect(store.toSnapshot()).toEqual({});
+    const updated = store.updateSlice(structural, () => ({ count: 3 }));
+    expect(updated.get(key)).toEqual({ count: 3 });
+    expect(updated.toVersionMap()).toEqual({ 'foundry.bound_update': 2 });
+  });
+
+  it('treats absent and omitted version metadata as historical version one', () => {
+    const key = defineStateSlice('foundry.historical', { count: 0 });
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+
+    for (const versions of [undefined, {}]) {
+      const restored = StateSliceStore.fromSnapshot(
+        { 'foundry.historical': { count: 7 } },
+        registry,
+        versions,
+      );
+      expect(restored.get(key)).toEqual({ count: 7 });
+      expect(restored.toVersionMap()).toEqual({});
+    }
+  });
+
+  it('rejects malformed, orphaned and future version metadata before restoring', () => {
+    const key = defineStateSlice('foundry.version_checks', { count: 0 }, { version: 2 });
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+    const values = { 'foundry.version_checks': { count: 1 } };
+
+    for (const versions of [
+      null,
+      [],
+      3,
+      { 'foundry.version_checks': 0 },
+      { 'foundry.version_checks': 1.5 },
+      { 'foundry.version_checks': 3 },
+      { orphan: 2 },
+    ]) {
+      expect(() => StateSliceStore.fromSnapshot(values, registry, versions)).toThrow(
+        /version|orphan|foundry/i,
+      );
+    }
+  });
+
+  it('rejects an explicitly null descriptor version at definition and registration', () => {
+    expect(() =>
+      Reflect.apply(defineStateSlice, undefined, [
+        'foundry.null_version',
+        { count: 0 },
+        { version: null },
+      ]),
+    ).toThrow(/foundry\.null_version.*version/);
+    const registry = new StateSliceRegistry();
+    expect(() =>
+      Reflect.apply(registry.register, registry, [
+        { id: 'foundry.null_registered', defaultValue: { count: 0 }, version: null },
+      ]),
+    ).toThrow(/foundry\.null_registered.*version/);
+  });
+
+  it('rejects missing, throwing and invalid one-step migrations', () => {
+    const values = { 'foundry.migrate': { count: 1 } };
+    const versions = { 'foundry.migrate': 1 };
+    for (const migrate of [
+      undefined,
+      () => {
+        throw new Error('migration fault');
+      },
+      () => new Map([['count', 1]]),
+    ]) {
+      const key = defineStateSlice('foundry.migrate', { count: 0 }, { version: 2, migrate });
+      const registry = new StateSliceRegistry();
+      registry.register(key);
+      expect(() => StateSliceStore.fromSnapshot(values, registry, versions)).toThrow(
+        /foundry\.migrate.*migrat/i,
+      );
+    }
+  });
+
+  it('reports the slice and migration version when callback output fails the current schema', () => {
+    const key = defineStateSlice(
+      'foundry.invalid_migration',
+      { count: 0 },
+      {
+        version: 2,
+        schema: z.object({ count: z.number().int().nonnegative() }),
+        migrate: () => ({ count: -1 }),
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+
+    expect(() =>
+      StateSliceStore.fromSnapshot({ 'foundry.invalid_migration': { oldCount: 1 } }, registry, {}),
+    ).toThrow(/foundry\.invalid_migration.*migration.*version 2/i);
+  });
+
+  it('retains an immutable supplied store when creating a world', () => {
+    const key = defineStateSlice('foundry.world', { count: 0 }, { version: 2 });
+    const store = new StateSliceStore().withSlice(key, { count: 3 });
+    const world = createInitialWorldState({ epochId: 'epoch_test', stateSlices: store });
+
+    expect(world.stateSlices).toBe(store);
+    expect(world.stateSlices.toVersionMap()).toEqual({ 'foundry.world': 2 });
   });
 
   it('never freezes a schema callback output retained by its caller', () => {

@@ -1,9 +1,39 @@
 import { describe, expect, it } from 'vitest';
-import { defineStateSlice } from '../../../src/domain/core/StateSliceRegistry.js';
+import {
+  defineStateSlice,
+  StateSliceRegistry,
+  StateSliceStore,
+} from '../../../src/domain/core/StateSliceRegistry.js';
+import { z } from 'zod';
 import { applyWorldEffects } from '../../../src/domain/simulation/WorldEffectReducer.js';
 import { makeWorldEntity, makeWorldState } from '../../support/makeWorldState.js';
 
 describe('applyWorldEffects', () => {
+  it('validates and versions set_state_slice through a bound registry', () => {
+    const key = defineStateSlice(
+      'plugin.known',
+      { count: 0 },
+      {
+        version: 2,
+        schema: z.object({ count: z.number().int().nonnegative() }),
+      },
+    );
+    const registry = new StateSliceRegistry();
+    registry.register(key);
+    const state = makeWorldState({ stateSlices: StateSliceStore.fromSnapshot({}, registry) });
+    const result = applyWorldEffects(state, [
+      { type: 'set_state_slice', sliceId: 'plugin.known', value: { count: 2 } },
+    ]).state;
+
+    expect(result.stateSlices.get(key)).toEqual({ count: 2 });
+    expect(result.stateSlices.toVersionMap()).toEqual({ 'plugin.known': 2 });
+    expect(() =>
+      applyWorldEffects(result, [
+        { type: 'set_state_slice', sliceId: 'plugin.known', value: { count: -1 } },
+      ]),
+    ).toThrow(/plugin\.known/);
+    expect(result.stateSlices.get(key)).toEqual({ count: 2 });
+  });
   it('rejects non-JSON set_state_slice values before publishing a new world', () => {
     const state = makeWorldState();
     for (const value of [new Map([['id', 1]]), Number.NaN, { nested: undefined }]) {

@@ -37,6 +37,7 @@ import {
   SimulationPacingConfigSchema,
   type SpaceKind,
   type SpaceNodeBlueprint,
+  type StateSliceRegistry,
   StateSliceStore,
   stepKinematics,
   truncatePathAtClosedPortals,
@@ -51,6 +52,7 @@ export const MAX_FRAME_DT_SECONDS = 0.25 as const;
 
 const WORLD_STATE_SNAPSHOT_KEY = '__upliftWorldStateSnapshot' as const;
 const CUSTOM_SLICES_SNAPSHOT_KEY = '__upliftCustomSlicesSnapshot' as const;
+const CUSTOM_SLICE_VERSIONS_KEY = '__upliftCustomSliceVersions' as const;
 
 export interface SimulationCoordinatorOptions {
   readonly epochId: string;
@@ -61,6 +63,7 @@ export interface SimulationCoordinatorOptions {
   readonly rng?: SeededRandom | undefined;
   readonly pacingConfig?: SimulationPacingConfig | undefined;
   readonly legacyState?: CivilizationLegacyState | undefined;
+  readonly stateSliceRegistry?: StateSliceRegistry | undefined;
 }
 
 export interface DispatchEffectsOptions {
@@ -253,6 +256,7 @@ function inferEffectTelemetryCategory(effects: ReadonlyArray<WorldEffect>): stri
 
 export class SimulationCoordinator {
   private readonly registry: EpochModuleRegistry;
+  private readonly stateSliceRegistry: StateSliceRegistry | undefined;
   private readonly telemetry: SessionTelemetryPort;
   private readonly saveRepository: SaveSlotRepositoryPort;
   private readonly clock: TelemetryClock;
@@ -272,6 +276,7 @@ export class SimulationCoordinator {
     }
 
     this.registry = options.registry;
+    this.stateSliceRegistry = options.stateSliceRegistry;
     this.spaces = this.registry.getAllSpaces();
     const spaceKinds = new Map<string, SpaceKind>();
     for (const space of this.spaces) {
@@ -303,6 +308,7 @@ export class SimulationCoordinator {
       props,
       pacingConfig: options.pacingConfig ?? DEFAULT_GAMEPLAY_PACING_CONFIG,
       maxOrbitalDelta: orbitalBlueprint?.maxDelta ?? 100,
+      stateSlices: StateSliceStore.fromSnapshot({}, this.stateSliceRegistry),
     });
     this.recordLegacyClampWarnings(
       this.legacyClampNotes,
@@ -813,6 +819,7 @@ export class SimulationCoordinator {
       stateSlices: {
         [WORLD_STATE_SNAPSHOT_KEY]: worldSnapshot,
         [CUSTOM_SLICES_SNAPSHOT_KEY]: this.state.stateSlices.toSnapshot(),
+        [CUSTOM_SLICE_VERSIONS_KEY]: this.state.stateSlices.toVersionMap(),
       },
       legacyState: legacyStateToRecord(this.exportLegacyState()),
     });
@@ -845,10 +852,19 @@ export class SimulationCoordinator {
     }
 
     const rawCustomSlices = envelope.stateSlices[CUSTOM_SLICES_SNAPSHOT_KEY];
-    const customSlicesRecord =
-      typeof rawCustomSlices === 'object' && rawCustomSlices !== null
-        ? (rawCustomSlices as Readonly<Record<string, unknown>>)
-        : {};
+    const customSlicesRecord = Object.hasOwn(envelope.stateSlices, CUSTOM_SLICES_SNAPSHOT_KEY)
+      ? rawCustomSlices
+      : {};
+    const hasVersionMap = Object.hasOwn(envelope.stateSlices, CUSTOM_SLICE_VERSIONS_KEY);
+    const rawVersionMap = envelope.stateSlices[CUSTOM_SLICE_VERSIONS_KEY];
+    if (hasVersionMap && rawVersionMap === undefined) {
+      throw new TypeError(`Save slot '${slotId}' has an invalid custom-slice version map`);
+    }
+    const nextSlices = StateSliceStore.fromSnapshot(
+      customSlicesRecord,
+      this.stateSliceRegistry,
+      rawVersionMap,
+    );
 
     const nextRng = SeededRandom.fromState(envelope.rngState);
     const nextLegacy =
@@ -879,7 +895,7 @@ export class SimulationCoordinator {
       orbitalPass: { ...rawWorldSnapshot.orbitalPass },
       emittedAudioCues: structuredClone(rawWorldSnapshot.emittedAudioCues),
       recordedLegacyScars: structuredClone(rawWorldSnapshot.recordedLegacyScars),
-      stateSlices: StateSliceStore.fromSnapshot(customSlicesRecord),
+      stateSlices: nextSlices,
     };
 
     this.telemetry.record({
