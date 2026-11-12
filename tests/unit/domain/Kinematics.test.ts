@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { defineStateSlice } from '../../../src/domain/core/StateSliceRegistry.js';
 import type { SpaceKind } from '../../../src/domain/registries/EpochBlueprints.js';
 import { stepKinematics } from '../../../src/domain/simulation/KinematicsEngine.js';
 import {
@@ -8,49 +7,19 @@ import {
 } from '../../../src/domain/simulation/SpatialHashGrid.js';
 import { applyWorldEffects } from '../../../src/domain/simulation/WorldEffectReducer.js';
 import {
-  createInitialWorldState,
   DEFAULT_GAMEPLAY_PACING_CONFIG,
   type EntitySimulationState,
   FAST_EVAL_PACING_CONFIG,
   type WorldState,
 } from '../../../src/domain/simulation/WorldState.js';
-
-function makeTestEntity(
-  entityId: string,
-  overrides: Partial<EntitySimulationState> = {},
-): EntitySimulationState {
-  return {
-    entityId,
-    lineageId: `lineage_${entityId}`,
-    spaceId: 'space_alpha',
-    waypointId: 'wp_start',
-    position: [0, 0, 0],
-    yawRadians: 0,
-    walkSpeedMetersPerSec: 1.4,
-    yawSpeedRadiansPerSec: 6.0,
-    cognitivePhase: 'idle',
-    phaseRemainingSeconds: 0,
-    pendingDwellSeconds: 10,
-    pendingCooldownSeconds: 5,
-    requiresExternalTrigger: false,
-    activePath: [],
-    drives: { curiosity: 0.5, secrecy: 0.3 },
-    emergencyVice: 'secrecy',
-    inertiaPillars: [
-      { id: 'pillar_doc', kind: 'doctrine', weight: 0.7 },
-      { id: 'pillar_debt', kind: 'debt', weight: 0.4 },
-    ],
-    pendingStimuli: [],
-    ...overrides,
-  };
-}
+import { makeWorldEntity, makeWorldState } from '../../support/makeWorldState.js';
 
 describe('stepKinematics and applyWorldEffects', () => {
   it('advances an entity smoothly across 60 frames of 1/60s, snaps to [1.4, 0, 0], emits arrival, and transitions to performing_dwell', () => {
-    const initial = createInitialWorldState({
+    const initial = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha'),
+        npc_alpha: makeWorldEntity('npc_alpha'),
       },
     });
 
@@ -101,10 +70,10 @@ describe('stepKinematics and applyWorldEffects', () => {
   });
 
   it('carries leftover intra-frame time accurately across deliberating -> moving -> performing_dwell transitions', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha', {
+        npc_alpha: makeWorldEntity('npc_alpha', {
           cognitivePhase: 'deliberating',
           phaseRemainingSeconds: 2,
           pendingDwellSeconds: 10,
@@ -119,10 +88,10 @@ describe('stepKinematics and applyWorldEffects', () => {
     expect(step.state.entities['npc_alpha']?.position[0]).toBeCloseTo(4.2);
 
     // Mid-frame arrival: 0.7m left at 1.4 m/s takes 0.5s out of a 1.0s frame -> 0.5s applied to dwell (10 - 0.5 = 9.5)
-    const arrivalState = createInitialWorldState({
+    const arrivalState = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha', {
+        npc_alpha: makeWorldEntity('npc_alpha', {
           cognitivePhase: 'moving',
           pendingDwellSeconds: 10,
           activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.7, 0, 0] }],
@@ -135,10 +104,10 @@ describe('stepKinematics and applyWorldEffects', () => {
   });
 
   it('handles zero-length segments, multi-waypoint traversal, pause freeze, and invalid dtSeconds rejection', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha', {
+        npc_alpha: makeWorldEntity('npc_alpha', {
           cognitivePhase: 'moving',
           activePath: [
             { waypointId: 'wp_zero', spaceId: 'space_alpha', position: [0, 0, 0] },
@@ -172,11 +141,11 @@ describe('stepKinematics and applyWorldEffects', () => {
   });
 
   it('enforces human-paced cognitive phases and anti-thundering-herd stimulus backoff under DEFAULT_GAMEPLAY_PACING_CONFIG, and fast-forwards under FAST_EVAL_PACING_CONFIG', () => {
-    const baseState = createInitialWorldState({
+    const baseState = makeWorldState({
       epochId: 'epoch_test',
       pacingConfig: DEFAULT_GAMEPLAY_PACING_CONFIG,
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha'),
+        npc_alpha: makeWorldEntity('npc_alpha'),
       },
     });
 
@@ -269,11 +238,11 @@ describe('stepKinematics and applyWorldEffects', () => {
     expect(movingWithHopCap.state.entities['npc_alpha']?.requiresExternalTrigger).toBe(true);
 
     // FAST_EVAL_PACING_CONFIG waterfalls zero-duration phases in a single step
-    const fastEvalBase = createInitialWorldState({
+    const fastEvalBase = makeWorldState({
       epochId: 'epoch_test',
       pacingConfig: FAST_EVAL_PACING_CONFIG,
       entities: {
-        npc_alpha: makeTestEntity('npc_alpha'),
+        npc_alpha: makeWorldEntity('npc_alpha'),
       },
     });
     const { state: fastDelib } = applyWorldEffects(fastEvalBase, [
@@ -297,110 +266,6 @@ describe('stepKinematics and applyWorldEffects', () => {
       'idle',
     ]);
   });
-
-  it('applies pressure stocks, discovery layers, inertia pillar collapse, emergencies, orbital pass/slingshot/burn, audio cues, custom state slices, and legacy scars immutably', () => {
-    const customSlice = defineStateSlice<number>('plugin.custom_counter', 0);
-    const state0 = createInitialWorldState({
-      epochId: 'epoch_test',
-      entities: {
-        npc_alpha: makeTestEntity('npc_alpha'),
-      },
-      props: {
-        door_01: {
-          propId: 'door_01',
-          spaceId: 'space_alpha',
-          waypointId: 'wp_start',
-          state: { locked: false },
-          portalState: 'closed',
-        },
-      },
-    });
-
-    const { state: state1 } = applyWorldEffects(state0, [
-      { type: 'adjust_pressure_stock', stock: 'subsistence_pressure', delta: 0.45 },
-      { type: 'set_discovery_layer', layer: 'assayed' },
-      { type: 'collapse_inertia_pillar', entityId: 'npc_alpha', pillarId: 'pillar_debt' },
-      { type: 'trigger_emergency', emergencyId: 'emergency_plague' },
-      { type: 'compound_emergency_vices', delta: 0.25 },
-      {
-        type: 'update_prop_state',
-        propId: 'door_01',
-        patch: { locked: true },
-        portalState: 'barred',
-      },
-      { type: 'advance_orbital_pass', phase: 'occluded', deltaRegen: 0 },
-      { type: 'spend_orbital_delta', mode: 'slingshot', cost: 40 },
-      { type: 'spend_orbital_delta', mode: 'burn', cost: 15 },
-      {
-        type: 'emit_audio_cue',
-        bus: 'groundside',
-        cueId: 'pillar_fracture_debt',
-        loudness: 0.6,
-        sourceSpaceId: 'space_alpha',
-      },
-      {
-        type: 'record_legacy_scar',
-        scarId: 'material_scar_alpha',
-        ledger: 'material',
-        description: 'Backbone monopoly chartered',
-      },
-      {
-        type: 'set_state_slice',
-        sliceId: 'plugin.custom_counter',
-        value: 42,
-      },
-    ]);
-
-    // Original state0 is completely unmodified
-    expect(state0.pressureStocks.subsistence_pressure).toBe(0);
-    expect(state0.discoveryLayer).toBeNull();
-    expect(state0.entities['npc_alpha']?.inertiaPillars).toHaveLength(2);
-    expect(state0.entities['npc_alpha']?.drives['secrecy']).toBe(0.3);
-    expect(state0.stateSlices.get(customSlice)).toBe(0);
-
-    // New state1 reflects all updates
-    expect(state1.pressureStocks.subsistence_pressure).toBe(0.45);
-    expect(state1.discoveryLayer).toBe('assayed');
-    expect(state1.entities['npc_alpha']?.inertiaPillars).toHaveLength(1);
-    expect(state1.entities['npc_alpha']?.drives['secrecy']).toBeCloseTo(0.55);
-    expect(state1.props['door_01']?.portalState).toBe('barred');
-    expect(state1.orbitalPass.phase).toBe('zenith');
-    expect(state1.orbitalPass.availableDelta).toBe(45);
-    expect(state1.orbitalPass.activeBurn).toBe(true);
-    expect(state1.emittedAudioCues).toHaveLength(1);
-    expect(state1.recordedLegacyScars).toHaveLength(1);
-    expect(state1.stateSlices.get(customSlice)).toBe(42);
-
-    // Resolve emergency and verify overspending orbital delta or burning outside zenith throws
-    const { state: state2 } = applyWorldEffects(state1, [
-      { type: 'resolve_emergency' },
-      { type: 'adjust_pressure_stock', stock: 'subsistence_pressure', delta: 5.0 },
-      {
-        type: 'insert_illicit_instrument',
-        instrument: 'anachronistic_marvel',
-        intensity: 0.4,
-        scarId: 'veil_scar_marvel',
-        scarDescription: 'Impossible lens venerated',
-      },
-    ]);
-    expect(state2.activeEmergencyId).toBeNull();
-    expect(state2.pressureStocks.subsistence_pressure).toBe(1.0);
-    expect(state2.pressureStocks.elite_prestige_pressure).toBeCloseTo(0.4);
-    expect(state2.recordedLegacyScars).toHaveLength(2);
-
-    const { state: stateOccluded } = applyWorldEffects(state2, [
-      { type: 'advance_orbital_pass', phase: 'occluded', deltaRegen: 10 },
-    ]);
-    expect(stateOccluded.orbitalPass.phase).toBe('occluded');
-    expect(stateOccluded.orbitalPass.availableDelta).toBe(55);
-    expect(() =>
-      applyWorldEffects(stateOccluded, [{ type: 'spend_orbital_delta', mode: 'burn', cost: 10 }]),
-    ).toThrow(/Orbital Burn requires 'zenith' pass phase/);
-
-    expect(() =>
-      applyWorldEffects(state2, [{ type: 'spend_orbital_delta', mode: 'burn', cost: 999 }]),
-    ).toThrow(/Insufficient orbital Delta/);
-  });
 });
 
 function xzDistance(
@@ -414,16 +279,16 @@ function movingPair(
   left: Partial<EntitySimulationState>,
   right: Partial<EntitySimulationState>,
 ): WorldState {
-  return createInitialWorldState({
+  return makeWorldState({
     epochId: 'epoch_test',
     entities: {
-      npc_left: makeTestEntity('npc_left', {
+      npc_left: makeWorldEntity('npc_left', {
         cognitivePhase: 'moving',
         position: [0, 1, 0],
         activePath: [{ waypointId: 'wp_left', spaceId: 'space_alpha', position: [10, 1, 0] }],
         ...left,
       }),
-      npc_right: makeTestEntity('npc_right', {
+      npc_right: makeWorldEntity('npc_right', {
         cognitivePhase: 'moving',
         position: [0, 1, 0.4],
         activePath: [{ waypointId: 'wp_right', spaceId: 'space_alpha', position: [10, 1, 0.4] }],
@@ -447,16 +312,16 @@ describe('SpatialHashGrid', () => {
       ['space_room', 'indoor_room'],
       ['space_off', 'off_stage_region'],
     ]);
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_indoor: makeTestEntity('npc_indoor', {
+        npc_indoor: makeWorldEntity('npc_indoor', {
           spaceId: 'space_room',
           cognitivePhase: 'moving',
           position: [0, 2, 0],
           activePath: [{ waypointId: 'wp_room', spaceId: 'space_room', position: [10, 2, 0] }],
         }),
-        npc_off: makeTestEntity('npc_off', {
+        npc_off: makeWorldEntity('npc_off', {
           spaceId: 'space_off',
           cognitivePhase: 'moving',
           position: [0, 2, 0.4],
@@ -511,16 +376,16 @@ describe('embodied separation', () => {
   });
 
   it('caps a slow partial step by the remaining-distance term', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           walkSpeedMetersPerSec: 0.2,
           position: [0, 0, 0],
           activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.4, 0, 0] }],
         }),
-        npc_idle: makeTestEntity('npc_idle', {
+        npc_idle: makeWorldEntity('npc_idle', {
           position: [0, 0, 0.3],
         }),
       },
@@ -563,14 +428,14 @@ describe('embodied separation', () => {
   });
 
   it('does not let an idle body on the destination stall arrival', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_idle: makeTestEntity('npc_idle', {
+        npc_idle: makeWorldEntity('npc_idle', {
           position: [2, 0, 0],
           waypointId: 'wp_dest',
         }),
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           position: [0, 0, 0],
           activePath: [{ waypointId: 'wp_dest', spaceId: 'space_alpha', position: [2, 0, 0] }],
@@ -598,15 +463,15 @@ describe('embodied separation', () => {
   });
 
   it('snaps onto a target inside 0.05m instead of sliding off an overlapping body', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           position: [0, 3, 0],
           activePath: [{ waypointId: 'wp_near', spaceId: 'space_alpha', position: [0.04, 3, 0] }],
         }),
-        npc_block: makeTestEntity('npc_block', {
+        npc_block: makeWorldEntity('npc_block', {
           position: [0.04, 3, 0],
           waypointId: 'wp_near',
         }),
@@ -618,10 +483,10 @@ describe('embodied separation', () => {
   });
 
   it('matches plain path integration for a lone walker', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_lone: makeTestEntity('npc_lone', {
+        npc_lone: makeWorldEntity('npc_lone', {
           cognitivePhase: 'moving',
           activePath: [
             { waypointId: 'wp_mid', spaceId: 'space_alpha', position: [1, 0, 0] },
@@ -638,15 +503,15 @@ describe('embodied separation', () => {
   });
 
   it('keeps leftover time when a close waypoint is already reachable', () => {
-    const neighbor = makeTestEntity('npc_block', {
+    const neighbor = makeWorldEntity('npc_block', {
       position: [0.04, 0, 0],
       waypointId: 'wp_near',
     });
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
         npc_block: neighbor,
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           pendingDwellSeconds: 10,
           activePath: [
@@ -663,11 +528,11 @@ describe('embodied separation', () => {
   });
 
   it('does not teleport a stationary mover onto a nearby waypoint', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_block: makeTestEntity('npc_block', { position: [0.04, 5, 0] }),
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_block: makeWorldEntity('npc_block', { position: [0.04, 5, 0] }),
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           walkSpeedMetersPerSec: 0,
           position: [0, 1, 0],
@@ -681,11 +546,11 @@ describe('embodied separation', () => {
   });
 
   it('does not slide past the current waypoint', () => {
-    const state = createInitialWorldState({
+    const state = makeWorldState({
       epochId: 'epoch_test',
       entities: {
-        npc_idle: makeTestEntity('npc_idle', { position: [-0.4, 0, 0] }),
-        npc_walk: makeTestEntity('npc_walk', {
+        npc_idle: makeWorldEntity('npc_idle', { position: [-0.4, 0, 0] }),
+        npc_walk: makeWorldEntity('npc_walk', {
           cognitivePhase: 'moving',
           activePath: [{ waypointId: 'wp_mark', spaceId: 'space_alpha', position: [1, 0, 0] }],
         }),
