@@ -1,0 +1,27 @@
+# Task 3.2 evidence — plain-JSON and validation-only slice boundaries
+
+Status: implemented and independently reviewed in the default checkout; awaiting owner approval before commit. Task 3.2 remains unchecked. Task 3.1's checkbox is post-commit bookkeeping for `02f32a5` and is carried in this pending diff. No defect-ledger transition is claimed; owned slice findings remain active until the closing evidence task.
+
+## Scope and observed checks
+
+- `StateSliceRegistry.ts` now copies and rejects values at defaults, writes, append rows and snapshot restore: only null, booleans, strings, finite numbers, dense arrays and plain objects pass. It rejects special prototypes, cycles, sparse/accessor arrays, functions, symbols, bigint, `undefined`, non-finite numbers, accessor/non-enumerable properties and unsafe keys with slice/path errors. `set_state_slice` reaches the same boundary through the reducer. Public schema/row-schema options are validation-only: parser input is private, output is checked for JSON equivalence and discarded, and the stored candidate is frozen. A whole-array schema rejects fast append.
+- A slice entry retains its captured validator authority. A second key with the same ID cannot read, replace, update or append under a different schema. Parser methods and descriptor properties are captured once, without freezing caller-owned schema objects. Append validates only the new row and copies the distinct-key map; full writes and restores scan their value.
+- TDD: the new JSON/schema/reducer cases failed 15/31 against Task 3.1 code and passed 31/31 after the initial implementation. The symbol-key/extra-index case failed before correction and passed 32/32. Four reviewer authority cases failed before binding validators to entries and passed 36/36 afterward. The same-ID read/write regression failed before correction and passed. Final focused command `npx vitest run tests/unit/domain/StateSliceRegistry.test.ts tests/unit/domain/WorldEffectReducer.test.ts`: **37/37 passed**.
+- Socket-enabled `npm run verify` on the complete package: **PASS** format 1,454 ms, lint 1,334 ms, typecheck 693 ms, tests 16,224 ms. `openspec validate hx-slice-store --strict`: valid. `git diff --check`: pass. `npm run defects -- reconcile --check`: pass, 51 active and 25 resolved. Reviewer sandbox runs did not establish HTTP loopback coverage; the controller's permitted full run did.
+
+## G1–G6
+
+| Gate | Task result and limit |
+| --- | --- |
+| G1 Consumer trace | `set_state_slice` effect → `applyWorldEffects` → `defineStateSlice`/`withSlice` validation → preserved prior `WorldState` on rejection. Typed key/schema → registry → `fromSnapshot(..., registry)` → `get` is verified in the domain consumer. Coordinator load does not yet pass a registry; versioned save/load and rollback are Task 4.1. |
+| G2 Trust boundary | Direct values, effect values, row additions and restored snapshot data are untrusted. Private JSON copies and captured validation-only parsers reject malformed, changing or value-transforming inputs before entry publication. Duplicate IDs cannot downgrade an existing entry's validator. |
+| G3 Hot-path cost | Append inspects the new row and distinct-key map, not prior rows. Defined keys cache captured constraints, so repeated `get` performs a WeakMap lookup without cloning or allocating a constraints object. Full value writes, validation and snapshots remain proportional to their data. Reference-Mac/60 FPS timing remains unmeasured here. |
+| G4 Failure containment | Invalid defaults, writes, rows, restores and effects throw before publishing a new store/world. Tests assert prior rows, slice snapshots and reducer world stay intact. Coordinator load retry after malformed metadata belongs to Task 4.1. |
+| G5 Defect reconciliation | Independent findings `T3.2-R1`–`R4` were reproduced and fixed in scope; full dispositions are in [task-3-2-reviews.md](task-3-2-reviews.md). The checked ledger reconciles. Existing owned defects remain active pending all scenarios and final evidence. |
+| G6 Scenario traceability | `StateSliceRegistry.test.ts` covers listed non-JSON classes at default/write/append/restore, nested cycle/unsafe keys, valid/invalid key and row schemas including restore, value-changing parser rejection, callback-owned output, same-ID authority and whole-array append rejection. `WorldEffectReducer.test.ts` covers invalid effect values and unchanged prior world. Known-schema coordinator load, versions and migrations remain Task 4.1. |
+
+Finite `-0` is accepted as JSON-equivalent to `0`; JavaScript JSON serialization writes `0`, so preservation of its IEEE sign is outside the raw JSON value contract. The proposal's validation-only rule compares JSON values, and no signed-zero gameplay contract is specified.
+
+## Document integrity
+
+The shipped contract is described in both domain guides (README 806 → 852 words; AGENTS 639 → 705). The public domain barrel exports the schema and options types. No design text, owner exemplar, inbox entry or historical review was moved or cut. The Engineering status index remains partial while save/load work is pending; Where-facts-live ownership, roadmap order and disposition rows are unchanged. State/saves and Seven primitives still carry the prior clone wording, with their reconciliation explicitly assigned to Tasks 4.1 and 5.1. Both reviewers checked paired guidance and scope; no proposal contract changed.

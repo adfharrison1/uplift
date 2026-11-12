@@ -4,6 +4,20 @@ import { applyWorldEffects } from '../../../src/domain/simulation/WorldEffectRed
 import { makeWorldEntity, makeWorldState } from '../../support/makeWorldState.js';
 
 describe('applyWorldEffects', () => {
+  it('rejects non-JSON set_state_slice values before publishing a new world', () => {
+    const state = makeWorldState();
+    for (const value of [new Map([['id', 1]]), Number.NaN, { nested: undefined }]) {
+      expect(() =>
+        applyWorldEffects(state, [
+          { type: 'adjust_pressure_stock', stock: 'subsistence_pressure', delta: 0.2 },
+          { type: 'set_state_slice', sliceId: 'plugin.invalid', value },
+        ]),
+      ).toThrow(/plugin\.invalid/);
+      expect(state.pressureStocks.subsistence_pressure).toBe(0);
+      expect(state.stateSlices.toSnapshot()).toEqual({});
+    }
+  });
+
   it('applies pressure stocks, discovery layers, inertia pillar collapse, emergencies, orbital pass/slingshot/burn, audio cues, custom state slices, and legacy scars immutably', () => {
     const customSlice = defineStateSlice<number>('plugin.custom_counter', 0);
     const state0 = makeWorldState({

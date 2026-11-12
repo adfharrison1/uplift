@@ -8,18 +8,183 @@
 export interface StateSliceKey<T> {
   readonly id: string;
   readonly defaultValue: T;
+  readonly schema?: SliceSchema<unknown> | undefined;
+  readonly rowSchema?: SliceSchema<unknown> | undefined;
+}
+
+export interface SliceSchema<T> {
+  parse(value: unknown): T;
+}
+
+export interface StateSliceOptions<T> {
+  readonly schema?: SliceSchema<T> | undefined;
+  readonly rowSchema?: T extends ReadonlyArray<infer Row>
+    ? SliceSchema<Row> | undefined
+    : undefined;
 }
 
 const definedKeys = new WeakSet<object>();
+const capturedSchemas = new WeakMap<object, SliceSchema<unknown>>();
+const capturedConstraints = new WeakMap<object, SliceConstraints>();
 
-/**
- * Copies caller-owned objects before they enter a slice. Primitives need no copy.
- */
-function cloneValue<T>(value: T): T {
-  if (typeof value !== 'object' || value === null) {
+interface SliceConstraints {
+  readonly schema: SliceSchema<unknown> | undefined;
+  readonly rowSchema: SliceSchema<unknown> | undefined;
+}
+
+const emptyConstraints: SliceConstraints = Object.freeze({
+  schema: undefined,
+  rowSchema: undefined,
+});
+
+const unsafeKeys = new Set(['__proto__', 'constructor', 'prototype']);
+
+function invalid(id: string, path: string, reason: string): never {
+  throw new TypeError(`StateSliceKey '${id}' at ${path}: ${reason}`);
+}
+
+function checkedId(id: string): string {
+  if (typeof id !== 'string' || id.trim().length === 0) {
+    throw new TypeError('StateSliceKey id must be a non-empty string');
+  }
+  if (unsafeKeys.has(id)) {
+    invalid(id, '$', 'unsafe slice identifier');
+  }
+  return id;
+}
+
+function captureSchema(
+  schema: SliceSchema<unknown> | undefined,
+  id: string,
+  field: string,
+): SliceSchema<unknown> | undefined {
+  if (schema === undefined) {
+    return undefined;
+  }
+  if (schema === null || (typeof schema !== 'object' && typeof schema !== 'function')) {
+    invalid(id, field, 'schema must provide parse');
+  }
+  const existing = capturedSchemas.get(schema);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const parse = schema.parse;
+  if (typeof parse !== 'function') {
+    invalid(id, field, 'schema must provide parse');
+  }
+  const captured: SliceSchema<unknown> = Object.freeze({
+    parse(value: unknown): unknown {
+      return parse.call(schema, value);
+    },
+  });
+  capturedSchemas.set(schema, captured);
+  capturedSchemas.set(captured, captured);
+  return captured;
+}
+
+function captureConstraints(
+  input: Pick<StateSliceKey<unknown>, 'schema' | 'rowSchema'> | undefined,
+  id: string,
+): SliceConstraints {
+  if (input === undefined) {
+    return emptyConstraints;
+  }
+  const existing = capturedConstraints.get(input);
+  if (existing !== undefined) {
+    return existing;
+  }
+  const schema = input.schema;
+  const rowSchema = input.rowSchema;
+  const constraints: SliceConstraints = Object.freeze({
+    schema: captureSchema(schema, id, '$.schema'),
+    rowSchema: captureSchema(rowSchema, id, '$.rowSchema'),
+  });
+  capturedConstraints.set(input, constraints);
+  return constraints;
+}
+
+function requireSameConstraints(
+  id: string,
+  stored: SliceConstraints,
+  incoming: SliceConstraints,
+): void {
+  if (stored.schema !== incoming.schema || stored.rowSchema !== incoming.rowSchema) {
+    throw new TypeError(`StateSliceKey '${id}' schema differs from the stored slice`);
+  }
+}
+
+/** Copies only values that have an exact, lossless JSON shape. */
+function copyJson(
+  value: unknown,
+  id: string,
+  path = '$',
+  ancestors = new WeakSet<object>(),
+): unknown {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
     return value;
   }
-  return structuredClone(value);
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      invalid(id, path, 'non-finite number');
+    }
+    return value;
+  }
+  if (typeof value !== 'object') {
+    invalid(id, path, `unsupported ${typeof value} value`);
+  }
+  if (ancestors.has(value)) {
+    invalid(id, path, 'cycle');
+  }
+  const array = Array.isArray(value);
+  const prototype = Object.getPrototypeOf(value);
+  if (
+    array ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null
+  ) {
+    invalid(id, path, 'non-plain object or array');
+  }
+  ancestors.add(value);
+  try {
+    if (array) {
+      for (const key of Reflect.ownKeys(value)) {
+        if (
+          typeof key !== 'string' ||
+          (key !== 'length' && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length))
+        ) {
+          invalid(id, path, 'array has a non-index property');
+        }
+      }
+      const result: unknown[] = [];
+      for (let index = 0; index < value.length; index += 1) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor)) {
+          invalid(id, `${path}[${index}]`, 'sparse or accessor array element');
+        }
+        result.push(copyJson(descriptor.value, id, `${path}[${index}]`, ancestors));
+      }
+      return result;
+    }
+    const result: Record<string, unknown> = {};
+    const keys: string[] = [];
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== 'string') {
+        invalid(id, path, 'symbol object key');
+      }
+      keys.push(key);
+    }
+    for (const key of keys.sort()) {
+      if (unsafeKeys.has(key)) {
+        invalid(id, `${path}.${key}`, 'unsafe object key');
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor)) {
+        invalid(id, `${path}.${key}`, 'non-enumerable or accessor property');
+      }
+      result[key] = copyJson(descriptor.value, id, `${path}.${key}`, ancestors);
+    }
+    return result;
+  } finally {
+    ancestors.delete(value);
+  }
 }
 
 /**
@@ -37,23 +202,59 @@ function deepFreeze<T>(value: T, visited = new WeakSet<object>()): T {
   return value;
 }
 
-function ownFrozen<T>(value: T): T {
-  return deepFreeze(cloneValue(value));
+function schemaMatches(
+  value: unknown,
+  id: string,
+  path: string,
+  schema: SliceSchema<unknown>,
+): void {
+  let parsed: unknown;
+  try {
+    parsed = schema.parse(copyJson(value, id, path));
+  } catch (error) {
+    invalid(id, path, `schema rejected value: ${String(error)}`);
+  }
+  const checked = copyJson(parsed, id, path);
+  if (JSON.stringify(checked) !== JSON.stringify(value)) {
+    invalid(id, path, 'schema would change the value');
+  }
+}
+
+function ownFrozen<T>(value: T, id: string, constraints = emptyConstraints): T {
+  const candidate = copyJson(value, id);
+  if (constraints.schema !== undefined) {
+    schemaMatches(candidate, id, '$', constraints.schema);
+  }
+  if (constraints.rowSchema !== undefined) {
+    if (!Array.isArray(candidate)) {
+      invalid(id, '$', 'row schema requires an array collection');
+    }
+    for (let index = 0; index < candidate.length; index += 1) {
+      schemaMatches(candidate[index], id, `$[${index}]`, constraints.rowSchema);
+    }
+  }
+  return deepFreeze(candidate) as T;
 }
 
 /**
  * Defines a typed state slice descriptor with a non-empty identifier and deeply frozen default value.
  */
-export function defineStateSlice<T>(id: string, defaultValue: T): StateSliceKey<T> {
+export function defineStateSlice<T>(
+  id: string,
+  defaultValue: T,
+  options?: StateSliceOptions<T>,
+): StateSliceKey<T> {
   const trimmed = id.trim();
-  if (trimmed.length === 0) {
-    throw new Error('StateSliceKey id must be a non-empty string');
-  }
+  checkedId(trimmed);
+  const constraints = captureConstraints(options, trimmed);
   const key = Object.freeze({
     id: trimmed,
-    defaultValue: ownFrozen(defaultValue),
+    defaultValue: ownFrozen(defaultValue, trimmed, constraints),
+    schema: constraints.schema,
+    rowSchema: constraints.rowSchema,
   });
   definedKeys.add(key);
+  capturedConstraints.set(key, constraints);
   return key;
 }
 
@@ -65,10 +266,23 @@ export class StateSliceRegistry {
   private readonly keys = new Map<string, StateSliceKey<unknown>>();
 
   public register<T>(key: StateSliceKey<T>): void {
-    if (this.keys.has(key.id)) {
-      throw new Error(`Duplicate StateSliceKey id registered: '${key.id}'`);
+    const id = checkedId(key.id);
+    const constraints = captureConstraints(key, id);
+    if (this.keys.has(id)) {
+      throw new Error(`Duplicate StateSliceKey id registered: '${id}'`);
     }
-    this.keys.set(key.id, key);
+    const registered = Object.freeze({
+      id,
+      defaultValue: ownFrozen(key.defaultValue, id, constraints),
+      schema: constraints.schema,
+      rowSchema: constraints.rowSchema,
+    });
+    capturedConstraints.set(registered, constraints);
+    this.keys.set(id, registered);
+  }
+
+  public get(id: string): StateSliceKey<unknown> | undefined {
+    return this.keys.get(id);
   }
 
   public has(id: string): boolean {
@@ -81,8 +295,13 @@ export class StateSliceRegistry {
 }
 
 type SliceEntry =
-  | { readonly kind: 'value'; readonly value: unknown }
-  | { readonly kind: 'append'; readonly previous: SliceEntry; readonly row: unknown };
+  | { readonly kind: 'value'; readonly value: unknown; readonly constraints: SliceConstraints }
+  | {
+      readonly kind: 'append';
+      readonly previous: SliceEntry;
+      readonly row: unknown;
+      readonly constraints: SliceConstraints;
+    };
 
 /**
  * Immutable store for modular plugin state slices.
@@ -108,10 +327,22 @@ export class StateSliceStore {
   /**
    * Restores a `StateSliceStore` from a plain-object snapshot produced by `toSnapshot()`.
    */
-  public static fromSnapshot(snapshot: Readonly<Record<string, unknown>>): StateSliceStore {
+  public static fromSnapshot(
+    snapshot: Readonly<Record<string, unknown>>,
+    registry?: StateSliceRegistry,
+  ): StateSliceStore {
+    const copied = copyJson(snapshot, 'stateSlices');
+    if (copied === null || Array.isArray(copied) || typeof copied !== 'object') {
+      invalid('stateSlices', '$', 'snapshot must be a plain record');
+    }
     const entries = new Map<string, SliceEntry>();
-    for (const [id, value] of Object.entries(snapshot)) {
-      entries.set(id, Object.freeze({ kind: 'value', value: ownFrozen(value) }));
+    for (const [id, value] of Object.entries(copied)) {
+      checkedId(id);
+      const constraints = captureConstraints(registry?.get(id), id);
+      entries.set(
+        id,
+        Object.freeze({ kind: 'value', value: ownFrozen(value, id, constraints), constraints }),
+      );
     }
     return StateSliceStore.#fromTrustedEntries(entries);
   }
@@ -121,20 +352,22 @@ export class StateSliceStore {
    * Appended collections are materialized on first read and cached per store.
    */
   public get<T>(key: StateSliceKey<T>): T {
-    return this.#read(key, key.id);
+    const id = checkedId(key.id);
+    return this.#read(key, id, captureConstraints(key, id));
   }
 
-  #read<T>(key: StateSliceKey<T>, id: string): T {
+  #read<T>(key: StateSliceKey<T>, id: string, constraints: SliceConstraints): T {
     const entry = this.#entries.get(id);
     if (entry === undefined) {
       if (definedKeys.has(key)) {
         return key.defaultValue;
       }
       if (!this.#fallbacks.has(key)) {
-        this.#fallbacks.set(key, ownFrozen(key.defaultValue));
+        this.#fallbacks.set(key, ownFrozen(key.defaultValue, id, constraints));
       }
       return this.#fallbacks.get(key) as T;
     }
+    requireSameConstraints(id, entry.constraints, constraints);
     return this.#materialize(id, entry) as T;
   }
 
@@ -142,28 +375,59 @@ export class StateSliceStore {
    * Returns a new `StateSliceStore` with `key` updated to `newValue`, leaving this instance unchanged.
    */
   public withSlice<T>(key: StateSliceKey<T>, newValue: T): StateSliceStore {
-    return this.#withSlice(key.id, newValue);
+    const id = checkedId(key.id);
+    return this.#withSlice(id, newValue, captureConstraints(key, id));
   }
 
-  #withSlice<T>(id: string, newValue: T): StateSliceStore {
+  #withSlice<T>(id: string, newValue: T, constraints: SliceConstraints): StateSliceStore {
+    const previous = this.#entries.get(id);
+    if (previous !== undefined) {
+      requireSameConstraints(id, previous.constraints, constraints);
+    }
     const next = new Map(this.#entries);
-    next.set(id, Object.freeze({ kind: 'value', value: ownFrozen(newValue) }));
+    next.set(
+      id,
+      Object.freeze({ kind: 'value', value: ownFrozen(newValue, id, constraints), constraints }),
+    );
     return StateSliceStore.#fromTrustedEntries(next);
   }
 
   /** Appends one privately frozen row without reading or copying prior rows. */
   public appendSlice<Row>(key: StateSliceKey<ReadonlyArray<Row>>, row: Row): StateSliceStore {
-    const id = key.id;
+    const id = checkedId(key.id);
+    const constraints = captureConstraints(key, id);
+    if (constraints.schema !== undefined) {
+      throw new TypeError(`StateSliceKey '${id}' cannot use fast append with a whole-array schema`);
+    }
     if (!this.#entries.has(id) && !definedKeys.has(key)) {
       throw new TypeError(`StateSliceKey '${id}' must use defineStateSlice for append`);
     }
     const previous =
-      this.#entries.get(id) ?? Object.freeze({ kind: 'value', value: key.defaultValue });
+      this.#entries.get(id) ??
+      Object.freeze({ kind: 'value', value: key.defaultValue, constraints });
+    if (previous.constraints.schema !== undefined) {
+      throw new TypeError(`StateSliceKey '${id}' cannot append to a whole-array schema value`);
+    }
+    requireSameConstraints(id, previous.constraints, constraints);
     if (previous.kind === 'value' && !Array.isArray(previous.value)) {
       throw new TypeError(`StateSliceKey '${id}' is not an array collection`);
     }
     const next = new Map(this.#entries);
-    next.set(id, Object.freeze({ kind: 'append', previous, row: ownFrozen(row) }));
+    next.set(
+      id,
+      Object.freeze({
+        kind: 'append',
+        previous,
+        row: ownFrozen(
+          row,
+          id,
+          constraints.rowSchema === undefined
+            ? emptyConstraints
+            : { schema: constraints.rowSchema, rowSchema: undefined },
+        ),
+        constraints,
+      }),
+    );
     return StateSliceStore.#fromTrustedEntries(next);
   }
 
@@ -171,10 +435,11 @@ export class StateSliceStore {
    * Applies a pure updater function to the current value of `key` and returns a new `StateSliceStore`.
    */
   public updateSlice<T>(key: StateSliceKey<T>, updater: (current: T) => T): StateSliceStore {
-    const id = key.id;
-    const current = this.#read(key, id);
+    const id = checkedId(key.id);
+    const constraints = captureConstraints(key, id);
+    const current = this.#read(key, id, constraints);
     const updated = updater(current);
-    return this.#withSlice(id, updated);
+    return this.#withSlice(id, updated, constraints);
   }
 
   /**
@@ -186,7 +451,7 @@ export class StateSliceStore {
     for (const id of sortedKeys) {
       const entry = this.#entries.get(id);
       if (entry !== undefined) {
-        result[id] = ownFrozen(this.#materialize(id, entry));
+        result[id] = ownFrozen(this.#materialize(id, entry), id);
       }
     }
     return Object.freeze(result);

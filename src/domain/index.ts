@@ -9,7 +9,9 @@ export const DOMAIN_LAYER_ID = 'domain' as const;
 export { SeededRandom } from './core/SeededRandom.js';
 export {
   defineStateSlice,
+  type SliceSchema,
   type StateSliceKey,
+  type StateSliceOptions,
   StateSliceRegistry,
   StateSliceStore,
 } from './core/StateSliceRegistry.js';
