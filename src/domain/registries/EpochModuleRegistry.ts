@@ -36,6 +36,8 @@ function compareCodeUnits(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
+const PACK_REGISTRATION_TOKEN = Symbol('pack-registration');
+
 export class EpochModuleRegistry {
   private readonly allIds = new Map<string, string>();
   private readonly spaces = new Map<string, SpaceNodeBlueprint>();
@@ -53,11 +55,65 @@ export class EpochModuleRegistry {
   private readonly emergencies = new Map<string, EmergencyStateBlueprint>();
   private readonly behaviors = new Map<string, BehaviorModule>();
   private orbitalPass: OrbitalPassBlueprint | undefined;
+  private primaryPackIdentity:
+    Pick<EpochModulePackInput, 'epochId' | 'packId' | 'packVersion'> | undefined;
+  private readonly permittedImports = new Map<string, number>();
+  private readonly registeredPackIds = new Set<string>();
+  private inPackTransaction = false;
+
+  public getPrimaryPackIdentity():
+    Pick<EpochModulePackInput, 'epochId' | 'packId' | 'packVersion'> | undefined {
+    return this.primaryPackIdentity === undefined ? undefined : { ...this.primaryPackIdentity };
+  }
 
   public registerPack(pack: EpochModulePackInput): void {
-    const trimmedEpochId = pack.epochId.trim();
-    if (trimmedEpochId.length === 0) {
+    if (this.inPackTransaction) {
+      throw new Error('Nested pack registration is not allowed');
+    }
+    this.inPackTransaction = true;
+    try {
+      this.registerPackInTransaction(pack);
+    } finally {
+      this.inPackTransaction = false;
+    }
+  }
+
+  private registerPackInTransaction(pack: EpochModulePackInput): void {
+    const epochId = pack.epochId;
+    const packId = pack.packId;
+    const packVersion = pack.packVersion;
+    const imports = pack.imports;
+    if (typeof epochId !== 'string' || epochId.trim().length === 0) {
       throw new Error('EpochModulePackInput.epochId must be a non-empty string');
+    }
+    this.assertPackIdentity(packId, packVersion);
+    if (!Array.isArray(imports)) {
+      throw new Error('EpochModulePackInput.imports must be an explicit list');
+    }
+    const stagedImports = new Map<string, number>();
+    for (const imported of imports) {
+      const importedId = imported.packId;
+      const importedVersion = imported.packVersion;
+      this.assertPackIdentity(importedId, importedVersion);
+      if (importedId === packId || stagedImports.has(importedId)) {
+        throw new Error(`Pack '${packId}' has a duplicate import '${importedId}'`);
+      }
+      stagedImports.set(importedId, importedVersion);
+    }
+    if (this.primaryPackIdentity === undefined) {
+      if (this.allIds.size > 0) {
+        throw new Error('Cannot bind a directly populated registry to a primary pack');
+      }
+    } else {
+      if (epochId !== this.primaryPackIdentity.epochId) {
+        throw new Error(`Pack '${packId}' epochId differs from the primary pack epoch`);
+      }
+      if (this.registeredPackIds.has(packId)) {
+        throw new Error(`Pack '${packId}' is already registered`);
+      }
+      if (this.permittedImports.get(packId) !== packVersion) {
+        throw new Error(`Pack '${packId}' version ${String(packVersion)} is not a declared import`);
+      }
     }
 
     const snapshotAllIds = new Map(this.allIds);
@@ -75,37 +131,48 @@ export class EpochModuleRegistry {
     const snapshotOrbitalPass = this.orbitalPass;
 
     try {
-      this.registerSpaces(pack.spaces);
+      this.registerSpaces(pack.spaces, PACK_REGISTRATION_TOKEN);
       if (pack.props !== undefined) {
-        this.registerProps(pack.props);
+        this.registerProps(pack.props, PACK_REGISTRATION_TOKEN);
       }
       if (pack.characters !== undefined) {
-        this.registerCharacters(pack.characters);
+        this.registerCharacters(pack.characters, PACK_REGISTRATION_TOKEN);
       }
       if (pack.offices !== undefined) {
-        this.registerOffices(pack.offices);
+        this.registerOffices(pack.offices, PACK_REGISTRATION_TOKEN);
       }
       if (pack.quietClaims !== undefined) {
-        this.registerQuietClaims(pack.quietClaims);
+        this.registerQuietClaims(pack.quietClaims, PACK_REGISTRATION_TOKEN);
       }
       if (pack.rivals !== undefined) {
-        this.registerRivals(pack.rivals);
+        this.registerRivals(pack.rivals, PACK_REGISTRATION_TOKEN);
       }
       if (pack.threads !== undefined) {
-        this.registerThreads(pack.threads);
+        this.registerThreads(pack.threads, PACK_REGISTRATION_TOKEN);
       }
       if (pack.channels !== undefined) {
-        this.registerChannels(pack.channels);
+        this.registerChannels(pack.channels, PACK_REGISTRATION_TOKEN);
       }
       if (pack.emergencies !== undefined) {
-        this.registerEmergencies(pack.emergencies);
+        this.registerEmergencies(pack.emergencies, PACK_REGISTRATION_TOKEN);
       }
       if (pack.orbitalPass !== undefined) {
-        this.registerOrbitalPass(pack.orbitalPass);
+        this.registerOrbitalPass(pack.orbitalPass, PACK_REGISTRATION_TOKEN);
       }
       if (pack.behaviors !== undefined) {
-        this.registerBehaviors(pack.behaviors);
+        this.registerBehaviors(pack.behaviors, PACK_REGISTRATION_TOKEN);
       }
+      if (this.primaryPackIdentity === undefined) {
+        this.primaryPackIdentity = {
+          epochId,
+          packId,
+          packVersion,
+        };
+        for (const [id, version] of stagedImports) {
+          this.permittedImports.set(id, version);
+        }
+      }
+      this.registeredPackIds.add(packId);
     } catch (err) {
       this.restoreMap(this.allIds, snapshotAllIds);
       this.restoreMap(this.spaces, snapshotSpaces);
@@ -124,7 +191,26 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerSpaces(spaceList: ReadonlyArray<SpaceNodeBlueprint>): void {
+  private assertPackIdentity(packId: string, packVersion: number): void {
+    if (typeof packId !== 'string' || packId.length === 0 || packId !== packId.trim()) {
+      throw new Error('EpochModulePackInput.packId must be a non-empty unpadded string');
+    }
+    if (!Number.isSafeInteger(packVersion) || packVersion <= 0) {
+      throw new Error('EpochModulePackInput.packVersion must be a positive integer');
+    }
+  }
+
+  private assertDirectRegistrationAllowed(token?: symbol): void {
+    if (token === PACK_REGISTRATION_TOKEN && this.inPackTransaction) {
+      return;
+    }
+    if (this.primaryPackIdentity !== undefined || this.inPackTransaction) {
+      throw new Error('Direct registration cannot mutate a bound registry');
+    }
+  }
+
+  public registerSpaces(spaceList: ReadonlyArray<SpaceNodeBlueprint>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedSpaces = new Map<string, SpaceNodeBlueprint>();
     const stagedWaypoints = new Map<
@@ -178,7 +264,8 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerProps(propList: ReadonlyArray<PropBlueprint>): void {
+  public registerProps(propList: ReadonlyArray<PropBlueprint>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedProps = new Map<string, PropBlueprint>();
 
@@ -198,7 +285,11 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerCharacters(characterList: ReadonlyArray<CharacterBlueprint>): void {
+  public registerCharacters(
+    characterList: ReadonlyArray<CharacterBlueprint>,
+    token?: symbol,
+  ): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedCharacters = new Map<string, CharacterBlueprint>();
 
@@ -256,7 +347,8 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerOffices(officeList: ReadonlyArray<OfficeBlueprint>): void {
+  public registerOffices(officeList: ReadonlyArray<OfficeBlueprint>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedOffices = new Map<string, OfficeBlueprint>();
 
@@ -279,7 +371,8 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerQuietClaims(claimList: ReadonlyArray<QuietClaimBlueprint>): void {
+  public registerQuietClaims(claimList: ReadonlyArray<QuietClaimBlueprint>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedClaims = new Map<string, QuietClaimBlueprint>();
 
@@ -302,7 +395,8 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerRivals(rivalList: ReadonlyArray<RivalCivBlueprint>): void {
+  public registerRivals(rivalList: ReadonlyArray<RivalCivBlueprint>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedRivals = new Map<string, RivalCivBlueprint>();
 
@@ -325,7 +419,11 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerThreads(threadList: ReadonlyArray<TrajectoryThreadBlueprint>): void {
+  public registerThreads(
+    threadList: ReadonlyArray<TrajectoryThreadBlueprint>,
+    token?: symbol,
+  ): void {
+    this.assertDirectRegistrationAllowed(token);
     const knownLineages = new Set(Array.from(this.characters.values()).map((c) => c.lineageId));
     const stagedIds = new Map<string, string>();
     const stagedThreads = new Map<string, TrajectoryThreadBlueprint>();
@@ -360,7 +458,11 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerChannels(channelList: ReadonlyArray<ChannelMediumBlueprint>): void {
+  public registerChannels(
+    channelList: ReadonlyArray<ChannelMediumBlueprint>,
+    token?: symbol,
+  ): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedChannels = new Map<string, ChannelMediumBlueprint>();
 
@@ -378,7 +480,11 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerEmergencies(emergencyList: ReadonlyArray<EmergencyStateBlueprint>): void {
+  public registerEmergencies(
+    emergencyList: ReadonlyArray<EmergencyStateBlueprint>,
+    token?: symbol,
+  ): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const stagedEmergencies = new Map<string, EmergencyStateBlueprint>();
 
@@ -396,7 +502,8 @@ export class EpochModuleRegistry {
     }
   }
 
-  public registerOrbitalPass(rawOrbital: OrbitalPassBlueprint): void {
+  public registerOrbitalPass(rawOrbital: OrbitalPassBlueprint, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     if (this.orbitalPass !== undefined) {
       throw new Error(
         `OrbitalPass '${this.orbitalPass.id}' is already registered in this EpochModuleRegistry`,
@@ -416,7 +523,8 @@ export class EpochModuleRegistry {
    * using Kahn's algorithm with code-unit lexicographical tie-breaking, rejecting self-loops,
    * duplicate dependencies, missing dependencies, and multi-node cycles.
    */
-  public registerBehaviors(behaviorList: ReadonlyArray<BehaviorModule>): void {
+  public registerBehaviors(behaviorList: ReadonlyArray<BehaviorModule>, token?: symbol): void {
+    this.assertDirectRegistrationAllowed(token);
     const stagedIds = new Map<string, string>();
     const batchById = new Map<string, BehaviorModule>();
 

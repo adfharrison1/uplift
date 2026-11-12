@@ -8,6 +8,9 @@ describe('EpochModuleRegistry and EpochBlueprints', () => {
 
     registry.registerPack({
       epochId: 'epoch_test_01',
+      packId: 'test_all_families',
+      packVersion: 1,
+      imports: [],
       spaces: [
         {
           id: 'space_alpha',

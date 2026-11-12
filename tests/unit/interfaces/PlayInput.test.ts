@@ -52,6 +52,9 @@ function doorSession(
   const registry = new EpochModuleRegistry();
   registry.registerPack({
     epochId: 'epoch_play',
+    packId: 'test_play_input',
+    packVersion: 1,
+    imports: [],
     spaces: [
       {
         id: 'space_room',

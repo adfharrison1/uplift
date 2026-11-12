@@ -4,6 +4,9 @@ export function makeRegistry(overrides: Partial<EpochModulePackInput> = {}): Epo
   const registry = new EpochModuleRegistry();
   registry.registerPack({
     epochId: 'epoch_sim_test',
+    packId: 'test_simulation',
+    packVersion: 1,
+    imports: [],
     spaces: [
       {
         id: 'space_alpha',

@@ -174,6 +174,9 @@ function doorCoordinator(options: {
   const registry = new EpochModuleRegistry();
   registry.registerPack({
     epochId: 'epoch_door',
+    packId: 'test_door',
+    packVersion: 1,
+    imports: [],
     spaces: [
       {
         id: 'space_yard',
@@ -378,6 +381,9 @@ describe('waypoint requests and portal truncation', () => {
     const registry = new EpochModuleRegistry();
     registry.registerPack({
       epochId: 'epoch_offstage',
+      packId: 'test_offstage',
+      packVersion: 1,
+      imports: [],
       spaces: [
         {
           id: 'space_off',

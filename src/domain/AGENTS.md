@@ -26,6 +26,8 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 
 Preserve the exact schema vocabularies and orbital reducer rules recorded in this section's README. Distinguish data acceptance and callable reducer behavior from a content pack or gameplay consumer; do not remove working reducer contracts when correcting planned-feature claims.
 
+An `EpochModulePackInput` needs a nonempty unpadded `packId`, positive integer `packVersion` and explicit versioned `imports`. Bind an empty registry through the primary pack; import only declared identity/version pairs for that same target epoch. Treat imported pack declarations as data, never as authority to extend the primary import list. Public direct registration remains available only before binding; a failed pack transaction must restore all blueprints and leave identity unchanged. `getPrimaryPackIdentity()` supplies the primary identity to later save consumers; it does not yet stamp current save envelopes.
+
 ## World snapshot boundary
 
 Use `encodeWorldState` and `decodeWorldStateSnapshot` for serialized world fields, keeping custom slice values and version maps separate. The codec owns a strict version-2 shape, a pure synthetic version-1 marker migration, nested validation, plain-JSON ownership, unsafe-key rejection and equality of inner and outer epoch/tick. It rejects orbital availability above capacity and never trims saved pillar IDs. The coordinator calls the codec on save/load and publishes a restored world only after the remaining state and required load telemetry pass validation. `validateEntityId` is exported for the shared render token rule but is not yet enforced by registration or snapshot decoding.

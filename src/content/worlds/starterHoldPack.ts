@@ -18,6 +18,9 @@ function deepFreeze<T>(value: T): T {
 
 export const STARTER_HOLD_PACK: EpochModulePackInput = deepFreeze({
   epochId: 'epoch_1_highglass',
+  packId: 'starter_hold',
+  packVersion: 1,
+  imports: [],
   spaces: [
     {
       id: 'space_glass_yard',

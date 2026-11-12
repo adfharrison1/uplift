@@ -51,6 +51,9 @@ describe('PlaySession controls and frame behavior', () => {
     const coordinator = coordinatorFor(
       {
         epochId: 'epoch_play',
+        packId: 'test_floor_controls',
+        packVersion: 1,
+        imports: [],
         spaces: [
           {
             id: 'space_floor',

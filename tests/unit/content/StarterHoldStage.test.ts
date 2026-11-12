@@ -71,6 +71,11 @@ describe('starter hold pack and stages', () => {
   it('registers the yard, the chambers, the open door, and exactly two characters', () => {
     const registry = new EpochModuleRegistry();
     registry.registerPack(STARTER_HOLD_PACK);
+    expect(registry.getPrimaryPackIdentity()).toEqual({
+      epochId: 'epoch_1_highglass',
+      packId: 'starter_hold',
+      packVersion: 1,
+    });
 
     expect(registry.getSpace('space_glass_yard').kind).toBe('outdoor_area');
     expect(registry.getSpace('space_player_chambers').kind).toBe('indoor_room');

@@ -251,6 +251,9 @@ export type BehaviorModule = z.infer<typeof BehaviorModuleSchema>;
 
 export interface EpochModulePackInput {
   readonly epochId: string;
+  readonly packId: string;
+  readonly packVersion: number;
+  readonly imports: ReadonlyArray<{ readonly packId: string; readonly packVersion: number }>;
   readonly spaces: ReadonlyArray<SpaceNodeBlueprint>;
   readonly props?: ReadonlyArray<PropBlueprint>;
   readonly characters?: ReadonlyArray<CharacterBlueprint>;

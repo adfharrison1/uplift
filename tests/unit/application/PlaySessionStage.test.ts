@@ -30,6 +30,9 @@ describe('PlaySession stage selection and rendering', () => {
     const coordinator = coordinatorFor(
       {
         epochId: 'epoch_play',
+        packId: 'test_other_stage',
+        packVersion: 1,
+        imports: [],
         spaces: [
           {
             id: 'space_other',
@@ -77,6 +80,9 @@ describe('PlaySession stage selection and rendering', () => {
     const coordinator = coordinatorFor(
       {
         epochId: 'epoch_play',
+        packId: 'test_missing_stage',
+        packVersion: 1,
+        imports: [],
         spaces: [
           {
             id: 'space_home',
@@ -141,6 +147,9 @@ describe('PlaySession stage selection and rendering', () => {
     const coordinator = coordinatorFor(
       {
         epochId: 'epoch_play',
+        packId: 'test_space_origin',
+        packVersion: 1,
+        imports: [],
         spaces: [
           {
             id: 'space_lane',
@@ -188,6 +197,9 @@ describe('PlaySession stage selection and rendering', () => {
     const coordinator = coordinatorFor(
       {
         epochId: 'epoch_play',
+        packId: 'test_wide_stage',
+        packVersion: 1,
+        imports: [],
         spaces: [
           {
             id: 'space_wide',

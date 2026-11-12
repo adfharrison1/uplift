@@ -94,6 +94,9 @@ export function doorSession(
   const coordinator = coordinatorFor(
     {
       epochId: 'epoch_play',
+      packId: 'test_play_session',
+      packVersion: 1,
+      imports: [],
       spaces: [
         {
           id: 'space_room',
