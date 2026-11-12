@@ -97,6 +97,8 @@ describe('Vite Local Disk Bridge Middleware', () => {
         url: '/api/saves/court-day-1',
         rawBody: JSON.stringify({
           epochId: 'era_1_highglass_hold',
+          packId: 'test_bridge_pack',
+          packVersion: 1,
           worldTick: 9,
           rngState: 55_555,
           stateSlices: { 'office.physician': true },

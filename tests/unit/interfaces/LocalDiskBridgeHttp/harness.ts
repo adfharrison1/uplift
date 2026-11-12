@@ -36,7 +36,14 @@ export const event = {
   action: 'record',
   message: 'evidence',
 };
-export const save = { epochId: 'test', worldTick: 9, rngState: 42, stateSlices: { test: 3 } };
+export const save = {
+  epochId: 'test',
+  packId: 'test_http_pack',
+  packVersion: 1,
+  worldTick: 9,
+  rngState: 42,
+  stateSlices: { test: 3 },
+};
 export const active = 'current-session.jsonl';
 
 export function snapshot(base: string, entries: readonly string[] = roots): Record<string, string> {

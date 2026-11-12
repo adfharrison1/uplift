@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   defineStateSlice,
   SAVE_SLOT_SCHEMA_VERSION,
+  type SaveSlotWriteInput,
   SeededRandom,
   StateSliceStore,
 } from '../../../src/domain/index.js';
@@ -24,6 +25,7 @@ import {
 describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
   let tempSavesDir: string;
   const subsistenceSlice = defineStateSlice<number>('economy.subsistence_pressure', 0.15);
+  const packIdentity = { packId: 'test_pack', packVersion: 1 };
 
   beforeEach(() => {
     tempSavesDir = mkdtempSync(join(tmpdir(), 'uplift-saves-test-'));
@@ -44,6 +46,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     const savedAlpha = repo.saveSlot({
       slotId: 'slot-alpha',
       epochId: 'era_1_highglass_hold',
+      ...packIdentity,
       worldTick: 18,
       rngState: savedRngState,
       stateSlices: store.toSnapshot(),
@@ -57,6 +60,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     repo.saveSlot({
       slotId: 'slot-beta',
       epochId: 'era_2_steam_republic',
+      ...packIdentity,
       worldTick: 4,
       rngState: 98_765,
       stateSlices: new StateSliceStore().toSnapshot(),
@@ -92,6 +96,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     repo.saveSlot({
       slotId: 'valid-slot',
       epochId: 'era_1_highglass_hold',
+      ...packIdentity,
       worldTick: 1,
       rngState: 42,
       stateSlices: {},
@@ -115,6 +120,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
         repo.saveSlot({
           slotId: traversalId,
           epochId: 'era_1',
+          ...packIdentity,
           worldTick: 0,
           rngState: 1,
           stateSlices: {},
@@ -127,6 +133,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
       repo.saveSlot({
         slotId: 'bad-rng',
         epochId: 'era_1',
+        ...packIdentity,
         worldTick: 0,
         rngState: 0,
         stateSlices: {},
@@ -137,11 +144,61 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
       repo.saveSlot({
         slotId: 'bad-tick',
         epochId: 'era_1',
+        ...packIdentity,
         worldTick: -1,
         rngState: 10,
         stateSlices: {},
       }),
     ).toThrow(RangeError);
+  });
+
+  it('rejects identity-free current and schema-one files without assigning a pack from epoch', () => {
+    const repo = new FileSaveSlotRepository(tempSavesDir);
+    const current = repo.saveSlot({
+      slotId: 'current',
+      epochId: 'epoch_test',
+      packId: 'pack_current',
+      packVersion: 2,
+      worldTick: 1,
+      rngState: 42,
+      stateSlices: {},
+    });
+    writeFileSync(
+      join(tempSavesDir, 'identity_free.json'),
+      JSON.stringify({
+        ...current,
+        slotId: 'identity_free',
+        packId: undefined,
+        packVersion: undefined,
+      }),
+    );
+    writeFileSync(
+      join(tempSavesDir, 'old_schema.json'),
+      JSON.stringify({ ...current, slotId: 'old_schema', schemaVersion: 1 }),
+    );
+    expect(() => repo.loadSlot('identity_free')).toThrow(/Corrupted save slot/);
+    expect(() => repo.loadSlot('old_schema')).toThrow(/Corrupted save slot/);
+    expect(repo.listSlots().map((slot) => slot.slotId)).toEqual(['current']);
+    expect(repo.loadSlot('current')).toEqual(current);
+  });
+
+  it('keeps prior bytes when a direct replacement omits pack identity', () => {
+    const repo = new FileSaveSlotRepository(tempSavesDir);
+    const original = repo.saveSlot({
+      slotId: 'replace',
+      epochId: 'epoch_test',
+      packId: 'pack_current',
+      packVersion: 2,
+      worldTick: 1,
+      rngState: 42,
+      stateSlices: {},
+    });
+    const bytes = readFileSync(join(tempSavesDir, 'replace.json'), 'utf8');
+    expect(() =>
+      repo.saveSlot({ ...original, packId: undefined } as unknown as SaveSlotWriteInput),
+    ).toThrow(/packId/);
+    expect(readFileSync(join(tempSavesDir, 'replace.json'), 'utf8')).toBe(bytes);
+    expect(repo.loadSlot('replace')).toEqual(original);
   });
 
   it('rejects a linked root before writing through it', () => {
@@ -157,6 +214,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
       repo.saveSlot({
         slotId: 'linked',
         epochId: 'epoch',
+        ...packIdentity,
         worldTick: 0,
         rngState: 1,
         stateSlices: {},
@@ -167,7 +225,14 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
 
   it('preserves a saved snapshot when a chosen temporary filename is linked or occupied', () => {
     const original = new FileSaveSlotRepository(tempSavesDir);
-    const input = { slotId: 'slot', epochId: 'test', worldTick: 1, rngState: 1, stateSlices: {} };
+    const input = {
+      slotId: 'slot',
+      epochId: 'test',
+      ...packIdentity,
+      worldTick: 1,
+      rngState: 1,
+      stateSlices: {},
+    };
     original.saveSlot(input);
     const bytes = readFileSync(join(tempSavesDir, 'slot.json'), 'utf8');
     writeFileSync(join(tempSavesDir, 'outside'), 'sentinel');
@@ -199,6 +264,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     memRepo.saveSlot({
       slotId: 'mem-slot',
       epochId: 'era_1_highglass_hold',
+      ...packIdentity,
       worldTick: 7,
       rngState: 777,
       stateSlices: { 'test.slice': 123 },
@@ -211,7 +277,7 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
   });
 
   it.each(['file', 'memory'] as const)(
-    '%s slots preserve supplied pack identity and omit absent identity',
+    '%s slots require pack identity and preserve it in metadata',
     (kind) => {
       const repo =
         kind === 'file'
@@ -227,14 +293,16 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
         stateSlices: { 'test.slice': { count: 1 } },
         savedAtIso: '2026-11-12T00:00:00.000Z',
       });
-      const withoutIdentity = repo.saveSlot({
-        slotId: 'without_identity',
-        epochId: 'epoch_identity',
-        worldTick: 1,
-        rngState: 8,
-        stateSlices: {},
-        savedAtIso: '2026-11-12T00:01:00.000Z',
-      });
+      expect(() =>
+        repo.saveSlot({
+          slotId: 'without_identity',
+          epochId: 'epoch_identity',
+          worldTick: 1,
+          rngState: 8,
+          stateSlices: {},
+          savedAtIso: '2026-11-12T00:01:00.000Z',
+        } as SaveSlotWriteInput),
+      ).toThrow(/packId/);
 
       expect(withIdentity).toMatchObject({ packId: 'pack_primary', packVersion: 3 });
       expect(repo.loadSlot('with_identity')).toMatchObject({
@@ -244,24 +312,15 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
       expect(repo.listSlots()).toEqual([
         {
           slotId: 'with_identity',
-          schemaVersion: 1,
+          schemaVersion: 2,
           epochId: 'epoch_identity',
           packId: 'pack_primary',
           packVersion: 3,
           worldTick: 2,
           savedAtIso: '2026-11-12T00:00:00.000Z',
         },
-        {
-          slotId: 'without_identity',
-          schemaVersion: 1,
-          epochId: 'epoch_identity',
-          worldTick: 1,
-          savedAtIso: '2026-11-12T00:01:00.000Z',
-        },
       ]);
-      expect(withoutIdentity).not.toHaveProperty('packId');
-      expect(withoutIdentity).not.toHaveProperty('packVersion');
-      expect(repo.loadSlot('without_identity')).not.toHaveProperty('packId');
+      expect(() => repo.loadSlot('without_identity')).toThrow(/does not exist/);
       if (kind === 'file') {
         expect(
           JSON.parse(readFileSync(join(tempSavesDir, 'with_identity.json'), 'utf8')),

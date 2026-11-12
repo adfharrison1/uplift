@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import * as browserMain from '../../../src/interfaces/composition/browserMain.js';
-import type { SaveSlotRepositoryPort, TelemetryClock } from '../../../src/domain/index.js';
+import type {
+  SaveSlotRepositoryPort,
+  SaveSlotWriteInput,
+  TelemetryClock,
+} from '../../../src/domain/index.js';
 
 type BrowserSaveConstructor = new (clock: TelemetryClock) => SaveSlotRepositoryPort;
 const BrowserSaveRepository = (
@@ -43,7 +47,7 @@ describe('browser in-memory save repository', () => {
     });
   });
 
-  it('lists supplied identity and omits it when no identity was supplied', () => {
+  it('lists required identity and rejects an identity-free write', () => {
     expect(BrowserSaveRepository).toBeTypeOf('function');
     if (BrowserSaveRepository === undefined) return;
     const repository = new BrowserSaveRepository(clock);
@@ -56,32 +60,26 @@ describe('browser in-memory save repository', () => {
       rngState: 9,
       stateSlices: {},
     });
-    const anonymous = repository.saveSlot({
-      slotId: 'anonymous',
-      epochId: 'epoch_browser',
-      worldTick: 2,
-      rngState: 10,
-      stateSlices: {},
-    });
+    expect(() =>
+      repository.saveSlot({
+        slotId: 'anonymous',
+        epochId: 'epoch_browser',
+        worldTick: 2,
+        rngState: 10,
+        stateSlices: {},
+      } as SaveSlotWriteInput),
+    ).toThrow();
     expect(repository.listSlots()).toEqual([
       {
         slotId: 'identified',
-        schemaVersion: 1,
+        schemaVersion: 2,
         epochId: 'epoch_browser',
         packId: 'pack_browser',
         packVersion: 2,
         worldTick: 1,
         savedAtIso: '2026-11-12T00:00:00.000Z',
       },
-      {
-        slotId: 'anonymous',
-        schemaVersion: 1,
-        epochId: 'epoch_browser',
-        worldTick: 2,
-        savedAtIso: '2026-11-12T00:00:00.000Z',
-      },
     ]);
-    expect(anonymous).not.toHaveProperty('packId');
-    expect(repository.loadSlot('anonymous')).not.toHaveProperty('packVersion');
+    expect(() => repository.loadSlot('anonymous')).toThrow(/does not exist/);
   });
 });

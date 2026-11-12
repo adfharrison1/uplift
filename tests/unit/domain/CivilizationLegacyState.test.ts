@@ -107,6 +107,8 @@ describe('Dual-Ledger CivilizationLegacyState and applyLegacyToCharacterBlueprin
       label: 'End of Epoch 1',
       savedAtIso: '2026-11-06T21:00:00.000Z',
       epochId: 'epoch_1',
+      packId: 'test_legacy_pack',
+      packVersion: 1,
       worldTick: 1800,
       rngState: 123456,
       stateSlices: {},

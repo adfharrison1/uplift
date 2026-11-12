@@ -8,7 +8,7 @@
 4. **Zod `safeParse` for Disk/JSON Inputs**: Always use `safeParseJsonWithSchema(rawJson, Schema)` when reading JSON or NDJSON from disk so corrupted or truncated lines/files are handled safely without uncaught exceptions or `as` casts.
 5. **Telemetry Storage Caps & Save Safety**: Treat `50 MiB` as the active auto-compaction trigger, not a hard active-file cap: the retained recent window may still exceed it. The compacted stream has a `500 MiB` priority-eviction cap; even high-signal records can eventually be evicted. Use `safeLocalFiles.ts` for disk reads, appends, writes, lists, moves and deletion. Validate `slotId` with `validateSaveSlotId`; serialize and schema-check before exclusive temporary creation and atomic replacement. Reject root/parent/file/temp symlinks, including dangling links, and recheck paths on each operation.
 6. **Fast Unit Test Fallback**: Always provide an in-memory implementation (`InMemorySessionTelemetry`, `InMemorySaveSlotRepository`) alongside disk adapters so unit and headless simulation tests run in `<3s`.
-   Preserve optional pack ID/version in file and in-memory save envelopes and listing metadata without inferring identity when absent. Keep the file repository's confinement and atomic replacement checks on the same path.
+   Require pack ID/version in schema-2 file and in-memory save envelopes and listing metadata. Reject identity-free and schema-1 files without inferring a pack from the epoch. Keep the file repository's confinement and atomic replacement checks on the same path; listing still omits corrupt files until unreadable-slot diagnostics ship.
 7. **Zero `any`**: Implicit and explicit `any` are forbidden.
 
 ## Session retention and failure handling

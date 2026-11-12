@@ -52,22 +52,22 @@ describe('HTTP storage readback', () => {
     app = await start();
   });
 
-  it('carries optional pack identity through guarded save PUT, GET, listing and disk', async () => {
+  it('carries required pack identity through guarded save PUT, GET, listing and disk', async () => {
     const identified = { ...save, packId: 'pack_http', packVersion: 4 };
     expect(
       (await app.send('/api/saves/identified', 'PUT', JSON.stringify(identified))).status,
     ).toBe(200);
-    expect((await app.send('/api/saves/anonymous', 'PUT', JSON.stringify(save))).status).toBe(200);
+    const identityFree = { ...save, packId: undefined, packVersion: undefined };
+    expect(
+      (await app.send('/api/saves/anonymous', 'PUT', JSON.stringify(identityFree))).status,
+    ).toBe(400);
     expect((await app.send('/api/saves/identified')).body).toMatchObject({
       envelope: { packId: 'pack_http', packVersion: 4 },
     });
     expect((await app.send('/api/saves')).body).toMatchObject({
-      slots: [
-        { slotId: 'anonymous' },
-        { slotId: 'identified', packId: 'pack_http', packVersion: 4 },
-      ],
+      slots: [{ slotId: 'identified', packId: 'pack_http', packVersion: 4 }],
     });
-    expect((await app.send('/api/saves/anonymous')).body).not.toHaveProperty('envelope.packId');
+    expect((await app.send('/api/saves/anonymous')).status).toBe(404);
     const onDisk = JSON.parse(
       readFileSync(join(app.base, 'saves', 'identified.json'), 'utf8'),
     ) as unknown;
@@ -167,6 +167,8 @@ describe('HTTP storage readback', () => {
     const produced = source.saveToSlot('slice_http');
     const write = {
       epochId: produced.epochId,
+      packId: produced.packId,
+      packVersion: produced.packVersion,
       worldTick: produced.worldTick,
       rngState: produced.rngState,
       savedAtIso: produced.savedAtIso,
@@ -180,6 +182,8 @@ describe('HTTP storage readback', () => {
     expect(get.status).toBe(200);
     expect(get.body).toMatchObject({
       envelope: {
+        packId: 'test_simulation',
+        packVersion: 1,
         stateSlices: {
           __upliftCustomSlicesSnapshot: { 'plugin.http_saved': { count: 8 } },
           __upliftCustomSliceVersions: { 'plugin.http_saved': 3 },
@@ -190,6 +194,8 @@ describe('HTTP storage readback', () => {
       readFileSync(join(app.base, 'saves', 'slice_http.json'), 'utf8'),
     ) as unknown;
     expect(disk).toMatchObject({
+      packId: 'test_simulation',
+      packVersion: 1,
       stateSlices: {
         __upliftCustomSlicesSnapshot: { 'plugin.http_saved': { count: 8 } },
         __upliftCustomSliceVersions: { 'plugin.http_saved': 3 },

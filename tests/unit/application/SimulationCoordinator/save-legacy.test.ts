@@ -104,6 +104,8 @@ describe('SimulationCoordinator save and legacy', () => {
     saveRepository.saveSlot({
       slotId: 'slot_foreign',
       epochId: 'epoch_sim_test',
+      packId: 'test_simulation',
+      packVersion: 1,
       worldTick: 99,
       rngState: 12345,
       stateSlices: {},
@@ -150,7 +152,7 @@ describe('SimulationCoordinator save and legacy', () => {
     coordinator.getRng().nextUint32();
     const saved = coordinator.saveToSlot('slot_low_clamp');
     const expectedNextDraw = SeededRandom.fromState(saved.rngState).nextUint32();
-    const restoredEpochId = 'epoch_from_saved_slot';
+    const restoredEpochId = 'epoch_sim_test';
     const savedWorld = saved.stateSlices['__upliftWorldStateSnapshot'];
     if (typeof savedWorld !== 'object' || savedWorld === null) {
       throw new Error('Saved slot is missing its world snapshot');

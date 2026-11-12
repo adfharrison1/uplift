@@ -6,7 +6,7 @@
  */
 import { z } from 'zod';
 
-export const SAVE_SLOT_SCHEMA_VERSION = 1 as const;
+export const SAVE_SLOT_SCHEMA_VERSION = 2 as const;
 
 const VALID_SLOT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const UINT32_MAX = 0xffff_ffff;
@@ -40,8 +40,8 @@ export const SaveSlotMetadataSchema = z.object({
   slotId: SaveSlotIdSchema,
   schemaVersion: z.literal(SAVE_SLOT_SCHEMA_VERSION),
   epochId: z.string().trim().min(1),
-  packId: PackIdSchema.optional(),
-  packVersion: PackVersionSchema.optional(),
+  packId: PackIdSchema,
+  packVersion: PackVersionSchema,
   worldTick: z.number().int().nonnegative(),
   savedAtIso: z.string().trim().min(1),
 });
@@ -57,8 +57,8 @@ export type SaveSlotEnvelope = z.infer<typeof SaveSlotEnvelopeSchema>;
 export const SaveSlotWriteInputSchema = z.object({
   slotId: SaveSlotIdSchema,
   epochId: z.string().trim().min(1),
-  packId: PackIdSchema.optional(),
-  packVersion: PackVersionSchema.optional(),
+  packId: PackIdSchema,
+  packVersion: PackVersionSchema,
   worldTick: z.number().int().nonnegative(),
   rngState: RngStateSchema,
   stateSlices: z.record(z.string(), z.unknown()),

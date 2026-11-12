@@ -107,6 +107,15 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
       { advanceTick: true },
     );
     const saved = writer.saveToSlot('first');
+    expect(saved).toMatchObject({
+      schemaVersion: 2,
+      epochId: 'epoch_sim_test',
+      packId: 'test_simulation',
+      packVersion: 1,
+    });
+    expect(repository.listSlots()).toMatchObject([
+      { slotId: 'first', packId: 'test_simulation', packVersion: 1 },
+    ]);
     expect(asRecord(saved.stateSlices[WORLD])['snapshotVersion']).toBe(2);
     expect(saved.stateSlices[CUSTOM]).toEqual({ 'plugin.codec': { count: 7 } });
     expect(saved.stateSlices[VERSIONS]).toEqual({ 'plugin.codec': 2 });
@@ -133,6 +142,118 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
     expect(
       coordinator(repository, undefined, sliceRegistry).loadFromSlot('second').stateSlices.get(key),
     ).toEqual({ count: 7 });
+  });
+
+  it('rejects a coordinator whose requested epoch differs from its bound primary pack', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    expect(
+      () =>
+        new SimulationCoordinator({
+          epochId: 'wrong_epoch',
+          registry: makeRegistry(),
+          telemetry: new InMemorySessionTelemetry('wrong_epoch', createClock()),
+          saveRepository: repository,
+          clock: createClock(),
+        }),
+    ).toThrow(/epochId/);
+    expect(
+      () =>
+        new SimulationCoordinator({
+          epochId: 'epoch_sim_test',
+          registry: new domain.EpochModuleRegistry(),
+          telemetry: new InMemorySessionTelemetry('unbound', createClock()),
+          saveRepository: repository,
+          clock: createClock(),
+        }),
+    ).toThrow(/bound to a primary pack/);
+  });
+
+  it('rejects each primary identity mismatch before publishing world, RNG, slices or legacy and permits retry', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    const base = coordinator(repository).saveToSlot('base');
+    const world = asRecord(base.stateSlices[WORLD]);
+    const cases = [
+      {
+        name: 'epoch',
+        changes: {
+          epochId: 'other_epoch',
+          stateSlices: {
+            ...base.stateSlices,
+            [WORLD]: { ...world, epochId: 'other_epoch' },
+          },
+        },
+        error: /epochId differs from the bound primary pack/,
+      },
+      {
+        name: 'pack',
+        changes: { packId: 'other_pack' },
+        error: /packId differs from the bound primary pack/,
+      },
+      {
+        name: 'version',
+        changes: { packVersion: 2 },
+        error: /packVersion differs from the bound primary pack/,
+      },
+    ] as const;
+    for (const mismatch of cases) {
+      const slotId = `mismatch_${mismatch.name}`;
+      repository.saveSlot({ ...base, ...mismatch.changes, slotId });
+      const bytes = readFileSync(join(saveDir, `${slotId}.json`), 'utf8');
+      const reader = coordinator(repository);
+      reader.getRng().nextUint32();
+      reader.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+        advanceTick: true,
+      });
+      const priorWorld = reader.getWorldState();
+      const priorRng = reader.getRng();
+      const priorSlices = priorWorld.stateSlices;
+      const priorLegacy = reader.exportLegacyState();
+      expect(() => reader.loadFromSlot(slotId), mismatch.name).toThrow(mismatch.error);
+      expect(reader.getWorldState()).toBe(priorWorld);
+      expect(reader.getRng()).toBe(priorRng);
+      expect(reader.getWorldState().stateSlices).toBe(priorSlices);
+      expect(reader.exportLegacyState()).toEqual(priorLegacy);
+      expect(readFileSync(join(saveDir, `${slotId}.json`), 'utf8')).toBe(bytes);
+      repository.saveSlot({ ...base, slotId });
+      expect(reader.loadFromSlot(slotId).worldTick).toBe(base.worldTick);
+    }
+  });
+
+  it('loads an arbitrary earlier tick under the same current pack version', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    const writer = coordinator(repository);
+    const early = writer.saveToSlot('early');
+    const reader = coordinator(repository);
+    for (let tick = 0; tick < 12; tick += 1) {
+      reader.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+        advanceTick: true,
+      });
+    }
+    expect(reader.getWorldState().worldTick).toBe(12);
+    expect(reader.loadFromSlot('early').worldTick).toBe(early.worldTick);
+    expect(reader.saveToSlot('resaved')).toMatchObject({
+      packId: 'test_simulation',
+      packVersion: 1,
+      worldTick: early.worldTick,
+    });
+  });
+
+  it('rejects a saved older pack version when the receiving registry has advanced', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    const old = coordinator(repository).saveToSlot('old_pack');
+    const bytes = readFileSync(join(saveDir, 'old_pack.json'), 'utf8');
+    const reader = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry: makeRegistry({ packVersion: 2 }),
+      telemetry: new InMemorySessionTelemetry('new_pack', createClock()),
+      saveRepository: repository,
+      clock: createClock(),
+    });
+    const priorWorld = reader.getWorldState();
+    expect(old.packVersion).toBe(1);
+    expect(() => reader.loadFromSlot('old_pack')).toThrow(/packVersion/);
+    expect(reader.getWorldState()).toBe(priorWorld);
+    expect(readFileSync(join(saveDir, 'old_pack.json'), 'utf8')).toBe(bytes);
   });
 
   it('loads a synthetic version-one inner snapshot once and resaves only version two', () => {

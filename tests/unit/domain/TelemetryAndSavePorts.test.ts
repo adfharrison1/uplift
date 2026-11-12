@@ -3,6 +3,8 @@ import {
   isHighSignalTelemetryEntry,
   PRESERVED_TELEMETRY_CATEGORIES,
   SAVE_SLOT_SCHEMA_VERSION,
+  SaveSlotEnvelopeSchema,
+  SaveSlotWriteInputSchema,
   type TelemetryEntry,
   validateSaveSlotId,
 } from '../../../src/domain/index.js';
@@ -53,7 +55,7 @@ describe('Domain Telemetry & Save Slot Contracts', () => {
   });
 
   it('validates safe alphanumeric/hyphen/underscore save slot IDs and rejects path traversal strings', () => {
-    expect(SAVE_SLOT_SCHEMA_VERSION).toBe(1);
+    expect(SAVE_SLOT_SCHEMA_VERSION).toBe(2);
     expect(validateSaveSlotId('slot-alpha_01')).toBe('slot-alpha_01');
     expect(validateSaveSlotId('era1-before-martyrdom')).toBe('era1-before-martyrdom');
 
@@ -73,5 +75,35 @@ describe('Domain Telemetry & Save Slot Contracts', () => {
     for (const badId of invalidIds) {
       expect(() => validateSaveSlotId(badId)).toThrow(/Invalid save slot id/);
     }
+  });
+
+  it('requires a complete primary pack identity in current write inputs and envelopes', () => {
+    const input = {
+      slotId: 'identified',
+      epochId: 'epoch_test',
+      worldTick: 3,
+      rngState: 7,
+      stateSlices: {},
+    };
+    expect(SaveSlotWriteInputSchema.safeParse(input).success).toBe(false);
+    expect(
+      SaveSlotWriteInputSchema.safeParse({ ...input, packId: 'pack', packVersion: 1 }).success,
+    ).toBe(true);
+    expect(SaveSlotWriteInputSchema.safeParse({ ...input, packId: 'pack' }).success).toBe(false);
+    expect(SaveSlotWriteInputSchema.safeParse({ ...input, packVersion: 1 }).success).toBe(false);
+    expect(
+      SaveSlotEnvelopeSchema.safeParse({
+        ...input,
+        schemaVersion: 1,
+        savedAtIso: '2026-11-12T00:00:00.000Z',
+      }).success,
+    ).toBe(false);
+    expect(
+      SaveSlotEnvelopeSchema.safeParse({
+        ...input,
+        schemaVersion: 2,
+        savedAtIso: '2026-11-12T00:00:00.000Z',
+      }).success,
+    ).toBe(false);
   });
 });

@@ -217,6 +217,11 @@ function inferEffectTelemetryCategory(effects: ReadonlyArray<WorldEffect>): stri
 
 export class SimulationCoordinator {
   private readonly registry: EpochModuleRegistry;
+  private readonly primaryPackIdentity: {
+    readonly epochId: string;
+    readonly packId: string;
+    readonly packVersion: number;
+  };
   private readonly stateSliceRegistry: StateSliceRegistry | undefined;
   private readonly telemetry: SessionTelemetryPort;
   private readonly saveRepository: SaveSlotRepositoryPort;
@@ -235,8 +240,16 @@ export class SimulationCoordinator {
     if (trimmedEpochId.length === 0) {
       throw new Error('SimulationCoordinator requires a non-empty epochId');
     }
+    const primaryPackIdentity = options.registry.getPrimaryPackIdentity();
+    if (primaryPackIdentity === undefined) {
+      throw new Error('SimulationCoordinator requires a registry bound to a primary pack');
+    }
+    if (primaryPackIdentity.epochId !== trimmedEpochId) {
+      throw new Error('SimulationCoordinator epochId differs from its primary pack epochId');
+    }
 
     this.registry = options.registry;
+    this.primaryPackIdentity = primaryPackIdentity;
     this.stateSliceRegistry = options.stateSliceRegistry;
     this.spaces = this.registry.getAllSpaces();
     const spaceKinds = new Map<string, SpaceKind>();
@@ -757,6 +770,8 @@ export class SimulationCoordinator {
     const envelope = this.saveRepository.saveSlot({
       slotId,
       epochId: this.state.epochId,
+      packId: this.primaryPackIdentity.packId,
+      packVersion: this.primaryPackIdentity.packVersion,
       worldTick: this.state.worldTick,
       rngState: this.rng.getState(),
       savedAtIso: this.clock.nowIso(),
@@ -792,6 +807,15 @@ export class SimulationCoordinator {
    */
   public loadFromSlot(slotId: string): WorldState {
     const envelope = this.saveRepository.loadSlot(slotId);
+    if (envelope.epochId !== this.primaryPackIdentity.epochId) {
+      throw new Error(`Save slot '${slotId}' epochId differs from the bound primary pack`);
+    }
+    if (envelope.packId !== this.primaryPackIdentity.packId) {
+      throw new Error(`Save slot '${slotId}' packId differs from the bound primary pack`);
+    }
+    if (envelope.packVersion !== this.primaryPackIdentity.packVersion) {
+      throw new Error(`Save slot '${slotId}' packVersion differs from the bound primary pack`);
+    }
     const rawWorldSnapshot = envelope.stateSlices[WORLD_STATE_SNAPSHOT_KEY];
     if (rawWorldSnapshot === undefined) {
       throw new Error(

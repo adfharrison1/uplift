@@ -26,9 +26,9 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 
 Preserve the exact schema vocabularies and orbital reducer rules recorded in this section's README. Distinguish data acceptance and callable reducer behavior from a content pack or gameplay consumer; do not remove working reducer contracts when correcting planned-feature claims.
 
-An `EpochModulePackInput` needs a nonempty unpadded `packId`, positive integer `packVersion` and explicit versioned `imports`. Bind an empty registry through the primary pack; import only declared identity/version pairs for that same target epoch. Treat imported pack declarations as data, never as authority to extend the primary import list. Public direct registration remains available only before binding; a failed pack transaction must restore all blueprints and leave identity unchanged. `getPrimaryPackIdentity()` supplies the primary identity to later save consumers; it does not yet stamp current save envelopes.
+An `EpochModulePackInput` needs a nonempty unpadded `packId`, positive integer `packVersion` and explicit versioned `imports`. Bind an empty registry through the primary pack; import only declared identity/version pairs for that same target epoch. Treat imported pack declarations as data, never as authority to extend the primary import list. Public direct registration remains available only before binding; a failed pack transaction must restore all blueprints and leave identity unchanged. `getPrimaryPackIdentity()` supplies the coordinator's save identity.
 
-Save-slot write, envelope and metadata schemas carry optional `packId` and positive integer `packVersion` during the intermediate propagation step. Preserve supplied fields exactly and keep absent fields absent. The coordinator does not yet stamp or require them; full identity enforcement follows separately.
+Save-slot write, envelope and metadata schemas require `packId` and positive integer `packVersion` under envelope schema 2. Reject identity-free or schema-1 envelopes instead of inferring a pack from the epoch. A current envelope may still hold a synthetic version-one inner world snapshot for codec migration.
 
 ## World snapshot boundary
 
