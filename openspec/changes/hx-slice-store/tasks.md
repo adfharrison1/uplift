@@ -9,7 +9,7 @@ Each task is one reviewable Conventional Commit in the default checkout. Run its
 
 ## 2. Presentation fixture
 
-- [ ] 2.1 Add `tests/support/makeStageBlueprint.ts` using the application presentation schema and synthetic semantic ids; adopt it in touched `PlaySession` tests and split that suite by stage/control behavior without replacing the proving-pack consumer or reduced-motion assertions. Keep presentation data outside domain and update the paired test guides. **Verify:** `npx vitest run tests/unit/application/PlaySession`, `npm run verify`, assertion inventory before/after and a clean scoped diff. **Commit:** `test(application): share stage blueprint fixtures`.
+- [x] 2.1 Add `tests/support/makeStageBlueprint.ts` using the application presentation schema and synthetic semantic ids; adopt it in touched `PlaySession` tests and split that suite by stage/control behavior without replacing the proving-pack consumer or reduced-motion assertions. Keep presentation data outside domain and update the paired test guides. **Verify:** `npx vitest run tests/unit/application/PlaySession`, `npm run verify`, assertion inventory before/after and a clean scoped diff. **Commit:** `test(application): share stage blueprint fixtures`.
 
 ## 3. Immutable slice storage
 

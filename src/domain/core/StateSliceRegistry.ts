@@ -10,9 +10,10 @@ export interface StateSliceKey<T> {
   readonly defaultValue: T;
 }
 
+const definedKeys = new WeakSet<object>();
+
 /**
- * Fast-path clone helper: returns primitives directly (zero allocation in 60 FPS loops)
- * and deep-clones objects via `structuredClone`.
+ * Copies caller-owned objects before they enter a slice. Primitives need no copy.
  */
 function cloneValue<T>(value: T): T {
   if (typeof value !== 'object' || value === null) {
@@ -22,20 +23,22 @@ function cloneValue<T>(value: T): T {
 }
 
 /**
- * Recursively freezes an object graph in place for snapshot and default-value immutability.
+ * Recursively freezes a private copy, including descendants of a shallow-frozen root.
  */
-function deepFreeze<T>(value: T): T {
-  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
+function deepFreeze<T>(value: T, visited = new WeakSet<object>()): T {
+  if (typeof value !== 'object' || value === null || visited.has(value)) {
     return value;
   }
-  Object.freeze(value);
-  for (const key of Object.keys(value as Record<string, unknown>)) {
-    const child = (value as Record<string, unknown>)[key];
-    if (typeof child === 'object' && child !== null && !Object.isFrozen(child)) {
-      deepFreeze(child);
-    }
+  visited.add(value);
+  for (const child of Object.values(value as Record<string, unknown>)) {
+    deepFreeze(child, visited);
   }
+  Object.freeze(value);
   return value;
+}
+
+function ownFrozen<T>(value: T): T {
+  return deepFreeze(cloneValue(value));
 }
 
 /**
@@ -46,11 +49,12 @@ export function defineStateSlice<T>(id: string, defaultValue: T): StateSliceKey<
   if (trimmed.length === 0) {
     throw new Error('StateSliceKey id must be a non-empty string');
   }
-  const clonedDefault = cloneValue(defaultValue);
-  return Object.freeze({
+  const key = Object.freeze({
     id: trimmed,
-    defaultValue: deepFreeze(clonedDefault),
+    defaultValue: ownFrozen(defaultValue),
   });
+  definedKeys.add(key);
+  return key;
 }
 
 /**
@@ -76,56 +80,101 @@ export class StateSliceRegistry {
   }
 }
 
+type SliceEntry =
+  | { readonly kind: 'value'; readonly value: unknown }
+  | { readonly kind: 'append'; readonly previous: SliceEntry; readonly row: unknown };
+
 /**
  * Immutable store for modular plugin state slices.
  * Every update returns a new `StateSliceStore` instance, preserving reducer purity.
  */
 export class StateSliceStore {
-  private readonly entries: ReadonlyMap<string, unknown>;
+  #entries: ReadonlyMap<string, SliceEntry> = new Map();
+  readonly #materialized = new Map<string, ReadonlyArray<unknown>>();
+  readonly #fallbacks = new WeakMap<object, unknown>();
 
-  public constructor(entries?: ReadonlyMap<string, unknown>) {
-    this.entries = entries ? new Map(entries) : new Map<string, unknown>();
+  public constructor() {
+    if (arguments.length !== 0) {
+      throw new TypeError('StateSliceStore constructor does not accept raw entries or arguments');
+    }
+  }
+
+  static #fromTrustedEntries(entries: ReadonlyMap<string, SliceEntry>): StateSliceStore {
+    const store = new StateSliceStore();
+    store.#entries = entries;
+    return store;
   }
 
   /**
    * Restores a `StateSliceStore` from a plain-object snapshot produced by `toSnapshot()`.
    */
   public static fromSnapshot(snapshot: Readonly<Record<string, unknown>>): StateSliceStore {
-    const entries = new Map<string, unknown>();
+    const entries = new Map<string, SliceEntry>();
     for (const [id, value] of Object.entries(snapshot)) {
-      entries.set(id, cloneValue(value));
+      entries.set(id, Object.freeze({ kind: 'value', value: ownFrozen(value) }));
     }
-    return new StateSliceStore(entries);
+    return StateSliceStore.#fromTrustedEntries(entries);
   }
 
   /**
-   * Reads the value for `key`, falling back to a fresh clone of `key.defaultValue` when unset.
-   * Primitives return with zero allocation; objects are cloned so caller mutations cannot corrupt store state.
+   * Returns a shared frozen value, or the key's frozen default when unset.
+   * Appended collections are materialized on first read and cached per store.
    */
   public get<T>(key: StateSliceKey<T>): T {
-    if (!this.entries.has(key.id)) {
-      return cloneValue(key.defaultValue);
+    return this.#read(key, key.id);
+  }
+
+  #read<T>(key: StateSliceKey<T>, id: string): T {
+    const entry = this.#entries.get(id);
+    if (entry === undefined) {
+      if (definedKeys.has(key)) {
+        return key.defaultValue;
+      }
+      if (!this.#fallbacks.has(key)) {
+        this.#fallbacks.set(key, ownFrozen(key.defaultValue));
+      }
+      return this.#fallbacks.get(key) as T;
     }
-    const stored = this.entries.get(key.id) as T;
-    return cloneValue(stored);
+    return this.#materialize(id, entry) as T;
   }
 
   /**
    * Returns a new `StateSliceStore` with `key` updated to `newValue`, leaving this instance unchanged.
    */
   public withSlice<T>(key: StateSliceKey<T>, newValue: T): StateSliceStore {
-    const next = new Map<string, unknown>(this.entries);
-    next.set(key.id, cloneValue(newValue));
-    return new StateSliceStore(next);
+    return this.#withSlice(key.id, newValue);
+  }
+
+  #withSlice<T>(id: string, newValue: T): StateSliceStore {
+    const next = new Map(this.#entries);
+    next.set(id, Object.freeze({ kind: 'value', value: ownFrozen(newValue) }));
+    return StateSliceStore.#fromTrustedEntries(next);
+  }
+
+  /** Appends one privately frozen row without reading or copying prior rows. */
+  public appendSlice<Row>(key: StateSliceKey<ReadonlyArray<Row>>, row: Row): StateSliceStore {
+    const id = key.id;
+    if (!this.#entries.has(id) && !definedKeys.has(key)) {
+      throw new TypeError(`StateSliceKey '${id}' must use defineStateSlice for append`);
+    }
+    const previous =
+      this.#entries.get(id) ?? Object.freeze({ kind: 'value', value: key.defaultValue });
+    if (previous.kind === 'value' && !Array.isArray(previous.value)) {
+      throw new TypeError(`StateSliceKey '${id}' is not an array collection`);
+    }
+    const next = new Map(this.#entries);
+    next.set(id, Object.freeze({ kind: 'append', previous, row: ownFrozen(row) }));
+    return StateSliceStore.#fromTrustedEntries(next);
   }
 
   /**
    * Applies a pure updater function to the current value of `key` and returns a new `StateSliceStore`.
    */
   public updateSlice<T>(key: StateSliceKey<T>, updater: (current: T) => T): StateSliceStore {
-    const current = this.get(key);
+    const id = key.id;
+    const current = this.#read(key, id);
     const updated = updater(current);
-    return this.withSlice(key, updated);
+    return this.#withSlice(id, updated);
   }
 
   /**
@@ -133,10 +182,40 @@ export class StateSliceStore {
    */
   public toSnapshot(): Readonly<Record<string, unknown>> {
     const result: Record<string, unknown> = {};
-    const sortedKeys = Array.from(this.entries.keys()).sort();
+    const sortedKeys = Array.from(this.#entries.keys()).sort();
     for (const id of sortedKeys) {
-      result[id] = deepFreeze(cloneValue(this.entries.get(id)));
+      const entry = this.#entries.get(id);
+      if (entry !== undefined) {
+        result[id] = ownFrozen(this.#materialize(id, entry));
+      }
     }
     return Object.freeze(result);
+  }
+
+  #materialize(id: string, entry: SliceEntry): unknown {
+    if (entry.kind === 'value') {
+      return entry.value;
+    }
+    const cached = this.#materialized.get(id);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const appendedRows: unknown[] = [];
+    let current: SliceEntry = entry;
+    while (current.kind === 'append') {
+      appendedRows.push(current.row);
+      current = current.previous;
+    }
+    if (!Array.isArray(current.value)) {
+      throw new TypeError(`StateSliceKey '${id}' is not an array collection`);
+    }
+    const rows: unknown[] = [...current.value];
+    for (let index = appendedRows.length - 1; index >= 0; index -= 1) {
+      rows.push(appendedRows[index]);
+    }
+    const frozen = Object.freeze(rows);
+    this.#materialized.set(id, frozen);
+    return frozen;
   }
 }
