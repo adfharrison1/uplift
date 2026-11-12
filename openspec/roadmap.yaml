@@ -243,7 +243,8 @@ entries:
     depends_on:
       - hx-slice-store
     specs_modified:
-      - multi-session-saves
+      - multi-session-saves-and-debug-skill
+      - modular-epoch-registries
     status: planned
     scope: WorldStateCodec with snapshotVersion, Zod load and a migrations chain
       replaces the four copies of the world-state field list (the S3-09
