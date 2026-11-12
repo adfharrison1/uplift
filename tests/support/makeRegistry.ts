@@ -1,0 +1,101 @@
+import { EpochModuleRegistry, type EpochModulePackInput } from '../../src/domain/index.js';
+
+export function makeRegistry(overrides: Partial<EpochModulePackInput> = {}): EpochModuleRegistry {
+  const registry = new EpochModuleRegistry();
+  registry.registerPack({
+    epochId: 'epoch_sim_test',
+    spaces: [
+      {
+        id: 'space_alpha',
+        name: 'Space Alpha',
+        kind: 'indoor_room',
+        earshotRadiusMeters: 12,
+        surfaceMaterial: 'stone',
+        acousticClass: 'tight_interior',
+        ambientMaskLoudness: 0.2,
+        connectedSpaceIds: ['space_beta'],
+        waypoints: [
+          { id: 'wp_a1', position: [0, 0, 0] },
+          { id: 'wp_a2', position: [1.4, 0, 0] },
+        ],
+      },
+      {
+        id: 'space_beta',
+        name: 'Space Beta',
+        kind: 'outdoor_area',
+        earshotRadiusMeters: 20,
+        surfaceMaterial: 'earth',
+        acousticClass: 'open_court',
+        ambientMaskLoudness: 0.4,
+        connectedSpaceIds: ['space_alpha'],
+        waypoints: [{ id: 'wp_b1', position: [5, 0, 0] }],
+      },
+    ],
+    props: [
+      {
+        id: 'prop_gate',
+        name: 'Inner Gate',
+        spaceId: 'space_alpha',
+        waypointId: 'wp_a2',
+        tier: 'interactive',
+        initialState: { locked: false },
+        portalState: 'closed',
+      },
+    ],
+    characters: [
+      {
+        id: 'char_alpha',
+        name: 'Alpha Schemer',
+        lineageId: 'lineage_alpha',
+        tier: 'utility_schemer',
+        startingSpaceId: 'space_alpha',
+        startingWaypointId: 'wp_a1',
+        walkSpeedMetersPerSec: 1.4,
+        yawSpeedRadiansPerSec: 6.0,
+        listenerThreshold: 0.2,
+        drives: { curiosity: 0.5, secrecy: 0.4 },
+        emergencyVice: 'secrecy',
+        inertiaPillars: [{ id: 'pillar_1', kind: 'doctrine', weight: 0.6 }],
+      },
+      {
+        id: 'char_beta',
+        name: 'Beta Routine',
+        lineageId: 'lineage_beta',
+        tier: 'role_routine',
+        startingSpaceId: 'space_alpha',
+        startingWaypointId: 'wp_a2',
+        walkSpeedMetersPerSec: 1.4,
+        yawSpeedRadiansPerSec: 6.0,
+        listenerThreshold: 0.25,
+        drives: { duty: 0.7, caution: 0.5 },
+        emergencyVice: 'caution',
+        inertiaPillars: [{ id: 'pillar_2', kind: 'constituency', weight: 0.5 }],
+      },
+      {
+        id: 'char_gamma',
+        name: 'Gamma Crowd',
+        lineageId: 'lineage_gamma',
+        tier: 'ambient_crowd',
+        startingSpaceId: 'space_beta',
+        startingWaypointId: 'wp_b1',
+        walkSpeedMetersPerSec: 1.4,
+        yawSpeedRadiansPerSec: 6.0,
+        listenerThreshold: 0.3,
+        drives: { conformity: 0.8 },
+        emergencyVice: 'conformity',
+        inertiaPillars: [],
+      },
+    ],
+    orbitalPass: {
+      id: 'orbital_pass_default',
+      zenithDurationTicks: 10,
+      horizonDurationTicks: 8,
+      occludedDurationTicks: 12,
+      slingshotCost: 10,
+      burnCostPerTick: 25,
+      maxDelta: 120,
+    },
+    ...overrides,
+  });
+  return registry;
+}

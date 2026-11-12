@@ -8,7 +8,8 @@
 4. **Zero `any` & Zero Non-Null Assertions (`!`) in Tests**: Explicit `any` (`: any`, `as any`, `<any>`) and non-null assertions (`!`) are banned in `tests/` just as in `src/` (enforced by ESLint and `layer_boundaries.test.ts`). Use strongly typed test helpers, explicit `undefined` guards, Zod schemas, or `unknown`.
 5. **Pre-Commit Verification**: Always run `npm run verify` (concurrent format, lint, types and one architecture/unit test run) before committing any task.
 6. **Content exemplars stay in content**: A headless content test may register a pack on `SimulationCoordinator` and step it with `FAST_EVAL_PACING_CONFIG`. Do not copy that pack's space, character, or prop ids into `src/domain/` or `src/application/`.
-7. **Keep fast verification local**: The AI eval runner is planned in [design intent](../DESIGN_NOTES.md); no eval command is currently shipped. Do not introduce model loading or cloud inference into unit verification.
+7. **Coordinator fixtures and suites**: Startup, simulation, and save/legacy tests live in `tests/unit/application/SimulationCoordinator/`. They share local telemetry/legacy helpers and use `tests/support/makeRegistry.ts` for a synthetic registry with typed pack overrides. Keep atomic load rollback assertions in the save/legacy suite when changing fixtures.
+8. **Keep fast verification local**: The AI eval runner is planned in [design intent](../DESIGN_NOTES.md); no eval command is currently shipped. Do not introduce model loading or cloud inference into unit verification.
 
 ## Storage regression tests
 
