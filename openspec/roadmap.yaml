@@ -202,6 +202,11 @@ entries:
       - deterministic-simulation-primitives
       - dual-ledger-civilization-legacy
     status: archived
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: hx-1-legacy-clamp-seed-scramble
+      relative_path: defect-resolution.yaml
     scope: "Clamps legacy mutations to [0,1] with a telemetry note (the throw stays
       in an authoring-time contract test) and adds a splitmix32 seed scramble
       with a golden-vector test. This is deliberately only the clamp half of
@@ -209,11 +214,6 @@ entries:
       and sourceScarId to 05b-1, each carried by its own source id so the three
       pieces sum to the finding. Adds acceptance lines for the frozen-input and
       RNG golden-value test gaps."
-    archive_protocol: v1
-    archive_receipt:
-      kind: change
-      change_id: hx-1-legacy-clamp-seed-scramble
-      relative_path: defect-resolution.yaml
   - id: hx-slice-store
     title: "Hardening 3: test builders, share-on-read slice store, typed slice keys"
     milestone: M1
@@ -221,7 +221,7 @@ entries:
       - hx-1-legacy-clamp-seed-scramble
     specs_modified:
       - deterministic-simulation-primitives
-    status: planned
+    status: archived
     scope: Adds tests/support makeRegistry, makeWorldState and makeStageBlueprint,
       splits the monolithic tests onto them, refactors and extends the existing
       bridge tests, and carries the S3-17 acceptance lines (caps, mid-hop
@@ -230,7 +230,13 @@ entries:
       new row and distinct slice keys, independent of existing rows. The
       default-fallback scenario no longer demands a clone; frozen-output
       invariant tests guard these contracts. StateSliceKey gains optional
-      schema/version/migrate and a plain-JSON guard so Map and Set cannot enter a slice.
+      schema/version/migrate and a plain-JSON guard so Map and Set cannot enter
+      a slice.
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: defect-resolution.yaml
   - id: hx-save-integrity
     title: "Hardening 4: WorldStateCodec, pack identity, id pattern"
     milestone: M1
