@@ -32,7 +32,7 @@ Save-slot write, envelope and metadata schemas require `packId` and positive int
 
 ## World snapshot boundary
 
-Use `encodeWorldState` and `decodeWorldStateSnapshot` for serialized world fields, keeping custom slice values and version maps separate. The codec owns a strict version-2 shape, a pure synthetic version-1 marker migration, nested validation, plain-JSON ownership, unsafe-key rejection and equality of inner and outer epoch/tick. It rejects orbital availability above capacity and never trims saved pillar IDs. The coordinator calls the codec on save/load and publishes a restored world only after the remaining state and required load telemetry pass validation. `validateEntityId` is exported for the shared render token rule but is not yet enforced by registration or snapshot decoding.
+Use `encodeWorldState` and `decodeWorldStateSnapshot` for serialized world fields, keeping custom slice values and version maps separate. The codec owns a strict version-2 shape, a pure synthetic version-1 marker migration, nested validation, plain-JSON ownership, unsafe-key rejection and equality of inner and outer epoch/tick. It rejects orbital availability above capacity and never trims saved pillar IDs. The coordinator calls the codec on save/load and publishes a restored world only after the remaining state and required load telemetry pass validation. `validateEntityId` is the shared render token rule: reject malformed registered character IDs and loaded entity keys/values, including key/value mismatch, before initial materialization or load publication. A later runtime materializer must call it too.
 
 ## Legacy mutation policy
 

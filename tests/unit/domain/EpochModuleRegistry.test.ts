@@ -1,8 +1,43 @@
 import { describe, expect, it } from 'vitest';
 import { hasPortalNavigationEdge } from '../../../src/domain/registries/EpochBlueprints.js';
 import { EpochModuleRegistry } from '../../../src/domain/registries/EpochModuleRegistry.js';
+import { makeRegistry } from '../../support/makeRegistry.js';
 
 describe('EpochModuleRegistry and EpochBlueprints', () => {
+  it('rejects unrenderable authored character IDs without changing a bound registry, then accepts a corrected import', () => {
+    const registry = makeRegistry({ imports: [{ packId: 'cameo', packVersion: 1 }] });
+    const validCharacter = registry.getAllCharacters()[0];
+    if (validCharacter === undefined) throw new Error('Missing test character');
+    const previousCharacters = registry.getAllCharacters();
+    const previousIdentity = registry.getPrimaryPackIdentity();
+    for (const invalidId of ['Upper', 'bad.dot', 'bad id', '-leading', 'a'.repeat(65)]) {
+      expect(() =>
+        registry.registerPack({
+          epochId: 'epoch_sim_test',
+          packId: 'cameo',
+          packVersion: 1,
+          imports: [],
+          spaces: [],
+          characters: [{ ...validCharacter, id: invalidId }],
+        }),
+      ).toThrow(new RegExp(invalidId.replace('.', '\\.')));
+      expect(registry.getAllCharacters()).toEqual(previousCharacters);
+      expect(registry.getPrimaryPackIdentity()).toEqual(previousIdentity);
+    }
+    registry.registerPack({
+      epochId: 'epoch_sim_test',
+      packId: 'cameo',
+      packVersion: 1,
+      imports: [],
+      spaces: [],
+      characters: [{ ...validCharacter, id: 'char_cameo' }],
+    });
+    expect(registry.getAllCharacters().some((character) => character.id === 'char_cameo')).toBe(
+      true,
+    );
+    expect(registry.getPrimaryPackIdentity()).toEqual(previousIdentity);
+  });
+
   it('registers a valid epoch module pack across all blueprint families and sorts behaviors topologically', () => {
     const registry = new EpochModuleRegistry();
 

@@ -10,6 +10,7 @@
    Require a registry bound to the requested epoch. Stamp its primary pack ID/version on save and reject epoch, pack ID or version mismatches before decoding and publishing a load. Earlier campaign ticks under the current pack version remain loadable; do not infer a pack for an old identity-free envelope.
 4. **Human-Paced Gameplay vs. Fast-Eval Pacing**: Always respect `WorldState.pacingConfig` (`DEFAULT_GAMEPLAY_PACING_CONFIG` for live 60Hz gameplay with `MAX_FRAME_DT_SECONDS = 0.25` clamping and `maxCognitiveEvaluationsPerPulse = 1`; `FAST_EVAL_PACING_CONFIG` for millisecond headless tests and AI evaluations).
 5. **Pure Frame Building & Epoch-Agnostic Visual Blueprints**: Keep 3-Layer Visual Blueprint schemas (`SceneVisualBlueprints.ts`), 3rd-person tracking camera bounds, critically damped spring transitions, de-anchored debug camera state, and behind-camera-guarded (`clipW <= 1e-5`) 3D-to-NDC floating debug inspector card projections (`RenderFrameBuilder.ts`) in pure TypeScript with open identifier tokens so they can be tested in `tests/unit/application/` without a browser or WebGL context.
+   Use domain `validateEntityId` in character root and part semantic-ID formatting. Registration and snapshot decoding reject malformed IDs before a frame; keep the frame builder's existing defensive formatting without adding new frame-path validation.
 6. **Zero `any`**: Implicit and explicit `any` are forbidden.
 
 ## Adding New Application Use Cases or Coordinators

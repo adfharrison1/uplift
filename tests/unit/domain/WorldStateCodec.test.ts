@@ -125,6 +125,22 @@ describe('WorldStateCodec', () => {
     expect(decode(snapshot)).toEqual(snapshot);
   });
 
+  it('rejects malformed loaded entity map keys, inner IDs and key/value disagreement', () => {
+    const snapshot = encode(world());
+    const entity = record(record(snapshot['entities'])['npc_alpha']);
+    expect(() => decode({ ...snapshot, entities: { 'Bad.Key': entity } })).toThrow(/Bad.Key/);
+    expect(() =>
+      decode({ ...snapshot, entities: { npc_alpha: { ...entity, entityId: 'Bad.Key' } } }),
+    ).toThrow(/Bad.Key/);
+    expect(() =>
+      decode({ ...snapshot, entities: { npc_alpha: { ...entity, entityId: 'npc_beta' } } }),
+    ).toThrow(/npc_alpha.*npc_beta/);
+    expect(() =>
+      decode({ ...snapshot, snapshotVersion: 1, entities: { 'Bad.Key': entity } }),
+    ).toThrow(/Bad.Key/);
+    expect(decode(snapshot)['entities']).toEqual(snapshot['entities']);
+  });
+
   it('rejects malformed nested world values without dropping unknown fields', () => {
     const snapshot = encode(world());
     const entities = record(snapshot['entities']);

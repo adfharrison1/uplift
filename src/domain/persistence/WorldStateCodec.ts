@@ -5,12 +5,23 @@ import {
   DiscoveryLayerSchema,
   InertiaPillarKindSchema,
   PortalStateSchema,
+  validateEntityId,
 } from '../registries/EpochBlueprints.js';
 import type { WorldState } from '../simulation/WorldState.js';
 
 const NonEmptyString = z.string().min(1);
 const NonNegativeInteger = z.number().int().nonnegative();
 const ExactId = NonEmptyString.refine((id) => id === id.trim(), 'ID must not be trimmed');
+const EntityIdSchema = z.string().superRefine((entityId, context) => {
+  try {
+    validateEntityId(entityId);
+  } catch (error) {
+    context.addIssue({
+      code: 'custom',
+      message: error instanceof Error ? error.message : 'Invalid entity id',
+    });
+  }
+});
 
 function isPlainRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
@@ -58,7 +69,7 @@ const InertiaPillarSnapshotSchema = z.strictObject({
 });
 
 const EntitySnapshotSchema = z.strictObject({
-  entityId: NonEmptyString,
+  entityId: EntityIdSchema,
   lineageId: NonEmptyString,
   spaceId: NonEmptyString,
   waypointId: NonEmptyString,
@@ -87,6 +98,29 @@ const EntitySnapshotSchema = z.strictObject({
   separationWeight: z.number().min(0).max(1).optional(),
 });
 
+const EntitiesSnapshotSchema = z
+  .record(z.string(), EntitySnapshotSchema)
+  .superRefine((entities, context) => {
+    for (const [key, entity] of Object.entries(entities)) {
+      try {
+        validateEntityId(key);
+      } catch (error) {
+        context.addIssue({
+          code: 'custom',
+          path: [key],
+          message: error instanceof Error ? error.message : 'Invalid entity id',
+        });
+      }
+      if (key !== entity.entityId) {
+        context.addIssue({
+          code: 'custom',
+          path: [key, 'entityId'],
+          message: `Entity map key '${key}' does not match entityId '${entity.entityId}'`,
+        });
+      }
+    }
+  });
+
 const PropSnapshotSchema = z
   .strictObject({
     propId: NonEmptyString,
@@ -111,7 +145,7 @@ const WorldFields = {
     allowUnclampedFrameDt: z.boolean(),
   }),
   cognitiveRoundRobinCursor: NonNegativeInteger,
-  entities: z.record(z.string(), EntitySnapshotSchema),
+  entities: EntitiesSnapshotSchema,
   props: z.record(z.string(), PropSnapshotSchema),
   pressureStocks: z.strictObject({
     subsistence_pressure: z.number().min(0).max(1),

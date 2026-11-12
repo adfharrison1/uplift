@@ -15,6 +15,18 @@ import {
 } from '../../../src/application/rendering/SceneVisualBlueprints.js';
 
 describe('3-Layer Encoded Visual Blueprints and deterministic semanticId schemas', () => {
+  it('uses the shared entity token rule for character root and part semantic IDs', () => {
+    expect(formatCharacterRootSemanticId('char_alpha')).toBe('npc.char_alpha');
+    expect(formatCharacterPartSemanticId('char_alpha', 'head')).toBe('npc.char_alpha.part.head');
+    expect(() => formatCharacterRootSemanticId('Bad.Id')).toThrow(/Invalid entity id 'Bad.Id'/);
+    expect(() => formatCharacterPartSemanticId('Bad.Id', 'head')).toThrow(
+      /Invalid entity id 'Bad.Id'/,
+    );
+    expect(() => formatCharacterRootSemanticId(undefined as unknown as string)).toThrow(
+      /Invalid entity id/,
+    );
+  });
+
   it('parses valid EpochVisualTheme, StageSceneBlueprint (with wall offsets, motif grids, and prop/portal visuals), and CharacterVisualBlueprint', () => {
     const theme = EpochVisualThemeSchema.parse({
       id: 'theme_highglass_era1',

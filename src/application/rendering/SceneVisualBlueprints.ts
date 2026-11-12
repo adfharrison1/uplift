@@ -10,6 +10,7 @@
  * Contains zero Three.js or DOM imports so it can be validated and unit-tested in pure Node/Vitest.
  */
 import { z } from 'zod';
+import { validateEntityId } from '../../domain/index.js';
 
 const IdentifierTokenSchema = z
   .string()
@@ -114,7 +115,7 @@ export function formatLightSemanticId(spaceId: string, lightId: string): string 
 }
 
 export function formatCharacterRootSemanticId(characterId: string): string {
-  const validChar = IdentifierTokenSchema.parse(characterId);
+  const validChar = validateEntityId(characterId);
   return `npc.${validChar}`;
 }
 
@@ -122,7 +123,7 @@ export function formatCharacterPartSemanticId(
   characterId: string,
   slot: CharacterPartSlotName,
 ): string {
-  const validChar = IdentifierTokenSchema.parse(characterId);
+  const validChar = validateEntityId(characterId);
   const validSlot = CharacterPartSlotNameSchema.parse(slot);
   return `npc.${validChar}.part.${validSlot}`;
 }

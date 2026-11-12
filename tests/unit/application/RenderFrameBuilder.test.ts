@@ -5,6 +5,7 @@ import {
   projectWorldToNdc,
   RenderFrameBuilder,
   selectActiveCameraVolume,
+  SimulationCoordinator,
   StageSceneBlueprintSchema,
 } from '../../../src/application/index.js';
 import {
@@ -12,6 +13,13 @@ import {
   createInitialWorldState,
   type EntitySimulationState,
 } from '../../../src/domain/index.js';
+import {
+  InMemorySaveSlotRepository,
+  InMemorySessionTelemetry,
+} from '../../../src/infrastructure/index.js';
+import { makeRegistry } from '../../support/makeRegistry.js';
+import { makeStageBlueprint } from '../../support/makeStageBlueprint.js';
+import { createClock } from './SimulationCoordinator/fixtures.js';
 
 function makeEntity(
   entityId: string,
@@ -122,6 +130,40 @@ function makeStage() {
 }
 
 describe('RenderFrameBuilder', () => {
+  it('keeps a registered character renderable after a malformed cameo rejects', () => {
+    const registry = makeRegistry({ imports: [{ packId: 'cameo', packVersion: 1 }] });
+    const coordinator = new SimulationCoordinator({
+      epochId: 'epoch_sim_test',
+      registry,
+      telemetry: new InMemorySessionTelemetry('render_registered', createClock()),
+      saveRepository: new InMemorySaveSlotRepository(),
+      clock: createClock(),
+    });
+    const previousWorld = coordinator.getWorldState();
+    const character = registry.getAllCharacters()[0];
+    if (character === undefined) throw new Error('Missing test character');
+    expect(() =>
+      registry.registerPack({
+        epochId: 'epoch_sim_test',
+        packId: 'cameo',
+        packVersion: 1,
+        imports: [],
+        spaces: [],
+        characters: [{ ...character, id: 'Bad.Id' }],
+      }),
+    ).toThrow(/Bad.Id/);
+    expect(coordinator.getWorldState()).toBe(previousWorld);
+    const frame = new RenderFrameBuilder().buildFrame({
+      worldState: coordinator.getWorldState(),
+      theme: { ...makeTheme(), id: 'theme_play', epochId: 'epoch_sim_test' },
+      stage: makeStageBlueprint('space_alpha'),
+      focusEntityId: 'char_alpha',
+    });
+    expect(frame.entityPoses.find((pose) => pose.entityId === 'char_alpha')?.semanticId).toBe(
+      'npc.char_alpha',
+    );
+  });
+
   it('selects CameraVolumeBlueprint by priority then smallest AABB, falls back when outside all volumes, and interpolates smoothly via critically damped springs', () => {
     const theme = makeTheme();
     const stage = makeStage();

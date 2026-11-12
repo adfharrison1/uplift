@@ -3,7 +3,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { SimulationCoordinator } from '../../../../src/application/index.js';
+import {
+  EpochVisualThemeSchema,
+  RenderFrameBuilder,
+  SimulationCoordinator,
+} from '../../../../src/application/index.js';
 import * as domain from '../../../../src/domain/index.js';
 import {
   defineStateSlice,
@@ -22,6 +26,7 @@ import {
   type LocalFileOps,
 } from '../../../../src/infrastructure/persistence/safeLocalFiles.js';
 import { makeRegistry } from '../../../support/makeRegistry.js';
+import { makeStageBlueprint } from '../../../support/makeStageBlueprint.js';
 import { createClock, highLegacy } from './fixtures.js';
 
 const WORLD = '__upliftWorldStateSnapshot';
@@ -282,6 +287,81 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
     expect(decodeCalls).toHaveBeenCalledTimes(2);
     expect(asRecord(decodeCalls.mock.calls[1]?.[0])['snapshotVersion']).toBe(2);
     decodeCalls.mockRestore();
+  });
+
+  it('rejects malformed saved entity IDs before world or RNG publication and loads after correction', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    const base = coordinator(repository).saveToSlot('base');
+    const snapshot = asRecord(base.stateSlices[WORLD]);
+    const entities = asRecord(snapshot['entities']);
+    const entity = asRecord(entities['char_alpha']);
+    const theme = EpochVisualThemeSchema.parse({
+      id: 'theme_play',
+      epochId: 'epoch_sim_test',
+      name: 'Save codec test theme',
+      stoneColorHex: '#4a525d',
+      mudColorHex: '#3b3228',
+      ironColorHex: '#2c3137',
+      woodColorHex: '#523d2b',
+    });
+    const stage = makeStageBlueprint('space_alpha');
+    const frameBuilder = new RenderFrameBuilder();
+    const cases = [
+      {
+        name: 'key',
+        entities: { ...entities, 'Bad.Id': { ...entity, entityId: 'Bad.Id' } },
+        error: /Bad.Id/,
+      },
+      {
+        name: 'value',
+        entities: { ...entities, char_alpha: { ...entity, entityId: 'Bad.Id' } },
+        error: /Bad.Id/,
+      },
+      {
+        name: 'mismatch',
+        entities: { ...entities, char_alpha: { ...entity, entityId: 'char_gamma' } },
+        error: /char_alpha.*char_gamma/,
+      },
+    ] as const;
+    for (const invalid of cases) {
+      const slotId = `bad_entity_${invalid.name}`;
+      writeFileSync(
+        join(saveDir, `${slotId}.json`),
+        JSON.stringify({
+          ...base,
+          slotId,
+          stateSlices: {
+            ...base.stateSlices,
+            [WORLD]: { ...snapshot, entities: invalid.entities },
+          },
+        }),
+      );
+      const bytes = readFileSync(join(saveDir, `${slotId}.json`), 'utf8');
+      const reader = coordinator(repository);
+      reader.getRng().nextUint32();
+      reader.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+        advanceTick: true,
+      });
+      const priorWorld = reader.getWorldState();
+      const priorRng = reader.getRng();
+      const priorRngState = priorRng.getState();
+      expect(() => reader.loadFromSlot(slotId), invalid.name).toThrow(invalid.error);
+      expect(reader.getWorldState()).toBe(priorWorld);
+      expect(reader.getRng()).toBe(priorRng);
+      expect(reader.getRng().getState()).toBe(priorRngState);
+      expect(readFileSync(join(saveDir, `${slotId}.json`), 'utf8')).toBe(bytes);
+      const laterFrame = frameBuilder.buildFrame({
+        worldState: reader.getWorldState(),
+        theme,
+        stage,
+        focusEntityId: 'char_alpha',
+      });
+      expect(
+        laterFrame.entityPoses.find((pose) => pose.entityId === 'char_alpha')?.semanticId,
+      ).toBe('npc.char_alpha');
+      repository.saveSlot({ ...base, slotId });
+      expect(reader.loadFromSlot(slotId).entities['char_alpha']?.entityId).toBe('char_alpha');
+    }
   });
 
   it('rejects nested corruption and either inner/outer mismatch without publishing state or changing bytes, then retries', () => {
