@@ -17,6 +17,7 @@ import {
   NdjsonSessionTelemetry,
   safeParseJsonWithSchema,
 } from '../../infrastructure/index.js';
+import { InvalidSaveSlotInputError } from '../../infrastructure/persistence/FileSaveSlotRepository.js';
 import {
   createSafeLocalFiles,
   UnsafeLocalPathError,
@@ -90,7 +91,8 @@ function storageErrorResponse(error: unknown): BridgeHttpResponse {
   const cause = error instanceof SessionStorageError ? error.cause : error;
   if (cause instanceof UnsafeLocalPathError)
     return { statusCode: 400, body: { error: 'Unsafe storage path' } };
-  if (error instanceof InvalidBridgeRequestError) return errorResponse(400);
+  if (error instanceof InvalidBridgeRequestError || error instanceof InvalidSaveSlotInputError)
+    return errorResponse(400);
   if (error instanceof TelemetryStorageUnavailableError) return errorResponse(503);
   return errorResponse(500);
 }

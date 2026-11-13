@@ -16,6 +16,9 @@ import {
 } from './safeLocalFiles.js';
 import { safeParseJsonWithSchema } from '../telemetry/NdjsonSessionTelemetry.js';
 
+/** A valid outer save request whose nested contents fail repository inspection. */
+export class InvalidSaveSlotInputError extends Error {}
+
 function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
   const slotId = validateSaveSlotId(input.slotId);
   const parsed = SaveSlotWriteInputSchema.safeParse(input);
@@ -47,7 +50,7 @@ function buildValidatedEnvelope(input: SaveSlotWriteInput): SaveSlotEnvelope {
   };
   const inspected = inspectSaveSlotEnvelope(envelope, slotId);
   if (inspected.envelope === undefined) {
-    throw new Error(
+    throw new InvalidSaveSlotInputError(
       `Invalid SaveSlotWriteInput for '${slotId}': ${inspected.listing.readable ? 'unknown' : inspected.listing.reason}`,
     );
   }

@@ -74,6 +74,82 @@ describe('HTTP storage readback', () => {
     expect(onDisk).toMatchObject({ packId: 'pack_http', packVersion: 4 });
   });
 
+  it('returns client errors for invalid structural save replacements and storage errors for failed writes', async () => {
+    const path = '/api/saves/replace';
+    const original = await app.send(path, 'PUT', JSON.stringify(save));
+    expect(original.status).toBe(200);
+    const file = join(app.base, 'saves', 'replace.json');
+    const bytes = readFileSync(file, 'utf8');
+    const world = save.stateSlices['__upliftWorldStateSnapshot'] as Record<string, unknown>;
+    const invalidInputs = [
+      {
+        name: 'snapshot',
+        value: {
+          ...save,
+          stateSlices: {
+            ...save.stateSlices,
+            __upliftWorldStateSnapshot: { ...world, worldTick: save.worldTick + 1 },
+          },
+        },
+      },
+      {
+        name: 'slices',
+        value: {
+          ...save,
+          stateSlices: {
+            ...save.stateSlices,
+            __upliftCustomSliceVersions: { orphan: 2 },
+          },
+        },
+      },
+      { name: 'legacy', value: { ...save, legacyState: { broken: true } } },
+    ];
+    for (const input of invalidInputs) {
+      const response = await app.send(path, 'PUT', JSON.stringify(input.value));
+      expect(response.status, input.name).toBe(400);
+      expect(response.body).toEqual({ error: 'Invalid bridge request' });
+      expect(readFileSync(file, 'utf8')).toBe(bytes);
+      const readback = await app.send(path);
+      expect(readback.status).toBe(200);
+      expect(readback.body).toEqual(original.body);
+    }
+
+    let failRename = false;
+    const faulting = await start(
+      tempRoot(),
+      {},
+      {
+        fileOptions: {
+          fileOps: {
+            ...nodeLocalFileOps,
+            rename(from, to) {
+              if (failRename)
+                throw Object.assign(new Error('private disk write fault'), { code: 'EIO' });
+              nodeLocalFileOps.rename(from, to);
+            },
+          },
+        },
+      },
+    );
+    expect((await faulting.send(path, 'PUT', JSON.stringify(save))).status).toBe(200);
+    const faultFile = join(faulting.base, 'saves', 'replace.json');
+    const faultBytes = readFileSync(faultFile, 'utf8');
+    failRename = true;
+    const failedWrite = await faulting.send(path, 'PUT', JSON.stringify(save));
+    expect(failedWrite.status).toBe(500);
+    expect(failedWrite.body).toEqual({ error: 'Bridge storage operation failed' });
+    expect(readFileSync(faultFile, 'utf8')).toBe(faultBytes);
+    failRename = false;
+    const recovered = await faulting.send(
+      path,
+      'PUT',
+      JSON.stringify({ ...save, savedAtIso: '2030-01-01T00:00:00.000Z' }),
+    );
+    expect(recovered.status).toBe(200);
+    expect((await faulting.send(path)).body).toEqual(recovered.body);
+    expect(readFileSync(faultFile, 'utf8')).not.toBe(faultBytes);
+  });
+
   it('returns readable and redacted unreadable save entries through guarded GET', async () => {
     expect((await app.send('/api/saves/valid', 'PUT', JSON.stringify(save))).status).toBe(200);
     const saved = JSON.parse(readFileSync(join(app.base, 'saves', 'valid.json'), 'utf8')) as Record<
