@@ -1,0 +1,57 @@
+schema_version: 1
+change_id: hx-save-integrity
+reviews:
+  - dimension: adversarial
+    reviewer: /root/save_final3_adversarial
+    brief: G2/G4 malformed inputs, races, guarded HTTP trust boundary and failure containment
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+  - dimension: architecture-adherence
+    reviewer: /root/save_final3_architecture
+    brief: Layer and type boundaries, registry contracts, specs and paired document integrity
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+  - dimension: performance
+    reviewer: /root/save_final3_performance
+    brief: G3 cost, allocation limits, host measurements and reference-Mac uncertainty
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+  - dimension: testing
+    reviewer: /root/save_final3_testing
+    brief: G6 all delta scenarios, deterministic tests and consumer assertions
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+  - dimension: logic-integrity
+    reviewer: /root/save_final3_logic
+    brief: G1 save/load state invariants, migrations and deterministic publication
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+  - dimension: design-coherence
+    reviewer: /root/save_final3_design
+    brief: Owner wording, design status, roadmap order and future integration
+    disposition: passed
+    locator:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: task-4-1-reviews.md
+      sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0

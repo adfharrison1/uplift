@@ -288,7 +288,8 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
       withSaveSnapshot({
         slotId: 'slot-beta',
         epochId: 'era_2_steam_republic',
-        ...packIdentity,
+        packId: 'other_pack',
+        packVersion: 2,
         worldTick: 4,
         rngState: 98_765,
         stateSlices: new StateSliceStore().toSnapshot(),
@@ -299,10 +300,15 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     expect(savedAlpha.schemaVersion).toBe(SAVE_SLOT_SCHEMA_VERSION);
     const listed = repo.listSlots();
     expect(listed).toHaveLength(2);
-    expect(listed.map((s) => s.slotId)).toEqual(['slot-alpha', 'slot-beta']);
-    expect(listed.every((slot) => slot.readable)).toBe(true);
+    expect(listed).toMatchObject([
+      { slotId: 'slot-alpha', readable: true, packId: 'test_pack', packVersion: 1 },
+      { slotId: 'slot-beta', readable: true, packId: 'other_pack', packVersion: 2 },
+    ]);
 
     const loadedAlpha = repo.loadSlot('slot-alpha');
+    expect(loadedAlpha.schemaVersion).toBe(2);
+    expect(loadedAlpha.packId).toBe('test_pack');
+    expect(loadedAlpha.packVersion).toBe(1);
     expect(loadedAlpha.epochId).toBe('era_1_highglass_hold');
     expect(loadedAlpha.worldTick).toBe(18);
     expect(loadedAlpha.legacyState).toEqual({

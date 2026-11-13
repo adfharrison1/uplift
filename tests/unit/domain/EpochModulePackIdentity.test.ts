@@ -55,6 +55,7 @@ describe('EpochModuleRegistry pack identity', () => {
       packVersion: 1,
     });
     registry.registerPack(pack('cameo', 'space_cameo'));
+    expect(registry.getSpace('space_primary').id).toBe('space_primary');
     expect(registry.getSpace('space_cameo').id).toBe('space_cameo');
     expect(registry.getPrimaryPackIdentity()).toEqual({
       epochId: 'epoch_test',
@@ -134,6 +135,18 @@ describe('EpochModuleRegistry pack identity', () => {
       ),
     ).toThrow(/packVersion/);
     expect(registry.getPrimaryPackIdentity()).toBeUndefined();
+    for (const spaceId of [
+      'space_invalid_id',
+      'space_missing_id',
+      'space_missing_version',
+      'space_invalid_version',
+      'space_fractional_version',
+      'space_missing_imports',
+      'space_duplicate_imports',
+      'space_invalid_import_version',
+    ]) {
+      expect(() => registry.getSpace(spaceId), spaceId).toThrow(/Unknown space/);
+    }
     registry.registerSpaces(pack('direct', 'space_direct').spaces);
     expect(() => registry.registerPack(pack('primary', 'space_primary'))).toThrow(
       /directly populated/,
@@ -168,6 +181,10 @@ describe('EpochModuleRegistry pack identity', () => {
       () => registry.registerBehaviors([]),
     ];
     for (const directCall of directCalls) expect(directCall).toThrow(/bound registry/);
+    expect(() => registry.registerSpaces(pack('rogue', 'space_rogue').spaces)).toThrow(
+      /bound registry/,
+    );
+    expect(() => registry.getSpace('space_rogue')).toThrow(/Unknown space/);
     expect(registry.getAllSpaces().map((space) => space.id)).toEqual(['space_primary']);
   });
 

@@ -211,11 +211,13 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
       });
       const priorWorld = reader.getWorldState();
       const priorRng = reader.getRng();
+      const priorRngState = priorRng.getState();
       const priorSlices = priorWorld.stateSlices;
       const priorLegacy = reader.exportLegacyState();
       expect(() => reader.loadFromSlot(slotId), mismatch.name).toThrow(mismatch.error);
       expect(reader.getWorldState()).toBe(priorWorld);
       expect(reader.getRng()).toBe(priorRng);
+      expect(reader.getRng().getState()).toBe(priorRngState);
       expect(reader.getWorldState().stateSlices).toBe(priorSlices);
       expect(reader.exportLegacyState()).toEqual(priorLegacy);
       expect(readFileSync(join(saveDir, `${slotId}.json`), 'utf8')).toBe(bytes);
@@ -226,16 +228,58 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
 
   it('loads an arbitrary earlier tick under the same current pack version', () => {
     const repository = new FileSaveSlotRepository(saveDir);
-    const writer = coordinator(repository);
+    const key = defineStateSlice('plugin.earlier', 0, {
+      version: 2,
+      schema: z.number().int(),
+    });
+    const sliceRegistry = new StateSliceRegistry();
+    sliceRegistry.register(key);
+    const writer = coordinator(repository, undefined, sliceRegistry);
+    writer.getRng().nextUint32();
+    writer.dispatchEffects(
+      [
+        { type: 'set_state_slice', sliceId: key.id, value: 3 },
+        { type: 'set_discovery_layer', layer: 'theorized' },
+        {
+          type: 'record_legacy_scar',
+          scarId: 'scar_early',
+          ledger: 'material',
+          description: 'Earlier state',
+        },
+      ],
+      { advanceTick: true },
+    );
     const early = writer.saveToSlot('early');
-    const reader = coordinator(repository);
-    for (let tick = 0; tick < 12; tick += 1) {
+    const earlyBytes = readFileSync(join(saveDir, 'early.json'), 'utf8');
+    const reader = coordinator(repository, undefined, sliceRegistry);
+    reader.getRng().nextUint32();
+    reader.getRng().nextUint32();
+    reader.dispatchEffects(
+      [
+        { type: 'set_state_slice', sliceId: key.id, value: 9 },
+        { type: 'set_discovery_layer', layer: 'assayed' },
+        {
+          type: 'record_legacy_scar',
+          scarId: 'scar_late',
+          ledger: 'veil',
+          description: 'Later state',
+        },
+      ],
+      { advanceTick: true },
+    );
+    for (let tick = 1; tick < 12; tick += 1) {
       reader.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
         advanceTick: true,
       });
     }
     expect(reader.getWorldState().worldTick).toBe(12);
-    expect(reader.loadFromSlot('early').worldTick).toBe(early.worldTick);
+    const restored = reader.loadFromSlot('early');
+    expect(domain.encodeWorldState(restored)).toEqual(early.stateSlices[WORLD]);
+    expect(reader.getRng().getState()).toBe(early.rngState);
+    expect(restored.stateSlices.get(key)).toBe(3);
+    expect(restored.stateSlices.toVersionMap()).toEqual({ 'plugin.earlier': 2 });
+    expect(reader.exportLegacyState()).toEqual(writer.exportLegacyState());
+    expect(readFileSync(join(saveDir, 'early.json'), 'utf8')).toBe(earlyBytes);
     expect(reader.saveToSlot('resaved')).toMatchObject({
       packId: 'test_simulation',
       packVersion: 1,
@@ -437,6 +481,16 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
         },
         { name: 'epoch', snapshot: { ...current, epochId: 'wrong_epoch' }, error: /epochId/ },
         { name: 'tick', snapshot: { ...current, worldTick: 77 }, error: /worldTick/ },
+        {
+          name: 'future_version',
+          snapshot: { ...current, snapshotVersion: 3 },
+          error: /snapshotVersion/,
+        },
+        {
+          name: 'missing_version',
+          snapshot: { ...current, snapshotVersion: undefined },
+          error: /snapshotVersion/,
+        },
       ];
     for (const invalid of cases) {
       const slotId = `bad_${invalid.name}`;
@@ -453,10 +507,14 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
       });
       const priorWorld = reader.getWorldState();
       const priorRng = reader.getRng();
+      const priorRngState = priorRng.getState();
+      const priorSlices = priorWorld.stateSlices;
       const priorLegacy = reader.exportLegacyState();
       expect(() => reader.loadFromSlot(slotId), invalid.name).toThrow(invalid.error);
       expect(reader.getWorldState()).toBe(priorWorld);
       expect(reader.getRng()).toBe(priorRng);
+      expect(reader.getRng().getState()).toBe(priorRngState);
+      expect(reader.getWorldState().stateSlices).toBe(priorSlices);
       expect(reader.exportLegacyState()).toEqual(priorLegacy);
       expect(readFileSync(join(saveDir, `${slotId}.json`), 'utf8')).toBe(bytes);
       repository.saveSlot({ ...base, slotId });

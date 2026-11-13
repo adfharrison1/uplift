@@ -1,5 +1,5 @@
 schema_version: 1
-revision: 205
+revision: 218
 legacy_archives:
   - 2026-10-29-01-clean-scaffold-and-verify
   - 2026-11-05-01a-eslint-prettier-and-hooks
@@ -174,14 +174,59 @@ entries:
         description: The repository save completes before telemetry.record; a telemetry
           exception then obscures the persisted outcome.
     severity: minor
-    status: parked
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_adversarial
+          brief: G2/G4 malformed input, guarded HTTP and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_logic
+          brief: G1 state invariants and save/load publication
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
-    revisit_when: Before hx-save-integrity finalizes save completion and retry semantics.
-    parked_reason: The retry contract predates slice-store and belongs with the
-      planned save codec and persistence integrity work.
-    revision: 1
+    revisit_when: null
+    parked_reason: null
+    revision: 4
     history:
       - identity:
           id: HXSLICE-TELEM-SAVE-01
@@ -210,6 +255,183 @@ entries:
             semantics.
           parked_reason: The retry contract predates slice-store and belongs with the
             planned save codec and persistence integrity work.
+      - identity:
+          id: HXSLICE-TELEM-SAVE-01
+        sequence: 2
+        operation: transition
+        reason: Scope resumed by save-integrity delivery
+        before:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: parked
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: Before hx-save-integrity finalizes save completion and retry
+            semantics.
+          parked_reason: The retry contract predates slice-store and belongs with the
+            planned save codec and persistence integrity work.
+        after:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: HXSLICE-TELEM-SAVE-01
+        sequence: 3
+        operation: transition
+        reason: Committed fix and consumer evidence under review
+        before:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: HXSLICE-TELEM-SAVE-01
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Save telemetry failure can report failure after a slot has been
+            persisted
+          source:
+            - path: openspec/changes/hx-slice-store/task-6-1-reviews.md
+              anchor: P6-G4-02
+              description: Independent logic review and controller inspection identified the
+                persistence-before-telemetry ordering.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "public saveToSlot(slotId: string): SaveSlotEnvelope {"
+              description: The repository save completes before telemetry.record; a telemetry
+                exception then obscures the persisted outcome.
+          severity: minor
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_adversarial
+                brief: G2/G4 malformed input, guarded HTTP and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_logic
+                brief: G1 state invariants and save/load publication
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+          blocker: null
+          revisit_when: null
+          parked_reason: null
   - id: S3-03
     summary: Weak inner snapshot validation, no migration or pack mismatch check
     source:
@@ -233,13 +455,59 @@ entries:
           check. Exact source excerpts supersede earlier descriptive/imprecise
           code anchors; accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_adversarial
+          brief: G2/G4 malformed input, guarded HTTP and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_testing
+          brief: G6 delta scenarios and real consumer assertions
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-03
@@ -317,6 +585,182 @@ entries:
           status: open
           fixing_change: hx-save-integrity
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-03
+        sequence: 3
+        operation: transition
+        reason: Reviewed fix and consumer evidence ready for verification
+        before:
+          summary: Weak inner snapshot validation, no migration or pack mismatch check
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Weak inner snapshot validation, no migration or pack mismatch check
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: isSerializedWorldStateSnapshot/loadFromSlot
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Authoritative accepted provenance for S3-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L112: function isSerializedWorldStateSnapshot(value: unknown): value is
+                SerializedWorldStateSnapshot {"
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Weak inner snapshot validation, no migration or pack mismatch check
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Weak inner snapshot validation, no migration or pack mismatch check
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: isSerializedWorldStateSnapshot/loadFromSlot
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Authoritative accepted provenance for S3-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L112: function isSerializedWorldStateSnapshot(value: unknown): value is
+                SerializedWorldStateSnapshot {"
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-03
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Weak inner snapshot validation, no migration or pack mismatch check
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Weak inner snapshot validation, no migration or pack mismatch check
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: isSerializedWorldStateSnapshot/loadFromSlot
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Authoritative accepted provenance for S3-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L112: function isSerializedWorldStateSnapshot(value: unknown): value is
+                SerializedWorldStateSnapshot {"
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Weak inner snapshot validation, no migration or pack mismatch check
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Weak inner snapshot validation, no migration or pack mismatch check
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: isSerializedWorldStateSnapshot/loadFromSlot
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check; inspected against baseline 1c77ac7 without changing
+                runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-03
+              description: Authoritative accepted provenance for S3-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L112: function isSerializedWorldStateSnapshot(value: unknown): value is
+                SerializedWorldStateSnapshot {"
+              description: Weak inner snapshot validation, no migration or pack mismatch
+                check. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_adversarial
+                brief: G2/G4 malformed input, guarded HTTP and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_testing
+                brief: G6 delta scenarios and real consumer assertions
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -968,13 +1412,59 @@ entries:
           earlier descriptive/imprecise code anchors; accepted scope, status and
           owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_architecture
+          brief: Layer and spec adherence, registry and save identity
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_logic
+          brief: G1 state invariants and save/load publication
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-09-fields
@@ -1049,6 +1539,172 @@ entries:
           status: open
           fixing_change: hx-save-integrity
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-09-fields
+          parent_id: S3-09
+        sequence: 3
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Duplicated snapshot field lists
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09-fields
+              description: Duplicated snapshot field lists
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: SerializedWorldStateSnapshot/saveToSlot/loadFromSlot
+              description: Duplicated snapshot field lists; inspected against baseline 1c77ac7
+                without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09
+              description: Authoritative accepted provenance for S3-09-fields. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L95: interface SerializedWorldStateSnapshot {"
+              description: Duplicated snapshot field lists. Exact source excerpts supersede
+                earlier descriptive/imprecise code anchors; accepted scope,
+                status and owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Duplicated snapshot field lists
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09-fields
+              description: Duplicated snapshot field lists
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: SerializedWorldStateSnapshot/saveToSlot/loadFromSlot
+              description: Duplicated snapshot field lists; inspected against baseline 1c77ac7
+                without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09
+              description: Authoritative accepted provenance for S3-09-fields. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L95: interface SerializedWorldStateSnapshot {"
+              description: Duplicated snapshot field lists. Exact source excerpts supersede
+                earlier descriptive/imprecise code anchors; accepted scope,
+                status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-09-fields
+          parent_id: S3-09
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Duplicated snapshot field lists
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09-fields
+              description: Duplicated snapshot field lists
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: SerializedWorldStateSnapshot/saveToSlot/loadFromSlot
+              description: Duplicated snapshot field lists; inspected against baseline 1c77ac7
+                without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09
+              description: Authoritative accepted provenance for S3-09-fields. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L95: interface SerializedWorldStateSnapshot {"
+              description: Duplicated snapshot field lists. Exact source excerpts supersede
+                earlier descriptive/imprecise code anchors; accepted scope,
+                status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Duplicated snapshot field lists
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09-fields
+              description: Duplicated snapshot field lists
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: SerializedWorldStateSnapshot/saveToSlot/loadFromSlot
+              description: Duplicated snapshot field lists; inspected against baseline 1c77ac7
+                without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-09
+              description: Authoritative accepted provenance for S3-09-fields. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: src/application/simulation/SimulationCoordinator.ts
+              anchor: "L95: interface SerializedWorldStateSnapshot {"
+              description: Duplicated snapshot field lists. Exact source excerpts supersede
+                earlier descriptive/imprecise code anchors; accepted scope,
+                status and owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_architecture
+                brief: Layer and spec adherence, registry and save identity
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_logic
+                brief: G1 state invariants and save/load publication
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -2305,13 +2961,59 @@ entries:
           descriptive/imprecise code anchors; accepted scope, status and owner
           remain unchanged.
     severity: minor
-    status: open
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_adversarial
+          brief: G2/G4 malformed input, guarded HTTP and rollback
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_testing
+          brief: G6 delta scenarios and real consumer assertions
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S3-17-save
@@ -2396,6 +3098,188 @@ entries:
           status: open
           fixing_change: hx-save-integrity
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-17-save
+          parent_id: S3-17
+        sequence: 3
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Strengthened codec round-trip, corruption, schema, migration and pack
+            coverage
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-save
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: save/load tests exist; codec/schema/migration/pack cases outstanding
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage; inspected against baseline 1c77ac7 without
+                changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-save. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: minor
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Strengthened codec round-trip, corruption, schema, migration and pack
+            coverage
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-save
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: save/load tests exist; codec/schema/migration/pack cases outstanding
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage; inspected against baseline 1c77ac7 without
+                changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-save. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S3-17-save
+          parent_id: S3-17
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Strengthened codec round-trip, corruption, schema, migration and pack
+            coverage
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-save
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: save/load tests exist; codec/schema/migration/pack cases outstanding
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage; inspected against baseline 1c77ac7 without
+                changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-save. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: minor
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Strengthened codec round-trip, corruption, schema, migration and pack
+            coverage
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17-save
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: save/load tests exist; codec/schema/migration/pack cases outstanding
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage; inspected against baseline 1c77ac7 without
+                changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S3-17
+              description: Authoritative accepted provenance for S3-17-save. This
+                parent/finding anchor supersedes any earlier nonexistent
+                child-ID anchor in that source.
+            - path: tests/unit/application/SimulationCoordinator.test.ts
+              anchor: "L128: describe('SimulationCoordinator', () => {"
+              description: Strengthened codec round-trip, corruption, schema, migration and
+                pack coverage. Exact source excerpts supersede earlier
+                descriptive/imprecise code anchors; accepted scope, status and
+                owner remain unchanged.
+          severity: minor
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_adversarial
+                brief: G2/G4 malformed input, guarded HTTP and rollback
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_testing
+                brief: G6 delta scenarios and real consumer assertions
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -3491,13 +4375,59 @@ entries:
           excerpts supersede earlier descriptive/imprecise code anchors;
           accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_architecture
+          brief: Layer and spec adherence, registry and save identity
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_logic
+          brief: G1 state invariants and save/load publication
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S4-10
@@ -3570,6 +4500,170 @@ entries:
           status: open
           fixing_change: hx-save-integrity
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-10
+        sequence: 3
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Pack identity and composition are not modelled
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Pack identity and composition are not modelled
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: registerPack/pack identity not retained
+              description: Pack identity and composition are not modelled; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Authoritative accepted provenance for S4-10. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: "L57: public registerPack(pack: EpochModulePackInput): void {"
+              description: Pack identity and composition are not modelled. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Pack identity and composition are not modelled
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Pack identity and composition are not modelled
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: registerPack/pack identity not retained
+              description: Pack identity and composition are not modelled; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Authoritative accepted provenance for S4-10. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: "L57: public registerPack(pack: EpochModulePackInput): void {"
+              description: Pack identity and composition are not modelled. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S4-10
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Pack identity and composition are not modelled
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Pack identity and composition are not modelled
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: registerPack/pack identity not retained
+              description: Pack identity and composition are not modelled; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Authoritative accepted provenance for S4-10. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: "L57: public registerPack(pack: EpochModulePackInput): void {"
+              description: Pack identity and composition are not modelled. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Pack identity and composition are not modelled
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Pack identity and composition are not modelled
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: registerPack/pack identity not retained
+              description: Pack identity and composition are not modelled; inspected against
+                baseline 1c77ac7 without changing runtime behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S4-10
+              description: Authoritative accepted provenance for S4-10. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/domain/registries/EpochModuleRegistry.ts
+              anchor: "L57: public registerPack(pack: EpochModulePackInput): void {"
+              description: Pack identity and composition are not modelled. Exact source
+                excerpts supersede earlier descriptive/imprecise code anchors;
+                accepted scope, status and owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_architecture
+                brief: Layer and spec adherence, registry and save identity
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_logic
+                brief: G1 state invariants and save/load publication
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
           blocker: null
           revisit_when: null
           parked_reason: null
@@ -4306,13 +5400,59 @@ entries:
           Exact source excerpts supersede earlier descriptive/imprecise code
           anchors; accepted scope, status and owner remain unchanged.
     severity: major
-    status: open
+    status: verified
     fixing_change: hx-save-integrity
-    evidence: null
+    evidence:
+      fix_ref:
+        kind: change
+        change_id: hx-save-integrity
+        relative_path: task-4-1-evidence.md
+        sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      tests:
+        - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+            tests/unit/domain/EpochModuleRegistry.test.ts
+            tests/unit/domain/WorldStateCodec.test.ts
+            tests/unit/application/RenderFrameBuilder.test.ts
+            tests/unit/application/SimulationCoordinator
+            tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+            tests/unit/interfaces/BrowserSaveRepository.test.ts
+            tests/unit/interfaces/LocalDiskBridge.test.ts
+            tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+            tests/unit/content/StarterHoldStage.test.ts
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-scenario-matrix.md
+            sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+        - command: npm run verify (Node 24.22.2, loopback)
+          outcome: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-evidence.md
+            sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+      reviews:
+        - reviewer: /root/save_final3_testing
+          brief: G6 delta scenarios and real consumer assertions
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+        - reviewer: /root/save_final3_logic
+          brief: G1 state invariants and save/load publication
+          disposition: passed
+          locator:
+            kind: change
+            change_id: hx-save-integrity
+            relative_path: task-4-1-reviews.md
+            sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
     blocker: null
     revisit_when: null
     parked_reason: null
-    revision: 2
+    revision: 4
     history:
       - identity:
           id: S5-03
@@ -4388,6 +5528,174 @@ entries:
           status: open
           fixing_change: hx-save-integrity
           evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S5-03
+        sequence: 3
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Invalid semantic entity ID can throw during frame construction
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Invalid semantic entity ID can throw during frame construction
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: formatCharacterRootSemanticId during entity pose construction
+              description: Invalid semantic entity ID can throw during frame construction;
+                inspected against baseline 1c77ac7 without changing runtime
+                behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Authoritative accepted provenance for S5-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: "L699: semanticId: formatCharacterRootSemanticId(entity.entityId),"
+              description: Invalid semantic entity ID can throw during frame construction.
+                Exact source excerpts supersede earlier descriptive/imprecise
+                code anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: open
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Invalid semantic entity ID can throw during frame construction
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Invalid semantic entity ID can throw during frame construction
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: formatCharacterRootSemanticId during entity pose construction
+              description: Invalid semantic entity ID can throw during frame construction;
+                inspected against baseline 1c77ac7 without changing runtime
+                behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Authoritative accepted provenance for S5-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: "L699: semanticId: formatCharacterRootSemanticId(entity.entityId),"
+              description: Invalid semantic entity ID can throw during frame construction.
+                Exact source excerpts supersede earlier descriptive/imprecise
+                code anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+      - identity:
+          id: S5-03
+        sequence: 4
+        operation: transition
+        reason: Fix, consumer tests and independent reviews verified
+        before:
+          summary: Invalid semantic entity ID can throw during frame construction
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Invalid semantic entity ID can throw during frame construction
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: formatCharacterRootSemanticId during entity pose construction
+              description: Invalid semantic entity ID can throw during frame construction;
+                inspected against baseline 1c77ac7 without changing runtime
+                behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Authoritative accepted provenance for S5-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: "L699: semanticId: formatCharacterRootSemanticId(entity.entityId),"
+              description: Invalid semantic entity ID can throw during frame construction.
+                Exact source excerpts supersede earlier descriptive/imprecise
+                code anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: in_progress
+          fixing_change: hx-save-integrity
+          evidence: null
+          blocker: null
+          revisit_when: null
+          parked_reason: null
+        after:
+          summary: Invalid semantic entity ID can throw during frame construction
+          source:
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Invalid semantic entity ID can throw during frame construction
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: formatCharacterRootSemanticId during entity pose construction
+              description: Invalid semantic entity ID can throw during frame construction;
+                inspected against baseline 1c77ac7 without changing runtime
+                behavior.
+            - path: reviews/2026-11-08-root-and-branch/register.md
+              anchor: S5-03
+              description: Authoritative accepted provenance for S5-03. This parent/finding
+                anchor supersedes any earlier nonexistent child-ID anchor in
+                that source.
+            - path: src/application/rendering/RenderFrameBuilder.ts
+              anchor: "L699: semanticId: formatCharacterRootSemanticId(entity.entityId),"
+              description: Invalid semantic entity ID can throw during frame construction.
+                Exact source excerpts supersede earlier descriptive/imprecise
+                code anchors; accepted scope, status and owner remain unchanged.
+          severity: major
+          status: verified
+          fixing_change: hx-save-integrity
+          evidence:
+            fix_ref:
+              kind: change
+              change_id: hx-save-integrity
+              relative_path: task-4-1-evidence.md
+              sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            tests:
+              - command: npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts
+                  tests/unit/domain/EpochModuleRegistry.test.ts
+                  tests/unit/domain/WorldStateCodec.test.ts
+                  tests/unit/application/RenderFrameBuilder.test.ts
+                  tests/unit/application/SimulationCoordinator
+                  tests/unit/infrastructure/FileSaveSlotRepository.test.ts
+                  tests/unit/interfaces/BrowserSaveRepository.test.ts
+                  tests/unit/interfaces/LocalDiskBridge.test.ts
+                  tests/unit/interfaces/LocalDiskBridgeHttp/storage.test.ts
+                  tests/unit/content/StarterHoldStage.test.ts
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-scenario-matrix.md
+                  sha256: d1ea231fa7b23f2baaf1edd3719ae73ffe2017e7671a9998c28198a033a0b69f
+              - command: npm run verify (Node 24.22.2, loopback)
+                outcome: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-evidence.md
+                  sha256: 6bd2d678f7d02d7e02d4d766b42f124486902a9b7ff3505f3cd9ad61f0104155
+            reviews:
+              - reviewer: /root/save_final3_testing
+                brief: G6 delta scenarios and real consumer assertions
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
+              - reviewer: /root/save_final3_logic
+                brief: G1 state invariants and save/load publication
+                disposition: passed
+                locator:
+                  kind: change
+                  change_id: hx-save-integrity
+                  relative_path: task-4-1-reviews.md
+                  sha256: 2a2284efdc8c490292a1007cfa051b614b83d64f4f61ff15ddc9c1b74e5e64b0
           blocker: null
           revisit_when: null
           parked_reason: null
