@@ -131,6 +131,20 @@ const PropSnapshotSchema = z
   })
   .transform((prop) => ({ ...prop, state: copyPropState(prop.state) }));
 
+const PropsSnapshotSchema = z
+  .record(z.string(), PropSnapshotSchema)
+  .superRefine((props, context) => {
+    for (const [key, prop] of Object.entries(props)) {
+      if (key !== prop.propId) {
+        context.addIssue({
+          code: 'custom',
+          path: [key, 'propId'],
+          message: `Prop map key '${key}' does not match propId '${prop.propId}'`,
+        });
+      }
+    }
+  });
+
 const WorldFields = {
   epochId: NonEmptyString,
   worldTick: NonNegativeInteger,
@@ -146,7 +160,7 @@ const WorldFields = {
   }),
   cognitiveRoundRobinCursor: NonNegativeInteger,
   entities: EntitiesSnapshotSchema,
-  props: z.record(z.string(), PropSnapshotSchema),
+  props: PropsSnapshotSchema,
   pressureStocks: z.strictObject({
     subsistence_pressure: z.number().min(0).max(1),
     production_pressure: z.number().min(0).max(1),

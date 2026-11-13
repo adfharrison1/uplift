@@ -364,6 +364,61 @@ describe('SimulationCoordinator versioned world snapshots on disk', () => {
     }
   });
 
+  it('rejects a mismatched saved prop id before listing, load or replacement and updates a corrected prop', () => {
+    const repository = new FileSaveSlotRepository(saveDir);
+    const base = coordinator(repository).saveToSlot('base');
+    const snapshot = asRecord(base.stateSlices[WORLD]);
+    const props = asRecord(snapshot['props']);
+    const prop = asRecord(props['prop_gate']);
+    const invalidSlices = {
+      ...base.stateSlices,
+      [WORLD]: {
+        ...snapshot,
+        props: { ...props, prop_gate: { ...prop, propId: 'prop_alias' } },
+      },
+    };
+    writeFileSync(
+      join(saveDir, 'bad_prop.json'),
+      JSON.stringify({ ...base, slotId: 'bad_prop', stateSlices: invalidSlices }),
+    );
+    const invalidBytes = readFileSync(join(saveDir, 'bad_prop.json'), 'utf8');
+    const baseBytes = readFileSync(join(saveDir, 'base.json'), 'utf8');
+    expect(repository.listSlots().find((entry) => entry.slotId === 'bad_prop')).toEqual({
+      slotId: 'bad_prop',
+      readable: false,
+      reason: 'invalid_snapshot',
+    });
+
+    const reader = coordinator(repository);
+    reader.getRng().nextUint32();
+    reader.dispatchEffects([{ type: 'set_discovery_layer', layer: 'assayed' }], {
+      advanceTick: true,
+    });
+    const priorWorld = reader.getWorldState();
+    const priorRng = reader.getRng();
+    const priorRngState = priorRng.getState();
+    const priorLegacy = reader.exportLegacyState();
+    expect(() => reader.loadFromSlot('bad_prop')).toThrow(/prop_gate.*prop_alias/);
+    expect(reader.getWorldState()).toBe(priorWorld);
+    expect(reader.getWorldState().stateSlices).toBe(priorWorld.stateSlices);
+    expect(reader.getRng()).toBe(priorRng);
+    expect(reader.getRng().getState()).toBe(priorRngState);
+    expect(reader.exportLegacyState()).toEqual(priorLegacy);
+    expect(readFileSync(join(saveDir, 'bad_prop.json'), 'utf8')).toBe(invalidBytes);
+    expect(() => repository.saveSlot({ ...base, stateSlices: invalidSlices })).toThrow(
+      /invalid_snapshot/,
+    );
+    expect(readFileSync(join(saveDir, 'base.json'), 'utf8')).toBe(baseBytes);
+
+    repository.saveSlot({ ...base, slotId: 'bad_prop' });
+    reader.loadFromSlot('bad_prop');
+    reader.dispatchEffects([
+      { type: 'update_prop_state', propId: 'prop_gate', patch: { locked: true } },
+    ]);
+    expect(Object.keys(reader.getWorldState().props)).toEqual(['prop_gate']);
+    expect(reader.getWorldState().props['prop_gate']?.state).toEqual({ locked: true });
+  });
+
   it('rejects nested corruption and either inner/outer mismatch without publishing state or changing bytes, then retries', () => {
     const repository = new FileSaveSlotRepository(saveDir);
     const base = coordinator(repository).saveToSlot('base');

@@ -125,6 +125,21 @@ describe('WorldStateCodec', () => {
     expect(decode(snapshot)).toEqual(snapshot);
   });
 
+  it('rejects a prop map key that differs from its inner propId on encode and decode', () => {
+    const input = world();
+    const door = input.props['door'];
+    if (door === undefined) throw new Error('Missing fixture prop');
+    expect(() => encode({ ...input, props: { door: { ...door, propId: 'alias' } } })).toThrow(
+      /door.*alias/,
+    );
+    const snapshot = encode(input);
+    const savedDoor = record(record(snapshot['props'])['door']);
+    expect(() =>
+      decode({ ...snapshot, props: { door: { ...savedDoor, propId: 'alias' } } }),
+    ).toThrow(/door.*alias/);
+    expect(input.props['door']?.propId).toBe('door');
+  });
+
   it('rejects malformed loaded entity map keys, inner IDs and key/value disagreement', () => {
     const snapshot = encode(world());
     const entity = record(record(snapshot['entities'])['npc_alpha']);
