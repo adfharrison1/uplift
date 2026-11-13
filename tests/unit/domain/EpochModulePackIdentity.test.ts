@@ -28,6 +28,24 @@ function pack(
 }
 
 describe('EpochModuleRegistry pack identity', () => {
+  it('rejects padded epoch IDs before binding or importing and permits a corrected retry', () => {
+    const registry = new EpochModuleRegistry();
+    expect(() =>
+      registry.registerPack({ ...pack('primary', 'space_padded'), epochId: ' epoch_test ' }),
+    ).toThrow(/epochId/);
+    expect(registry.getPrimaryPackIdentity()).toBeUndefined();
+    expect(() => registry.getSpace('space_padded')).toThrow(/Unknown space/);
+
+    registry.registerPack(pack('primary', 'space_primary', [{ packId: 'cameo', packVersion: 1 }]));
+    expect(() =>
+      registry.registerPack({ ...pack('cameo', 'space_cameo_padded'), epochId: 'epoch_test ' }),
+    ).toThrow(/epochId/);
+    expect(() => registry.getSpace('space_cameo_padded')).toThrow(/Unknown space/);
+    registry.registerPack(pack('cameo', 'space_cameo'));
+    expect(registry.getSpace('space_cameo').id).toBe('space_cameo');
+    expect(registry.getPrimaryPackIdentity()?.epochId).toBe('epoch_test');
+  });
+
   it('retains the primary identity while registering a declared same-epoch cameo', () => {
     const registry = new EpochModuleRegistry();
     registry.registerPack(pack('primary', 'space_primary', [{ packId: 'cameo', packVersion: 1 }]));

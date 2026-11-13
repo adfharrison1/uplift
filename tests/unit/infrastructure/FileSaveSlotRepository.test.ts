@@ -56,6 +56,37 @@ describe('FileSaveSlotRepository and InMemorySaveSlotRepository', () => {
     ]);
   });
 
+  it('compares the raw outer epoch with the inner snapshot before listing, loading or replacing', () => {
+    const repo = new FileSaveSlotRepository(tempSavesDir);
+    const original = repo.saveSlot(
+      withSaveSnapshot({
+        slotId: 'replace',
+        epochId: 'epoch_test',
+        ...packIdentity,
+        worldTick: 0,
+        rngState: 42,
+        stateSlices: {},
+      }),
+    );
+    const originalBytes = readFileSync(join(tempSavesDir, 'replace.json'), 'utf8');
+    const padded = { ...original, slotId: 'padded', epochId: ' epoch_test ' };
+    writeFileSync(join(tempSavesDir, 'padded.json'), JSON.stringify(padded));
+    const paddedBytes = readFileSync(join(tempSavesDir, 'padded.json'), 'utf8');
+
+    expect(repo.listSlots().find((entry) => entry.slotId === 'padded')).toEqual({
+      slotId: 'padded',
+      readable: false,
+      reason: 'invalid_snapshot',
+    });
+    expect(() => repo.loadSlot('padded')).toThrow(/epochId.*mismatch/);
+    expect(readFileSync(join(tempSavesDir, 'padded.json'), 'utf8')).toBe(paddedBytes);
+    expect(() => repo.saveSlot({ ...original, epochId: ' epoch_test ' })).toThrow(
+      /invalid_snapshot/,
+    );
+    expect(readFileSync(join(tempSavesDir, 'replace.json'), 'utf8')).toBe(originalBytes);
+    expect(repo.loadSlot('replace')).toEqual(original);
+  });
+
   it.each(['EIO', 'EACCES'] as const)(
     'propagates %s listing read faults without diagnosing valid bytes as corrupt',
     (code) => {

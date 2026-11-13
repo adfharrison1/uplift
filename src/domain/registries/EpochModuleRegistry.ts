@@ -83,8 +83,8 @@ export class EpochModuleRegistry {
     const packId = pack.packId;
     const packVersion = pack.packVersion;
     const imports = pack.imports;
-    if (typeof epochId !== 'string' || epochId.trim().length === 0) {
-      throw new Error('EpochModulePackInput.epochId must be a non-empty string');
+    if (typeof epochId !== 'string' || epochId.trim().length === 0 || epochId !== epochId.trim()) {
+      throw new Error('EpochModulePackInput.epochId must be a non-empty unpadded string');
     }
     this.assertPackIdentity(packId, packVersion);
     if (!Array.isArray(imports)) {

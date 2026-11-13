@@ -1,0 +1,24 @@
+# Task 3.3 evidence — exact epoch identity at save boundaries
+
+Status: implemented and independently reviewed in the default checkout; owner commit approval remains pending. Task 3.2 was committed as `52c4271`, and its post-commit checkbox is included in this task's diff. The closing scenario matrix is separate, uncommitted Task 4.1 work.
+
+## Scope and observed checks
+
+Two domain source files changed. `EpochModuleRegistry.ts` rejects padded primary and cameo epoch IDs before binding. `SaveSlotRepositoryPort.ts` validates nonblank outer epoch IDs without transforming them, so structural inspection compares their exact value with the inner snapshot. The repository still reports a snapshot mismatch before identity-context reasons, and failed direct replacement leaves old bytes intact. Paired domain README/AGENTS and the debug skill now describe the shipped identity and listing behavior.
+
+Test-first run: two new tests failed as expected (**2 failed, 25 passed**) because the registry accepted a padded epoch and file listing treated a raw outer/inner mismatch as readable. The corrected focused command, `npx vitest run tests/unit/domain/EpochModulePackIdentity.test.ts tests/unit/infrastructure/FileSaveSlotRepository.test.ts tests/unit/application/SimulationCoordinator/save-codec.test.ts`, passed **36/36 in three files**. Its first green attempt exposed only an over-specific test expectation for the load versus direct-write error wording; both assertions now check their consumer's actual diagnostic category. The final pinned-Node, loopback-enabled `npm run verify` passed format **5,755 ms**, lint **4,674 ms**, typecheck **1,138 ms** and tests **20,961 ms** while strict validation and reconciliation ran alongside it. An earlier standalone pass measured **2,003 / 1,622 / 1,048 / 17,174 ms** respectively. Strict OpenSpec validation passed; defect reconciliation passed with **49 active, 30 resolved**. `git diff --check` passed. The 2019 Intel reference Mac was not measured.
+
+## Task-scoped G1–G6
+
+| Gate | Result and limit |
+| --- | --- |
+| G1 Consumer trace | Authored primary/cameo pack → registry binding → coordinator-compatible identity, with rejected input leaving a usable registry. Raw disk envelope → shared repository inspection → codec comparison → `listSlots` unreadable reason and `loadSlot` rejection; direct save rejects before replacement. Both paths have named consumer tests. |
+| G2 Trust boundary | Untrusted outer epoch bytes are retained through structural parsing, rather than silently normalized before inner/outer comparison. Blank IDs reject; padded registry IDs reject before publishing content. Existing path and HTTP guards remain in force. |
+| G3 Hot-path cost | The new string checks occur during registration or explicit save/load/list, not on a frame. The closing performance review is examining full-snapshot copy cost; no reference-Mac or 60 FPS measurement is claimed. |
+| G4 Failure containment | Invalid primary/import pack attempts preserve blueprint maps and allow corrected registration. Raw-file listing remains readable only for valid structure; rejected load and direct replacement preserve prior slot bytes, and a valid slot remains loadable. |
+| G5 Finding disposition | Final-review `F41-A1` (raw outer epoch normalization) and `F41-R1` (padded registry epoch) are fixed and independently checked by [both task reviewers](task-3-3-reviews.md). `F41-R0` (stale debug guidance) is corrected here. Task-review `T3.3-R1` corrected premature evidence wording. `F41-A2` (`-0` sign) retains the earlier accepted plain-JSON equivalence rationale: JSON stores numeric zero as `0`, with no IEEE sign preservation promise. No ledger transition is claimed before final closing evidence. |
+| G6 Scenario traceability | The new registry test covers primary and cameo rejection/rollback/retry. The new file repository test covers raw-file classification, load rejection, direct replacement and byte preservation. Existing coordinator and HTTP consumers remain in full verification; the change-wide 28-scenario matrix will be finalized in Task 4.1. |
+
+## Document integrity
+
+The domain README and AGENTS now state exact epoch handling where the shipped contracts live. The debug skill's save paragraph now matches schema 2, structural validation and unreadable-slot listing. No owner wording, exemplar, historical review, inbox entry or document block was cut or moved. The DESIGN_NOTES status index stays partial, Where-facts-live still assigns save policy there, the roadmap row retains this change's order, and the disposition rows remain unchanged because this correction changes no design decision. Word counts before → after: domain README **1,115 → 1,132**; domain AGENTS **1,047 → 1,063**; debug skill **946 → 997**. Independent fidelity/coherence review remains the task checkpoint.

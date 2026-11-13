@@ -26,9 +26,9 @@ Verification enforces structural boundaries and exercises behavior; it does not 
 
 Preserve the exact schema vocabularies and orbital reducer rules recorded in this section's README. Distinguish data acceptance and callable reducer behavior from a content pack or gameplay consumer; do not remove working reducer contracts when correcting planned-feature claims.
 
-An `EpochModulePackInput` needs a nonempty unpadded `packId`, positive integer `packVersion` and explicit versioned `imports`. Bind an empty registry through the primary pack; import only declared identity/version pairs for that same target epoch. Treat imported pack declarations as data, never as authority to extend the primary import list. Public direct registration remains available only before binding; a failed pack transaction must restore all blueprints and leave identity unchanged. `getPrimaryPackIdentity()` supplies the coordinator's save identity.
+An `EpochModulePackInput` needs a nonempty unpadded epoch ID and `packId`, positive integer `packVersion` and explicit versioned `imports`. Bind an empty registry through the primary pack; import only declared identity/version pairs for that same target epoch. Treat imported pack declarations as data, never as authority to extend the primary import list. Public direct registration remains available only before binding; a failed pack transaction must restore all blueprints and leave identity unchanged. `getPrimaryPackIdentity()` supplies the coordinator's save identity.
 
-Schema-2 saves require pack ID/version; reject old or identity-free envelopes. `listSlots(expectedIdentity?)` returns inline structural readable/unreadable results with redacted reasons; check snapshot, slice and legacy structure on save/load/list, leaving registered-slice compatibility to coordinator load. Current envelopes may carry synthetic inner v1 snapshots.
+Schema-2 saves require pack ID/version; reject old or identity-free envelopes. `listSlots(expectedIdentity?)` returns inline structural readable/unreadable results with redacted reasons; check snapshot, slice and legacy structure on save/load/list, comparing the raw outer epoch ID with the inner snapshot before publication. Registered-slice compatibility remains a coordinator load check. Current envelopes may carry synthetic inner v1 snapshots.
 
 ## World snapshot boundary
 
