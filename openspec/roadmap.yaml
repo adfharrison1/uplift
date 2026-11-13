@@ -222,6 +222,11 @@ entries:
     specs_modified:
       - deterministic-simulation-primitives
     status: archived
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: hx-slice-store
+      relative_path: defect-resolution.yaml
     scope: Adds tests/support makeRegistry, makeWorldState and makeStageBlueprint,
       splits the monolithic tests onto them, refactors and extends the existing
       bridge tests, and carries the S3-17 acceptance lines (caps, mid-hop
@@ -232,11 +237,6 @@ entries:
       invariant tests guard these contracts. StateSliceKey gains optional
       schema/version/migrate and a plain-JSON guard so Map and Set cannot enter
       a slice.
-    archive_protocol: v1
-    archive_receipt:
-      kind: change
-      change_id: hx-slice-store
-      relative_path: defect-resolution.yaml
   - id: hx-save-integrity
     title: "Hardening 4: WorldStateCodec, pack identity, id pattern"
     milestone: M1
@@ -245,7 +245,7 @@ entries:
     specs_modified:
       - multi-session-saves-and-debug-skill
       - modular-epoch-registries
-    status: planned
+    status: archived
     scope: WorldStateCodec with snapshotVersion, Zod load and a migrations chain
       replaces the four copies of the world-state field list (the S3-09
       field-list half), with a save round-trip scenario. packId/version go on
@@ -255,6 +255,11 @@ entries:
       at materialize stops a bad id throwing in the render loop, and listSlots
       reports why a slot is unreadable. This is the cheapest migration to get
       wrong, so each of the three parts is its own task with a round-trip test.
+    archive_protocol: v1
+    archive_receipt:
+      kind: change
+      change_id: hx-save-integrity
+      relative_path: defect-resolution.yaml
   - id: hx-reducer-and-frame-safety
     title: "Hardening 5: reducer outcomes, pause bit, frame guard"
     milestone: M1
